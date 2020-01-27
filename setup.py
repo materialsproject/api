@@ -22,7 +22,7 @@ setup(
     packages=find_packages("src"),
     package_dir={"": "src"},
     zip_safe=False,
-    install_requires=["setuptools", "pydantic>=1.3" "fastapi>=0.46.0"],
+    install_requires=["setuptools", "pydantic>=1.3" "fastapi>=0.46.0","pymatgen>=2020.1.10"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
