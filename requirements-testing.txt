@@ -1,4 +1,6 @@
 pre-commit==1.20.0
+pytest==5.3.2
+pytest-cov==2.8.1
 pycodestyle==2.5.0
 flake8==3.7.9
 mypy==0.761
