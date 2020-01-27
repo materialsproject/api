@@ -70,7 +70,7 @@ jobs:
     - name: Test with pytest
       run: |
         pip install -e .
-        pytest --cov=maggma --cov-report=xml
+        pytest --cov=mp_api --cov-report=xml
     - uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
