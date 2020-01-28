@@ -24,7 +24,8 @@ setup(
     zip_safe=False,
     install_requires=[
         "setuptools",
-        "pydantic>=1.3" "fastapi>=0.46.0",
+        "pydantic>=1.3",
+        "fastapi>=0.46.0",
         "pymatgen>=2020.1.10",
         "maggma>=0.16.1",
     ],
