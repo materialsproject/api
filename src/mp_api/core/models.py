@@ -39,14 +39,9 @@ class Specie(BaseModel):
     properties: Optional[Dict] = Field(..., title="Species Properties")
 
 
-class Composition(BaseModel):
-    """
-    Represents a Composition, which is essentially a {element:amount} mapping
-    type. Composition is written to be immutable and hashable,
-    unlike a standard Python dict.
-    """
 
-    __root__ = Dict[Element, float]
+
+Composition = Dict[Element, float]
 
 
 class SiteSpecie(Specie):
