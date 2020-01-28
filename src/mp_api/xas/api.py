@@ -58,6 +58,10 @@ def get_router(store: Store):
         chemsys: str = Query(
             None, title="Chemical System", description="Chemical system to search in"
         ),
+        skip: PositiveInt = Query(0, title="number of search results to skip"),
+        limit: PositiveInt = Query(
+            10, title="Number of search results to return. This is limited to 500"
+        ),
     ):
         store.connect()
         query = {
@@ -76,13 +80,16 @@ def get_router(store: Store):
 
         query = {k: str(v) for k, v in query.items() if v}
 
+        if int(limit) > 500:
+            limit = 500
+
         to_return = [
             XASSearchResponse(
                 task_id=d["task_id"],
                 edge=d["edge"],
                 absorbing_element=d["absorbing_element"],
             )
-            for d in store.query(criteria=query)
+            for d in store.query(criteria=query, skip=skip, limit=limit)
         ]
 
         return to_return
