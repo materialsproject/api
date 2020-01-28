@@ -40,7 +40,7 @@ def get_router(store: Store):
         return to_return
 
     @router.get(
-        "/search", response_model=XASSearchResponse, summary="Find XAS Documents"
+        "/search", response_model=List[XASSearchResponse], summary="Find XAS Documents"
     )
     async def has_xas(
         edge: Edge = Query(None, title="XAS Edge"),
