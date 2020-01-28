@@ -42,7 +42,7 @@ class XASSpectrum(BaseModel):
     x: List[float] = Field(..., title="X-ray energy")
     y: List[float] = Field(..., title="Absorption (Arbitrary Units)")
     structure: Optional[Structure] = Field(None, title="Structure")
-    absorption_specie: Optional[Element] = Field(..., title="Absoring Element")
+    absorbing_element: Optional[Element] = Field(..., title="Absoring Element")
     edge: Edge = Field(
         ..., title="Absorption Edge", description="The interaction edge for XAS"
     )
@@ -54,7 +54,7 @@ class XASDoc(BaseModel):
     edge: Edge = Field(
         ..., title="Absorption Edge", description="The interaction edge for XAS"
     )
-    absorption_specieis: Element = Field(..., title="Absoring Element")
+    absorbing_element: Element = Field(..., title="Absoring Element")
 
     xas_ids: List[str] = Field(
         ...,
@@ -95,3 +95,18 @@ class XASDoc(BaseModel):
         ...,
         description="timestamp for the most recent calculation for this XAS spectrum",
     )
+
+
+class XASSearchResponse(BaseModel):
+    """
+    Unique index for XAS spectra by searching
+    """ 
+    task_id: str = Field(
+        ...,
+        title="Task ID",
+        description="The task ID for the material this spectrum corresponds to",
+    )
+    edge: Edge = Field(
+        ..., title="Absorption Edge", description="The interaction edge for XAS"
+    )
+    absorbing_element: Element = Field(..., title="Absoring Element")
