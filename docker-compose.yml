@@ -1,0 +1,14 @@
+version: '2.2'
+
+services:
+
+    api:
+        cpus: 2
+        mem_limit: 4G
+        mem_reservation: 600m
+        build: .
+        command: gunicorn -b 0.0.0.0:5001 -k uvicorn.workers.UvicornWorker -w 2 --access-logfile - --log-level debug --reload app:app
+        volumes:
+            - .:/app
+        ports:
+            - "5001:5001"
