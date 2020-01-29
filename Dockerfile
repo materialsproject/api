@@ -26,6 +26,7 @@ RUN set -ex \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $BUILD_DEPS \
     && rm -rf /var/lib/apt/lists/*
 
+ENV SETUPTOOLS_SCM_PRETEND_VERSION dev
 EXPOSE 5001
 ENV PYTHONUNBUFFERED 1
 ENV PATH="/venv/bin:${PATH}"
