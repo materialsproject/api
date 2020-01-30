@@ -1,4 +1,3 @@
-from pydantic import PositiveInt
 from fastapi import Query, APIRouter
 from pymatgen import Element
 from mp_api.xas.models import XASDoc, Edge, XASSearchResponse
@@ -16,8 +15,8 @@ def get_router(store: Store):
         edge: Edge = Query(None, title="XAS Edge"),
         # xas_type: XASType = Query(None, title="XAS Spectrum Type", alias="type"),
         absorbing_element: Element = Query(None, title="Absorbing Element"),
-        skip: PositiveInt = Query(0, title="number of XAS spectra to skip"),
-        limit: PositiveInt = Query(
+        skip: int = Query(0, title="number of XAS spectra to skip"),
+        limit: int = Query(
             10, title="Number of XAS spectra to return. This is limited to 500"
         ),
     ):
@@ -58,15 +57,15 @@ def get_router(store: Store):
         chemsys: str = Query(
             None, title="Chemical System", description="Chemical system to search in"
         ),
-        skip: PositiveInt = Query(0, title="number of search results to skip"),
-        limit: PositiveInt = Query(
+        skip: int = Query(0, title="number of search results to skip"),
+        limit: int = Query(
             10, title="Number of search results to return. This is limited to 500"
         ),
     ):
         store.connect()
         query = {
             "edge": edge.value if edge else None,
-            "absorption_element": absorbing_element,
+            "absorbing_element": absorbing_element,
             "chemsys": chemsys,
             "elements": {"$all": elements} if elements else None,
         }
@@ -117,7 +116,7 @@ def get_router(store: Store):
         store.connect()
         query = {
             "edge": edge.value if edge else None,
-            "absorption_element": absorbing_element,
+            "absorbing_element": absorbing_element,
             "chemsys": chemsys,
             "elements": {"$all": elements} if elements else None,
         }
@@ -155,9 +154,10 @@ def get_router(store: Store):
             None, title="Chemical System", description="Chemical system to search in"
         ),
     ):
+        store.connect()
         query = {
             "edge": edge.value if edge else None,
-            "absorption_element": str(absorbing_element) if absorbing_element else None,
+            "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "chemsys": chemsys,
             "elements": {"$all": [str(e) for e in elements]} if elements else None,
         }
