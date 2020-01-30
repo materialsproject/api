@@ -12,21 +12,23 @@ class XASRESTer(RESTer):
         required_elements: Optional[List[Element]] = None,
     ):
 
-        query_string = ""
-        query_string += f"edge={edge.value}," if edge else ""
-        query_string += (
-            f"absorbing_element={str(absorbing_element)}," if absorbing_element else ""
-        )
-        query_string += (
-            ",".join([f"elements={str(el)}" for el in required_elements])
-            if required_elements
-            else ""
-        )
+        query_params = []
+        if edge:
+            query_params.append(f"edge={edge.value}")
+
+        if absorbing_element:
+            query_params.append(f"absorbing_element={str(absorbing_element)}")
+        if required_elements:
+            query_params.append(
+                "&".join([f"elements={str(el)}" for el in required_elements])
+            )
+
+        query_string = "&".join(query_params)
 
         url = (
-            f"/xas/elements?{query_string}"
+            f"/elements?{query_string}"
             if len(query_string) > 0
-            else "/xas/elements"
+            else "/elements"
         )
 
         data = self._make_request(url)
