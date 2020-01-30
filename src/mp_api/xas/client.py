@@ -25,18 +25,13 @@ class XASRESTer(RESTer):
 
         query_string = "&".join(query_params)
 
-        url = (
-            f"/elements?{query_string}"
-            if len(query_string) > 0
-            else "/elements"
-        )
+        url = f"elements?{query_string}" if len(query_string) > 0 else "/elements"
 
-        data = self._make_request(url)
+        return self._make_request(url)
 
     def get_xas_doc(self, task_id: str, edge: Edge, absorbing_element: Element):
 
-        query_string = f"/?task_id=f{task_id}&edge={edge.value}&absorbing_element={str(absorbing_element)}"
+        query_string = f"?task_id={task_id}&edge={edge.value}&absorbing_element={str(absorbing_element)}"
 
-        url = f"/{query_string}"
-        return self._make_request(url)
+        return self._make_request(query_string)
 
