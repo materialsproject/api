@@ -1,4 +1,3 @@
-from pydantic import PositiveInt
 from fastapi import Query, APIRouter
 from pymatgen import Element
 from mp_api.xas.models import XASDoc, Edge, XASSearchResponse
