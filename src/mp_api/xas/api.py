@@ -155,6 +155,7 @@ def get_router(store: Store):
             None, title="Chemical System", description="Chemical system to search in"
         ),
     ):
+        store.connect()
         query = {
             "edge": edge.value if edge else None,
             "absorbing_element": str(absorbing_element) if absorbing_element else None,
