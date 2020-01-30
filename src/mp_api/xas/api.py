@@ -16,8 +16,8 @@ def get_router(store: Store):
         edge: Edge = Query(None, title="XAS Edge"),
         # xas_type: XASType = Query(None, title="XAS Spectrum Type", alias="type"),
         absorbing_element: Element = Query(None, title="Absorbing Element"),
-        skip: PositiveInt = Query(0, title="number of XAS spectra to skip"),
-        limit: PositiveInt = Query(
+        skip: int = Query(0, title="number of XAS spectra to skip"),
+        limit: int = Query(
             10, title="Number of XAS spectra to return. This is limited to 500"
         ),
     ):
@@ -58,8 +58,8 @@ def get_router(store: Store):
         chemsys: str = Query(
             None, title="Chemical System", description="Chemical system to search in"
         ),
-        skip: PositiveInt = Query(0, title="number of search results to skip"),
-        limit: PositiveInt = Query(
+        skip: int = Query(0, title="number of search results to skip"),
+        limit: int = Query(
             10, title="Number of search results to return. This is limited to 500"
         ),
     ):
