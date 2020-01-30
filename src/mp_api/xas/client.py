@@ -42,8 +42,8 @@ class XASRESTer(RESTer):
         required_elements: Optional[List[Element]] = None,
         formula: Optional[str] = None,
         chemsys: Optional[str] = None,
-        skip: Optional[PositiveInt] = 0,
-        limit: Optional[PositiveInt] = 10,
+        skip: Optional[int] = 0,
+        limit: Optional[int] = 10,
     ):
         query_params = {
             "edge": f"{edge.value}" if edge else None,
@@ -64,4 +64,34 @@ class XASRESTer(RESTer):
         query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
 
         return self._make_request(f"search?{query_string}")
+
+    def count_xas_docs(
+        self,
+        edge: Optional[Edge] = None,
+        absorbing_element: Optional[Element] = None,
+        required_elements: Optional[List[Element]] = None,
+        formula: Optional[str] = None,
+        chemsys: Optional[str] = None,
+        skip: Optional[int] = 0,
+        limit: Optional[int] = 10,
+    ):
+        query_params = {
+            "edge": f"{edge.value}" if edge else None,
+            "absorbing_element": f"{str(absorbing_element)}"
+            if absorbing_element
+            else None,
+            "elements": "&".join([f"elements={str(el)}" for el in required_elements])
+            if required_elements
+            else None,
+            "formula": formula,
+            "chemsys": chemsys,
+            "skip": skip,
+            "limit": limit,
+        }
+
+        query_params = {k: v for k, v in query_params.items() if v is not None}
+
+        query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
+
+        return self._make_request(f"count?{query_string}")
 
