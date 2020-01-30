@@ -33,5 +33,10 @@ class XASRESTer(RESTer):
 
         data = self._make_request(url)
 
-        return data
+    def get_xas_doc(self, task_id: str, edge: Edge, absorbing_element: Element):
+
+        query_string = f"/?task_id=f{task_id}&edge={edge.value}&absorbing_element={str(absorbing_element)}"
+
+        url = f"/{query_string}"
+        return self._make_request(url)
 
