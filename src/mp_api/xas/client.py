@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, PositiveInt
 from pymatgen import Element
 from mp_api.core.client import RESTer
 from mp_api.xas.models import Edge
