@@ -66,7 +66,7 @@ def get_router(store: Store):
         store.connect()
         query = {
             "edge": edge.value if edge else None,
-            "absorption_element": absorbing_element,
+            "absorbing_element": absorbing_element,
             "chemsys": chemsys,
             "elements": {"$all": elements} if elements else None,
         }
@@ -117,7 +117,7 @@ def get_router(store: Store):
         store.connect()
         query = {
             "edge": edge.value if edge else None,
-            "absorption_element": absorbing_element,
+            "absorbing_element": absorbing_element,
             "chemsys": chemsys,
             "elements": {"$all": elements} if elements else None,
         }
@@ -157,7 +157,7 @@ def get_router(store: Store):
     ):
         query = {
             "edge": edge.value if edge else None,
-            "absorption_element": str(absorbing_element) if absorbing_element else None,
+            "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "chemsys": chemsys,
             "elements": {"$all": [str(e) for e in elements]} if elements else None,
         }
