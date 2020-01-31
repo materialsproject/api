@@ -100,12 +100,14 @@ class XASDoc(BaseModel):
 class XASSearchResponse(BaseModel):
     """
     Unique index for XAS spectra by searching
-    """ 
+    """
+
     task_id: str = Field(
         ...,
         title="Task ID",
         description="The task ID for the material this spectrum corresponds to",
     )
+    formula_pretty: str = Field(..., description="Pretty Formula for the material")
     edge: Edge = Field(
         ..., title="Absorption Edge", description="The interaction edge for XAS"
     )
