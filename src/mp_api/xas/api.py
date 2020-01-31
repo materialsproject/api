@@ -87,6 +87,8 @@ def get_router(store: Store):
                 task_id=d["task_id"],
                 edge=d["edge"],
                 absorbing_element=d["absorbing_element"],
+                formula_pretty=d["formula_pretty"],
+            )
             )
             for d in store.query(criteria=query, skip=skip, limit=limit)
         ]
