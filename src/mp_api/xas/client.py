@@ -50,9 +50,6 @@ class XASRESTer(RESTer):
             "absorbing_element": f"{str(absorbing_element)}"
             if absorbing_element
             else None,
-            "elements": "&".join([f"elements={str(el)}" for el in required_elements])
-            if required_elements
-            else None,
             "formula": formula,
             "chemsys": chemsys,
             "skip": skip,
@@ -62,6 +59,11 @@ class XASRESTer(RESTer):
         query_params = {k: v for k, v in query_params.items() if v is not None}
 
         query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
+
+        if required_elements:
+            query_string += "&".join(
+                [f"elements={str(el)}" for el in required_elements]
+            )
 
         return self._make_request(f"search?{query_string}")
 
@@ -80,9 +82,6 @@ class XASRESTer(RESTer):
             "absorbing_element": f"{str(absorbing_element)}"
             if absorbing_element
             else None,
-            "elements": "&".join([f"elements={str(el)}" for el in required_elements])
-            if required_elements
-            else None,
             "formula": formula,
             "chemsys": chemsys,
             "skip": skip,
@@ -92,6 +91,11 @@ class XASRESTer(RESTer):
         query_params = {k: v for k, v in query_params.items() if v is not None}
 
         query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
+
+        if required_elements:
+            query_string += "&".join(
+                [f"elements={str(el)}" for el in required_elements]
+            )
 
         return self._make_request(f"count?{query_string}")
 
