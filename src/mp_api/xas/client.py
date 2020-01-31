@@ -61,9 +61,10 @@ class XASRESTer(RESTer):
         query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
 
         if required_elements:
-            query_string += "&".join(
+            elements_query = "&".join(
                 [f"elements={str(el)}" for el in required_elements]
             )
+            query_string += f"&{elements_query}"
 
         return self._make_request(f"search?{query_string}")
 
@@ -89,9 +90,10 @@ class XASRESTer(RESTer):
         query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
 
         if required_elements:
-            query_string += "&".join(
+            elements_query = "&".join(
                 [f"elements={str(el)}" for el in required_elements]
             )
+            query_string += f"&{elements_query}"
 
         return self._make_request(f"count?{query_string}")
 
