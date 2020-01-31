@@ -16,13 +16,14 @@ class RESTer:
     Base client class with core stubs
     """
 
-    def __init__(self, endpoint):
+    def __init__(self, endpoint, debug=True):
         """
         Arguments:
             endpoint: URL for the base endpoint to access
         """
 
         self.endpoint = endpoint
+        self.debug = debug
 
         self.session = requests.Session()
 
@@ -48,6 +49,8 @@ class RESTer:
         """
         response = None
         url = self.endpoint + sub_url
+        if self.debug:
+            print(f"URL: {url}")
         try:
             response = self.session.get(url, verify=True)
             if response.status_code in [200, 400]:
