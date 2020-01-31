@@ -1,4 +1,5 @@
 from typing import List, Optional
+from pydantic import PositiveInt
 from pymatgen import Element
 from mp_api.core.client import RESTer
 from mp_api.xas.models import Edge
