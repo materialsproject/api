@@ -179,8 +179,6 @@ def get_router(store: Store):
 
         return store.distinct("elements", criteria=query)
 
-    return router
-
     @router.get(
         "/heartbeat",
         response_model=str,
@@ -188,6 +186,8 @@ def get_router(store: Store):
     )
     async def hearbeat():
         return "OK"
+
+    return router
 
 
 # Use environvariables
