@@ -181,6 +181,14 @@ def get_router(store: Store):
 
     return router
 
+    @router.get(
+        "/heartbeat",
+        response_model=str,
+        summary="Heart beat endpoint that should return 'OK'",
+    )
+    async def hearbeat():
+        return "OK"
+
 
 # Use environvariables
 # mongodb URL  - provided by environment
