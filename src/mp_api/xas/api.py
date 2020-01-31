@@ -67,7 +67,7 @@ def get_router(store: Store):
             "edge": edge.value if edge else None,
             "absorbing_element": absorbing_element,
             "chemsys": chemsys,
-            "elements": {"$all": elements} if elements else None,
+            "elements": {"$all": [str(e) for e in elements]} if elements else None,
         }
 
         if formula:
@@ -124,7 +124,7 @@ def get_router(store: Store):
             "edge": edge.value if edge else None,
             "absorbing_element": absorbing_element,
             "chemsys": chemsys,
-            "elements": {"$all": elements} if elements else None,
+            "elements": {"$all": [str(e) for e in elements]} if elements else None,
         }
 
         if formula:
