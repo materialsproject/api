@@ -74,8 +74,6 @@ class XASRESTer(RESTer):
         required_elements: Optional[List[Element]] = None,
         formula: Optional[str] = None,
         chemsys: Optional[str] = None,
-        skip: Optional[int] = 0,
-        limit: Optional[int] = 10,
     ):
         query_params = {
             "edge": f"{edge.value}" if edge else None,
@@ -84,8 +82,6 @@ class XASRESTer(RESTer):
             else None,
             "formula": formula,
             "chemsys": chemsys,
-            "skip": skip,
-            "limit": limit,
         }
 
         query_params = {k: v for k, v in query_params.items() if v is not None}
