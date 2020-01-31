@@ -65,7 +65,7 @@ def get_router(store: Store):
         store.connect()
         query = {
             "edge": edge.value if edge else None,
-            "absorbing_element": absorbing_element,
+            "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "chemsys": chemsys,
             "elements": {"$all": [str(e) for e in elements]} if elements else None,
         }
@@ -77,11 +77,12 @@ def get_router(store: Store):
                 print(e)
                 # Return HTTP error?
 
-        query = {k: str(v) for k, v in query.items() if v}
+        query = {k: v for k, v in query.items() if v}
 
         if int(limit) > 500:
             limit = 500
 
+        print(query)
         to_return = [
             XASSearchResponse(
                 task_id=d["task_id"],
@@ -122,7 +123,7 @@ def get_router(store: Store):
         store.connect()
         query = {
             "edge": edge.value if edge else None,
-            "absorbing_element": absorbing_element,
+            "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "chemsys": chemsys,
             "elements": {"$all": [str(e) for e in elements]} if elements else None,
         }
@@ -134,7 +135,7 @@ def get_router(store: Store):
                 print(e)
                 # Return HTTP error?
 
-        query = {k: str(v) for k, v in query.items() if v}
+        query = {k: v for k, v in query.items() if v}
 
         return store.count(query)
 
