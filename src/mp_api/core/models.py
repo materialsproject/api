@@ -39,8 +39,6 @@ class Specie(BaseModel):
     properties: Optional[Dict] = Field(..., title="Species Properties")
 
 
-
-
 Composition = Dict[Element, float]
 
 
