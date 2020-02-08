@@ -36,4 +36,4 @@ WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir -e .
 
-CMD ["gunicorn", "-b", "0.0.0.0:5001", "-k", "uvicorn.workers.UvicornWorker", "-w", "$NUM_WORKERS", "--access-logfile", "-", "app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5001", "-k", "uvicorn.workers.UvicornWorker", "-w", 2, "--access-logfile", "-", "app:app"]
