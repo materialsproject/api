@@ -7,7 +7,7 @@ from fastapi import Query
 STORE_PARAMS = Dict[Literal["criteria", "properties", "skip", "limit"], Any]
 
 
-def PaginationParamsFactory(
+def pagination_params_factory(
     default_skip: int = 0, default_limit: int = 10, max_limit: int = 100
 ) -> Callable[..., STORE_PARAMS]:
     """
@@ -42,7 +42,7 @@ def PaginationParamsFactory(
     return paginate
 
 
-def FieldSetParamFactory(
+def fieldset_params_factory(
     model: BaseModel, default_fields: Union[None, str, List[str]] = None
 ) -> Callable[..., STORE_PARAMS]:
     """

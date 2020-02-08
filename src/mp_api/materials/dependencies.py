@@ -4,7 +4,7 @@ from mp_api.core.dependencies import STORE_PARAMS
 from mp_api.materials.utils import formula_to_criteria
 
 
-def FormulaQueryFactory() -> Callable[..., STORE_PARAMS]:
+def formula_query_factory() -> Callable[..., STORE_PARAMS]:
     """
     Factory method to generate a dependency for querying by formula with wild cards
 
