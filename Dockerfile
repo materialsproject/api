@@ -30,10 +30,10 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION dev
 EXPOSE 5001
 ENV PYTHONUNBUFFERED 1
 ENV PATH="/venv/bin:${PATH}"
-ENV NUM_WORKERS 2
+ENV NUM_WORKERS 4
 
 WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir -e .
 
-CMD ["gunicorn", "-b", "0.0.0.0:5001", "-k", "uvicorn.workers.UvicornWorker", "-w", "2", "--access-logfile", "-", "app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5001", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "--access-logfile", "-", "app:app"]
