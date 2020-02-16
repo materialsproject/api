@@ -72,6 +72,7 @@ class Resource(MSONable):
         )
 
         self.router = APIRouter()
+        self.response_model = Response[self.model]
         self.prepare_endpoint()
 
     def prepare_endpoint(self):
@@ -129,7 +130,7 @@ class Resource(MSONable):
         self.router.get(
             f"/{{{key_name}}}",
             response_description=f"Get an {model_name} by {key_name}",
-            response_model=Response[self.model],
+            response_model=self.response_model,
             response_model_exclude_unset=True,
             tags=self.tags,
         )(get_by_key)
@@ -168,7 +169,7 @@ class Resource(MSONable):
             "/",
             tags=self.tags,
             summary=f"Get {model_name} documents",
-            response_model=Response[self.model],
+            response_model=self.response_model,
             response_description=f"Search for a {model_name}",
             response_model_exclude_unset=True,
         )(search)
