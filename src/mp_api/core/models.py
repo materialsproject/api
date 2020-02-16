@@ -2,9 +2,14 @@ from datetime import datetime
 from pymatgen import Element
 from mp_api import __version__
 from pydantic import BaseModel, Field, validator
-from typing import Optional, List
+from typing import Generic, TypeVar, Optional, List
+from pydantic.generics import GenericModel
+
 
 """ Describes the Materials API Response """
+
+
+DataT = TypeVar("DataT")
 
 
 class Meta(BaseModel):
@@ -46,20 +51,20 @@ class Error(BaseModel):
     message: str = Field(..., description="The description of the error")
 
     @classmethod
-    def from_traceback(cls, tracebac):
+    def from_traceback(cls, traceback):
         pass
 
 
-class Response(BaseModel):
+class Response(GenericModel, Generic[DataT]):
     """
     A Materials API Response
     """
 
-    data: Optional[List] = Field(None, description="List of returned data")
+    data: Optional[List[DataT]] = Field(None, description="List of returned data")
     errors: Optional[List[Error]] = Field(
         None, description="Any errors on processing this query"
     )
-    meta: Meta = Field(None, description="Extra information for the query")
+    meta: Optional[Meta] = Field(None, description="Extra information for the query")
 
     @validator("errors", always=True)
     def check_consistency(cls, v, values):
@@ -72,7 +77,7 @@ class Response(BaseModel):
     @validator("meta", pre=True, always=True)
     def default_meta(cls, v, values):
         if v is None:
-            v = Meta()
+            v = Meta().dict()
         else:
             if "total" not in v and values.get("data", None) is not None:
                 v["total"] = len(values["data"])
