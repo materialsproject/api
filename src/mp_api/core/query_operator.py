@@ -17,11 +17,17 @@ class QueryOperator(MSONable):
         """
         raise NotImplementedError("Query operators must implement query")
 
-    def post_process(self):
+    def meta(self) -> Dict:
+        """
+        Returns meta data to return with the Response
+        """
+        return {}
+
+    def post_process(self, doc: Dict) -> Dict:
         """
         An optional post-processing function for the data
         """
-        pass
+        return doc
 
 
 class PaginationQuery(QueryOperator):
@@ -61,6 +67,12 @@ class PaginationQuery(QueryOperator):
             return {"skip": skip, "limit": limit}
 
         self.query = query
+
+    def meta(self) -> Dict:
+        """
+        Metadata for the pagination params
+        """
+        return {"max_limit": self.max_limit}
 
 
 class SparseFieldsQuery(QueryOperator):
@@ -114,6 +126,12 @@ class SparseFieldsQuery(QueryOperator):
             return {"properties": fields}
 
         self.query = query
+
+    def meta(self) -> Dict:
+        """
+        Returns metadata for the Sparse field set
+        """
+        return {"default_fields": self.default_fields}
 
     def as_dict(self) -> Dict:
         """
