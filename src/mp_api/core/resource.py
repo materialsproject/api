@@ -61,7 +61,7 @@ class Resource(MSONable):
 
         self.query_operators = (
             query_operators
-            if query_operators
+            if query_operators is not None
             else [
                 PaginationQuery(),
                 SparseFieldsQuery(
@@ -148,6 +148,7 @@ class Resource(MSONable):
 
             count = self.store.count(count_query)
             elements = self.store.distinct("elements", count_query)
+
             data = [self.model(**d) for d in self.store.query(**query)]
             meta = Meta(total=count, elements=elements)
             response = Response(data=data, meta=meta.dict())
