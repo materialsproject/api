@@ -87,21 +87,14 @@ class SparseFieldsQuery(QueryOperator):
             default_fields: default fields to return in the API response if no fields are explicitly requested
         """
 
-        if isinstance(model, str):
-            module_path = ".".join(model.split(".")[:-1])
-            class_name = model.split(".")[-1]
-            self.model = dynamic_import(module_path, class_name)
-            assert issubclass(
-                self.model, BaseModel
-            ), "The resource model has to be a PyDantic Model"
-        else:
-            self.model = model
+        self.model = model
 
         model_fields = list(self.model.__fields__.keys())
 
         self.default_fields = (
             model_fields if default_fields is None else list(default_fields)
         )
+
         assert set(self.default_fields).issubset(
             model_fields
         ), "default projection contains some fields that are not in the model fields"
@@ -141,3 +134,20 @@ class SparseFieldsQuery(QueryOperator):
         d = super().as_dict()  # Ensures sub-classes serialize correctly
         d["model"] = f"{self.model.__module__}.{self.model.__name__}"
         return d
+
+    @classmethod
+    def from_dict(cls, d):
+
+        model = d.get("model")
+        if isinstance(model, str):
+            module_path = ".".join(model.split(".")[:-1])
+            class_name = model.split(".")[-1]
+            model = dynamic_import(module_path, class_name)
+
+        assert issubclass(
+            model, BaseModel
+        ), "The resource model has to be a PyDantic Model"
+        d["model"] = model
+
+        cls(**d)
+
