@@ -68,7 +68,9 @@ class XASDoc(BaseModel):
     )
 
     # Metadata from structure
-    elements: List[Element] = Field(None, description="List of elements in the material")
+    elements: List[Element] = Field(
+        None, description="List of elements in the material"
+    )
     nelements: int = Field(None, title="Number of Elements")
     composition: Composition = Field(
         None, description="Full composition for the material"
@@ -79,7 +81,9 @@ class XASDoc(BaseModel):
         description="Simplified representation of the composition",
     )
     formula_pretty: str = Field(
-        None, title="Pretty Formula", description="Cleaned representation of the formula"
+        None,
+        title="Pretty Formula",
+        description="Cleaned representation of the formula",
     )
     formula_anonymous: str = Field(
         None,
@@ -95,20 +99,3 @@ class XASDoc(BaseModel):
         None,
         description="timestamp for the most recent calculation for this XAS spectrum",
     )
-
-
-class XASSearchResponse(BaseModel):
-    """
-    Unique index for XAS spectra by searching
-    """
-
-    task_id: str = Field(
-        None,
-        title="Task ID",
-        description="The task ID for the material this spectrum corresponds to",
-    )
-    formula_pretty: str = Field(None, description="Pretty Formula for the material")
-    edge: Edge = Field(
-        None, title="Absorption Edge", description="The interaction edge for XAS"
-    )
-    absorbing_element: Element = Field(None, title="Absoring Element")
