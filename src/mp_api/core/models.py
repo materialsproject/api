@@ -1,5 +1,4 @@
 from datetime import datetime
-from pymatgen import Element
 from mp_api import __version__
 from pydantic import BaseModel, Field, validator
 from typing import Generic, TypeVar, Optional, List
@@ -27,14 +26,6 @@ class Meta(BaseModel):
     time_stamp: datetime = Field(
         None,
         description="a string containing the date and time at which the query was executed",
-    )
-
-    total: Optional[int] = Field(
-        None, description="the total number of documents available for this query", ge=0
-    )
-
-    elements: Optional[List[Element]] = Field(
-        None, description="The list of elements covered by this query"
     )
 
     @validator("time_stamp", pre=True, always=True)
