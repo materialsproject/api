@@ -2,6 +2,7 @@ from typing import List, Dict, Optional
 from pydantic import BaseModel
 from fastapi import Query
 from monty.json import MSONable
+from maggma.core import Store
 from mp_api.core.utils import STORE_PARAMS, dynamic_import
 
 
@@ -17,9 +18,13 @@ class QueryOperator(MSONable):
         """
         raise NotImplementedError("Query operators must implement query")
 
-    def meta(self) -> Dict:
+    def meta(self, store: Store, query: Dict) -> Dict:
         """
         Returns meta data to return with the Response
+
+        Args:
+            store: the Maggma Store that the resource uses
+            query: the query being executed in this API call
         """
         return {}
 
@@ -68,11 +73,17 @@ class PaginationQuery(QueryOperator):
 
         self.query = query
 
-    def meta(self) -> Dict:
+    def meta(self, store: Store, query: Dict) -> Dict:
         """
         Metadata for the pagination params
+
+        Args:
+            store: the Maggma Store that the resource uses
+            query: the query being executed in this API call
         """
-        return {"max_limit": self.max_limit}
+
+        count = store.count(query)
+        return {"max_limit": self.max_limit, "total": count}
 
 
 class SparseFieldsQuery(QueryOperator):
@@ -120,9 +131,13 @@ class SparseFieldsQuery(QueryOperator):
 
         self.query = query
 
-    def meta(self) -> Dict:
+    def meta(self, store: Store, query: Dict) -> Dict:
         """
         Returns metadata for the Sparse field set
+
+        Args:
+            store: the Maggma Store that the resource uses
+            query: the query being executed in this API call
         """
         return {"default_fields": self.default_fields}
 
@@ -150,4 +165,3 @@ class SparseFieldsQuery(QueryOperator):
         d["model"] = model
 
         cls(**d)
-
