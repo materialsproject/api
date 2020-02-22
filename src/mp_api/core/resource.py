@@ -5,7 +5,6 @@ from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends
 
 from maggma.core import Store
 
-
 from mp_api.core.models import Response, Meta
 from mp_api.core.utils import (
     STORE_PARAMS,
@@ -109,9 +108,6 @@ class Resource(MSONable):
             """
             self.store.connect()
 
-            query = {self.store.key: key}
-
-            elements = self.store.distinct("elements", query)
             item = self.store.query_one(
                 criteria={self.store.key: key}, properties=fields["properties"]
             )
@@ -123,7 +119,6 @@ class Resource(MSONable):
                 )
 
             response = Response(data=[item])
-            response.meta.elements = elements
 
             return response.dict()
 
@@ -139,19 +134,22 @@ class Resource(MSONable):
 
         model_name = self.model.__name__
 
+        """
+        TODO: Build dynamic meta class here
+        """
+
         async def search(**queries: STORE_PARAMS):
             self.store.connect()
 
             query = merge_queries(list(queries.values()))
 
-            count_query = query["criteria"]
-
-            count = self.store.count(count_query)
-            elements = self.store.distinct("elements", count_query)
-
             data = [self.model(**d) for d in self.store.query(**query)]
-            meta = Meta(total=count, elements=elements)
-            response = Response(data=data, meta=meta.dict())
+            meta = [
+                operator.meta(self.store, query.get("criteria", {}))
+                for operator in self.query_operators
+            ]
+            meta = Meta({k: v for m in meta for k, v in m.items()})
+            response = Response(data=data, meta=meta)
 
             return response
 
