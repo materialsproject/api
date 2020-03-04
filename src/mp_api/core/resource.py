@@ -118,7 +118,7 @@ class Resource(MSONable):
                     detail=f"Item with {self.store.key} = {key} not found",
                 )
 
-            response = Response(data=[item])
+            response = self.response_model(data=[item])
 
             return response.dict()
 
@@ -149,7 +149,7 @@ class Resource(MSONable):
                 for operator in self.query_operators
             ]
             meta = Meta({k: v for m in meta for k, v in m.items()})
-            response = Response(data=data, meta=meta)
+            response = self.response_model(data=data, meta=meta)
 
             return response
 
