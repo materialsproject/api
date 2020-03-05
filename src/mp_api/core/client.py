@@ -51,9 +51,10 @@ class RESTer:
         url = self.endpoint + sub_url
         if self.debug:
             print(f"URL: {url}")
+
         try:
             response = self.session.get(url, verify=True)
-            if response.status_code in [200, 400]:
+            if response.status_code == 200:
                 if monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
                 else:
