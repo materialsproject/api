@@ -1,6 +1,6 @@
 from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
-from mp_api.xas.models import Edge
+from mp_api.xas.models import Edge, XASType
 from pymatgen import Element
 
 
@@ -8,6 +8,7 @@ class XASQuery(QueryOperator):
     def query(
         self,
         edge: Edge = Query(None, title="XAS Edge"),
+        spectrum_type: XASType = Query(None, title="Spectrum Type"),
         absorbing_element: Element = Query(None, title="Absorbing Element"),
     ) -> STORE_PARAMS:
         """
