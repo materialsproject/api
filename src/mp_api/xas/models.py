@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 from pymatgen import Element
 
-from mp_api.materials.models import Structure, Composition
+from mp_api.materials.models import Structure, MaterialProperty
 
 
 class Edge(Enum):
@@ -48,7 +48,7 @@ class XASSpectrum(BaseModel):
     )
 
 
-class XASDoc(BaseModel):
+class XASDoc(MaterialProperty):
     spectrum: XASSpectrum = None
 
     edge: Edge = Field(
@@ -56,45 +56,18 @@ class XASDoc(BaseModel):
     )
     absorbing_element: Element = Field(None, title="Absoring Element")
 
-    xas_ids: List[str] = Field(
-        None,
-        title="XAS IDs",
-        description="List of FEFF Calculations IDS used to make this XAS spectrum",
-    )
-    task_id: str = Field(
-        None,
-        title="Task ID",
-        description="The task ID for the material this spectrum corresponds to",
+    spectrum_type: XASType = Field(None, title="Type of XAS Spectrum")
+
+    xas_id: str = Field(
+        None, title="XAS Document ID", description="The unique ID for this XAS document"
     )
 
-    # Metadata from structure
-    elements: List[Element] = Field(
-        None, description="List of elements in the material"
-    )
-    nelements: int = Field(None, title="Number of Elements")
-    composition: Composition = Field(
-        None, description="Full composition for the material"
-    )
-    composition_reduced: Composition = Field(
+    task_ids: List[str] = Field(
         None,
-        title="Reduced Composition",
-        description="Simplified representation of the composition",
+        title="Calculation IDs",
+        description="List of Calculations IDS used to make this XAS spectrum",
     )
-    formula_pretty: str = Field(
-        None,
-        title="Pretty Formula",
-        description="Cleaned representation of the formula",
-    )
-    formula_anonymous: str = Field(
-        None,
-        title="Anonymous Formula",
-        description="Anonymized representation of the formula",
-    )
-    chemsys: Optional[str] = Field(
-        None,
-        title="Chemical System",
-        description="dash-delimited string of elements in the material",
-    )
+
     last_updated: datetime = Field(
         None,
         description="timestamp for the most recent calculation for this XAS spectrum",
