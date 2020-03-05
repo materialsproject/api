@@ -20,7 +20,9 @@ def formula_to_criteria(formula: str) -> Dict:
 
         formula_dummies = formula.replace("*", "{}").format(*dummies[:nstars])
 
-        integer_formula = Composition(formula_dummies).get_integer_formula_and_factor()[0]
+        integer_formula = Composition(formula_dummies).get_integer_formula_and_factor()[
+            0
+        ]
         comp = Composition(integer_formula).reduced_composition
         crit = dict()
         crit["formula_anonymous"] = comp.anonymized_formula
@@ -31,12 +33,11 @@ def formula_to_criteria(formula: str) -> Dict:
         ]
 
         # Paranoia below about floating-point "equality"
-        for el, n in comp.to_reduced_dict.items():
-            if el in real_elts:
-                crit["composition_reduced.{}".format(el)] = {
-                    "$gt": 0.99 * n,
-                    "$lt": 1.01 * n,
-                }
+        crit["composition_reduced"] = {
+            f"{el}": {"$gt": 0.99 * n, "$lt": 1.01 * n}
+            for el, n in comp.to_reduced_dict.items()
+            if el in real_elts
+        }
 
         return crit
     elif any(isinstance(el, DummySpecie) for el in Composition(formula)):
@@ -44,4 +45,11 @@ def formula_to_criteria(formula: str) -> Dict:
         return {"formula_anonymous": Composition(formula).anonymized_formula}
 
     else:
-        return {"formula_pretty": formula}
+        comp = Composition(formula)
+        # Paranoia below about floating-point "equality"
+        return {
+            "composition_reduced": {
+                f"{el}": {"$gt": 0.99 * n, "$lt": 1.01 * n}
+                for el, n in comp.to_reduced_dict.items()
+            }
+        }
