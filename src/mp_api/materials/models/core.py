@@ -1,7 +1,9 @@
 from typing import Dict, List, Optional, Union, Tuple
-from pydantic import BaseModel, Field
-
+from pydantic import BaseModel, Field, ConstrainedInt
+from typing_extensions import Literal
 from pymatgen import Element
+from enum import Enum
+from pymatgen.symmetry.groups import SYMM_DATA
 
 Vector3D = Tuple[float, float, float]
 
@@ -40,6 +42,7 @@ class Specie(BaseModel):
 
 
 Composition = Dict[Element, float]
+Composition.__doc__ = """A dictionary mapping element to total quantity"""
 
 
 class SiteSpecie(Specie):
@@ -92,3 +95,38 @@ class Structure(BaseModel):
     charge: Optional[float] = Field(None, title="Total charge")
     lattice: Lattice = Field(..., title="Lattice for this structure")
     sites: List[PeriodicSite] = Field(..., title="List of sites in this structure")
+
+
+class Status(Enum):
+    """
+    """
+
+    exp = "Experimental"
+    theo = "Theoretical"
+    deprecated = "Deprecated"
+
+
+SpacegroupSymbol = Literal[SYMM_DATA["space_group_encoding"].keys()]
+SpacegroupSymbol.__doc__ = """The Hoenfield-Schfonberg space group symbol"""
+
+SpacegroupNumber = ConstrainedInt(gt=0, le=265)
+SpacegroupNumber.__doc__ = (
+    """The space group number as defined by Hoenfield-Schfonber"""
+)
+
+PointGroupSymbol = Literal[SYMM_DATA["point_group_encoding"].keys()]
+PointGroupSymbol.__doc__ = """The point group symbol"""
+
+
+class CrystalSystem(Enum):
+    """
+    The crystal system of the lattice
+    """
+
+    tri = "Triclinic"
+    mono = "Monoclinic"
+    ortho = "Orthorhombic"
+    tet = "Tetragonal"
+    trig = "Triganol"
+    hex = "Hexagonal"
+    cubic = "Cubic"
