@@ -12,6 +12,6 @@ from mp_api.materials.models.core import (
     SpacegroupNumber,
     SpacegroupSymbol,
     PointGroupSymbol,
-    CrystalSystem
+    CrystalSystem,
 )
 from mp_api.materials.models.doc import MaterialCoreDoc, MaterialProperty

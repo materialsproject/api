@@ -11,7 +11,7 @@ class XASQuery(QueryOperator):
         absorbing_element: Element = Query(None, title="Absorbing Element"),
     ) -> STORE_PARAMS:
         """
-        Pagination parameters for the API Endpoint
+        Query parameters unique to XAS
         """
         query = {
             "edge": edge.value if edge else None,

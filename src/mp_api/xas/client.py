@@ -96,4 +96,3 @@ class XASRESTer(RESTer):
             query_string += f"&{elements_query}"
 
         return self._make_request(f"count?{query_string}")
-

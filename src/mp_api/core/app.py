@@ -10,7 +10,7 @@ class MAPISettings(BaseSettings):
     """
     Special class to store settings for MAPI python module.
     This should be set using environment variables, not directly
-    loaded 
+    loaded
     """
 
     app_path: str = Field(
