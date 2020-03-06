@@ -10,8 +10,18 @@ from mp_api.xas.query_operator import XASQuery
 from mp_api.core.resource import Resource
 from mp_api.core.api import MAPI
 
-xas_store = os.environ.get("XAS_STORE", "xas_store.json")
-xas_store = loadfn(xas_store)
+
+db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
+xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
+
+if db_uri:
+    from maggma.stores import MongoURIStore
+
+    xas_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}", database="mp_core", key="xas_id"
+    )
+else:
+    xas_store = loadfn(xas_store_json)
 
 api = MAPI(
     resources={
