@@ -31,7 +31,7 @@ class XASType(Enum):
 
     XANES = "XANES"
     EXAFS = "EXAFS"
-    TOTAL = "Total"
+    XAFS = "XAFS"
 
 
 class XASSpectrum(BaseModel):

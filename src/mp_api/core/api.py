@@ -32,7 +32,7 @@ class MAPI(MSONable):
         App server for the cluster manager
         """
         app = FastAPI(title=self.title, version=self.version)
-        if len(self) == 0:
+        if len(self.resources) == 0:
             raise RuntimeError("ERROR: There are no resources provided")
 
         for prefix, endpoint in self.resources.items():
@@ -61,3 +61,4 @@ class MAPI(MSONable):
         """
 
         uvicorn.run(self.app, host=ip, port=port, log_level=log_level, reload=False)
+

@@ -32,6 +32,9 @@ class Meta(BaseModel):
     def default_timestamp(cls, v):
         return v or datetime.utcnow()
 
+    class Config:
+        extra = "allow"
+
 
 class Error(BaseModel):
     """

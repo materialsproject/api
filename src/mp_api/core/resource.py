@@ -118,9 +118,9 @@ class Resource(MSONable):
                     detail=f"Item with {self.store.key} = {key} not found",
                 )
 
-            response = self.response_model(data=[item])
+            response = {"data": [item]}
 
-            return response.dict()
+            return response
 
         self.router.get(
             f"/{{{key_name}}}",
@@ -142,14 +142,14 @@ class Resource(MSONable):
             self.store.connect()
 
             query = merge_queries(list(queries.values()))
-
-            data = [self.model(**d) for d in self.store.query(**query)]
+            data = list(self.store.query(**query))
             meta = [
                 operator.meta(self.store, query.get("criteria", {}))
                 for operator in self.query_operators
             ]
-            meta = Meta({k: v for m in meta for k, v in m.items()})
-            response = self.response_model(data=data, meta=meta)
+            meta = {k: v for m in meta for k, v in m.items()}
+
+            response = {"data": data, "meta": meta}
 
             return response
 

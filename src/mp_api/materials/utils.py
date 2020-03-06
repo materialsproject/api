@@ -33,11 +33,9 @@ def formula_to_criteria(formula: str) -> Dict:
         ]
 
         # Paranoia below about floating-point "equality"
-        crit["composition_reduced"] = {
-            f"{el}": {"$gt": 0.99 * n, "$lt": 1.01 * n}
-            for el, n in comp.to_reduced_dict.items()
-            if el in real_elts
-        }
+        for el, n in comp.to_reduced_dict.items():
+            if el in real_elts:
+                crit[f"composition_reduced.{el}"] = {"$gt": 0.99 * n, "$lt": 1.01 * n}
 
         return crit
     elif any(isinstance(el, DummySpecie) for el in Composition(formula)):
@@ -47,9 +45,9 @@ def formula_to_criteria(formula: str) -> Dict:
     else:
         comp = Composition(formula)
         # Paranoia below about floating-point "equality"
-        return {
-            "composition_reduced": {
-                f"{el}": {"$gt": 0.99 * n, "$lt": 1.01 * n}
-                for el, n in comp.to_reduced_dict.items()
-            }
-        }
+        crit = {}
+        for el, n in comp.to_reduced_dict.items():
+            crit[f"composition_reduced.{el}"] = {"$gt": 0.99 * n, "$lt": 1.01 * n}
+            
+        crit["nelements"] = len(comp)
+        return crit

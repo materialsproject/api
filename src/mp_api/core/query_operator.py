@@ -110,11 +110,9 @@ class SparseFieldsQuery(QueryOperator):
             model_fields
         ), "default projection contains some fields that are not in the model fields"
 
-        default_fields_string = ",".join(default_fields)
-
         def query(
             fields: str = Query(
-                default_fields_string,
+                None,
                 description=f"Fields to project from {model.__name__} as a list of comma seperated strings",
             ),
             all_fields: bool = Query(False, description="Include all fields."),
@@ -123,7 +121,9 @@ class SparseFieldsQuery(QueryOperator):
             Pagination parameters for the API Endpoint
             """
 
-            fields = fields.split(",")
+            fields = (
+                fields.split(",") if isinstance(fields, str) else self.default_fields
+            )
             if all_fields:
                 fields = model_fields
 
@@ -164,4 +164,4 @@ class SparseFieldsQuery(QueryOperator):
         ), "The resource model has to be a PyDantic Model"
         d["model"] = model
 
-        cls(**d)
+        return cls(**d)
