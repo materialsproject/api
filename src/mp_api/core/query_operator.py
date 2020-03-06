@@ -64,11 +64,8 @@ class PaginationQuery(QueryOperator):
             """
             Pagination parameters for the API Endpoint
             """
-            if limit > max_limit:
-                raise Exception(
-                    "Requested more data per query than allowed by this endpoint."
-                    f"The max limit is {max_limit} entries"
-                )
+            if limit <= 0 or limit > max_limit:
+                limit = max_limit
             return {"skip": skip, "limit": limit}
 
         self.query = query
