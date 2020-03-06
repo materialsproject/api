@@ -38,4 +38,4 @@ COPY . .
 RUN pip install --no-cache-dir -e .
 
 EXPOSE ${PORT}
-CMD ["gunicorn", "-b", "0.0.0.0:${PORT}", "-k", "uvicorn.workers.UvicornWorker", "-w", "${NUM_WORKERS}", "--access-logfile", "-", "app:app"]
+CMD gunicorn -b 0.0.0.0:${PORT} -k uvicorn.workers.UvicornWorker -w $NUM_WORKERS --log-level debug --access-logfile - app:app
