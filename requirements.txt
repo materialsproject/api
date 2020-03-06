@@ -4,3 +4,4 @@ pymatgen==2020.1.10
 maggma==0.16.1
 uvicorn==0.11.2
 gunicorn[gevent]>=20.0.1
+typing-extensions==3.7.4.1
