@@ -8,10 +8,6 @@ from mp_api.materials.models.core import (
     PeriodicSite,
     Structure,
     Status,
-    SymmetrySymbol,
-    SpacegroupNumber,
-    SpacegroupSymbol,
-    PointGroupSymbol,
     CrystalSystem,
 )
-from mp_api.materials.models.doc import MaterialCoreDoc, MaterialProperty
+from mp_api.materials.models.doc import MaterialsCoreDoc, MaterialProperty

@@ -6,9 +6,6 @@ from mp_api.materials.models import (
     Structure,
     Composition,
     Status,
-    PointGroupSymbol,
-    SpacegroupNumber,
-    SpacegroupSymbol,
     CrystalSystem,
 )
 
@@ -22,19 +19,19 @@ class SymmetryData(BaseModel):
         None, title="Crystal System", description="The crystal system for this lattice"
     )
 
-    symbol: SpacegroupSymbol = Field(
+    symbol: str = Field(
         None,
         title="Space Group Symbol",
         description="The spacegroup symbol for the lattice",
     )
 
-    number: SpacegroupNumber = Field(
+    number: int = Field(
         None,
         title="Space Group Number",
         description="The spacegroup number for the lattice",
     )
 
-    point_group: PointGroupSymbol = Field(
+    point_group: str = Field(
         None, title="Point Group Symbol", description="The point group for the lattice"
     )
 
@@ -75,7 +72,7 @@ class MaterialsCoreDoc(BaseModel):
         "to an experimental structure, theoretical structure, or deprecated due to calcultion parameters",
     )
 
-    material_id = Field(
+    material_id: str = Field(
         None,
         description="The ID of this material, used as a universal reference across proeprty documents."
         "This comes in the form: mp-******",
