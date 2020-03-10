@@ -104,8 +104,6 @@ class Status(Enum):
     deprecated = "Deprecated"
 
 
-
-
 class CrystalSystem(Enum):
     """
     The crystal system of the lattice

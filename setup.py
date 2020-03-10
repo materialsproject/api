@@ -27,7 +27,10 @@ setup(
         "pydantic>=1.3",
         "fastapi>=0.46.0",
         "pymatgen>=2020.1.10",
-        "maggma>=0.16.1",
+        "maggma",
+        "uvicorn>=0.11.2",
+        "typing-extensions>=3.7.4.1",
+        "gunicorn[gevent]>=20.0.1",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

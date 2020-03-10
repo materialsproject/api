@@ -61,4 +61,3 @@ class MAPI(MSONable):
         """
 
         uvicorn.run(self.app, host=ip, port=port, log_level=log_level, reload=False)
-

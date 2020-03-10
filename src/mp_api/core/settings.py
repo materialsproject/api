@@ -11,5 +11,7 @@ class MAPISettings(BaseSettings):
         "~/mapi.json", description="Path for the default MAPI JSON definition"
     )
 
+    debug: bool = Field(False, description="Turns on debug mode for MAPI")
+
     class Config:
         env_prefix = "mapi_"

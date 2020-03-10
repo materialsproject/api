@@ -1,39 +1,51 @@
 from typing import List, Optional
 from pymatgen import Element
-from mp_api.core.client import RESTer
-from mp_api.xas.models import Edge
+from mp_api.core.client import RESTer, RESTError
+from mp_api.xas.models import Edge, XASType
 
 
 class XASRESTer(RESTer):
+    def __init__(self, api_url, **kwargs):
+        """
+        Initializes the XASRester to a MAPI URL
+        """
+
+        self.api_url = api_url
+
+        super().__init__(endpoint=self.api_url + "/xas", **kwargs)
+
     def get_available_elements(
         self,
         edge: Optional[Edge] = None,
+        spectrum_type: Optional[XASType] = None,
         absorbing_element: Optional[Element] = None,
         required_elements: Optional[List[Element]] = None,
     ):
 
-        query_params = []
+        query_params = {}
+
         if edge:
-            query_params.append(f"edge={edge.value}")
+            query_params["edge"] = str(edge)
 
         if absorbing_element:
-            query_params.append(f"absorbing_element={str(absorbing_element)}")
+            query_params["absorbing_element"] = str(absorbing_element)
         if required_elements:
-            query_params.append(
-                "&".join([f"elements={str(el)}" for el in required_elements])
-            )
+            query_params["elements"] = ",".join([str(el) for el in required_elements])
 
-        query_string = "&".join(query_params)
+        query_params["limit"] = 1
 
-        url = f"elements?{query_string}" if len(query_string) > 0 else "/elements"
+        result = self.query(query_params)
+        return result.get("meta", {}).get("elements")
 
-        return self._make_request(url)
+    def get_xas_doc(self, xas_id: str):
+        # TODO do some checking here for sub-components
+        query_params = {"xas_id": xas_id}
 
-    def get_xas_doc(self, task_id: str, edge: Edge, absorbing_element: Element):
-
-        query_string = f"?task_id={task_id}&edge={edge.value}&absorbing_element={str(absorbing_element)}"
-
-        return self._make_request(query_string)
+        result = self.query(query_params)
+        if len(result.get("data", [])) > 0:
+            return result["data"][0]
+        else:
+            raise RESTError("No document found")
 
     def search_xas_docs(
         self,
@@ -41,32 +53,22 @@ class XASRESTer(RESTer):
         absorbing_element: Optional[Element] = None,
         required_elements: Optional[List[Element]] = None,
         formula: Optional[str] = None,
-        chemsys: Optional[str] = None,
         skip: Optional[int] = 0,
         limit: Optional[int] = 10,
     ):
         query_params = {
-            "edge": f"{edge.value}" if edge else None,
-            "absorbing_element": f"{str(absorbing_element)}"
-            if absorbing_element
-            else None,
+            "edge": str(edge.value) if edge else None,
+            "absorbing_element": str(absorbing_element),
             "formula": formula,
-            "chemsys": chemsys,
             "skip": skip,
             "limit": limit,
         }
 
-        query_params = {k: v for k, v in query_params.items() if v is not None}
-
-        query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
-
         if required_elements:
-            elements_query = "&".join(
-                [f"elements={str(el)}" for el in required_elements]
-            )
-            query_string += f"&{elements_query}"
+            query_params["elements"] = ",".join([str(el) for el in required_elements])
 
-        return self._make_request(f"search?{query_string}")
+        result = self.query(query_params)
+        return result.get("data", [])
 
     def count_xas_docs(
         self,
@@ -74,25 +76,16 @@ class XASRESTer(RESTer):
         absorbing_element: Optional[Element] = None,
         required_elements: Optional[List[Element]] = None,
         formula: Optional[str] = None,
-        chemsys: Optional[str] = None,
     ):
         query_params = {
-            "edge": f"{edge.value}" if edge else None,
-            "absorbing_element": f"{str(absorbing_element)}"
-            if absorbing_element
-            else None,
+            "edge": str(edge.value) if edge else None,
+            "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "formula": formula,
-            "chemsys": chemsys,
         }
 
-        query_params = {k: v for k, v in query_params.items() if v is not None}
-
-        query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
-
         if required_elements:
-            elements_query = "&".join(
-                [f"elements={str(el)}" for el in required_elements]
-            )
-            query_string += f"&{elements_query}"
+            query_params["elements"] = ",".join([str(el) for el in required_elements])
 
-        return self._make_request(f"count?{query_string}")
+        query_params["limit"] = 1
+        result = self.query(query_params)
+        return result.get("meta", {}).get("total", 0)
