@@ -7,7 +7,7 @@ try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
     # package is not installed
-    pass
+    __version__ = None
 
 from mp_api.core.settings import MAPISettings
 from pathlib import Path
