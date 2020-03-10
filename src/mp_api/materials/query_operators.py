@@ -18,7 +18,8 @@ class FormulaQuery(QueryOperator):
             description="Query by formula including anonymized formula or by including wild cards",
         ),
         elements: Optional[str] = Query(
-            None, description="Query by elements in the material composition as a comma-separated list"
+            None,
+            description="Query by elements in the material composition as a comma-separated list",
         ),
     ) -> STORE_PARAMS:
         """

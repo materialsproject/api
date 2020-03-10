@@ -86,6 +86,6 @@ class XASRESTer(RESTer):
         if required_elements:
             query_params["elements"] = ",".join([str(el) for el in required_elements])
 
-        query_params["limit"] = 1 
+        query_params["limit"] = 1
         result = self.query(query_params)
         return result.get("meta", {}).get("total", 0)

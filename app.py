@@ -1,6 +1,5 @@
 import os
 from monty.serialization import loadfn
-from fastapi import FastAPI
 from mp_api.xas.models import XASDoc
 
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery

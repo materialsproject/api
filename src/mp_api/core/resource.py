@@ -5,7 +5,7 @@ from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends
 
 from maggma.core import Store
 
-from mp_api.core.models import Response, Meta
+from mp_api.core.models import Response
 from mp_api.core.utils import (
     STORE_PARAMS,
     merge_queries,
