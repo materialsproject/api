@@ -10,13 +10,22 @@ except DistributionNotFound:
     pass
 
 from mp_api.core.settings import MAPISettings
+from pathlib import Path
+
+settings = MAPISettings()
 
 try:
-    settings = MAPISettings()
-    mapi = loadfn(settings.app_path)
-    app = mapi.app
+    if Path(settings.app_path).exists():
+        mapi = loadfn(settings.app_path)
+        app = mapi.app
+    else:
+        app = None
+        if settings.debug:
+            print(f"Failed loading App at {settings.app_path}")
+
 except Exception as e:
     # Something went wrong with loading default app
-    print("Failed loadning App")
-    print(e)
-    pass
+    if settings.debug:
+        print("Failed loadning App")
+        print(e)
+        app = None
