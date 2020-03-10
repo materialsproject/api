@@ -7,6 +7,7 @@ Materials Project data.
 
 import json
 import requests
+from typing import Dict, Optional
 from monty.json import MontyDecoder
 from pydantic import AnyUrl
 
@@ -77,6 +78,35 @@ class RESTer:
                 else str(ex)
             )
             raise RESTError(msg)
+
+    def _build_query_sub_url(self, criteria: Optional[Dict] = None):
+        """
+        Helper function to enable creating queries using a dictionary
+        rather than building URL string
+
+        Args:
+            critieria: dictionary of criteria to filter down
+        """
+        query_params = [
+            f"{arg}={value}" for arg, value in criteria.items() if value is not None
+        ]
+        query_string = "&".join(query_params)
+
+        sub_url = f"?{query_string}" if len(query_string) > 0 else ""
+
+        return sub_url
+
+    def query(self, criteria: Optional[Dict] = None, monty_decode: bool = True):
+        """
+        Query the endpoint
+
+        Arguments:
+            critieria: dictionary of criteria to filter down
+            monty_decode: Decode the data using monty into python objects
+        """
+        query_string = self._build_query_sub_url(criteria=criteria)
+        response = self._make_request(query_string, monty_decode=monty_decode)
+        return response
 
 
 class RESTError(Exception):
