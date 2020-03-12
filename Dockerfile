@@ -30,6 +30,7 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION dev
 ENV PYTHONUNBUFFERED 1
 ENV PATH="/venv/bin:${PATH}"
 ENV NUM_WORKERS 4
+ENV RELOAD ""
 
 ENV PORT 5001
 ARG PORT=5001
@@ -39,4 +40,5 @@ COPY . .
 RUN pip install --no-cache-dir -e .
 
 EXPOSE ${PORT}
-CMD gunicorn -b 0.0.0.0:${PORT} -k uvicorn.workers.UvicornWorker -w $NUM_WORKERS --log-level debug --access-logfile - app:app
+
+CMD gunicorn -b 0.0.0.0:$PORT -k uvicorn.workers.UvicornWorker -w $NUM_WORKERS --log-level debug --access-logfile - $RELOAD app:app

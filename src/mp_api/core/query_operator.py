@@ -103,10 +103,6 @@ class SparseFieldsQuery(QueryOperator):
             model_fields if default_fields is None else list(default_fields)
         )
 
-        assert set(self.default_fields).issubset(
-            model_fields
-        ), "default projection contains some fields that are not in the model fields"
-
         def query(
             fields: str = Query(
                 None,
