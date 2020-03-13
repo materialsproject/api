@@ -66,9 +66,7 @@ class RESTer:
             else:
 
                 raise RESTError(
-                    "REST query returned with error status code {}".format(
-                        response.status_code
-                    )
+                    "REST query returned with error status code {response.status_code} on url {url}"
                 )
 
         except Exception as ex:
