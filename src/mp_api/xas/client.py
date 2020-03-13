@@ -10,9 +10,9 @@ class XASRESTer(RESTer):
         Initializes the XASRester to a MAPI URL
         """
 
-        self.api_url = api_url
+        self.api_url = api_url.strip("/")
 
-        super().__init__(endpoint=self.api_url + "/xas", **kwargs)
+        super().__init__(endpoint=self.api_url + "/xas/", **kwargs)
 
     def get_available_elements(
         self,
