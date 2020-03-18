@@ -31,6 +31,7 @@ setup(
         "uvicorn>=0.11.2",
         "typing-extensions>=3.7.4.1",
         "gunicorn[gevent]>=20.0.1",
+        "aws-xray-sdk>=2.4.2"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
