@@ -68,7 +68,7 @@ class PaginationQuery(QueryOperator):
                 limit = max_limit
             return {"skip": skip, "limit": limit}
 
-        self.query = query
+        setattr(self, "query", query)
 
     def meta(self, store: Store, query: Dict) -> Dict:
         """
@@ -106,7 +106,7 @@ class SparseFieldsQuery(QueryOperator):
         def query(
             fields: str = Query(
                 None,
-                description=f"Fields to project from {model.__name__} as a list of comma seperated strings",
+                description=f"Fields to project from {str(model)} as a list of comma seperated strings",
             ),
             all_fields: bool = Query(False, description="Include all fields."),
         ) -> STORE_PARAMS:
@@ -114,15 +114,15 @@ class SparseFieldsQuery(QueryOperator):
             Pagination parameters for the API Endpoint
             """
 
-            fields = (
+            properties = (
                 fields.split(",") if isinstance(fields, str) else self.default_fields
             )
             if all_fields:
-                fields = model_fields
+                properties = model_fields
 
-            return {"properties": fields}
+            return {"properties": properties}
 
-        self.query = query
+        setattr(self, "query", query)
 
     def meta(self, store: Store, query: Dict) -> Dict:
         """
@@ -140,7 +140,7 @@ class SparseFieldsQuery(QueryOperator):
         """
 
         d = super().as_dict()  # Ensures sub-classes serialize correctly
-        d["model"] = f"{self.model.__module__}.{self.model.__name__}"
+        d["model"] = f"{self.model.__module__}.{self.model.__name__}"  # type: ignore
         return d
 
     @classmethod

@@ -7,6 +7,7 @@ Materials Project data.
 
 import json
 import requests
+from requests.exceptions import RequestException
 from typing import Dict, Optional
 from monty.json import MontyDecoder
 from pydantic import AnyUrl
@@ -69,13 +70,9 @@ class RESTer:
                     f"REST query returned with error status code {response.status_code} on url {url}"
                 )
 
-        except Exception as ex:
-            msg = (
-                "{}. Content: {}".format(str(ex), response.content)
-                if hasattr(response, "content")
-                else str(ex)
-            )
-            raise RESTError(msg)
+        except RequestException as ex:
+
+            raise RESTError(str(ex))
 
     def _build_query_sub_url(self, criteria: Optional[Dict] = None):
         """

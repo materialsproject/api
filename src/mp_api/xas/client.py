@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pymatgen import Element
 from mp_api.core.client import RESTer, RESTError
 from mp_api.xas.models import Edge, XASType
@@ -22,7 +22,7 @@ class XASRESTer(RESTer):
         required_elements: Optional[List[Element]] = None,
     ):
 
-        query_params = {}
+        query_params: Dict = {}
 
         if edge:
             query_params["edge"] = str(edge)
@@ -86,6 +86,6 @@ class XASRESTer(RESTer):
         if required_elements:
             query_params["elements"] = ",".join([str(el) for el in required_elements])
 
-        query_params["limit"] = 1
+        query_params["limit"] = "1"
         result = self.query(query_params)
         return result.get("meta", {}).get("total", 0)

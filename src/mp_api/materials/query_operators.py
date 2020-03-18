@@ -31,8 +31,8 @@ class FormulaQuery(QueryOperator):
             crit.update(formula_to_criteria(formula))
 
         if elements:
-            elements = [Element(e) for e in elements.strip().split(",")]
-            crit["elements"] = {"$all": [str(el) for el in elements]}
+            element_list = [Element(e) for e in elements.strip().split(",")]
+            crit["elements"] = {"$all": [str(el) for el in element_list]}
 
         return {"criteria": crit}
 

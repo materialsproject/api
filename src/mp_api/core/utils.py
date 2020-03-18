@@ -18,8 +18,8 @@ def dynamic_import(abs_module_path, class_name):
 
 def merge_queries(queries: List[STORE_PARAMS]) -> STORE_PARAMS:
 
-    criteria = {}
-    properties = []
+    criteria: STORE_PARAMS = {}
+    properties: List[str] = []
 
     for sub_query in queries:
         if "criteria" in sub_query:
@@ -34,9 +34,11 @@ def merge_queries(queries: List[STORE_PARAMS]) -> STORE_PARAMS:
         if k not in ["criteria", "properties"]
     }
 
-    properties = properties if len(properties) > 0 else None
-
-    return {"criteria": criteria, "properties": properties, **remainder}
+    return {
+        "criteria": criteria,
+        "properties": properties if len(properties) > 0 else None,
+        **remainder,
+    }
 
 
 def attach_signature(function: Callable, defaults: Dict, annotations: Dict):
@@ -70,4 +72,6 @@ def attach_signature(function: Callable, defaults: Dict, annotations: Dict):
         for param in defaults.keys()
     ]
 
-    function.__signature__ = inspect.Signature(required_params + optional_params)
+    setattr(
+        function, "__signature__", inspect.Signature(required_params + optional_params)
+    )

@@ -1,5 +1,5 @@
 pydantic==1.3
-fastapi==0.46.0
+fastapi==0.52
 pymatgen==2020.1.10
 maggma==0.17.2
 uvicorn==0.11.2

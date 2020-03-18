@@ -49,7 +49,7 @@ class XASSpectrum(BaseModel):
 
 
 class XASDoc(MaterialProperty):
-    spectrum: XASSpectrum = None
+    spectrum: Optional[XASSpectrum] = None
 
     edge: Edge = Field(
         None, title="Absorption Edge", description="The interaction edge for XAS"

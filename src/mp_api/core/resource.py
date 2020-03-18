@@ -55,8 +55,10 @@ class Resource(MSONable):
             assert issubclass(
                 self.model, BaseModel
             ), "The resource model has to be a PyDantic Model"
-        else:
+        elif issubclass(self.model, BaseModel):
             self.model = model
+        else:
+            raise ValueError("The resource model has to be a PyDantic Model")
 
         self.query_operators = (
             query_operators
@@ -71,7 +73,7 @@ class Resource(MSONable):
         )
 
         self.router = APIRouter()
-        self.response_model = Response[self.model]
+        self.response_model = Response[self.model]  # type: ignore
         self.prepare_endpoint()
 
     def prepare_endpoint(self):
@@ -141,13 +143,13 @@ class Resource(MSONable):
         async def search(**queries: STORE_PARAMS):
             self.store.connect()
 
-            query = merge_queries(list(queries.values()))
+            query: STORE_PARAMS = merge_queries(list(queries.values()))
             data = list(self.store.query(**query))
-            meta = [
+            operator_metas = [
                 operator.meta(self.store, query.get("criteria", {}))
                 for operator in self.query_operators
             ]
-            meta = {k: v for m in meta for k, v in m.items()}
+            meta = {k: v for m in operator_metas for k, v in m.items()}
 
             response = {"data": data, "meta": meta}
 

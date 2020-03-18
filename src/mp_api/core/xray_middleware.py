@@ -77,31 +77,31 @@ class XRayMiddleware(BaseHTTPMiddleware):
         elif "remote_addr" in request.headers:
             segment.put_http_meta(http.CLIENT_IP, request.headers["remote_addr"])
         else:
-            segment.put_http_meta(http.CLIENT_IP, f"{request.client[0]}:{request.client[1]}")
+            segment.put_http_meta(
+                http.CLIENT_IP, f"{request.client[0]}:{request.client[1]}"
+            )
 
         try:
             # Call next middleware or request handler
             response = await call_next(request)
+
+            segment.put_http_meta(http.STATUS, response.status_code)
+            if "Content-Length" in response.headers:
+                length = int(response.headers["Content-Length"])
+                segment.put_http_meta(http.CONTENT_LENGTH, length)
+
+            header_str = prepare_response_header(xray_header, segment)
+            response.headers[http.XRAY_HEADER] = header_str
         except HTTPException as exc:
-            # Non 2XX responses are raised as HTTPExceptions
-            response = exc
+            segment.put_http_meta(http.STATUS, exc.status_code)
             raise
         except Exception as err:
             # Store exception information including the stacktrace to the segment
-            response = None
             segment.put_http_meta(http.STATUS, 500)
             stack = stacktrace.get_stacktrace(limit=xray_recorder.max_trace_back)
             segment.add_exception(err, stack)
             raise
         finally:
-            if response is not None:
-                segment.put_http_meta(http.STATUS, response.status_code)
-                if "Content-Length" in response.headers:
-                    length = int(response.headers["Content-Length"])
-                    segment.put_http_meta(http.CONTENT_LENGTH, length)
-
-                header_str = prepare_response_header(xray_header, segment)
-                response.headers[http.XRAY_HEADER] = header_str
 
             if self.in_lambda_ctx:
                 self._recorder.end_subsegment()
