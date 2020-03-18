@@ -1,5 +1,6 @@
 from starlette.types import ASGIApp
-from starlette.models import Request, Response
+from starlette.requests import Request
+from starlette.responses import Response
 from starlette.exceptions import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
@@ -76,7 +77,7 @@ class XRayMiddleware(BaseHTTPMiddleware):
         elif "remote_addr" in request.headers:
             segment.put_http_meta(http.CLIENT_IP, request.headers["remote_addr"])
         else:
-            segment.put_http_meta(http.CLIENT_IP, request.remote)
+            segment.put_http_meta(http.CLIENT_IP, f"{request.client[0]}:{request.client[1]}")
 
         try:
             # Call next middleware or request handler
@@ -94,7 +95,7 @@ class XRayMiddleware(BaseHTTPMiddleware):
             raise
         finally:
             if response is not None:
-                segment.put_http_meta(http.STATUS, response.status)
+                segment.put_http_meta(http.STATUS, response.status_code)
                 if "Content-Length" in response.headers:
                     length = int(response.headers["Content-Length"])
                     segment.put_http_meta(http.CONTENT_LENGTH, length)
