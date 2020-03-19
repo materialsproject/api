@@ -136,10 +136,6 @@ class Resource(MSONable):
 
         model_name = self.model.__name__
 
-        """
-        TODO: Build dynamic meta class here
-        """
-
         async def search(**queries: STORE_PARAMS):
             self.store.connect()
 
