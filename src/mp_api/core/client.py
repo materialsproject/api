@@ -74,23 +74,6 @@ class RESTer:
 
             raise RESTError(str(ex))
 
-    def _build_query_sub_url(self, criteria: Optional[Dict] = None):
-        """
-        Helper function to enable creating queries using a dictionary
-        rather than building URL string
-
-        Args:
-            critieria: dictionary of criteria to filter down
-        """
-        query_params = [
-            f"{arg}={value}" for arg, value in criteria.items() if value is not None
-        ]
-        query_string = "&".join(query_params)
-
-        sub_url = f"?{query_string}" if len(query_string) > 0 else ""
-
-        return sub_url
-
     def query(self, criteria: Optional[Dict] = None, monty_decode: bool = True):
         """
         Query the endpoint
@@ -99,9 +82,33 @@ class RESTer:
             critieria: dictionary of criteria to filter down
             monty_decode: Decode the data using monty into python objects
         """
-        query_string = self._build_query_sub_url(criteria=criteria)
-        response = self._make_request(query_string, monty_decode=monty_decode)
-        return response
+
+        criteria = (
+            {k: v for k, v in criteria.items() if v is not None}
+            if criteria is not None
+            else None
+        )
+
+        response = None
+
+        try:
+            response = self.session.get(self.endpoint, verify=True, params=criteria)
+            if response.status_code == 200:
+                if monty_decode:
+                    data = json.loads(response.text, cls=MontyDecoder)
+                else:
+                    data = json.loads(response.text)
+
+                return data
+
+            else:
+                raise RESTError(
+                    f"REST query returned with error status code {response.status_code} on url {response.url}"
+                )
+
+        except RequestException as ex:
+
+            raise RESTError(str(ex))
 
 
 class RESTError(Exception):
