@@ -25,14 +25,19 @@ setup(
     install_requires=[
         "setuptools",
         "pydantic>=1.3",
-        "fastapi>=0.46.0",
         "pymatgen>=2020.1.10",
-        "maggma",
-        "uvicorn>=0.11.2",
         "typing-extensions>=3.7.4.1",
-        "gunicorn[gevent]>=20.0.1",
-        "aws-xray-sdk>=2.4.2"
+        "requests>=2.23.0"
     ],
+    extras_require={
+        "server": [
+            "fastapi>=0.46.0",
+            "maggma",
+            "uvicorn>=0.11.2",
+            "gunicorn[gevent]>=20.0.1",
+            "aws-xray-sdk>=2.4.2",
+        ]
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",

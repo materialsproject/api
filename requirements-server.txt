@@ -1,0 +1,5 @@
+maggma==0.17.2
+fastapi==0.52
+uvicorn==0.11.3
+gunicorn[gevent]>=20.0.1
+aws-xray-sdk==2.4.2
