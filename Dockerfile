@@ -37,7 +37,7 @@ ARG PORT=5001
 
 WORKDIR /app
 COPY . .
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir -e .[all]
 
 EXPOSE ${PORT}
 
