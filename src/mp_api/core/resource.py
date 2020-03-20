@@ -55,7 +55,7 @@ class Resource(MSONable):
             assert issubclass(
                 self.model, BaseModel
             ), "The resource model has to be a PyDantic Model"
-        elif issubclass(self.model, BaseModel):
+        elif issubclass(model, BaseModel):
             self.model = model
         else:
             raise ValueError("The resource model has to be a PyDantic Model")
