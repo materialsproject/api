@@ -38,10 +38,9 @@ class MAPI(MSONable):
         for prefix, endpoint in self.resources.items():
             app.include_router(endpoint.router, prefix=f"/{prefix}")
 
-        @app.get("/heartbeat", include_in_schema=True)
+        @app.get("/heartbeat", include_in_schema=False)
         def heartbeat():
             """ API Heartbeat for Load Balancing """
-            # TODO: Get request start and send back processing time
             return {"status": "OK", "time": datetime.utcnow()}
 
         return app
