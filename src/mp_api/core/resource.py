@@ -140,7 +140,7 @@ class Resource(MSONable):
             self.store.connect()
 
             query: STORE_PARAMS = merge_queries(list(queries.values()))
-            data = list(self.store.query(**query))
+            data = list(self.store.query(**query)) # type: ignore
             operator_metas = [
                 operator.meta(self.store, query.get("criteria", {}))
                 for operator in self.query_operators
