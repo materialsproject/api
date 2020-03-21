@@ -1,6 +1,5 @@
 import uvicorn
 from fastapi import FastAPI
-from fastapi.routing import Request
 from typing import Dict
 from datetime import datetime
 from monty.json import MSONable

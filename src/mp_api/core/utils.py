@@ -7,7 +7,7 @@ QUERY_PARAMS = ["criteria", "properties", "skip", "limit"]
 STORE_PARAMS = Dict[Literal["criteria", "properties", "skip", "limit"], Any]
 
 
-def dynamic_import(abs_module_path, class_name):
+def dynamic_import(abs_module_path: str, class_name: str):
     """
     Dynamic class importer from: https://www.bnmetrics.com/blog/dynamic-import-in-python3
     """
