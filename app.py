@@ -17,8 +17,10 @@ if db_uri:
     from maggma.stores import MongoURIStore
 
     xas_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}", database="mp_core", key="xas_id",
-        collection_name = 'xas'
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="xas_id",
+        collection_name="xas",
     )
 else:
     xas_store = loadfn(xas_store_json)

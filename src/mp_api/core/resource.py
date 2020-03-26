@@ -51,11 +51,12 @@ class Resource(MSONable):
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
             class_name = model.split(".")[-1]
-            self.model = dynamic_import(module_path, class_name)
+            class_model = dynamic_import(module_path, class_name)
             assert issubclass(
-                self.model, BaseModel
+                class_model, BaseModel
             ), "The resource model has to be a PyDantic Model"
-        elif issubclass(model, BaseModel):
+            self.model = class_model
+        elif isinstance(model, type) and issubclass(model, BaseModel):
             self.model = model
         else:
             raise ValueError("The resource model has to be a PyDantic Model")
@@ -140,7 +141,7 @@ class Resource(MSONable):
             self.store.connect()
 
             query: STORE_PARAMS = merge_queries(list(queries.values()))
-            data = list(self.store.query(**query)) # type: ignore
+            data = list(self.store.query(**query))  # type: ignore
             operator_metas = [
                 operator.meta(self.store, query.get("criteria", {}))
                 for operator in self.query_operators

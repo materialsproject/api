@@ -1,6 +1,5 @@
-from typing import Optional, Dict
+from typing import Optional
 from fastapi import Query
-from maggma.core import Store
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.materials.utils import formula_to_criteria
 from pymatgen import Element
@@ -35,14 +34,3 @@ class FormulaQuery(QueryOperator):
             crit["elements"] = {"$all": [str(el) for el in element_list]}
 
         return {"criteria": crit}
-
-    def meta(self, store: Store, query: Dict) -> Dict:
-        """
-        Metadata for the formula query operator
-
-        Args:
-            store: the Maggma Store that the resource uses
-            query: the query being executed in this API call
-        """
-        elements = store.distinct("elements", criteria=query)
-        return {"elements": elements}
