@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional
 from pymatgen import Element
 from mp_api.core.client import RESTer, RESTError
 from mp_api.xas.models import Edge, XASType
@@ -21,21 +21,7 @@ class XASRESTer(RESTer):
         absorbing_element: Optional[Element] = None,
         required_elements: Optional[List[Element]] = None,
     ):
-
-        query_params: Dict = {}
-
-        if edge:
-            query_params["edge"] = str(edge)
-
-        if absorbing_element:
-            query_params["absorbing_element"] = str(absorbing_element)
-        if required_elements:
-            query_params["elements"] = ",".join([str(el) for el in required_elements])
-
-        query_params["limit"] = 1
-
-        result = self.query(query_params)
-        return result.get("meta", {}).get("elements")
+        return [str(e) for e in Element]
 
     def get_xas_doc(self, xas_id: str):
         # TODO do some checking here for sub-components
