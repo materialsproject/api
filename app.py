@@ -38,6 +38,7 @@ api = MAPI(
                     XASDoc,
                     default_fields=[
                         "xas_id",
+                        "task_id",
                         "edge",
                         "absorbing_element",
                         "spectrum_type",

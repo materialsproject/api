@@ -62,7 +62,11 @@ class XASDoc(MaterialProperty):
         None, title="XAS Document ID", description="The unique ID for this XAS document"
     )
 
-    task_ids: List[str] = Field(
+    task_id: str = Field(
+        None, title="The material id for the material this document corresponds to"
+    )
+
+    xas_ids: List[str] = Field(
         None,
         title="Calculation IDs",
         description="List of Calculations IDS used to make this XAS spectrum",
