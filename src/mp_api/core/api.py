@@ -1,4 +1,5 @@
 import uvicorn
+from starlette.responses import RedirectResponse
 from fastapi import FastAPI
 from typing import Dict
 from datetime import datetime
@@ -41,6 +42,11 @@ class MAPI(MSONable):
         def heartbeat():
             """ API Heartbeat for Load Balancing """
             return {"status": "OK", "time": datetime.utcnow()}
+
+        @app.get("/", include_in_schema=False)
+        def redirect_docs():
+            """ Redirects the root end point to the docs """
+            return RedirectResponse(url=app.docs_url, status_code=301)
 
         return app
 
