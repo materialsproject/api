@@ -1,4 +1,5 @@
 from typing import List, Dict, Union, Optional
+from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from monty.json import MSONable
 from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends
@@ -132,6 +133,9 @@ class Resource(MSONable):
             response_model_exclude_unset=True,
             tags=self.tags,
         )(get_by_key)
+        
+
+        
 
     def set_dynamic_model_search(self):
 
@@ -171,6 +175,12 @@ class Resource(MSONable):
             response_description=f"Search for a {model_name}",
             response_model_exclude_unset=True,
         )(search)
+
+        @self.router.get("/", include_in_schema=False)
+        def redirect_docs():
+            """ Redirects the root end point to the docs """
+            url = app.url_path_for("/")
+            return RedirectResponse(url=url, status_code=301)
 
     def run(self):  # pragma: no cover
         """
