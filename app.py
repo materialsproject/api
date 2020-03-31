@@ -41,6 +41,7 @@ api = MAPI(
                         "task_id",
                         "edge",
                         "absorbing_element",
+                        "formula_pretty",
                         "spectrum_type",
                         "last_updated",
                     ],
