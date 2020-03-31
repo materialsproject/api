@@ -45,7 +45,7 @@ class XASRESTer(RESTer):
     ):
         query_params = {
             "edge": str(edge.value) if edge else None,
-            "absorbing_element": str(absorbing_element),
+            "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "formula": formula,
             "skip": skip,
             "limit": limit,
