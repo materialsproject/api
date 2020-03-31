@@ -41,10 +41,11 @@ class XASRESTer(RESTer):
         formula: Optional[str] = None,
         skip: Optional[int] = 0,
         limit: Optional[int] = 10,
+        fields: Optional[List[str]] = None,
     ):
         query_params = {
             "edge": str(edge.value) if edge else None,
-            "absorbing_element": str(absorbing_element),
+            "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "formula": formula,
             "skip": skip,
             "limit": limit,
@@ -52,6 +53,9 @@ class XASRESTer(RESTer):
 
         if required_elements:
             query_params["elements"] = ",".join([str(el) for el in required_elements])
+
+        if fields is not None:
+            query_params["fields"] = ",".join(fields)
 
         result = self.query(query_params)
         return result.get("data", [])

@@ -133,9 +133,6 @@ class Resource(MSONable):
             response_model_exclude_unset=True,
             tags=self.tags,
         )(get_by_key)
-        
-
-        
 
     def set_dynamic_model_search(self):
 
@@ -176,10 +173,14 @@ class Resource(MSONable):
             response_model_exclude_unset=True,
         )(search)
 
-        @self.router.get("/", include_in_schema=False)
-        def redirect_docs():
-            """ Redirects the root end point to the docs """
-            url = app.url_path_for("/")
+        @self.router.get("", include_in_schema=False)
+        def redirect_unslashes():
+            """
+            Redirects unforward slashed url to resource
+            url with the forward slash
+            """
+
+            url = self.router.url_path_for("/")
             return RedirectResponse(url=url, status_code=301)
 
     def run(self):  # pragma: no cover
