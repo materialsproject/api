@@ -2,12 +2,7 @@ from typing import List
 from pydantic import BaseModel, Field
 from pymatgen import Element
 from datetime import datetime
-from mp_api.materials.models import (
-    Structure,
-    Composition,
-    Status,
-    CrystalSystem,
-)
+from mp_api.materials.models import Structure, Composition, Status, CrystalSystem
 
 
 class SymmetryData(BaseModel):
@@ -158,6 +153,10 @@ class MaterialProperty(BaseModel):
         None,
         title="Anonymous Formula",
         description="Anonymized representation of the formula",
+    )
+
+    formula_pretty: str = Field(
+        None, title="Pretty Formula", description="Human readable chemical formula"
     )
 
     material_id: str = Field(
