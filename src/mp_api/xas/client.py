@@ -25,7 +25,7 @@ class XASRESTer(RESTer):
 
     def get_xas_doc(self, xas_id: str):
         # TODO do some checking here for sub-components
-        query_params = {"xas_id": xas_id}
+        query_params = {"xas_id": xas_id, "all_fields": True}
 
         result = self.query(query_params)
         if len(result.get("data", [])) > 0:
