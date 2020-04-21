@@ -54,7 +54,7 @@ class XASDoc(MaterialProperty):
     edge: Edge = Field(
         None, title="Absorption Edge", description="The interaction edge for XAS"
     )
-    absorbing_element: Element = Field(None, title="Absoring Element")
+    absorbing_element: Element = Field(None, title="Absorbing Element")
 
     spectrum_type: XASType = Field(None, title="Type of XAS Spectrum")
 
