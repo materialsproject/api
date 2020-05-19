@@ -67,7 +67,7 @@ class MaterialsCoreDoc(BaseModel):
         "to an experimental structure, theoretical structure, or deprecated due to calcultion parameters",
     )
 
-    material_id: str = Field(
+    task_id: str = Field(
         None,
         description="The ID of this material, used as a universal reference across proeprty documents."
         "This comes in the form: mp-******",
@@ -129,6 +129,10 @@ class MaterialsCoreDoc(BaseModel):
     )
 
     symmetry: SymmetryData = Field(None, description="Symmetry data for this material")
+
+    deprecated: bool = Field(
+        None, description="Whether the material is tagged as deprecated"
+    )
 
 
 class MaterialProperty(BaseModel):

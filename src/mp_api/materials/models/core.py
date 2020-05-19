@@ -109,10 +109,10 @@ class CrystalSystem(Enum):
     The crystal system of the lattice
     """
 
-    tri = "Triclinic"
-    mono = "Monoclinic"
-    ortho = "Orthorhombic"
-    tet = "Tetragonal"
-    trig = "Triganol"
-    hex = "Hexagonal"
-    cubic = "Cubic"
+    tri = "triclinic"
+    mono = "monoclinic"
+    ortho = "orthorhombic"
+    tet = "tetragonal"
+    trig = "trigonal"
+    hex = "hexagonal"
+    cubic = "cubic"

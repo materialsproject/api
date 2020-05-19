@@ -1,8 +1,10 @@
-from typing import Optional
+from typing import Optional, NamedTuple
 from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.materials.utils import formula_to_criteria
+from mp_api.materials.models.core import CrystalSystem
 from pymatgen import Element
+from enum import Enum
 
 
 class FormulaQuery(QueryOperator):
@@ -32,5 +34,115 @@ class FormulaQuery(QueryOperator):
         if elements:
             element_list = [Element(e) for e in elements.strip().split(",")]
             crit["elements"] = {"$all": [str(el) for el in element_list]}
+
+        return {"criteria": crit}
+
+
+class DeprecationQuery(QueryOperator):
+    """
+    Method to generate a deprecation state query
+    """
+
+    def query(
+        self,
+        deprecated: Optional[bool] = Query(
+            None, description="Whether the material is marked as deprecated",
+        ),
+    ) -> STORE_PARAMS:
+        """
+        Pagination parameters for the API Endpoint
+        """
+        crit = {}
+
+        if deprecated:
+            crit.update({"deprecated": deprecated})
+
+        return {"criteria": crit}
+
+
+class MinMaxQuery(QueryOperator):
+    """
+    Method to generate a query for quanties with a definable min and max
+    """
+
+    def query(
+        self,
+        nsites_max: Optional[int] = Query(
+            None, description="Maximum value for the number of sites",
+        ),
+        nsites_min: Optional[int] = Query(
+            None, description="Minimum value for the number of sites",
+        ),
+        volume_max: Optional[float] = Query(
+            None, description="Maximum value for the cell volume",
+        ),
+        volume_min: Optional[float] = Query(
+            None, description="Minimum value for the cell volume",
+        ),
+        density_max: Optional[float] = Query(
+            None, description="Maximum value for the density",
+        ),
+        density_min: Optional[float] = Query(
+            None, description="Minimum value for the density",
+        ),
+    ) -> STORE_PARAMS:
+        """
+        Pagination parameters for the API Endpoint
+        """
+
+        crit = {}
+
+        d = {
+            "nsites": [nsites_min, nsites_max],
+            "volume": [volume_min, volume_max],
+            "density": [density_min, density_max],
+        }
+
+        for entry in d:
+            if d[entry][0]:
+                if entry not in crit:
+                    crit.update({entry: {"$gte": d[entry][0]}})
+                else:
+                    crit[entry].update({"$lte": d[entry][0]})
+
+            if d[entry][1]:
+                if entry not in crit:
+                    crit.update({entry: {"$lte": d[entry][1]}})
+                else:
+                    crit[entry].update({"$lte": d[entry][1]})
+
+        return {"criteria": crit}
+
+
+class SymmetryQuery(QueryOperator):
+    """
+    Method to generate a query on symmetry information
+    """
+
+    def query(
+        self,
+        crystal_system: Optional[CrystalSystem] = Query(
+            None, description="Crystal system of the material",
+        ),
+        spacegroup_number: Optional[int] = Query(
+            None, description="Space group number of the material",
+        ),
+        spacegroup_symbol: Optional[str] = Query(
+            None, description="Space group symbol of the material",
+        ),
+    ) -> STORE_PARAMS:
+        """
+        Pagination parameters for the API Endpoint
+        """
+        crit = {}
+
+        if crystal_system:
+            crit.update({"symmetry.crystal_system": str(crystal_system.value)})
+
+        if spacegroup_number:
+            crit.update({"symmetry.number": spacegroup_number})
+
+        if spacegroup_symbol:
+            crit.update({"symmetry.symbol": spacegroup_symbol})
 
         return {"criteria": crit}
