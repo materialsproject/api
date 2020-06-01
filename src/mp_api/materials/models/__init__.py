@@ -10,4 +10,3 @@ from mp_api.materials.models.core import (
     Status,
     CrystalSystem,
 )
-from mp_api.materials.models.doc import MaterialsCoreDoc, MaterialProperty

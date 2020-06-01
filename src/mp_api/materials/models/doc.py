@@ -1,5 +1,7 @@
 from typing import List
-from pydantic import BaseModel, Field
+
+from monty.json import MontyDecoder
+from pydantic import BaseModel, Field, validator
 from pymatgen import Element
 from datetime import datetime
 from mp_api.materials.models import Structure, Composition, Status, CrystalSystem
@@ -64,12 +66,12 @@ class MaterialsCoreDoc(BaseModel):
     state: Status = Field(
         None,
         description="Currrent state of this material document as either being referenced"
-        "to an experimental structure, theoretical structure, or deprecated due to calcultion parameters",
+        "to an experimental structure, theoretical structure, or deprecated due to calculation parameters",
     )
 
     task_id: str = Field(
         None,
-        description="The ID of this material, used as a universal reference across proeprty documents."
+        description="The ID of this material, used as a universal reference across property documents."
         "This comes in the form: mp-******",
     )
 
@@ -77,6 +79,7 @@ class MaterialsCoreDoc(BaseModel):
         None,
         description="Timestamp for the most recent calculation for this Material document",
     )
+
     created_at: datetime = Field(
         None,
         description="Timestamp for the first calculation for this Material document",
@@ -134,6 +137,11 @@ class MaterialsCoreDoc(BaseModel):
         None, description="Whether the material is tagged as deprecated"
     )
 
+    # Make sure that the datetime field is properly formatted
+    @validator("last_updated", pre=True)
+    def last_updated_dict_ok(cls, v):
+        return MontyDecoder().process_decoded(v)
+
 
 class MaterialProperty(BaseModel):
     """
@@ -166,5 +174,5 @@ class MaterialProperty(BaseModel):
     material_id: str = Field(
         None,
         title="Material ID",
-        description=f"The ID for the material this property document corresponds to",
+        description="The ID for the material this property document corresponds to",
     )
