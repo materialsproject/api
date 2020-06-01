@@ -6,6 +6,8 @@ from monty.json import MontyDecoder
 from mp_api.materials.models import Structure
 from pydantic import BaseModel, Field, validator
 
+monty_decoder = MontyDecoder()
+
 
 class TaskType(str, Enum):
     """
@@ -23,12 +25,33 @@ class TaskType(str, Enum):
     GGA_U_Structure_Optimization = "GGA+U Structure Optimization"
 
 
-class inputDoc(BaseModel):
-    structure: Structure = Field(
-        None,
-        title="Input Structure",
-        description="Input Structure from the POSCAR file",
+class PotcarSpec(BaseModel):
+    symbols: List[str]
+    functional: str
+
+
+class OrigInputs(BaseModel):
+    incar: str = Field(
+        None, description="Pymatgen object representing the INCAR file",
     )
+
+    poscar: str = Field(
+        None, description="Pymatgen object representing the POSCAR file",
+    )
+
+    kpoints: str = Field(
+        None, description="Pymatgen object representing the KPOINTS file",
+    )
+
+    potcar: PotcarSpec = Field(
+        None, description="Pymatgen object representing the POTCAR file",
+    )
+
+    # Convert all other input files into strings
+    @validator("incar", "kpoints", "poscar", pre=True)
+    def convert_to_string(cls, input_dict):
+        obj = monty_decoder.process_decoded(input_dict)
+        return str(obj)
 
 
 class outputDoc(BaseModel):
@@ -56,7 +79,7 @@ class TaskDoc(BaseModel):
         "This comes in the form: mp-******",
     )
 
-    input: inputDoc = Field(
+    orig_inputs: OrigInputs = Field(
         None,
         description="The exact set of input parameters used to generate the current task document.",
     )
@@ -74,4 +97,4 @@ class TaskDoc(BaseModel):
     # Make sure that the datetime field is properly formatted
     @validator("last_updated", pre=True)
     def last_updated_dict_ok(cls, v):
-        return MontyDecoder().process_decoded(v)
+        return monty_decoder.process_decoded(v)
