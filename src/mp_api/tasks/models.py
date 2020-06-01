@@ -58,8 +58,17 @@ class outputDoc(BaseModel):
     structure: Structure = Field(
         None,
         title="Output Structure",
-        description="Input Structure from the POSCAR file",
+        description="Output Structure from the VASP calculation",
     )
+
+    density: float = Field(..., description="Density of in unites of g/cc")
+    energy: float = Field(..., description="Total Energy in unites of eV")
+    forces: List[List[float]] = Field(
+        None, description="The force on each atom in Unites of eV/AA"
+    )
+    stress: List[List[float]] = Field(
+        None, description="The stress on the cell [Check units]"
+    )  # TODO Check units
 
 
 class TaskDoc(BaseModel):
