@@ -106,7 +106,7 @@ class CoreRESTer(RESTer):
             for entry in query_params
             if query_params[entry] is not None
         }
-        print(query_params)
+
         results = self.query(query_params)
 
         return results.get("data", [])

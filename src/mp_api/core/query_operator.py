@@ -8,7 +8,7 @@ from mp_api.core.utils import STORE_PARAMS, dynamic_import
 
 class QueryOperator(MSONable):
     """
-    Base Query Operator class for defining powerfull query language
+    Base Query Operator class for defining powerful query language
     in the Materials API
     """
 
