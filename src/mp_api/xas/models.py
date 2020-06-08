@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field, validator
 
 from pymatgen import Element
 
-from mp_api.materials.models import Structure, MaterialProperty
+from mp_api.materials.models.core import Structure
+from mp_api.materials.models.doc import MaterialProperty
 
 
 class Edge(Enum):
