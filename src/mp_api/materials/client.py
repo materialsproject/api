@@ -1,9 +1,7 @@
 from typing import List, Optional, Tuple
-from pymatgen import Element
 from pymatgen import Structure
 
 from mp_api.core.client import RESTer, RESTError
-from mp_api.xas.models import Edge, XASType
 from mp_api.materials.models.core import CrystalSystem
 
 
@@ -25,7 +23,7 @@ class CoreRESTer(RESTer):
             material_id (str): Materials project ID
 
         Returns:
-            structure (Structure): Pymatgen structure object 
+            structure (Structure): Pymatgen structure object
         """
         result = self._make_request("{}/?fields=structure".format(material_id))
 
@@ -59,9 +57,9 @@ class CoreRESTer(RESTer):
             crystal_system (CrystalSystem): Crystal system of material.
             spacegroup_number (int): Space group number of material.
             spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
-            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider. 
-            volume (Tuple[float,float]): Minimum and maximum volume to consider. 
-            density (Tuple[float,float]): Minimum and maximum density to consider. 
+            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider.
+            volume (Tuple[float,float]): Minimum and maximum volume to consider.
+            density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
             limit (int): Maximum number of structures to return.
             skip (int): Number of entries to skip in the search.

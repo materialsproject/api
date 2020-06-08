@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+
+from monty.json import MontyDecoder
+from pydantic import BaseModel, Field, validator
 
 from pymatgen import Element
 
@@ -76,3 +78,8 @@ class XASDoc(MaterialProperty):
         None,
         description="timestamp for the most recent calculation for this XAS spectrum",
     )
+
+    # Make sure that the datetime field is properly formatted
+    @validator("last_updated", pre=True)
+    def last_updated_dict_ok(cls, v):
+        return MontyDecoder().process_decoded(v)
