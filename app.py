@@ -21,13 +21,26 @@ from mp_api.core.api import MAPI
 
 resources = {}
 
+db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
+
 # Uncomment to use JSON store for development
 # core_store = JSONStore("./test_files/materials_Li_Fe_V.json")
 # task_store = JSONStore("./test_files/tasks_Li_Fe_V.json")
 
 # Materials core store
 core_store_json = os.environ.get("CORE_STORE", "core_store.json")
-core_store = loadfn(core_store_json)
+if db_uri:
+    from maggma.stores import MongoURIStore
+
+    core_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="materials.core",
+    )
+else:
+    core_store = loadfn(core_store_json)
+
 resources.update(
     {
         "core": Resource(
@@ -49,27 +62,26 @@ resources.update(
 )
 
 # Tasks store
-task_store_json = os.environ.get("TASK_STORE", "task_store.json")
-task_store = loadfn(task_store_json)
-resources.update(
-    {
-        "tasks": Resource(
-            task_store,
-            TaskDoc,
-            query_operators=[
-                FormulaQuery(),
-                PaginationQuery(),
-                SparseFieldsQuery(
-                    MaterialsCoreDoc,
-                    default_fields=["task_id", "formula_pretty", "last_updated"],
-                ),
-            ],
-        )
-    }
-)
+# task_store_json = os.environ.get("TASK_STORE", "task_store.json")
+# task_store = loadfn(task_store_json)
+# resources.update(
+#     {
+#         "tasks": Resource(
+#             task_store,
+#             TaskDoc,
+#             query_operators=[
+#                 FormulaQuery(),
+#                 PaginationQuery(),
+#                 SparseFieldsQuery(
+#                     MaterialsCoreDoc,
+#                     default_fields=["task_id", "formula_pretty", "last_updated"],
+#                 ),
+#             ],
+#         )
+#     }
+# )
 
 # XAS store
-db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
 if db_uri:
     from maggma.stores import MongoURIStore
