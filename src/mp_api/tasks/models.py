@@ -64,7 +64,7 @@ class outputDoc(BaseModel):
     density: float = Field(..., description="Density of in units of g/cc")
     energy: float = Field(..., description="Total Energy in units of eV")
     forces: List[List[float]] = Field(
-        None, description="The force on each atom in Unites of eV/AA"
+        None, description="The force on each atom in units of eV/AA"
     )
     stress: List[List[float]] = Field(
         None, description="The stress on the cell [Check units]"
