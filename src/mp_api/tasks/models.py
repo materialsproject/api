@@ -95,7 +95,7 @@ class TaskDoc(BaseModel):
 
     output: outputDoc = Field(
         None,
-        description="The exact set of input parameters used to generate the current task document.",
+        description="The exact set of output parameters used to generate the current task document.",
     )
 
     last_updated: datetime = Field(
