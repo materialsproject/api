@@ -4,6 +4,7 @@ from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.materials.utils import formula_to_criteria
 from mp_api.materials.models.core import CrystalSystem
 from pymatgen import Element
+from collections import defaultdict
 
 
 class FormulaQuery(QueryOperator):
@@ -22,9 +23,7 @@ class FormulaQuery(QueryOperator):
             description="Query by elements in the material composition as a comma-separated list",
         ),
     ) -> STORE_PARAMS:
-        """
-        Pagination parameters for the API Endpoint
-        """
+
         crit = {}
 
         if formula:
@@ -48,9 +47,7 @@ class DeprecationQuery(QueryOperator):
             None, description="Whether the material is marked as deprecated",
         ),
     ) -> STORE_PARAMS:
-        """
-        Pagination parameters for the API Endpoint
-        """
+
         crit = {}
 
         if deprecated:
@@ -61,7 +58,7 @@ class DeprecationQuery(QueryOperator):
 
 class MinMaxQuery(QueryOperator):
     """
-    Method to generate a query for quanties with a definable min and max
+    Method to generate a query for quantities with a definable min and max
     """
 
     def query(
@@ -85,11 +82,8 @@ class MinMaxQuery(QueryOperator):
             None, description="Minimum value for the density",
         ),
     ) -> STORE_PARAMS:
-        """
-        Pagination parameters for the API Endpoint
-        """
 
-        crit = {}
+        crit = defaultdict(dict)
 
         d = {
             "nsites": [nsites_min, nsites_max],
@@ -99,16 +93,10 @@ class MinMaxQuery(QueryOperator):
 
         for entry in d:
             if d[entry][0]:
-                if entry not in crit:
-                    crit.update({entry: {"$gte": d[entry][0]}})
-                else:
-                    crit[entry].update({"$lte": d[entry][0]})
+                crit[entry] = {"$gte": d[entry][0]}
 
             if d[entry][1]:
-                if entry not in crit:
-                    crit.update({entry: {"$lte": d[entry][1]}})
-                else:
-                    crit[entry].update({"$lte": d[entry][1]})
+                crit[entry] = {"$lte": d[entry][1]}
 
         return {"criteria": crit}
 
@@ -130,9 +118,7 @@ class SymmetryQuery(QueryOperator):
             None, description="Space group symbol of the material",
         ),
     ) -> STORE_PARAMS:
-        """
-        Pagination parameters for the API Endpoint
-        """
+
         crit = {}
 
         if crystal_system:
