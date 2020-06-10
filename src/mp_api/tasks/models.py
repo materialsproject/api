@@ -14,14 +14,14 @@ class TaskType(str, Enum):
     The type of calculation
     """
 
-    EMPTY = ("",)
-    GGA_NSCF_Line = ("GGA NSCF Line",)
-    GGA_NSCF_Uniform = ("GGA NSCF Uniform",)
-    GGA_Static = ("GGA Static",)
-    GGA_Structure_Optimization = ("GGA Structure Optimization",)
-    GGA_U_NSCF_Line = ("GGA+U NSCF Line",)
-    GGA_U_NSCF_Uniform = ("GGA+U NSCF Uniform",)
-    GGA_U_Static = ("GGA+U Static",)
+    EMPTY = ""
+    GGA_NSCF_Line = "GGA NSCF Line"
+    GGA_NSCF_Uniform = "GGA NSCF Uniform"
+    GGA_Static = "GGA Static"
+    GGA_Structure_Optimization = "GGA Structure Optimization"
+    GGA_U_NSCF_Line = "GGA+U NSCF Line"
+    GGA_U_NSCF_Uniform = "GGA+U NSCF Uniform"
+    GGA_U_Static = "GGA+U Static"
     GGA_U_Structure_Optimization = "GGA+U Structure Optimization"
 
 
@@ -61,8 +61,8 @@ class outputDoc(BaseModel):
         description="Output Structure from the VASP calculation",
     )
 
-    density: float = Field(..., description="Density of in unites of g/cc")
-    energy: float = Field(..., description="Total Energy in unites of eV")
+    density: float = Field(..., description="Density of in units of g/cc")
+    energy: float = Field(..., description="Total Energy in units of eV")
     forces: List[List[float]] = Field(
         None, description="The force on each atom in Unites of eV/AA"
     )
