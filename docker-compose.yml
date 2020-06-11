@@ -3,14 +3,14 @@ version: '2.2'
 services:
 
     api:
-        cpus: 1
-        mem_limit: 2G
-        mem_reservation: 600m
+        cpus: 2
+        mem_limit: 4G
+        mem_reservation: 290m
         build: .
         environment:
             - RELOAD=--reload
             - PORT=5001
-            - NUM_WORKERS=1
+            - NUM_WORKERS=4
             - MPCONTRIBS_MONGO_HOST=$MPCONTRIBS_MONGO_HOST
         volumes:
             - .:/app
