@@ -73,11 +73,7 @@ class CoreRESTer(RESTer):
 
         query_params = {"limit": limit, "skip": skip, "deprecated": deprecated}
         if chemsys_formula:
-            if "-" in chemsys_formula:
-                eles = chemsys_formula.replace("-", ",")
-                query_params.update({"elements": eles})
-            else:
-                query_params.update({"formula": chemsys_formula})
+            query_params.update({"formula": chemsys_formula})
 
         query_params.update(
             {
@@ -104,6 +100,8 @@ class CoreRESTer(RESTer):
             for entry in query_params
             if query_params[entry] is not None
         }
+
+        print(query_params)
 
         results = self.query(query_params)
 
