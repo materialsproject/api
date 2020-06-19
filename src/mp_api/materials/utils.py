@@ -32,12 +32,21 @@ def formula_to_criteria(formula: str) -> Dict:
             if not e.as_dict().get("element", "A") in dummies
         ]
 
-        # Paranoia below about floating-point "equality"
         for el, n in comp.to_reduced_dict.items():
             if el in real_elts:
-                crit[f"composition_reduced.{el}"] = {"$gt": 0.99 * n, "$lt": 1.01 * n}
+                crit[f"composition_reduced.{el}"] = n
 
         return crit
+
+    elif "-" in formula:
+        crit = {}
+        eles = formula.split("-")
+        chemsys = "-".join(sorted(eles))
+
+        crit["chemsys"] = chemsys
+
+        return crit
+
     elif any(isinstance(el, DummySpecie) for el in Composition(formula)):
         # Assume fully anonymized formula
         return {"formula_anonymous": Composition(formula).anonymized_formula}
@@ -46,8 +55,8 @@ def formula_to_criteria(formula: str) -> Dict:
         comp = Composition(formula)
         # Paranoia below about floating-point "equality"
         crit = {}
-        for el, n in comp.to_reduced_dict.items():
-            crit[f"composition_reduced.{el}"] = {"$gt": 0.99 * n, "$lt": 1.01 * n}
-
         crit["nelements"] = len(comp)
+        for el, n in comp.to_reduced_dict.items():
+            crit[f"composition_reduced.{el}"] = n
+
         return crit
