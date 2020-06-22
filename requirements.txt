@@ -1,4 +1,4 @@
 pydantic==1.4
 typing-extensions==3.7.4.1
-pymatgen==2020.1.10
+pymatgen==2020.6.8
 requests==2.24.0
