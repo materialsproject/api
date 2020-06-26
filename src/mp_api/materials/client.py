@@ -28,8 +28,7 @@ class CoreRESTer(RESTer):
         result = self._make_request("{}/?fields=structure".format(material_id))
 
         if len(result.get("data", [])) > 0:
-            structure = Structure.from_dict(result["data"][0]["structure"])
-            return structure
+            return result
         else:
             raise RESTError("No document found")
 

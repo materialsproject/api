@@ -94,6 +94,9 @@ class Structure(BaseModel):
     lattice: Lattice = Field(..., title="Lattice for this structure")
     sites: List[PeriodicSite] = Field(..., title="List of sites in this structure")
 
+    class Config:
+        extra = "allow"
+
 
 class Status(Enum):
     """
