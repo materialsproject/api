@@ -6,14 +6,14 @@ from mp_api.materials.models.core import CrystalSystem
 
 
 class CoreRESTer(RESTer):
-    def __init__(self, api_url, **kwargs):
+    def __init__(self, endpoint, **kwargs):
         """
         Initializes the CoreRESTer to a MAPI URL
         """
 
-        self.api_url = api_url.strip("/")
+        self.endpoint = endpoint.strip("/")
 
-        super().__init__(endpoint=self.api_url + "/core/", **kwargs)
+        super().__init__(endpoint=self.endpoint + "/core/", **kwargs)
 
     def get_structure_from_material_id(self, material_id: str):
         """
@@ -99,8 +99,6 @@ class CoreRESTer(RESTer):
             for entry in query_params
             if query_params[entry] is not None
         }
-
-        print(query_params)
 
         results = self.query(query_params)
 
