@@ -131,3 +131,23 @@ class SymmetryQuery(QueryOperator):
             crit.update({"symmetry.symbol": spacegroup_symbol})
 
         return {"criteria": crit}
+
+
+class TaskIDQuery(QueryOperator):
+    """
+    Method to generate a query for different task_ids
+    """
+
+    def query(
+        self,
+        task_ids: Optional[str] = Query(
+            None, description="Comma-separated list of task_ids to query on"
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if task_ids:
+            crit.update({"task_ids": {"$in": task_ids.split(",")}})
+
+        return {"criteria": crit}

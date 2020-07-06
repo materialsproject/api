@@ -35,6 +35,7 @@ class CoreRESTer(RESTer):
     def search_material_docs(
         self,
         chemsys_formula: Optional[str] = None,
+        task_ids: Optional[List[str]] = None,
         crystal_system: Optional[CrystalSystem] = None,
         spacegroup_number: Optional[int] = None,
         spacegroup_symbol: Optional[str] = None,
@@ -53,6 +54,7 @@ class CoreRESTer(RESTer):
             chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
                 or formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            task_ids (List[str]): List of IDs to return data for.
             crystal_system (CrystalSystem): Crystal system of material.
             spacegroup_number (int): Space group number of material.
             spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
@@ -73,6 +75,9 @@ class CoreRESTer(RESTer):
         query_params = {"limit": limit, "skip": skip, "deprecated": deprecated}
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
+
+        if any(task_ids):
+            query_params.update({"task_ids": ",".join(task_ids)})
 
         query_params.update(
             {
