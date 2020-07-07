@@ -60,7 +60,7 @@ class MaterialsCoreDoc(BaseModel):
     task_ids: List[str] = Field(
         None,
         title="Calculation IDs",
-        description="List of Calculations IDS used to make this XAS spectrum",
+        description="List of Calculations IDs used to make this XAS spectrum",
     )
 
     state: Status = Field(
@@ -135,6 +135,18 @@ class MaterialsCoreDoc(BaseModel):
 
     deprecated: bool = Field(
         None, description="Whether the material is tagged as deprecated"
+    )
+
+    task_ids: List[str] = Field(
+        None, description="List of IDs for calculations associated with this material"
+    )
+
+    origins: List[dict] = Field(
+        None, description="List of IDs used to populate data for the material"
+    )
+
+    task_types: dict = Field(
+        None, description="Description of calculation type for each ID in task_ids"
     )
 
     # Make sure that the datetime field is properly formatted

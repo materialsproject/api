@@ -8,6 +8,7 @@ from mp_api.materials.query_operators import (
     DeprecationQuery,
     MinMaxQuery,
     SymmetryQuery,
+    TaskIDQuery,
 )
 from mp_api.xas.query_operator import XASQuery
 
@@ -48,6 +49,7 @@ resources.update(
             MaterialsCoreDoc,
             query_operators=[
                 FormulaQuery(),
+                TaskIDQuery(),
                 SymmetryQuery(),
                 DeprecationQuery(),
                 MinMaxQuery(),

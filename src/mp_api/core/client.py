@@ -65,9 +65,9 @@ class RESTer:
                 return data
 
             else:
-
+                message = json.loads(response.text, cls=MontyDecoder)["detail"]
                 raise RESTError(
-                    f"REST query returned with error status code {response.status_code} on url {url}"
+                    f"REST query returned with error status code {response.status_code} on url {url} : {message}"
                 )
 
         except RequestException as ex:
@@ -102,8 +102,13 @@ class RESTer:
                 return data
 
             else:
+                data = json.loads(response.text, cls=MontyDecoder)["detail"]
+                message = ""
+                for entry in data:
+                    message += "{} - {}, ".format(entry["loc"][1], entry["msg"])
+
                 raise RESTError(
-                    f"REST query returned with error status code {response.status_code} on url {response.url}"
+                    f"REST query returned with error status code {response.status_code} on url {response.url} : {message[:-2]}"
                 )
 
         except RequestException as ex:

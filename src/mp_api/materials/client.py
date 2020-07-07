@@ -6,14 +6,14 @@ from mp_api.materials.models.core import CrystalSystem
 
 
 class CoreRESTer(RESTer):
-    def __init__(self, api_url, **kwargs):
+    def __init__(self, endpoint, **kwargs):
         """
         Initializes the CoreRESTer to a MAPI URL
         """
 
-        self.api_url = api_url.strip("/")
+        self.endpoint = endpoint.strip("/")
 
-        super().__init__(endpoint=self.api_url + "/core/", **kwargs)
+        super().__init__(endpoint=self.endpoint + "/core/", **kwargs)
 
     def get_structure_from_material_id(self, material_id: str):
         """
@@ -28,14 +28,14 @@ class CoreRESTer(RESTer):
         result = self._make_request("{}/?fields=structure".format(material_id))
 
         if len(result.get("data", [])) > 0:
-            structure = Structure.from_dict(result["data"][0]["structure"])
-            return structure
+            return result
         else:
             raise RESTError("No document found")
 
     def search_material_docs(
         self,
         chemsys_formula: Optional[str] = None,
+        task_ids: Optional[List[str]] = None,
         crystal_system: Optional[CrystalSystem] = None,
         spacegroup_number: Optional[int] = None,
         spacegroup_symbol: Optional[str] = None,
@@ -54,6 +54,7 @@ class CoreRESTer(RESTer):
             chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
                 or formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            task_ids (List[str]): List of IDs to return data for.
             crystal_system (CrystalSystem): Crystal system of material.
             spacegroup_number (int): Space group number of material.
             spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
@@ -73,11 +74,10 @@ class CoreRESTer(RESTer):
 
         query_params = {"limit": limit, "skip": skip, "deprecated": deprecated}
         if chemsys_formula:
-            if "-" in chemsys_formula:
-                eles = chemsys_formula.replace("-", ",")
-                query_params.update({"elements": eles})
-            else:
-                query_params.update({"formula": chemsys_formula})
+            query_params.update({"formula": chemsys_formula})
+
+        if any(task_ids):
+            query_params.update({"task_ids": ",".join(task_ids)})
 
         query_params.update(
             {
