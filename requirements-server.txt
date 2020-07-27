@@ -1,4 +1,4 @@
-fastapi==0.58.1
+fastapi==0.60.1
 maggma==0.21.0
 uvicorn==0.11.5
 gunicorn[gevent]>=20.0.1
