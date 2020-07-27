@@ -32,7 +32,7 @@ setup(
     extras_require={
         "server": [
             "fastapi>=0.46.0",
-            "maggma==0.21.0",
+            "maggma==0.22.0",
             "uvicorn>=0.11.2",
             "gunicorn[gevent]>=20.0.1",
             "aws-xray-sdk>=2.4.2",
