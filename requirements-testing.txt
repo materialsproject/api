@@ -1,7 +1,7 @@
 pre-commit==2.8.2
 pytest==6.1.2
 pytest-asyncio==0.14.0
-pytest-cov==2.10.0
+pytest-cov==2.10.1
 pytest-mock==3.1.1
 pycodestyle==2.6.0
 flake8==3.8.4
