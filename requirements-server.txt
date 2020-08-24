@@ -1,5 +1,5 @@
 fastapi==0.58.1
-maggma==0.21.0
+maggma==0.22.2
 uvicorn==0.11.5
 gunicorn[gevent]>=20.0.1
 aws-xray-sdk==2.6.0
