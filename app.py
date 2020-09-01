@@ -11,10 +11,9 @@ from mp_api.materials.query_operators import (
     MultiTaskIDQuery,
 )
 from mp_api.xas.query_operator import XASQuery
-from mp_api.tasks.query_operators import SingleTaskIDQuery
 
 from mp_api.materials.models.doc import MaterialsCoreDoc
-from mp_api.tasks.models import TaskDoc, IonicStepsDoc
+from mp_api.tasks.models import TaskDoc
 from mp_api.xas.models import XASDoc
 
 from mp_api.core.resource import Resource
@@ -85,7 +84,6 @@ resources.update(
             TaskDoc,
             query_operators=[
                 FormulaQuery(),
-                SingleTaskIDQuery(),
                 PaginationQuery(),
                 SparseFieldsQuery(
                     TaskDoc,

@@ -3,8 +3,10 @@ from enum import Enum
 from typing import Dict, List, Union
 
 from monty.json import MontyDecoder
-from mp_api.materials.models import Structure
+from mp_api.materials.models import Structure, Composition
 from pydantic import BaseModel, Field, validator
+
+from pymatgen import Element
 
 monty_decoder = MontyDecoder()
 
@@ -98,14 +100,34 @@ class TaskDoc(BaseModel):
 
     task_type: TaskType = Field(None, description="The type of calculation")
 
-    task_id: str = Field(
-        None,
-        description="The ID of this calculation, used as a universal reference across property documents."
-        "This comes in the form: mp-******",
+    # Structure metadata
+    nsites: int = Field(None, description="Total number of sites in the structure")
+    elements: List[Element] = Field(
+        None, description="List of elements in the material"
     )
-
+    nelements: int = Field(None, title="Number of Elements")
+    composition: Composition = Field(
+        None, description="Full composition for the material"
+    )
+    composition_reduced: Composition = Field(
+        None,
+        title="Reduced Composition",
+        description="Simplified representation of the composition",
+    )
     formula_pretty: str = Field(
-        None, title="Pretty Formula", description="Human readable chemical formula"
+        None,
+        title="Pretty Formula",
+        description="Cleaned representation of the formula",
+    )
+    formula_anonymous: str = Field(
+        None,
+        title="Anonymous Formula",
+        description="Anonymized representation of the formula",
+    )
+    chemsys: str = Field(
+        None,
+        title="Chemical System",
+        description="dash-delimited string of elements in the material",
     )
 
     orig_inputs: OrigInputs = Field(
