@@ -100,6 +100,12 @@ class TaskDoc(BaseModel):
 
     task_type: TaskType = Field(None, description="The type of calculation")
 
+    task_id: str = Field(
+        None,
+        description="The ID of this calculation, used as a universal reference across property documents."
+        "This comes in the form: mp-******",
+    )
+
     # Structure metadata
     nsites: int = Field(None, description="Total number of sites in the structure")
     elements: List[Element] = Field(
