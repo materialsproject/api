@@ -8,12 +8,13 @@ from mp_api.materials.query_operators import (
     DeprecationQuery,
     MinMaxQuery,
     SymmetryQuery,
-    TaskIDQuery,
+    MultiTaskIDQuery,
 )
 from mp_api.xas.query_operator import XASQuery
+from mp_api.tasks.query_operators import SingleTaskIDQuery
 
 from mp_api.materials.models.doc import MaterialsCoreDoc
-from mp_api.tasks.models import TaskDoc
+from mp_api.tasks.models import TaskDoc, IonicStepsDoc
 from mp_api.xas.models import XASDoc
 
 from mp_api.core.resource import Resource
@@ -49,7 +50,7 @@ resources.update(
             MaterialsCoreDoc,
             query_operators=[
                 FormulaQuery(),
-                TaskIDQuery(),
+                MultiTaskIDQuery(),
                 SymmetryQuery(),
                 DeprecationQuery(),
                 MinMaxQuery(),
@@ -64,24 +65,36 @@ resources.update(
 )
 
 # Tasks store
-# task_store_json = os.environ.get("TASK_STORE", "task_store.json")
-# task_store = loadfn(task_store_json)
-# resources.update(
-#     {
-#         "tasks": Resource(
-#             task_store,
-#             TaskDoc,
-#             query_operators=[
-#                 FormulaQuery(),
-#                 PaginationQuery(),
-#                 SparseFieldsQuery(
-#                     MaterialsCoreDoc,
-#                     default_fields=["task_id", "formula_pretty", "last_updated"],
-#                 ),
-#             ],
-#         )
-#     }
-# )
+task_store_json = os.environ.get("TASK_STORE", "task_store.json")
+if db_uri:
+    from maggma.stores import MongoURIStore
+
+    task_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="tasks",
+    )
+else:
+    task_store = loadfn(task_store_json)
+
+resources.update(
+    {
+        "tasks": Resource(
+            task_store,
+            TaskDoc,
+            query_operators=[
+                FormulaQuery(),
+                SingleTaskIDQuery(),
+                PaginationQuery(),
+                SparseFieldsQuery(
+                    TaskDoc,
+                    default_fields=["task_id", "formula_pretty", "last_updated"],
+                ),
+            ],
+        ),
+    }
+)
 
 # XAS store
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")

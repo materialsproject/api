@@ -103,9 +103,13 @@ class RESTer:
 
             else:
                 data = json.loads(response.text, cls=MontyDecoder)["detail"]
-                message = ""
-                for entry in data:
-                    message += "{} - {}, ".format(entry["loc"][1], entry["msg"])
+
+                if data == "Not Found":
+                    message = data + "  "
+                else:
+                    message = ""
+                    for entry in data:
+                        message += "{} - {}, ".format(entry["loc"][1], entry["msg"])
 
                 raise RESTError(
                     f"REST query returned with error status code {response.status_code} on url {response.url} : {message[:-2]}"
