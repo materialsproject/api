@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import Dict, List, Union
 
 from monty.json import MontyDecoder
 from mp_api.materials.models import Structure
@@ -54,7 +54,7 @@ class OrigInputs(BaseModel):
         return str(obj)
 
 
-class outputDoc(BaseModel):
+class OutputDoc(BaseModel):
     structure: Structure = Field(
         None,
         title="Output Structure",
@@ -67,8 +67,24 @@ class outputDoc(BaseModel):
         None, description="The force on each atom in units of eV/AA"
     )
     stress: List[List[float]] = Field(
-        None, description="The stress on the cell [Check units]"
-    )  # TODO Check units
+        None, description="The stress on the cell in units of kB"
+    )
+
+
+class InputDoc(BaseModel):
+    structure: Structure = Field(
+        None,
+        title="Input Structure",
+        description="Output Structure from the VASP calculation",
+    )
+
+
+class IonicStepsDoc(BaseModel):
+    ionic_steps: List[dict] = Field(
+        None,
+        title="Ionic Steps Data",
+        description="Ionic step data from the VASP calculation",
+    )
 
 
 class TaskDoc(BaseModel):
@@ -88,12 +104,21 @@ class TaskDoc(BaseModel):
         "This comes in the form: mp-******",
     )
 
+    formula_pretty: str = Field(
+        None, title="Pretty Formula", description="Human readable chemical formula"
+    )
+
     orig_inputs: OrigInputs = Field(
         None,
         description="The exact set of input parameters used to generate the current task document.",
     )
 
-    output: outputDoc = Field(
+    input: InputDoc = Field(
+        None,
+        description="The input structure used to generate the current task document.",
+    )
+
+    output: OutputDoc = Field(
         None,
         description="The exact set of output parameters used to generate the current task document.",
     )
