@@ -3,6 +3,7 @@ from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from monty.json import MSONable
 from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends
+from fastapi.routing import APIRoute
 
 from maggma.core import Store
 
@@ -34,6 +35,8 @@ class Resource(MSONable):
         model: Union[BaseModel, str],
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
+        route_class: APIRoute = None,
+        key_fields: List[str] = [None],
     ):
         """
         Args:
@@ -45,9 +48,14 @@ class Resource(MSONable):
                 into a python path string
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
+            route_class: Custom APIRoute class to define post-processing or custom validation 
+                of response data
+            key_fields: List of fields to always project. Default uses SparseFieldsQuery
+                to allow user's to define these on-the-fly.
         """
         self.store = store
         self.tags = tags or []
+        self.key_fields = key_fields
 
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
@@ -74,7 +82,10 @@ class Resource(MSONable):
             ]
         )
 
-        self.router = APIRouter()
+        if route_class is not None:
+            self.router = APIRouter(route_class=route_class)
+        else:
+            self.router = APIRouter()
         self.response_model = Response[self.model]  # type: ignore
         self.prepare_endpoint()
 
@@ -91,15 +102,18 @@ class Resource(MSONable):
         key_name = self.store.key
         model_name = self.model.__name__
 
+        if None in self.key_fields:
+            field_input = SparseFieldsQuery(
+                self.model, [self.store.key, self.store.last_updated_field]
+            ).query
+        else:
+            field_input = lambda: {"properties": self.key_fields}
+
         async def get_by_key(
             key: str = Path(
                 ..., alias=key_name, title=f"The {key_name} of the {model_name} to get"
             ),
-            fields: STORE_PARAMS = Depends(
-                SparseFieldsQuery(
-                    self.model, [self.store.key, self.store.last_updated_field]
-                ).query
-            ),
+            fields: STORE_PARAMS = Depends(field_input),
         ):
             f"""
             Get's a document by the primary key in the store
