@@ -81,11 +81,11 @@ class InputDoc(BaseModel):
     )
 
 
-class IonicStepsDoc(BaseModel):
-    ionic_steps: List[dict] = Field(
+class CalcsReversedDoc(BaseModel):
+    output: dict = Field(
         None,
-        title="Ionic Steps Data",
-        description="Ionic step data from the VASP calculation",
+        title="Calcs Reversed Output",
+        description="Detailed output data for VASP calculations in calcs reversed.",
     )
 
 
@@ -96,6 +96,12 @@ class TaskDoc(BaseModel):
 
     tags: List[str] = Field(
         None, title="tag", description="Metadata tagged to a given task"
+    )
+
+    calcs_reversed: List[CalcsReversedDoc] = Field(
+        None,
+        title="Calcs reversed data",
+        description="Detailed data for each VASP calculation contributing to the task document.",
     )
 
     task_type: TaskType = Field(None, description="The type of calculation")
