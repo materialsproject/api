@@ -15,10 +15,32 @@ class TaskRESTer(RESTer):
 
         super().__init__(endpoint=self.endpoint + "/tasks/", **kwargs)
 
+    def get_task_from_material_id(
+        self,
+        material_id: str,
+        fields: Optional[List[str]] = ["task_id", "formula_pretty", "last_updated"],
+    ):
+        """
+        Get task document data for a given Materials Project ID.
+
+        Arguments:
+            material_id (str): Materials project ID
+
+        Returns:
+            data (dict): Task doc data for keys in fields. Defaults to
+                task_id, formula_pretty, and last_updated.
+        """
+        field_vals = ",".join(fields)
+        result = self._make_request("{}/?fields={}".format(material_id, field_vals))
+
+        if len(result.get("data", [])) > 0:
+            return result
+        else:
+            raise RESTError("No document found")
+
     def search_task_docs(
         self,
         chemsys_formula: Optional[str] = None,
-        task_id: Optional[str] = [None],
         num_chunks: Optional[int] = None,
         chunk_size: Optional[int] = 100,
         fields: Optional[List[str]] = [None],
@@ -30,7 +52,6 @@ class TaskRESTer(RESTer):
             chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
                 or formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            task_id (str): Single Materials Project ID to return data for.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
@@ -45,9 +66,6 @@ class TaskRESTer(RESTer):
 
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
-
-        if task_id:
-            query_params.update({"task_id": task_id})
 
         if any(fields):
             query_params.update({"fields": ",".join(fields)})
