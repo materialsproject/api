@@ -27,6 +27,7 @@ def xas_resource(xas_store):
                 ],
             ),
         ],
+        tags=["XAS"],
     )
 
     return resource

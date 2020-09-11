@@ -10,14 +10,14 @@ db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 # core_store = JSONStore("./test_files/materials_Li_Fe_V.json")
 # task_store = JSONStore("./test_files/tasks_Li_Fe_V.json")
 
-core_store_json = os.environ.get("CORE_STORE", "core_store.json")
+materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
 
 if db_uri:
     from maggma.stores import MongoURIStore
 
-    core_store = MongoURIStore(
+    materials_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
         key="task_id",
@@ -38,14 +38,14 @@ if db_uri:
         collection_name="xas",
     )
 else:
-    core_store = loadfn(core_store_json)
+    materials_store = loadfn(materials_store_json)
     task_store = loadfn(task_store_json)
     xas_store = loadfn(xas_store_json)
 
 # Materials
-from mp_api.materials.resources import core_resource
+from mp_api.materials.resources import materials_resource
 
-resources.update({"core": core_resource(core_store)})
+resources.update({"materials": materials_resource(materials_store)})
 
 # Tasks
 from mp_api.tasks.resources import task_resource

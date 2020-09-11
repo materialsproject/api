@@ -24,6 +24,7 @@ def task_resource(task_store):
                 TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],
             ),
         ],
+        tags=["Tasks"],
     )
 
     return resource
@@ -68,6 +69,7 @@ def trajectory_resource(task_store):
         query_operators=[FormulaQuery(), PaginationQuery()],
         route_class=TrajectoryProcess,
         key_fields=["calcs_reversed"],
+        tags=["Tasks"],
     )
 
     return resource

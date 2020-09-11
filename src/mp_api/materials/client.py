@@ -5,7 +5,7 @@ from mp_api.core.client import RESTer, RESTError
 from mp_api.materials.models.core import CrystalSystem
 
 
-class CoreRESTer(RESTer):
+class MaterialsRESTer(RESTer):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the CoreRESTer to a MAPI URL
@@ -13,19 +13,29 @@ class CoreRESTer(RESTer):
 
         self.endpoint = endpoint.strip("/")
 
-        super().__init__(endpoint=self.endpoint + "/core/", **kwargs)
+        super().__init__(endpoint=self.endpoint + "/materials/", **kwargs)
 
-    def get_structure_from_material_id(self, material_id: str):
+    def get_structure_from_material_id(
+        self, material_id: str, version: Optional[str] = None
+    ):
         """
         Get a structure for a given Materials Project ID.
 
         Arguments:
             material_id (str): Materials project ID
+            version (str): Version of data to query on in the format 'YYYY.MM.DD'. 
+                Defaults to None which will return data from the most recent database release.
+
 
         Returns:
             structure (Structure): Pymatgen structure object
         """
-        result = self._make_request("{}/?fields=structure".format(material_id))
+        if version is None:
+            result = self._make_request("{}/?fields=structure".format(material_id))
+        else:
+            result = self._make_request(
+                "{}/?version={}&fields=structure".format(material_id, version)
+            )
 
         if len(result.get("data", [])) > 0:
             return result
@@ -34,6 +44,7 @@ class CoreRESTer(RESTer):
 
     def search_material_docs(
         self,
+        version: Optional[str] = None,
         chemsys_formula: Optional[str] = None,
         task_ids: Optional[List[str]] = [None],
         crystal_system: Optional[CrystalSystem] = None,
@@ -51,6 +62,8 @@ class CoreRESTer(RESTer):
         Query core material docs using a variety of search criteria.
 
         Arguments:
+            version (str): Version of data to query on in the format 'YYYY.MM.DD'. Defaults to None which will
+                return data from the most recent database release.
             chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
                 or formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
@@ -73,6 +86,9 @@ class CoreRESTer(RESTer):
         """
 
         query_params = {"deprecated": deprecated}
+
+        if version:
+            query_params.update({"version": version})
 
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
@@ -117,3 +133,18 @@ class CoreRESTer(RESTer):
 
             count += 1
             yield results
+
+    def get_database_versions(self):
+        """
+        Get version numbers available for the Materials Project database. 
+
+        Returns:
+            versions (List[str]): List of database versions as strings.
+        """
+
+        result = self._make_request("versions")
+
+        if len(result.get("data", [])) > 0:
+            return result
+        else:
+            raise RESTError("No data found")
