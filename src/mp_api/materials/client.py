@@ -136,7 +136,8 @@ class MaterialsRESTer(RESTer):
 
     def get_database_versions(self):
         """
-        Get version numbers available for the Materials Project database. 
+        Get version tags available for the Materials Project core materials data. 
+        These can be used to request data from previous releases.
 
         Returns:
             versions (List[str]): List of database versions as strings.
