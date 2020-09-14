@@ -12,6 +12,7 @@ db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
+eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
 
 if db_uri:
@@ -31,6 +32,13 @@ if db_uri:
         collection_name="tasks",
     )
 
+    eos_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="mp_id",
+        collection_name="eos",
+    )
+
     xas_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -40,6 +48,7 @@ if db_uri:
 else:
     materials_store = loadfn(materials_store_json)
     task_store = loadfn(task_store_json)
+    eos_store = loadfn(eos_store_json)
     xas_store = loadfn(xas_store_json)
 
 # Materials
@@ -56,6 +65,11 @@ resources.update({"tasks": task_resource(task_store)})
 from mp_api.tasks.resources import trajectory_resource
 
 resources.update({"trajectory": trajectory_resource(task_store)})
+
+# EOS
+from mp_api.eos.resources import eos_resource
+
+resources.update({"eos": eos_resource(eos_store)})
 
 # XAS
 from mp_api.xas.resources import xas_resource
