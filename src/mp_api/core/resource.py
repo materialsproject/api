@@ -44,6 +44,8 @@ class Resource(MSONable):
         route_class: APIRoute = None,
         key_fields: List[str] = [None],
         custom_endpoint_funcs: List[Callable] = [None],
+        enable_get_by_key: bool = True,
+        enable_default_search: bool = True,
     ):
         """
         Args:
@@ -60,12 +62,16 @@ class Resource(MSONable):
             key_fields: List of fields to always project. Default uses SparseFieldsQuery
                 to allow user's to define these on-the-fly.
             custom_endpoint_funcs: Custom endpoint preparation functions to be used
+            enable_get_by_key: Enable default key route for endpoint.
+            enable_default_search: Enable default endpoint search behavior.
         """
         self.store = store
         self.tags = tags or []
         self.key_fields = key_fields
         self.versioned = False
         self.cep = custom_endpoint_funcs
+        self.enable_get_by_key = enable_get_by_key
+        self.enable_default_search = enable_default_search
 
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
@@ -113,8 +119,12 @@ class Resource(MSONable):
         for func in self.cep:
             if func is not None:
                 func(self)
-        self.build_get_by_key()
-        self.set_dynamic_model_search()
+
+        if self.enable_get_by_key:
+            self.build_get_by_key()
+
+        if self.enable_default_search:
+            self.set_dynamic_model_search()
 
     def build_get_by_key(self):
         key_name = self.store.key
