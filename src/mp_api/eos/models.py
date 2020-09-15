@@ -24,7 +24,6 @@ class EOSDoc(BaseModel):
 
     mp_id: str = Field(
         None,
-        description="The ID of this calculation, used as a universal reference across property documents."
-        "This comes in the form: mp-******",
+        description="The Materials Project ID of the material. This comes in the form: mp-******",
     )
 

@@ -13,7 +13,7 @@ class EOSRESTer(RESTer):
 
         super().__init__(endpoint=self.endpoint + "/eos/", **kwargs)
 
-    def get_eos_from_material_id(self, material_id: str, version: Optional[str] = None):
+    def get_eos_from_material_id(self, material_id: str):
         """
         Get equations of state data for a given Materials Project ID.
 
@@ -21,10 +21,10 @@ class EOSRESTer(RESTer):
             material_id (str): Materials project ID
             
         Returns:
-            eos_data (Dict): Dictionary containing equations of state data.
+            results (Dict): Dictionary containing equations of state data.
         """
-        if version is None:
-            result = self._make_request("{}/?all_fields=true".format(material_id))
+
+        result = self._make_request("{}/?all_fields=true".format(material_id))
 
         if len(result.get("data", [])) > 0:
             return result

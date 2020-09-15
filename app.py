@@ -13,6 +13,7 @@ db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
 eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
+similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
 
 if db_uri:
@@ -39,6 +40,13 @@ if db_uri:
         collection_name="eos",
     )
 
+    similarity_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="mid",
+        collection_name="similarity",
+    )
+
     xas_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -49,6 +57,7 @@ else:
     materials_store = loadfn(materials_store_json)
     task_store = loadfn(task_store_json)
     eos_store = loadfn(eos_store_json)
+    similarity_store = loadfn(similarity_store_json)
     xas_store = loadfn(xas_store_json)
 
 # Materials
@@ -70,6 +79,11 @@ resources.update({"trajectory": trajectory_resource(task_store)})
 from mp_api.eos.resources import eos_resource
 
 resources.update({"eos": eos_resource(eos_store)})
+
+# Similarity
+from mp_api.similarity.resources import similarity_resource
+
+resources.update({"similarity": similarity_resource(similarity_store)})
 
 # XAS
 from mp_api.xas.resources import xas_resource
