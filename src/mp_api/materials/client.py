@@ -8,7 +8,7 @@ from mp_api.materials.models.core import CrystalSystem
 class MaterialsRESTer(RESTer):
     def __init__(self, endpoint, **kwargs):
         """
-        Initializes the CoreRESTer to a MAPI URL
+        Initializes the MaterialsRESTer with a MAPI URL
         """
 
         self.endpoint = endpoint.strip("/")

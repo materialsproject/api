@@ -4,7 +4,7 @@ from mp_api.core.client import RESTer, RESTError
 class SimilarityRESTer(RESTer):
     def __init__(self, endpoint, **kwargs):
         """
-        Initializes the CoreRESTer to a MAPI URL
+        Initializes the SimilarityRESTer with a MAPI URL
         """
 
         self.endpoint = endpoint.strip("/")

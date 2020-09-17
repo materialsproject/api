@@ -8,7 +8,7 @@ from mp_api.materials.models.core import CrystalSystem
 class TaskRESTer(RESTer):
     def __init__(self, endpoint, **kwargs):
         """
-        Initializes the TaskRESTer to a MAPI URL
+        Initializes the TaskRESTer with a MAPI URL
         """
 
         self.endpoint = endpoint.strip("/")
