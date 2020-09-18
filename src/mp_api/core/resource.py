@@ -233,7 +233,10 @@ class Resource(MSONable):
 
             query: STORE_PARAMS = merge_queries(list(queries.values()))
 
-            if self.versioned and query["criteria"]["version"] is not None:
+            if (
+                self.versioned
+                and query.get("criteria").get("version", None) is not None
+            ):
                 version = query["criteria"]["version"].replace(".", "_")
                 self.store.collection_name = f"{self.store.collection_name}_{version}"
                 query["criteria"].pop("version")
