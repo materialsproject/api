@@ -61,10 +61,11 @@ def bs_resource(bs_store, s3_store):
                 self.s3.connect()
 
                 bs_entry = self.store.query_one(
-                    criteria={self.store.key: key}, properties=[f"{path_type}.task_id"]
+                    criteria={self.store.key: key},
+                    properties=[f"{str(path_type.name)}.task_id"],
                 )
 
-                bs_task = bs_entry.get(path_type).get("task_id", None)
+                bs_task = bs_entry.get(str(path_type.name)).get("task_id", None)
 
                 if bs_task is None:
                     raise HTTPException(

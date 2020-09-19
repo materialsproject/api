@@ -15,6 +15,8 @@ def dos_resource(dos_store, s3_store):
         key_name = self.store.key
         model_name = self.model.__name__
 
+        self.s3 = s3_store
+
         field_input = SparseFieldsQuery(
             self.model, [self.store.key, self.store.last_updated_field]
         ).query

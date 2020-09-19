@@ -92,11 +92,14 @@ if db_uri:
     )
 
     s3_bs = S3Store(
-        index=s3_bs_index, s3_profile=None, bucket="mp-bandstructures", compress=True,
+        index=s3_bs_index,
+        s3_profile="s3_role",
+        bucket="mp-bandstructures",
+        compress=True,
     )
 
     s3_dos = S3Store(
-        index=s3_dos_index, s3_profile=None, bucket="mp-dos", compress=True
+        index=s3_dos_index, s3_profile="s3_role", bucket="mp-dos", compress=True
     )
 
 
