@@ -91,16 +91,9 @@ if db_uri:
         collection_name="s3_dos_index",
     )
 
-    s3_bs = S3Store(
-        index=s3_bs_index,
-        s3_profile="s3_role",
-        bucket="mp-bandstructures",
-        compress=True,
-    )
+    s3_bs = S3Store(index=s3_bs_index, bucket="mp-bandstructures", compress=True,)
 
-    s3_dos = S3Store(
-        index=s3_dos_index, s3_profile="s3_role", bucket="mp-dos", compress=True
-    )
+    s3_dos = S3Store(index=s3_dos_index, bucket="mp-dos", compress=True)
 
 
 else:
