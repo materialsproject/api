@@ -5,6 +5,7 @@ from mp_api.core.api import MAPI
 resources = {}
 
 db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
+db_version = os.environ.get("DB_VERSION")
 
 # Uncomment to use JSON store for development
 # core_store = JSONStore("./test_files/materials_Li_Fe_V.json")
@@ -32,7 +33,7 @@ if db_uri:
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
         key="task_id",
-        collection_name="materials.core",
+        collection_name=f"materials.core_{db_version}",
     )
 
     task_store = MongoURIStore(
