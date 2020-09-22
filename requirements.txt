@@ -3,3 +3,4 @@ pymatgen==2020.7.3
 typing-extensions==3.7.4.2
 requests==2.24.0
 boto3==1.15.0
+maggma==0.23.0
