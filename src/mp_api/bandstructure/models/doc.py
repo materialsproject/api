@@ -193,5 +193,10 @@ class BSObjectReturn(BaseModel):
         None, description="Number of unique elements in the material"
     )
 
-    data: dict = Field(None, description="Band structure object data")
+    object: dict = Field(None, description="Band structure object data")
+
+    # Make sure that the datetime field is properly formatted
+    @validator("last_updated", pre=True)
+    def last_updated_dict_ok(cls, v):
+        return MontyDecoder().process_decoded(v)
 

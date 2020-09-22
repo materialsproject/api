@@ -123,6 +123,10 @@ class DOSDoc(BaseModel):
         None, title="Density", description="Density in grams per cm^3"
     )
 
+    gridfs_id: str = Field(
+        None, title="DOS object data", description="Density of states object data"
+    )
+
     # Make sure that the datetime field is properly formatted
     @validator("last_updated", pre=True)
     def last_updated_dict_ok(cls, v):
@@ -151,4 +155,9 @@ class DOSObjectReturn(BaseModel):
         None, description="Number of unique elements in the material"
     )
 
-    data: dict = Field(None, description="Density of states object data")
+    object: dict = Field(None, description="Density of states object data")
+
+    # Make sure that the datetime field is properly formatted
+    @validator("last_updated", pre=True)
+    def last_updated_dict_ok(cls, v):
+        return MontyDecoder().process_decoded(v)

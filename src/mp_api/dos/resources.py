@@ -7,29 +7,26 @@ from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
 from mp_api.materials.query_operators import FormulaQuery, MinMaxQuery
 
 from mp_api.core.utils import STORE_PARAMS
-from fastapi import Path, HTTPException, Depends
+from fastapi import HTTPException, Depends
 
 
 def dos_resource(dos_store, s3_store):
     def custom_dos_endpoint_prep(self):
-        key_name = self.store.key
-        model_name = self.model.__name__
 
         self.s3 = s3_store
+        model = DOSObjectReturn
+        model_name = model.__name__
+        key_name = self.s3.key
 
         field_input = SparseFieldsQuery(
-            self.model, [self.store.key, self.store.last_updated_field]
+            model, [self.s3.key, self.s3.last_updated_field]
         ).query
 
-        async def get_by_key(
-            key: str = Path(
+        async def get_object(
+            key: str = Query(
                 ..., alias=key_name, title=f"The {key_name} of the {model_name} to get",
             ),
             fields: STORE_PARAMS = Depends(field_input),
-            return_dos_object: bool = Query(
-                False,
-                description="Whether to return the density of states object for a given material.",
-            ),
         ):
             f"""
                     Get's a document by the primary key in the store
@@ -40,52 +37,37 @@ def dos_resource(dos_store, s3_store):
                     Returns:
                         a single {model_name} document
                     """
+
             self.store.connect()
 
-            if return_dos_object:
+            self.s3.connect()
 
-                self.response_model = DOSObjectReturn
+            dos_entry = self.store.query_one(
+                criteria={self.store.key: key}, properties=["total.task_id"]
+            )
 
-                self.s3.connect()
+            dos_task = dos_entry.get("total", None).get("task_id", None)
 
-                dos_entry = self.store.query_one(
-                    criteria={self.store.key: key}, properties=["total.task_id"]
+            if dos_task is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"DOS with {self.store.key} = {key} not found",
                 )
 
-                dos_task = dos_entry.get("task_id", None)
-
-                if dos_task is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"Band structure with {self.store.key} = {key} and {path_type} \
-                            path type not found",
-                    )
-
-                item = self.s3.query_one({"task_id": dos_task})
-
-            else:
-
-                item = self.store.query_one(
-                    criteria={self.store.key: key}, properties=fields["properties"]
-                )
-
-                if item is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"Item with {self.store.key} = {key} not found",
-                    )
-
-            response = {"data": [item]}
+            item = self.s3.query_one(
+                {"task_id": dos_task}, properties=fields["properties"]
+            )
+            response = item
 
             return response
 
         self.router.get(
-            f"/{{{key_name}}}/",
+            "/object/",
             response_description=f"Get an {model_name} by {key_name}",
-            response_model=self.response_model,
+            response_model=model,
             response_model_exclude_unset=True,
             tags=self.tags,
-        )(get_by_key)
+        )(get_object)
 
     # Define resource
     resource = Resource(
@@ -99,7 +81,6 @@ def dos_resource(dos_store, s3_store):
         ],
         tags=["Electronic Structure"],
         custom_endpoint_funcs=[custom_dos_endpoint_prep],
-        enable_get_by_key=False,
     )
 
     return resource

@@ -13,29 +13,24 @@ from fastapi import Path, HTTPException, Depends
 
 def bs_resource(bs_store, s3_store):
     def custom_bs_endpoint_prep(self):
-        key_name = self.store.key
-        model_name = self.model.__name__
 
         self.s3 = s3_store
+        model = BSObjectReturn
+        model_name = model.__name__
+        key_name = self.s3.key
 
         field_input = SparseFieldsQuery(
-            self.model, [self.store.key, self.store.last_updated_field]
+            model, [self.s3.key, self.s3.last_updated_field]
         ).query
 
-        async def get_by_key(
-            key: str = Path(
+        async def get_object(
+            key: str = Query(
                 ..., alias=key_name, title=f"The {key_name} of the {model_name} to get",
             ),
-            fields: STORE_PARAMS = Depends(field_input),
-            return_bandstructure_object: bool = Query(
-                False,
-                description="Whether to return the band structure object and its \
-                metadata for a given material. Path type must also be specified.",
-            ),
             path_type: BSPathType = Query(
-                None,
-                description="Band structure k-path type if the object is to be returned.",
+                ..., title="The k-path convention type for the band structure object",
             ),
+            fields: STORE_PARAMS = Depends(field_input),
         ):
             f"""
                     Get's a document by the primary key in the store
@@ -46,59 +41,38 @@ def bs_resource(bs_store, s3_store):
                     Returns:
                         a single {model_name} document
                     """
+
             self.store.connect()
 
-            if return_bandstructure_object:
+            self.s3.connect()
 
-                self.response_model = BSObjectReturn
+            bs_entry = self.store.query_one(
+                criteria={self.store.key: key},
+                properties=[f"{str(path_type.name)}.task_id"],
+            )
 
-                if path_type is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail="Must specify path type to retrieve a band structure object.",
-                    )
+            bs_task = bs_entry.get(str(path_type.name)).get("task_id", None)
 
-                self.s3.connect()
-
-                bs_entry = self.store.query_one(
-                    criteria={self.store.key: key},
-                    properties=[f"{str(path_type.name)}.task_id"],
+            if bs_task is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Band structure with {self.store.key} = {key} not found",
                 )
 
-                bs_task = bs_entry.get(str(path_type.name)).get("task_id", None)
-
-                if bs_task is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"Band structure with {self.store.key} = {key} and {path_type} \
-                            path type not found",
-                    )
-
-                item = self.s3.query_one({"task_id": bs_task})
-
-            else:
-
-                item = self.store.query_one(
-                    criteria={self.store.key: key}, properties=fields["properties"]
-                )
-
-                if item is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"Item with {self.store.key} = {key} not found",
-                    )
-
-            response = {"data": [item]}
+            item = self.s3.query_one(
+                {"task_id": bs_task}, properties=fields["properties"]
+            )
+            response = item
 
             return response
 
         self.router.get(
-            f"/{{{key_name}}}/",
+            "/object/",
             response_description=f"Get an {model_name} by {key_name}",
-            response_model=self.response_model,
+            response_model=model,
             response_model_exclude_unset=True,
             tags=self.tags,
-        )(get_by_key)
+        )(get_object)
 
     resource = Resource(
         bs_store,
@@ -112,7 +86,6 @@ def bs_resource(bs_store, s3_store):
         ],
         tags=["Electronic Structure"],
         custom_endpoint_funcs=[custom_bs_endpoint_prep],
-        enable_get_by_key=False,
     )
 
     return resource
