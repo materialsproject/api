@@ -93,6 +93,7 @@ class RESTer:
 
         try:
             response = self.session.get(self.endpoint, verify=True, params=criteria)
+
             if response.status_code == 200:
                 if monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
@@ -108,8 +109,11 @@ class RESTer:
                     message = data + "  "
                 else:
                     message = ""
-                    for entry in data:
-                        message += "{} - {}, ".format(entry["loc"][1], entry["msg"])
+                    try:
+                        for entry in data:
+                            message += "{} - {}, ".format(entry["loc"][1], entry["msg"])
+                    except:
+                        message += data
 
                 raise RESTError(
                     f"REST query returned with error status code {response.status_code} on url {response.url} : {message[:-2]}"

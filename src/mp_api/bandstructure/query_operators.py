@@ -1,5 +1,5 @@
 from typing import Optional, Union
-from fastapi import Query
+from fastapi import Query, HTTPException
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.bandstructure.models.core import (
     BSPathType,
@@ -34,26 +34,19 @@ class BSDataQuery(QueryOperator):
 
         crit = defaultdict(dict)
 
-        crit["bandstructure"] = {
-            str(path_type.value): {str(data_field.value): {"energy": {}}}
-        }
+        if data_field.value == "band_gap" and direct is None:
+            raise HTTPException(
+                status_code=404, detail="Must specify whether the band gap is direct.",
+            )
 
         d = [energy_min, energy_max]
 
-        if d[0]:
-            crit["bandstructure"][str(path_type.value)][str(data_field.value)][
-                "energy"
-            ] = {"$gte": d[0]}
+        crit[f"{str(path_type.name)}.{str(data_field.value)}.energy"]["$gte"] = d[0]
 
-        if d[1]:
-            crit["bandstructure"][str(path_type.value)][str(data_field.value)][
-                "energy"
-            ] = {"$lte": d[1]}
+        crit[f"{str(path_type.name)}.{str(data_field.value)}.energy"]["$lte"] = d[1]
 
         if direct is not None:
-            crit["bandstructure"][str(path_type.value)][str(data_field.value)][
-                "direct"
-            ] = direct
+            crit[f"{str(path_type.name)}.{str(data_field.value)}.direct"] = direct
 
         return {"criteria": crit}
 
