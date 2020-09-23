@@ -123,10 +123,6 @@ class DOSDoc(BaseModel):
         None, title="Density", description="Density in grams per cm^3"
     )
 
-    gridfs_id: str = Field(
-        None, title="DOS object data", description="Density of states object data"
-    )
-
     # Make sure that the datetime field is properly formatted
     @validator("last_updated", pre=True)
     def last_updated_dict_ok(cls, v):

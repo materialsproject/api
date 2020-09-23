@@ -73,7 +73,7 @@ class BSRESTer(RESTer):
         fields: Optional[List[str]] = [None],
     ):
         """
-        Query band structutre summary docs using a variety of search criteria.
+        Query band structure summary docs using a variety of search criteria.
 
         Arguments:
             path_type (BSPathType): Band structure type determined by the k-path convention. 
@@ -89,7 +89,7 @@ class BSRESTer(RESTer):
             deprecated (bool): Whether the material is tagged as deprecated.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
-            fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
+            fields (List[str]): List of fields in BSDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty.
 
         Yields:

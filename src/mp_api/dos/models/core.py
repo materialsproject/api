@@ -1,7 +1,4 @@
-from typing import Dict, List, Union
 from enum import Enum
-
-from pydantic import BaseModel, Field, validator
 
 
 class ESCalcType(Enum):
@@ -11,18 +8,17 @@ class ESCalcType(Enum):
 
 class DOSProjection(Enum):
     total = "total"
-    elements = "elements"
-    orbitals = "orbitals"
+    element = "element"
+    orbital = "orbital"
+
+
+class DOSDataFields(Enum):
+    band_gap = "band_gap"
+    cbm = "cbm"
+    vbm = "vbm"
 
 
 class SpinChannel(Enum):
-    spin_up = "1"
-    spin_down = "-1"
-
-
-class OrbitalType(Enum):
-    s = "s"
-    p = "p"
-    d = "d"
-    f = "f"
+    up = "1"
+    down = "-1"
 

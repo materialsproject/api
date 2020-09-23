@@ -5,6 +5,7 @@ from fastapi.param_functions import Query
 
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
 from mp_api.materials.query_operators import FormulaQuery, MinMaxQuery
+from mp_api.dos.query_operators import DOSDataQuery
 
 from mp_api.core.utils import STORE_PARAMS
 from fastapi import HTTPException, Depends
@@ -74,6 +75,7 @@ def dos_resource(dos_store, s3_store):
         dos_store,
         DOSDoc,
         query_operators=[
+            DOSDataQuery(),
             FormulaQuery(),
             MinMaxQuery(),
             PaginationQuery(),
