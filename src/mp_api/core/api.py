@@ -1,10 +1,11 @@
 import uvicorn
 from starlette.responses import RedirectResponse
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 from typing import Dict
 from datetime import datetime
 from monty.json import MSONable
 from mp_api.core.resource import Resource
+from typing import Optional, List
 
 
 class MAPI(MSONable):
@@ -42,6 +43,14 @@ class MAPI(MSONable):
         def heartbeat():
             """ API Heartbeat for Load Balancing """
             return {"status": "OK", "time": datetime.utcnow()}
+
+        @app.get("/login", include_in_schema=False)
+        def login(
+            x_consumer_username: Optional[str] = Header(None),
+            x_consumer_custom_id: Optional[str] = Header(None),
+        ):
+
+            return {"user": x_consumer_username, "api-key": x_consumer_custom_id}
 
         @app.get("/", include_in_schema=False)
         def redirect_docs():
