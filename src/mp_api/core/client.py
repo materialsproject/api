@@ -131,6 +131,7 @@ class BaseRester:
 
         try:
             response = self.session.get(self.endpoint, verify=True, params=criteria)
+
             if response.status_code == 200:
                 if monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)

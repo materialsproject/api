@@ -12,6 +12,7 @@ services:
             - PORT=5001
             - NUM_WORKERS=4
             - MPCONTRIBS_MONGO_HOST=$MPCONTRIBS_MONGO_HOST
+            - DB_VERSION=2020_09_08
         volumes:
             - .:/app
         ports:

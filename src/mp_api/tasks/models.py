@@ -1,10 +1,12 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import Dict, List, Union
 
 from monty.json import MontyDecoder
-from mp_api.materials.models import Structure
+from mp_api.materials.models import Structure, Composition
 from pydantic import BaseModel, Field, validator
+
+from pymatgen import Element
 
 monty_decoder = MontyDecoder()
 
@@ -54,7 +56,7 @@ class OrigInputs(BaseModel):
         return str(obj)
 
 
-class outputDoc(BaseModel):
+class OutputDoc(BaseModel):
     structure: Structure = Field(
         None,
         title="Output Structure",
@@ -67,8 +69,24 @@ class outputDoc(BaseModel):
         None, description="The force on each atom in units of eV/AA"
     )
     stress: List[List[float]] = Field(
-        None, description="The stress on the cell [Check units]"
-    )  # TODO Check units
+        None, description="The stress on the cell in units of kB"
+    )
+
+
+class InputDoc(BaseModel):
+    structure: Structure = Field(
+        None,
+        title="Input Structure",
+        description="Output Structure from the VASP calculation",
+    )
+
+
+class CalcsReversedDoc(BaseModel):
+    output: dict = Field(
+        None,
+        title="Calcs Reversed Output",
+        description="Detailed output data for VASP calculations in calcs reversed.",
+    )
 
 
 class TaskDoc(BaseModel):
@@ -80,6 +98,12 @@ class TaskDoc(BaseModel):
         None, title="tag", description="Metadata tagged to a given task"
     )
 
+    calcs_reversed: List[CalcsReversedDoc] = Field(
+        None,
+        title="Calcs reversed data",
+        description="Detailed data for each VASP calculation contributing to the task document.",
+    )
+
     task_type: TaskType = Field(None, description="The type of calculation")
 
     task_id: str = Field(
@@ -88,12 +112,47 @@ class TaskDoc(BaseModel):
         "This comes in the form: mp-******",
     )
 
+    # Structure metadata
+    nsites: int = Field(None, description="Total number of sites in the structure")
+    elements: List[Element] = Field(
+        None, description="List of elements in the material"
+    )
+    nelements: int = Field(None, title="Number of Elements")
+    composition: Composition = Field(
+        None, description="Full composition for the material"
+    )
+    composition_reduced: Composition = Field(
+        None,
+        title="Reduced Composition",
+        description="Simplified representation of the composition",
+    )
+    formula_pretty: str = Field(
+        None,
+        title="Pretty Formula",
+        description="Cleaned representation of the formula",
+    )
+    formula_anonymous: str = Field(
+        None,
+        title="Anonymous Formula",
+        description="Anonymized representation of the formula",
+    )
+    chemsys: str = Field(
+        None,
+        title="Chemical System",
+        description="dash-delimited string of elements in the material",
+    )
+
     orig_inputs: OrigInputs = Field(
         None,
         description="The exact set of input parameters used to generate the current task document.",
     )
 
-    output: outputDoc = Field(
+    input: InputDoc = Field(
+        None,
+        description="The input structure used to generate the current task document.",
+    )
+
+    output: OutputDoc = Field(
         None,
         description="The exact set of output parameters used to generate the current task document.",
     )
