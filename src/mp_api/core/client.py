@@ -79,7 +79,7 @@ class RESTer:
         Query the endpoint
 
         Arguments:
-            critieria: dictionary of criteria to filter down
+            criteria: dictionary of criteria to filter down
             monty_decode: Decode the data using monty into python objects
         """
 
