@@ -102,17 +102,19 @@ class RESTer:
                 return data
 
             else:
-                data = json.loads(response.text, cls=MontyDecoder)["detail"]
+                data = json.loads(response.text)["detail"]
+                try:
+                    data = json.loads(response.text)["detail"]
+                except JSONDecodeError:
+                    data = "Invalid data {}".format(response.text)
                 if isinstance(data, str):
                     message = data
                 else:
-                    message = ""
-                    for entry in data:
-                        message += "{} - {}, ".format(entry["loc"][1], entry["msg"])
+                    message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
 
                 raise RESTError(
                     f"REST query returned with error status code {response.status_code} "
-                    f"on URL {response.url} with message {message[:-2]}"
+                    f"on URL {response.url} with message:\n{message}"
                 )
 
         except RequestException as ex:
