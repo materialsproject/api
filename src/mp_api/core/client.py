@@ -6,28 +6,66 @@ Materials Project data.
 """
 
 import json
-import requests
-from requests.exceptions import RequestException
+import platform
+import sys
+from json import JSONDecodeError
 from typing import Dict, Optional
+from pathlib import Path
+
+import requests
 from monty.json import MontyDecoder
-from pydantic import AnyUrl
+from pymatgen import __version__ as pmg_version
+from requests.exceptions import RequestException
 
 
-class RESTer:
+class BaseRester:
     """
     Base client class with core stubs
     """
 
-    def __init__(self, endpoint, debug=True):
+    suffix = None
+
+    def __init__(self, api_key, endpoint, debug=True, version=None, include_user_agent=True):
         """
-        Arguments:
-            endpoint: URL for the base endpoint to access
+        Args:
+            api_key (str): A String API key for accessing the MaterialsProject
+                REST interface. Please obtain your API key at
+                https://www.materialsproject.org/dashboard. If this is None,
+                the code will check if there is a "PMG_MAPI_KEY" setting.
+                If so, it will use that environment variable. This makes
+                easier for heavy users to simply add this environment variable to
+                their setups and MPRester can then be called without any arguments.
+            endpoint (str): Url of endpoint to access the MaterialsProject REST
+                interface. Defaults to the standard Materials Project REST
+                address at "https://api.materialsproject.org", but
+                can be changed to other urls implementing a similar interface.
+            version (Optional[str]): Specify the database snapshot to query.
+            include_user_agent (bool): If True, will include a user agent with the
+                HTTP request including information on pymatgen and system version
+                making the API request. This helps MP support pymatgen users, and
+                is similar to what most web browsers send with each page request.
+                Set to False to disable the user agent.
         """
 
+        self.api_key = api_key
         self.endpoint = endpoint
         self.debug = debug
+        self.version = version
+
+        if self.suffix:
+            endpoint = str(Path(self.endpoint) / self.suffix)
 
         self.session = requests.Session()
+        self.session.headers = {"x-api-key": self.api_key}
+        if include_user_agent:
+            pymatgen_info = "pymatgen/" + pmg_version
+            python_info = "Python/{}.{}.{}".format(
+                sys.version_info.major, sys.version_info.minor, sys.version_info.micro
+            )
+            platform_info = "{}/{}".format(platform.system(), platform.release())
+            self.session.headers["user-agent"] = "{} ({} {})".format(
+                pymatgen_info, python_info, platform_info
+            )
 
     def __enter__(self):
         """
@@ -41,7 +79,7 @@ class RESTer:
         """
         self.session.close()
 
-    def _make_request(self, sub_url: AnyUrl, monty_decode: bool = True):
+    def _make_request(self, sub_url, monty_decode: bool = True):
         """
         Helper function to make requests
 
@@ -110,7 +148,10 @@ class RESTer:
                 if isinstance(data, str):
                     message = data
                 else:
-                    message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
+                    try:
+                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
+                    except KeyError:
+                        message = str(data)
 
                 raise RESTError(
                     f"REST query returned with error status code {response.status_code} "

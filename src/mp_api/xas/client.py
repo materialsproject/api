@@ -1,10 +1,10 @@
 from typing import List, Optional
 from pymatgen import Element
-from mp_api.core.client import RESTer, RESTError
+from mp_api.core.client import BaseRester, RESTError
 from mp_api.xas.models import Edge, XASType
 
 
-class XASRESTer(RESTer):
+class XASRESTer(BaseRester):
     def __init__(self, api_url, **kwargs):
         """
         Initializes the XASRester to a MAPI URL

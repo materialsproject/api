@@ -1,11 +1,10 @@
 from typing import List, Optional, Tuple
 from pymatgen import Structure
 
-from mp_api.core.client import RESTer, RESTError
-from mp_api.materials.models.core import CrystalSystem
+from mp_api.core.client import BaseRester, RESTError
 
 
-class CoreRESTer(RESTer):
+class MaterialsRester(BaseRester):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the CoreRESTer to a MAPI URL
@@ -15,7 +14,7 @@ class CoreRESTer(RESTer):
 
         super().__init__(endpoint=self.endpoint + "/materials/", **kwargs)
 
-    def get_structure_from_material_id(self, material_id: str):
+    def get_structure_from_material_id(self, material_id: str) -> Structure:
         """
         Get a structure for a given Materials Project ID.
 
@@ -30,13 +29,13 @@ class CoreRESTer(RESTer):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise RESTError(f"No document found for {material_id}")
 
     def search_material_docs(
         self,
         chemsys_formula: Optional[str] = None,
         task_ids: Optional[List[str]] = None,
-        crystal_system: Optional[CrystalSystem] = None,
+        crystal_system: Optional["CrystalSystem"] = None,
         spacegroup_number: Optional[int] = None,
         spacegroup_symbol: Optional[str] = None,
         nsites: Optional[Tuple[int, int]] = (None, None),
@@ -45,7 +44,7 @@ class CoreRESTer(RESTer):
         deprecated: Optional[bool] = False,
         limit: Optional[int] = 10,
         skip: Optional[int] = 0,
-        fields: Optional[List[str]] = [None],
+        fields: List[str] = ('material_id', 'last_updated', 'formula_pretty'),
     ):
         """
         Query core material docs using a variety of search criteria.
@@ -83,7 +82,6 @@ class CoreRESTer(RESTer):
             {
                 "crystal_system": crystal_system,
                 "spacegroup_number": spacegroup_number,
-                "crystal_system": crystal_system,
             }
         )
 
@@ -96,7 +94,7 @@ class CoreRESTer(RESTer):
         if any(density):
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
-        if any(fields):
+        if fields:
             query_params.update({"fields": ",".join(fields)})
 
         query_params = {
