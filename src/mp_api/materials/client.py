@@ -13,7 +13,7 @@ class CoreRESTer(RESTer):
 
         self.endpoint = endpoint.strip("/")
 
-        super().__init__(endpoint=self.endpoint + "/core/", **kwargs)
+        super().__init__(endpoint=self.endpoint + "/materials/", **kwargs)
 
     def get_structure_from_material_id(self, material_id: str):
         """
