@@ -4,7 +4,7 @@ from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
 from pymatgen import Element
 from datetime import datetime
-from mp_api.materials.models import Structure, Composition, Status, CrystalSystem
+from mp_api.materials.models import Structure, Composition, CrystalSystem
 
 
 class SymmetryData(BaseModel):

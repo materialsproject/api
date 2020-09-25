@@ -21,4 +21,3 @@ class DOSDataFields(Enum):
 class SpinChannel(Enum):
     up = "1"
     down = "-1"
-

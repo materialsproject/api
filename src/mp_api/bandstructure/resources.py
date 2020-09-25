@@ -8,7 +8,7 @@ from mp_api.materials.query_operators import FormulaQuery, MinMaxQuery
 from mp_api.bandstructure.query_operators import BSDataQuery
 
 from mp_api.core.utils import STORE_PARAMS
-from fastapi import Path, HTTPException, Depends
+from fastapi import HTTPException, Depends
 
 
 def bs_resource(bs_store, s3_store):
@@ -89,4 +89,3 @@ def bs_resource(bs_store, s3_store):
     )
 
     return resource
-

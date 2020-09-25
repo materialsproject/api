@@ -1,5 +1,4 @@
 from typing import List, Dict, Union, Optional, Callable
-from jinja2.nodes import Call
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from monty.json import MSONable
@@ -57,7 +56,7 @@ class Resource(MSONable):
                 into a python path string
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
-            route_class: Custom APIRoute class to define post-processing or custom validation 
+            route_class: Custom APIRoute class to define post-processing or custom validation
                 of response data
             key_fields: List of fields to always project. Default uses SparseFieldsQuery
                 to allow user's to define these on-the-fly.
@@ -135,7 +134,9 @@ class Resource(MSONable):
                 self.model, [self.store.key, self.store.last_updated_field]
             ).query
         else:
-            field_input = lambda: {"properties": self.key_fields}
+
+            def field_input():
+                return {"properties": self.key_fields}
 
         if not self.versioned:
 

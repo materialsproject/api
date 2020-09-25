@@ -56,7 +56,7 @@ class TaskRESTer(BaseRester):
                 Default is material_id, last_updated, and formula_pretty.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'. 
+            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
                 Defaults to Materials Project IDs reduced chemical formulas, and last updated tags.
         """
 

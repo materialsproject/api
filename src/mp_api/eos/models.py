@@ -26,4 +26,3 @@ class EOSDoc(BaseModel):
         None,
         description="The Materials Project ID of the material. This comes in the form: mp-******",
     )
-

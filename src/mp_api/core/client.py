@@ -25,7 +25,9 @@ class BaseRester:
 
     suffix = None
 
-    def __init__(self, api_key, endpoint, debug=True, version=None, include_user_agent=True):
+    def __init__(
+        self, api_key, endpoint, debug=True, version=None, include_user_agent=True
+    ):
         """
         Args:
             api_key (str): A String API key for accessing the MaterialsProject
@@ -150,7 +152,10 @@ class BaseRester:
                     message = data
                 else:
                     try:
-                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
+                        message = ", ".join(
+                            "{} - {}".format(entry["loc"][1], entry["msg"])
+                            for entry in data
+                        )
                     except (KeyError, IndexError):
                         message = str(data)
 

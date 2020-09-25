@@ -5,7 +5,7 @@ from typing import Dict
 from datetime import datetime
 from monty.json import MSONable
 from mp_api.core.resource import Resource
-from typing import Optional, List
+from typing import Optional
 
 
 class MAPI(MSONable):

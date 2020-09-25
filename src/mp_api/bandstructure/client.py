@@ -76,7 +76,7 @@ class BSRESTer(BaseRester,):
         Query band structure summary docs using a variety of search criteria.
 
         Arguments:
-            path_type (BSPathType): Band structure type determined by the k-path convention. 
+            path_type (BSPathType): Band structure type determined by the k-path convention.
             data_field (BSDataFields): Data field to query on.
             energy (Tuple[int,int]): Minimum and maximum energy to consider.
             direct (bool): Whether the band gap is direct if it is chosen with data_field.
@@ -93,7 +93,7 @@ class BSRESTer(BaseRester,):
                 Default is material_id, last_updated, and formula_pretty.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'. 
+            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
                 Defaults to Materials Project IDs reduced chemical formulas, and last updated tags.
         """
 
@@ -139,4 +139,3 @@ class BSRESTer(BaseRester,):
 
             count += 1
             yield results
-

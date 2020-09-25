@@ -7,12 +7,12 @@ from typing import List
 def calcs_revered_to_trajectory(calcs_reversed: List[dict]):
     """
     Converts data from calc_reversed to pymatgen Trajectory objects
-    that contain structure, energy, force and stress data for each 
+    that contain structure, energy, force and stress data for each
     ionic step.
 
     Args:
-        calcs_reversed: List of dictionaries in calcs_reversed entry 
-            of a task document. 
+        calcs_reversed: List of dictionaries in calcs_reversed entry
+            of a task document.
     """
     trajectories = []
 

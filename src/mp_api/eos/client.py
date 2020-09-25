@@ -19,7 +19,7 @@ class EOSRESTer(RESTer):
 
         Arguments:
             material_id (str): Materials project ID
-            
+
         Returns:
             results (Dict): Dictionary containing equations of state data.
         """
@@ -52,7 +52,7 @@ class EOSRESTer(RESTer):
                 Default is material_id only.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'. 
+            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
                 Defaults to Materials Project IDs only.
         """
 
@@ -62,7 +62,7 @@ class EOSRESTer(RESTer):
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
         if any(energy):
-            query_params.update({"energy_min": emergy[0], "energy_max": energy[1]})
+            query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
 
         if any(fields):
             query_params.update({"fields": ",".join(fields)})
@@ -84,4 +84,3 @@ class EOSRESTer(RESTer):
 
             count += 1
             yield results
-

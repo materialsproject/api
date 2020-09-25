@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Union
+from typing import List
 
 from monty.json import MontyDecoder
 from mp_api.materials.models import Structure, Composition

@@ -18,7 +18,7 @@ class MaterialsRester(BaseRester):
 
         Arguments:
             material_id (str): Materials project ID
-            version (str): Version of data to query on in the format 'YYYY.MM.DD'. 
+            version (str): Version of data to query on in the format 'YYYY.MM.DD'.
                 Defaults to None which will return data from the most recent database release.
 
 
@@ -76,7 +76,7 @@ class MaterialsRester(BaseRester):
                 Default is material_id, last_updated, and formula_pretty.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'. 
+            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
                 Defaults to Materials Project IDs reduced chemical formulas, and last updated tags.
         """
 
@@ -92,7 +92,7 @@ class MaterialsRester(BaseRester):
             query_params.update({"task_ids": ",".join(task_ids)})
 
         query_params.update(
-            {"crystal_system": crystal_system, "spacegroup_number": spacegroup_number,}
+            {"crystal_system": crystal_system, "spacegroup_number": spacegroup_number}
         )
 
         if any(nsites):
@@ -127,7 +127,7 @@ class MaterialsRester(BaseRester):
 
     def get_database_versions(self):
         """
-        Get version tags available for the Materials Project core materials data. 
+        Get version tags available for the Materials Project core materials data.
         These can be used to request data from previous releases.
 
         Returns:

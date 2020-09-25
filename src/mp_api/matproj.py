@@ -1,11 +1,13 @@
-from monty.dev import deprecated
 from pymatgen import Structure
+from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 
 from mp_api.materials.client import MaterialsRester
 
-_DEPRECATION_WARNING = "MPRester is being modernized. Please use the new method suggested and " \
-                       "read more about these changes at https://docs.materialsproject.org/api. The current " \
-                       "methods will be retained for backwards compatibility."
+_DEPRECATION_WARNING = (
+    "MPRester is being modernized. Please use the new method suggested and "
+    "read more about these changes at https://docs.materialsproject.org/api. The current "
+    "methods will be retained for backwards compatibility."
+)
 
 
 class MPRester:
@@ -14,12 +16,12 @@ class MPRester:
     """
 
     def __init__(
-            self,
-            api_key=None,
-            endpoint=None,
-            version=None,
-            notify_db_version=True,
-            include_user_agent=True,
+        self,
+        api_key=None,
+        endpoint=None,
+        version=None,
+        notify_db_version=True,
+        include_user_agent=True,
     ):
         """
         Args:
@@ -53,7 +55,9 @@ class MPRester:
         self.endpoint = endpoint
         self.version = version
 
-        self.materials = MaterialsRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        self.materials = MaterialsRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
         self.xas = None
         self.similarity = None
         self.eos = None
@@ -868,7 +872,7 @@ class MPRester:
 
         """
         raise NotImplementedError
-    
+
     @staticmethod
     def parse_criteria(criteria_string):
         """

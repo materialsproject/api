@@ -75,7 +75,7 @@ class DOSRESTer(BaseRester):
         Query density of states summary docs using a variety of search criteria.
 
         Arguments:
-            projection (DOSProjection): Density of states projection type. 
+            projection (DOSProjection): Density of states projection type.
             spin_channel (Spin): Spin channel to query on.
             energy (Tuple[int,int]): Minimum and maximum energy to consider.
             element (Element): Element in projection to consider.
@@ -93,7 +93,7 @@ class DOSRESTer(BaseRester):
                 Default is material_id, last_updated, and formula_pretty.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'. 
+            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
                 Defaults to Materials Project IDs reduced chemical formulas, and last updated tags.
         """
 
@@ -142,4 +142,3 @@ class DOSRESTer(BaseRester):
 
             count += 1
             yield results
-

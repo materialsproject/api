@@ -19,7 +19,7 @@ def materials_resource(materials_store):
 
         async def get_versions():
             f"""
-            Obtains the database versions for the data in {model_name} 
+            Obtains the database versions for the data in {model_name}
 
             Returns:
                 A list of database versions one can use to query on
