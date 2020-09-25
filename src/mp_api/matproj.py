@@ -1,10 +1,12 @@
 from monty.dev import deprecated
+from pymatgen import Structure
 
 from mp_api.materials.client import MaterialsRester
 
 _DEPRECATION_WARNING = "MPRester is being modernized. Please use the new method suggested and " \
                        "read more about these changes at https://docs.materialsproject.org/api. The current " \
                        "methods will be retained for backwards compatibility."
+
 
 class MPRester:
     """
@@ -56,6 +58,34 @@ class MPRester:
         self.similarity = None
         self.eos = None
         self.tasks = None
+
+    ###########################################################################
+    # The following methods are retained for backwards compatibility, but will
+    # eventually be retired.
+
+    # @deprecated(MPRester.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
+    def get_structure_by_material_id(
+        self, material_id, final=True, conventional_unit_cell=False
+    ) -> Structure:
+        """
+        Get a Structure corresponding to a material_id.
+
+        Args:
+            material_id (str): Materials Project material_id (a string,
+                e.g., mp-1234).
+            final (bool): Whether to get the final structure, or the initial
+                (pre-relaxation) structure. Defaults to True.
+            conventional_unit_cell (bool): Whether to get the standard
+                conventional unit cell
+
+        Returns:
+            Structure object.
+        """
+        # TODO: decide about `final` and `conventional_unit_cell`
+        return self.materials.get_structure_by_material_id(material_id=material_id)
+
+    ###########################################################################
+    # The following methods have not been implemented yet.
 
     # @deprecated(self.materials.get_database_version, _DEPRECATION_WARNING)
     def get_database_version(self):
@@ -274,25 +304,6 @@ class MPRester:
                 system, e.g. ['Li', 'Fe']
             solid_compat: Compatiblity scheme used to pre-process solid DFT energies prior to applying aqueous
                 energy adjustments. Default: MaterialsProjectCompatibility().
-        """
-        raise NotImplementedError
-
-    def get_structure_by_material_id(
-        self, material_id, final=True, conventional_unit_cell=False
-    ):
-        """
-        Get a Structure corresponding to a material_id.
-
-        Args:
-            material_id (str): Materials Project material_id (a string,
-                e.g., mp-1234).
-            final (bool): Whether to get the final structure, or the initial
-                (pre-relaxation) structure. Defaults to True.
-            conventional_unit_cell (bool): Whether to get the standard
-                conventional unit cell
-
-        Returns:
-            Structure object.
         """
         raise NotImplementedError
 

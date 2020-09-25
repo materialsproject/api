@@ -1,4 +1,6 @@
 from typing import List, Optional, Tuple
+
+from mp_api.materials.models import Structure
 from mp_api.materials.models.doc import CrystalSystem
 
 from mp_api.core.client import BaseRester, MPRestError
@@ -8,9 +10,9 @@ class MaterialsRester(BaseRester):
 
     suffix = "materials"
 
-    def get_structure_from_material_id(
+    def get_structure_by_material_id(
         self, material_id: str, version: Optional[str] = None
-    ):
+    ) -> Structure:
         """
         Get a structure for a given Materials Project ID.
 
