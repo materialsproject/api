@@ -1,5 +1,5 @@
 pydantic==1.5.1
-pymatgen==2020.7.3
+pymatgen==2020.9.14
 typing-extensions==3.7.4.2
 requests==2.24.0
 boto3==1.15.0
