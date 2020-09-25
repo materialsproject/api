@@ -63,12 +63,6 @@ class MaterialsCoreDoc(BaseModel):
         description="List of Calculations IDs used to make this XAS spectrum",
     )
 
-    state: Status = Field(
-        None,
-        description="Currrent state of this material document as either being referenced"
-        "to an experimental structure, theoretical structure, or deprecated due to calculation parameters",
-    )
-
     task_id: str = Field(
         None,
         description="The ID of this material, used as a universal reference across property documents."

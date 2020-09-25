@@ -93,10 +93,10 @@ class MinMaxQuery(QueryOperator):
 
         for entry in d:
             if d[entry][0]:
-                crit[entry] = {"$gte": d[entry][0]}
+                crit[entry]["$gte"] = d[entry][0]
 
             if d[entry][1]:
-                crit[entry] = {"$lte": d[entry][1]}
+                crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
 
