@@ -2,9 +2,9 @@ from monty.dev import deprecated
 
 from mp_api.materials.client import MaterialsRester
 
-GLOBAL_DEPRECATION_WARNING = "MPRester is being modernized. Please use the new method suggested and " \
-                             "read more about these changes at https://docs.materialsproject.org/api. The current " \
-                             "methods will be retained for backwards compatibility."
+_DEPRECATION_WARNING = "MPRester is being modernized. Please use the new method suggested and " \
+                       "read more about these changes at https://docs.materialsproject.org/api. The current " \
+                       "methods will be retained for backwards compatibility."
 
 class MPRester:
     """
@@ -57,7 +57,7 @@ class MPRester:
         self.eos = None
         self.tasks = None
 
-    # @deprecated(self.materials.get_database_version, GLOBAL_DEPRECATION_WARNING)
+    # @deprecated(self.materials.get_database_version, _DEPRECATION_WARNING)
     def get_database_version(self):
         """
         The Materials Project database is periodically updated and has a
