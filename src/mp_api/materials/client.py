@@ -137,4 +137,4 @@ class MaterialsRester(BaseRester):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No data found")
+            raise MPRestError("No data found")
