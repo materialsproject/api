@@ -4,15 +4,9 @@ from mp_api.materials.models.doc import CrystalSystem
 from mp_api.core.client import BaseRester, MPRestError
 
 
-class MaterialsRESTer(BaseRester):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the MaterialsRESTer with a MAPI URL
-        """
+class MaterialsRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/materials/", **kwargs)
+    suffix = "materials"
 
     def get_structure_from_material_id(
         self, material_id: str, version: Optional[str] = None
