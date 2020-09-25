@@ -104,13 +104,13 @@ class BaseRester:
 
             else:
                 message = json.loads(response.text, cls=MontyDecoder)["detail"]
-                raise RESTError(
+                raise MPRestError(
                     f"REST query returned with error status code {response.status_code} on url {url} : {message}"
                 )
 
         except RequestException as ex:
 
-            raise RESTError(str(ex))
+            raise MPRestError(str(ex))
 
     def query(self, criteria: Optional[Dict] = None, monty_decode: bool = True):
         """
@@ -153,17 +153,17 @@ class BaseRester:
                     except (KeyError, IndexError):
                         message = str(data)
 
-                raise RESTError(
+                raise MPRestError(
                     f"REST query returned with error status code {response.status_code} "
                     f"on URL {response.url} with message:\n{message}"
                 )
 
         except RequestException as ex:
 
-            raise RESTError(str(ex))
+            raise MPRestError(str(ex))
 
 
-class RESTError(Exception):
+class MPRestError(Exception):
     """
     Raised when the query has problems, e.g., bad query format.
     """

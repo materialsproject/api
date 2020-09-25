@@ -1,6 +1,6 @@
 from typing import List, Optional
 from pymatgen import Element
-from mp_api.core.client import BaseRester, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 from mp_api.xas.models import Edge, XASType
 
 
@@ -31,7 +31,7 @@ class XASRESTer(BaseRester):
         if len(result.get("data", [])) > 0:
             return result["data"][0]
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_xas_docs(
         self,

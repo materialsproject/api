@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 from pymatgen import Structure
 
-from mp_api.core.client import BaseRester, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
 class MaterialsRester(BaseRester):
@@ -29,7 +29,7 @@ class MaterialsRester(BaseRester):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError(f"No document found for {material_id}")
+            raise MPRestError(f"No document found for {material_id}")
 
     def search_material_docs(
         self,
