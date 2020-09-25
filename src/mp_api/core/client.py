@@ -53,7 +53,7 @@ class BaseRester:
         self.version = version
 
         if self.suffix:
-            endpoint = str(Path(self.endpoint) / self.suffix)
+            self.endpoint = str(Path(self.endpoint) / self.suffix)
 
         self.session = requests.Session()
         self.session.headers = {"x-api-key": self.api_key}
@@ -150,7 +150,7 @@ class BaseRester:
                 else:
                     try:
                         message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
-                    except KeyError:
+                    except (KeyError, IndexError):
                         message = str(data)
 
                 raise RESTError(
