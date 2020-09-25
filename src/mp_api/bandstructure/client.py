@@ -1,10 +1,10 @@
 from typing import List, Optional, Tuple
 from mp_api.bandstructure.models.core import BSPathType, BSDataFields
 
-from mp_api.core.client import RESTer, RESTError
+from mp_api.core.client import BaseRester, RESTError
 
 
-class BSRESTer(RESTer):
+class BSRESTer(BaseRester,):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the BSRESTer with a MAPI URL

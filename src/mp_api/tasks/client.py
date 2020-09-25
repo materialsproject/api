@@ -1,11 +1,9 @@
-from typing import List, Optional, Tuple
-from pymatgen import Structure
+from typing import List, Optional
 
-from mp_api.core.client import RESTer, RESTError
-from mp_api.materials.models.core import CrystalSystem
+from mp_api.core.client import BaseRester, RESTError
 
 
-class TaskRESTer(RESTer):
+class TaskRESTer(BaseRester):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the TaskRESTer with a MAPI URL

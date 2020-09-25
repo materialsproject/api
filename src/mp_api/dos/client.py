@@ -4,10 +4,10 @@ from pymatgen.core.periodic_table import Element
 from mp_api.dos.models.core import DOSProjection
 from pymatgen.electronic_structure.core import Spin, OrbitalType
 
-from mp_api.core.client import RESTer, RESTError
+from mp_api.core.client import BaseRester, RESTError
 
 
-class DOSRESTer(RESTer):
+class DOSRESTer(BaseRester):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the DOSRESTer with a MAPI URL

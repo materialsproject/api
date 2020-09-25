@@ -1,10 +1,10 @@
 from typing import List, Optional, Tuple
-from pymatgen import Structure
+from mp_api.materials.models.doc import CrystalSystem
 
 from mp_api.core.client import BaseRester, RESTError
 
 
-class MaterialsRESTer(RESTer):
+class MaterialsRESTer(BaseRester):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the MaterialsRESTer with a MAPI URL
@@ -96,10 +96,7 @@ class MaterialsRESTer(RESTer):
             query_params.update({"task_ids": ",".join(task_ids)})
 
         query_params.update(
-            {
-                "crystal_system": crystal_system,
-                "spacegroup_number": spacegroup_number,
-            }
+            {"crystal_system": crystal_system, "spacegroup_number": spacegroup_number,}
         )
 
         if any(nsites):

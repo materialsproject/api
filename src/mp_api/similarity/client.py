@@ -1,7 +1,7 @@
-from mp_api.core.client import RESTer, RESTError
+from mp_api.core.client import BaseRester, RESTError
 
 
-class SimilarityRESTer(RESTer):
+class SimilarityRESTer(BaseRester):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the SimilarityRESTer with a MAPI URL
