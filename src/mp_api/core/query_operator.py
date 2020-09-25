@@ -158,3 +158,24 @@ class SparseFieldsQuery(QueryOperator):
         d["model"] = model
 
         return cls(**d)
+
+
+class VersionQuery(QueryOperator):
+    """
+    Method to generate a query on a specific collection version
+    """
+
+    def query(
+        self,
+        version: Optional[str] = Query(
+            None, description="Database version to query on formatted as YYYY.MM.DD",
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if version:
+            crit.update({"version": version})
+
+        return {"criteria": crit}
+

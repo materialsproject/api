@@ -1,8 +1,10 @@
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union, Optional, Callable
+from jinja2.nodes import Call
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from monty.json import MSONable
-from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends
+from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends, Query
+from fastapi.routing import APIRoute
 
 from maggma.core import Store
 
@@ -13,7 +15,12 @@ from mp_api.core.utils import (
     attach_signature,
     dynamic_import,
 )
-from mp_api.core.query_operator import QueryOperator, PaginationQuery, SparseFieldsQuery
+from mp_api.core.query_operator import (
+    QueryOperator,
+    PaginationQuery,
+    SparseFieldsQuery,
+    VersionQuery,
+)
 
 
 class Resource(MSONable):
@@ -34,6 +41,11 @@ class Resource(MSONable):
         model: Union[BaseModel, str],
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
+        route_class: APIRoute = None,
+        key_fields: List[str] = [None],
+        custom_endpoint_funcs: List[Callable] = [None],
+        enable_get_by_key: bool = True,
+        enable_default_search: bool = True,
     ):
         """
         Args:
@@ -45,9 +57,21 @@ class Resource(MSONable):
                 into a python path string
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
+            route_class: Custom APIRoute class to define post-processing or custom validation 
+                of response data
+            key_fields: List of fields to always project. Default uses SparseFieldsQuery
+                to allow user's to define these on-the-fly.
+            custom_endpoint_funcs: Custom endpoint preparation functions to be used
+            enable_get_by_key: Enable default key route for endpoint.
+            enable_default_search: Enable default endpoint search behavior.
         """
         self.store = store
         self.tags = tags or []
+        self.key_fields = key_fields
+        self.versioned = False
+        self.cep = custom_endpoint_funcs
+        self.enable_get_by_key = enable_get_by_key
+        self.enable_default_search = enable_default_search
 
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
@@ -74,7 +98,15 @@ class Resource(MSONable):
             ]
         )
 
-        self.router = APIRouter()
+        if any(
+            isinstance(qop_entry, VersionQuery) for qop_entry in self.query_operators
+        ):
+            self.versioned = True
+
+        if route_class is not None:
+            self.router = APIRouter(route_class=route_class)
+        else:
+            self.router = APIRouter()
         self.response_model = Response[self.model]  # type: ignore
         self.prepare_endpoint()
 
@@ -84,47 +116,106 @@ class Resource(MSONable):
         for routes
         """
 
-        self.build_get_by_key()
-        self.set_dynamic_model_search()
+        for func in self.cep:
+            if func is not None:
+                func(self)
+
+        if self.enable_get_by_key:
+            self.build_get_by_key()
+
+        if self.enable_default_search:
+            self.set_dynamic_model_search()
 
     def build_get_by_key(self):
         key_name = self.store.key
         model_name = self.model.__name__
 
-        async def get_by_key(
-            key: str = Path(
-                ..., alias=key_name, title=f"The {key_name} of the {model_name} to get"
-            ),
-            fields: STORE_PARAMS = Depends(
-                SparseFieldsQuery(
-                    self.model, [self.store.key, self.store.last_updated_field]
-                ).query
-            ),
-        ):
-            f"""
-            Get's a document by the primary key in the store
+        if None in self.key_fields:
+            field_input = SparseFieldsQuery(
+                self.model, [self.store.key, self.store.last_updated_field]
+            ).query
+        else:
+            field_input = lambda: {"properties": self.key_fields}
 
-            Args:
-                {key_name}: the id of a single {model_name}
+        if not self.versioned:
 
-            Returns:
-                a single {model_name} document
-            """
-            self.store.connect()
+            async def get_by_key(
+                key: str = Path(
+                    ...,
+                    alias=key_name,
+                    title=f"The {key_name} of the {model_name} to get",
+                ),
+                fields: STORE_PARAMS = Depends(field_input),
+            ):
+                f"""
+                Get's a document by the primary key in the store
 
-            item = self.store.query_one(
-                criteria={self.store.key: key}, properties=fields["properties"]
-            )
+                Args:
+                    {key_name}: the id of a single {model_name}
 
-            if item is None:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Item with {self.store.key} = {key} not found",
+                Returns:
+                    a single {model_name} document
+                """
+                self.store.connect()
+
+                item = self.store.query_one(
+                    criteria={self.store.key: key}, properties=fields["properties"]
                 )
 
-            response = {"data": [item]}
+                if item is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Item with {self.store.key} = {key} not found",
+                    )
 
-            return response
+                response = {"data": [item]}
+
+                return response
+
+        else:
+
+            async def get_by_key(
+                key: str = Path(
+                    ...,
+                    alias=key_name,
+                    title=f"The {key_name} of the {model_name} to get",
+                ),
+                fields: STORE_PARAMS = Depends(field_input),
+                version: str = Query(
+                    None,
+                    description="Database version to query on formatted as YYYY.MM.DD",
+                ),
+            ):
+                f"""
+                Get's a document by the primary key in the store
+
+                Args:
+                    {key_name}: the id of a single {model_name}
+
+                Returns:
+                    a single {model_name} document
+                """
+
+                if version is not None:
+                    version = version.replace(".", "_")
+                    self.store.collection_name = (
+                        f"{self.store.collection_name}_{version}"
+                    )
+                self.store.connect()
+
+                item = self.store.query_one(
+                    criteria={self.store.key: key}, properties=fields["properties"]
+                )
+
+                if item is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Item with {self.store.key} = {key} not found",
+                    )
+
+                response = {"data": [item]}
+
+                return response
 
         self.router.get(
             f"/{{{key_name}}}/",
@@ -139,9 +230,19 @@ class Resource(MSONable):
         model_name = self.model.__name__
 
         async def search(**queries: STORE_PARAMS):
-            self.store.connect()
 
             query: STORE_PARAMS = merge_queries(list(queries.values()))
+
+            if (
+                self.versioned
+                and query.get("criteria").get("version", None) is not None
+            ):
+                version = query["criteria"]["version"].replace(".", "_")
+                self.store.collection_name = f"{self.store.collection_name}_{version}"
+                query["criteria"].pop("version")
+
+            self.store.connect()
+
             data = list(self.store.query(**query))  # type: ignore
             operator_metas = [
                 operator.meta(self.store, query.get("criteria", {}))

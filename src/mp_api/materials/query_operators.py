@@ -133,7 +133,7 @@ class SymmetryQuery(QueryOperator):
         return {"criteria": crit}
 
 
-class TaskIDQuery(QueryOperator):
+class MultiTaskIDQuery(QueryOperator):
     """
     Method to generate a query for different task_ids
     """
