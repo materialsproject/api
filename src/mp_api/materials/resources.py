@@ -49,7 +49,7 @@ def materials_resource(materials_store):
             return response
 
         self.router.get(
-            f"/versions/",
+            "/versions/",
             response_model_exclude_unset=True,
             response_description=f"Get versions of {model_name}",
             tags=self.tags,
