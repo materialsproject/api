@@ -14,7 +14,7 @@ from pathlib import Path
 
 import requests
 from monty.json import MontyDecoder
-from pymatgen import __version__ as pmg_version
+from pymatgen import __version__ as pmg_version  # type: ignore
 from requests.exceptions import RequestException
 
 

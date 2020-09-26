@@ -2,7 +2,7 @@ from typing import List
 
 from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 from datetime import datetime
 from mp_api.materials.models import Structure, Composition, CrystalSystem
 

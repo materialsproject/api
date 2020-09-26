@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 from mp_api.core.client import BaseRester, MPRestError
 from mp_api.xas.models import Edge, XASType
 

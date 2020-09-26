@@ -3,7 +3,7 @@ from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.materials.utils import formula_to_criteria
 from mp_api.materials.models.core import CrystalSystem
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 from collections import defaultdict
 
 

@@ -3,7 +3,7 @@ from typing import List, Union
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from monty.json import MontyDecoder
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 
 from mp_api.materials.models import Composition
 
