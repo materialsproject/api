@@ -32,7 +32,7 @@ class BSDataQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
-        crit = defaultdict(dict)
+        crit = defaultdict(dict)  # type: dict
 
         if data_field.value == "band_gap" and direct is None:
             raise HTTPException(

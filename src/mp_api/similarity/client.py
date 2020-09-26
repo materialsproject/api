@@ -1,4 +1,4 @@
-from mp_api.core.client import BaseRester, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
 class SimilarityRESTer(BaseRester):
@@ -27,4 +27,4 @@ class SimilarityRESTer(BaseRester):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")

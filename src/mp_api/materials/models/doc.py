@@ -57,12 +57,6 @@ class MaterialsCoreDoc(BaseModel):
         description="Initial structures used in the DFT optimizations corresponding to this material",
     )
 
-    task_ids: List[str] = Field(
-        None,
-        title="Calculation IDs",
-        description="List of Calculations IDs used to make this XAS spectrum",
-    )
-
     task_id: str = Field(
         None,
         description="The ID of this material, used as a universal reference across property documents."

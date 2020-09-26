@@ -1,9 +1,10 @@
 from typing import List, Optional, Tuple
+from collections import defaultdict
 
-from mp_api.core.client import RESTer, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
-class EOSRESTer(RESTer):
+class EOSRESTer(BaseRester):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the CoreRESTer to a MAPI URL
@@ -29,15 +30,15 @@ class EOSRESTer(RESTer):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_eos_docs(
         self,
-        volume: Optional[Tuple[float, float]] = (None, None),
-        energy: Optional[Tuple[float, float]] = (None, None),
+        volume: Optional[Tuple[float, float]] = None,
+        energy: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
-        fields: Optional[List[str]] = [None],
+        chunk_size: int = 100,
+        fields: Optional[List[str]] = None,
     ):
         """
         Query equations of state docs using a variety of search criteria.
@@ -56,15 +57,15 @@ class EOSRESTer(RESTer):
                 Defaults to Materials Project IDs only.
         """
 
-        query_params = {}
+        query_params = defaultdict(dict)  # type: dict
 
-        if any(volume):
+        if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
-        if any(energy):
+        if energy:
             query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
 
-        if any(fields):
+        if fields:
             query_params.update({"fields": ",".join(fields)})
 
         query_params = {

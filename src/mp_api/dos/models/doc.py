@@ -62,11 +62,6 @@ class DOSDoc(BaseModel):
         description="Timestamp for the most recent calculation for this Material document",
     )
 
-    task_id: str = Field(
-        None,
-        description="The Materials Project ID of the material. This comes in the form: mp-******",
-    )
-
     total: DOSSummaryFields = Field(
         None, description="Total density of states summary data",
     )

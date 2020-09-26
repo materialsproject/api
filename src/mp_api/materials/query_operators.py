@@ -83,20 +83,20 @@ class MinMaxQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
-        crit = defaultdict(dict)
+        crit = defaultdict(dict)  # type: dict
 
-        d = {
+        entries = {
             "nsites": [nsites_min, nsites_max],
             "volume": [volume_min, volume_max],
             "density": [density_min, density_max],
-        }
+        }  # type: dict
 
-        for entry in d:
-            if d[entry][0]:
-                crit[entry]["$gte"] = d[entry][0]
+        for entry in entries:
+            if entries[entry][0]:
+                crit[entry]["$gte"] = entries[entry][0]
 
-            if d[entry][1]:
-                crit[entry]["$lte"] = d[entry][1]
+            if entries[entry][1]:
+                crit[entry]["$lte"] = entries[entry][1]
 
         return {"criteria": crit}
 
@@ -119,7 +119,7 @@ class SymmetryQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
-        crit = {}
+        crit = {}  # type: dict
 
         if crystal_system:
             crit.update({"symmetry.crystal_system": str(crystal_system.value)})

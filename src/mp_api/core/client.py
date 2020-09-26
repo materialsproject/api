@@ -23,10 +23,10 @@ class BaseRester:
     Base client class with core stubs
     """
 
-    suffix = None
+    suffix = None  # type: str
 
     def __init__(
-        self, api_key, endpoint, debug=True, version=None, include_user_agent=True
+        self, api_key, endpoint, debug=True, version=None, include_user_agent=True,
     ):
         """
         Args:

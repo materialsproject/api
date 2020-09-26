@@ -1,10 +1,10 @@
 from typing import List, Optional, Tuple
 from mp_api.bandstructure.models.core import BSPathType, BSDataFields
 
-from mp_api.core.client import BaseRester, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
-class BSRESTer(BaseRester,):
+class BSRESTer(BaseRester):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the BSRESTer with a MAPI URL
@@ -15,7 +15,7 @@ class BSRESTer(BaseRester,):
         super().__init__(endpoint=self.endpoint + "/bs/", **kwargs)
 
     def get_bandstructure_from_material_id(
-        self, material_id: str, path_type: BSPathType = None
+        self, material_id: str, path_type: BSPathType
     ):
         """
         Get a band structure for a given Materials Project ID.
@@ -38,7 +38,7 @@ class BSRESTer(BaseRester,):
         if result.get("object", None) is not None:
             return result["object"]
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def get_bandstructure_summary_from_material_id(self, material_id: str):
         """
@@ -56,21 +56,21 @@ class BSRESTer(BaseRester,):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_bandstructure_docs(
         self,
-        path_type: BSPathType = None,
-        data_field: BSDataFields = None,
-        energy: Tuple[float, float] = (None, None),
+        path_type: BSPathType,
+        data_field: BSDataFields,
+        energy: Tuple[float, float],
         direct: Optional[bool] = None,
         chemsys_formula: Optional[str] = None,
-        nsites: Optional[Tuple[int, int]] = (None, None),
-        volume: Optional[Tuple[float, float]] = (None, None),
-        density: Optional[Tuple[float, float]] = (None, None),
+        nsites: Optional[Tuple[int, int]] = None,
+        volume: Optional[Tuple[float, float]] = None,
+        density: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
-        fields: Optional[List[str]] = [None],
+        chunk_size: int = 100,
+        fields: Optional[List[str]] = None,
     ):
         """
         Query band structure summary docs using a variety of search criteria.
@@ -110,16 +110,16 @@ class BSRESTer(BaseRester,):
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
 
-        if any(nsites):
+        if nsites:
             query_params.update({"nsites_min": nsites[0], "nsites_max": nsites[1]})
 
-        if any(volume):
+        if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
-        if any(density):
+        if density:
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
-        if any(fields):
+        if fields:
             query_params.update({"fields": ",".join(fields)})
 
         query_params = {

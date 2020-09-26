@@ -4,7 +4,7 @@ from pymatgen.core.periodic_table import Element
 from mp_api.dos.models.core import DOSProjection
 from pymatgen.electronic_structure.core import Spin, OrbitalType
 
-from mp_api.core.client import BaseRester, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
 class DOSRESTer(BaseRester):
@@ -36,7 +36,7 @@ class DOSRESTer(BaseRester):
         if result.get("object", None) is not None:
             return result["object"]
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def get_dos_summary_from_material_id(self, material_id: str):
         """
@@ -54,22 +54,22 @@ class DOSRESTer(BaseRester):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_dos_docs(
         self,
-        projection: DOSProjection = None,
-        spin_channel: Spin = None,
-        energy: Tuple[float, float] = (None, None),
+        projection: DOSProjection,
+        spin_channel: Spin,
+        energy: Tuple[float, float],
         element: Optional[Element] = None,
         orbital: Optional[OrbitalType] = None,
         chemsys_formula: Optional[str] = None,
-        nsites: Optional[Tuple[int, int]] = (None, None),
-        volume: Optional[Tuple[float, float]] = (None, None),
-        density: Optional[Tuple[float, float]] = (None, None),
+        nsites: Optional[Tuple[int, int]] = None,
+        volume: Optional[Tuple[float, float]] = None,
+        density: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
-        fields: Optional[List[str]] = [None],
+        chunk_size: int = 100,
+        fields: Optional[List[str]] = None,
     ):
         """
         Query density of states summary docs using a variety of search criteria.
@@ -113,16 +113,16 @@ class DOSRESTer(BaseRester):
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
 
-        if any(nsites):
+        if nsites:
             query_params.update({"nsites_min": nsites[0], "nsites_max": nsites[1]})
 
-        if any(volume):
+        if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
-        if any(density):
+        if density:
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
-        if any(fields):
+        if fields:
             query_params.update({"fields": ",".join(fields)})
 
         query_params = {

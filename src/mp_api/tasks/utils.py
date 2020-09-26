@@ -1,4 +1,4 @@
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.core.trajectory import Trajectory
 from collections import defaultdict
 from typing import List
@@ -20,7 +20,7 @@ def calcs_revered_to_trajectory(calcs_reversed: List[dict]):
         for step in calculation["output"]["ionic_steps"]:
 
             structures = []
-            frame_props = defaultdict(list)
+            frame_props = defaultdict(list)  # type: dict
 
             structures.append(Structure.from_dict(step["structure"]))
 

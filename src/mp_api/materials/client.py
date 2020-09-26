@@ -41,17 +41,17 @@ class MaterialsRester(BaseRester):
         self,
         version: Optional[str] = None,
         chemsys_formula: Optional[str] = None,
-        task_ids: Optional[List[str]] = [None],
+        task_ids: Optional[List[str]] = None,
         crystal_system: Optional[CrystalSystem] = None,
         spacegroup_number: Optional[int] = None,
         spacegroup_symbol: Optional[str] = None,
-        nsites: Optional[Tuple[int, int]] = (None, None),
-        volume: Optional[Tuple[float, float]] = (None, None),
-        density: Optional[Tuple[float, float]] = (None, None),
+        nsites: Optional[Tuple[int, int]] = None,
+        volume: Optional[Tuple[float, float]] = None,
+        density: Optional[Tuple[float, float]] = None,
         deprecated: Optional[bool] = False,
         num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
-        fields: Optional[List[str]] = [None],
+        chunk_size: int = 100,
+        fields: Optional[List[str]] = None,
     ):
         """
         Query core material docs using a variety of search criteria.
@@ -80,7 +80,7 @@ class MaterialsRester(BaseRester):
                 Defaults to Materials Project IDs reduced chemical formulas, and last updated tags.
         """
 
-        query_params = {"deprecated": deprecated}
+        query_params = {"deprecated": deprecated}  # type: dict
 
         if version:
             query_params.update({"version": version})
@@ -88,20 +88,20 @@ class MaterialsRester(BaseRester):
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
 
-        if any(task_ids):
+        if task_ids:
             query_params.update({"task_ids": ",".join(task_ids)})
 
         query_params.update(
             {"crystal_system": crystal_system, "spacegroup_number": spacegroup_number}
         )
 
-        if any(nsites):
+        if nsites:
             query_params.update({"nsites_min": nsites[0], "nsites_max": nsites[1]})
 
-        if any(volume):
+        if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
-        if any(density):
+        if density:
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
         if fields:
