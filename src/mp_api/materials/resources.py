@@ -10,7 +10,7 @@ from mp_api.materials.query_operators import (
     MultiTaskIDQuery,
 )
 
-from pymongo import MongoClient
+from pymongo import MongoClient  # type: ignore
 
 
 def materials_resource(materials_store):
