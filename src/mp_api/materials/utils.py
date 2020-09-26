@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from pymatgen.core import Composition
 from pymatgen.core.periodic_table import DummySpecie
 from typing import Dict

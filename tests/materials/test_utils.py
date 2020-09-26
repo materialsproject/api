@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from mp_api.materials.utils import formula_to_criteria
 
 
