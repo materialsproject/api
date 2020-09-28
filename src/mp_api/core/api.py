@@ -42,7 +42,12 @@ class MAPI(MSONable):
         @app.get("/heartbeat", include_in_schema=False)
         def heartbeat():
             """ API Heartbeat for Load Balancing """
-            return {"status": "OK", "time": datetime.utcnow()}
+
+            return {
+                "status": "OK",
+                "time": datetime.utcnow(),
+                "version": self.version,
+            }
 
         @app.get("/login", include_in_schema=False)
         def login(
