@@ -25,7 +25,7 @@ setup(
     install_requires=[
         "setuptools",
         "pydantic>=1.4",
-        "pymatgen>=2020.9.03",
+        "pymatgen>=2020.09.03",
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
     ],
