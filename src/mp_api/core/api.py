@@ -7,7 +7,7 @@ from datetime import datetime
 from monty.json import MSONable
 from mp_api.core.resource import Resource
 from typing import Optional
-from pymatgen import __version__ as pmg_version
+from pymatgen import __version__ as pmg_version  # type: ignore
 
 
 class MAPI(MSONable):
