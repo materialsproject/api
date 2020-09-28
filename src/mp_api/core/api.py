@@ -8,6 +8,7 @@ from monty.json import MSONable
 from mp_api.core.resource import Resource
 from typing import Optional
 from pymatgen import __version__ as pmg_version  # type: ignore
+from fastapi.openapi.utils import get_openapi
 
 
 class MAPI(MSONable):
@@ -65,6 +66,26 @@ class MAPI(MSONable):
         def redirect_docs():
             """ Redirects the root end point to the docs """
             return RedirectResponse(url=app.docs_url, status_code=301)
+
+        def custom_openapi():
+            openapi_schema = get_openapi(
+                title=self.title, version=self.version, routes=app.routes
+            )
+
+            openapi_schema["components"]["securitySchemes"] = {
+                "ApiKeyAuth": {
+                    "descriptions": "MP API key to authorize requests",
+                    "name": "X-API-KEY",
+                    "in": "header",
+                    "type": "apiKey",
+                }
+            }
+
+            openapi_schema["security"] = [{"ApiKeyAuth": []}]
+            app.openapi_schema = openapi_schema
+            return app.openapi_schema
+
+        app.openapi = custom_openapi
 
         return app
 
