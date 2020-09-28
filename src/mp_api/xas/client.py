@@ -1,10 +1,10 @@
 from typing import List, Optional
-from pymatgen import Element
-from mp_api.core.client import RESTer, RESTError
+from pymatgen.core.periodic_table import Element
+from mp_api.core.client import BaseRester, MPRestError
 from mp_api.xas.models import Edge, XASType
 
 
-class XASRESTer(RESTer):
+class XASRESTer(BaseRester):
     def __init__(self, api_url, **kwargs):
         """
         Initializes the XASRester to a MAPI URL
@@ -31,7 +31,7 @@ class XASRESTer(RESTer):
         if len(result.get("data", [])) > 0:
             return result["data"][0]
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_xas_docs(
         self,

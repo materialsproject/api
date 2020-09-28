@@ -31,4 +31,3 @@ def xas_resource(xas_store):
     )
 
     return resource
-

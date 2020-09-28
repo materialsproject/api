@@ -178,4 +178,3 @@ class VersionQuery(QueryOperator):
             crit.update({"version": version})
 
         return {"criteria": crit}
-

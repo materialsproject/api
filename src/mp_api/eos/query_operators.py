@@ -26,7 +26,7 @@ class EnergyVolumeQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
-        crit = defaultdict(dict)
+        crit = defaultdict(dict)  # type: dict
 
         d = {
             "volume": [volume_min, volume_max],

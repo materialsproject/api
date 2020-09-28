@@ -1,7 +1,7 @@
-from mp_api.core.client import RESTer, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
-class SimilarityRESTer(RESTer):
+class SimilarityRESTer(BaseRester):
     def __init__(self, endpoint, **kwargs):
         """
         Initializes the SimilarityRESTer with a MAPI URL
@@ -17,7 +17,7 @@ class SimilarityRESTer(RESTer):
 
         Arguments:
             material_id (str): Materials project ID
-            
+
         Returns:
             results (Dict): Dictionary containing structure similarity data.
         """
@@ -27,4 +27,4 @@ class SimilarityRESTer(RESTer):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")

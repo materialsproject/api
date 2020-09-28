@@ -1,29 +1,24 @@
 from typing import List, Optional, Tuple
-from pymatgen import Structure
 
-from mp_api.core.client import RESTer, RESTError
-from mp_api.materials.models.core import CrystalSystem
+from mp_api.materials.models import Structure
+from mp_api.materials.models.doc import CrystalSystem
+
+from mp_api.core.client import BaseRester, MPRestError
 
 
-class MaterialsRESTer(RESTer):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the MaterialsRESTer with a MAPI URL
-        """
+class MaterialsRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
+    suffix = "materials"
 
-        super().__init__(endpoint=self.endpoint + "/materials/", **kwargs)
-
-    def get_structure_from_material_id(
+    def get_structure_by_material_id(
         self, material_id: str, version: Optional[str] = None
-    ):
+    ) -> Structure:
         """
         Get a structure for a given Materials Project ID.
 
         Arguments:
             material_id (str): Materials project ID
-            version (str): Version of data to query on in the format 'YYYY.MM.DD'. 
+            version (str): Version of data to query on in the format 'YYYY.MM.DD'.
                 Defaults to None which will return data from the most recent database release.
 
 
@@ -40,23 +35,23 @@ class MaterialsRESTer(RESTer):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError(f"No document found for {material_id}")
 
     def search_material_docs(
         self,
         version: Optional[str] = None,
         chemsys_formula: Optional[str] = None,
-        task_ids: Optional[List[str]] = [None],
+        task_ids: Optional[List[str]] = None,
         crystal_system: Optional[CrystalSystem] = None,
         spacegroup_number: Optional[int] = None,
         spacegroup_symbol: Optional[str] = None,
-        nsites: Optional[Tuple[int, int]] = (None, None),
-        volume: Optional[Tuple[float, float]] = (None, None),
-        density: Optional[Tuple[float, float]] = (None, None),
+        nsites: Optional[Tuple[int, int]] = None,
+        volume: Optional[Tuple[float, float]] = None,
+        density: Optional[Tuple[float, float]] = None,
         deprecated: Optional[bool] = False,
         num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
-        fields: Optional[List[str]] = [None],
+        chunk_size: int = 100,
+        fields: Optional[List[str]] = None,
     ):
         """
         Query core material docs using a variety of search criteria.
@@ -81,11 +76,11 @@ class MaterialsRESTer(RESTer):
                 Default is material_id, last_updated, and formula_pretty.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'. 
+            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
                 Defaults to Materials Project IDs reduced chemical formulas, and last updated tags.
         """
 
-        query_params = {"deprecated": deprecated}
+        query_params = {"deprecated": deprecated}  # type: dict
 
         if version:
             query_params.update({"version": version})
@@ -93,27 +88,23 @@ class MaterialsRESTer(RESTer):
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
 
-        if any(task_ids):
+        if task_ids:
             query_params.update({"task_ids": ",".join(task_ids)})
 
         query_params.update(
-            {
-                "crystal_system": crystal_system,
-                "spacegroup_number": spacegroup_number,
-                "crystal_system": crystal_system,
-            }
+            {"crystal_system": crystal_system, "spacegroup_number": spacegroup_number}
         )
 
-        if any(nsites):
+        if nsites:
             query_params.update({"nsites_min": nsites[0], "nsites_max": nsites[1]})
 
-        if any(volume):
+        if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
-        if any(density):
+        if density:
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
-        if any(fields):
+        if fields:
             query_params.update({"fields": ",".join(fields)})
 
         query_params = {
@@ -136,7 +127,7 @@ class MaterialsRESTer(RESTer):
 
     def get_database_versions(self):
         """
-        Get version tags available for the Materials Project core materials data. 
+        Get version tags available for the Materials Project core materials data.
         These can be used to request data from previous releases.
 
         Returns:
@@ -148,4 +139,4 @@ class MaterialsRESTer(RESTer):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No data found")
+            raise MPRestError("No data found")

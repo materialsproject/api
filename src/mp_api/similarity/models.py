@@ -17,4 +17,3 @@ class SimilarityDoc(BaseModel):
         None,
         description="The Materials Project ID for the material. This comes in the form: mp-******",
     )
-

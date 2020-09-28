@@ -3,7 +3,7 @@ from typing import List, Union
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from monty.json import MontyDecoder
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 
 from mp_api.materials.models import Composition
 
@@ -199,4 +199,3 @@ class BSObjectReturn(BaseModel):
     @validator("last_updated", pre=True)
     def last_updated_dict_ok(cls, v):
         return MontyDecoder().process_decoded(v)
-

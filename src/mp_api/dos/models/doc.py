@@ -1,9 +1,9 @@
-from typing import List, Union
+from typing import List
 
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from monty.json import MontyDecoder
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 
 from mp_api.materials.models import Composition
 
@@ -60,11 +60,6 @@ class DOSDoc(BaseModel):
     last_updated: datetime = Field(
         None,
         description="Timestamp for the most recent calculation for this Material document",
-    )
-
-    task_id: str = Field(
-        None,
-        description="The Materials Project ID of the material. This comes in the form: mp-******",
     )
 
     total: DOSSummaryFields = Field(

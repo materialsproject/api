@@ -1,4 +1,3 @@
-from typing import Optional, Union
 from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.dos.models.core import DOSProjection, DOSDataFields, SpinChannel
@@ -25,10 +24,10 @@ class DOSDataQuery(QueryOperator):
                 data will be in the +1 (spin-up) entry.",
         ),
         data_field: DOSDataFields = Query(..., description="Data field to query on.",),
-        element: Optional[Element] = Query(
+        element: Element = Query(
             None, description="Element to query on for elements projected data.",
         ),
-        orbital: Optional[OrbitalType] = Query(
+        orbital: OrbitalType = Query(
             None,
             description="Orbital to query on for elements or orbital projected data.",
         ),
@@ -42,7 +41,7 @@ class DOSDataQuery(QueryOperator):
 
         energy_range = {"$gte": energy_min, "$lte": energy_max}
 
-        crit = defaultdict(dict)
+        crit = defaultdict(dict)  # type: dict
 
         if projection.value == "total":
             crit[
@@ -55,7 +54,8 @@ class DOSDataQuery(QueryOperator):
         elif projection == "element":
             if orbital is not None:
                 crit[
-                    f"element.{str(element.value)}.{str(orbital.name)}.{str(data_field.value)}.{str(spin_channel.value)}"
+                    f"element.{str(element.value)}. \
+                        {str(orbital.name)}.{str(data_field.value)}.{str(spin_channel.value)}"
                 ] = energy_range
 
             else:
@@ -64,4 +64,3 @@ class DOSDataQuery(QueryOperator):
                 ] = energy_range
 
         return {"criteria": crit}
-

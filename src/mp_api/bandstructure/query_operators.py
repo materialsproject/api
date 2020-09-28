@@ -1,11 +1,11 @@
-from typing import Optional, Union
+from typing import Optional
 from fastapi import Query, HTTPException
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.bandstructure.models.core import (
     BSPathType,
     BSDataFields,
 )
-from pymatgen.core.periodic_table import Element
+
 
 from collections import defaultdict
 
@@ -32,7 +32,7 @@ class BSDataQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
-        crit = defaultdict(dict)
+        crit = defaultdict(dict)  # type: dict
 
         if data_field.value == "band_gap" and direct is None:
             raise HTTPException(
@@ -49,4 +49,3 @@ class BSDataQuery(QueryOperator):
             crit[f"{str(path_type.name)}.{str(data_field.value)}.direct"] = direct
 
         return {"criteria": crit}
-

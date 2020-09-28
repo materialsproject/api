@@ -1,4 +1,4 @@
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.core.trajectory import Trajectory
 from collections import defaultdict
 from typing import List
@@ -7,12 +7,12 @@ from typing import List
 def calcs_revered_to_trajectory(calcs_reversed: List[dict]):
     """
     Converts data from calc_reversed to pymatgen Trajectory objects
-    that contain structure, energy, force and stress data for each 
+    that contain structure, energy, force and stress data for each
     ionic step.
 
     Args:
-        calcs_reversed: List of dictionaries in calcs_reversed entry 
-            of a task document. 
+        calcs_reversed: List of dictionaries in calcs_reversed entry
+            of a task document.
     """
     trajectories = []
 
@@ -20,7 +20,7 @@ def calcs_revered_to_trajectory(calcs_reversed: List[dict]):
         for step in calculation["output"]["ionic_steps"]:
 
             structures = []
-            frame_props = defaultdict(list)
+            frame_props = defaultdict(list)  # type: dict
 
             structures.append(Structure.from_dict(step["structure"]))
 

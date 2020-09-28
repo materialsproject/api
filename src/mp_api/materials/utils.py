@@ -1,4 +1,5 @@
-from pymatgen import Composition, DummySpecie
+from pymatgen.core import Composition
+from pymatgen.core.periodic_table import DummySpecie
 from typing import Dict
 
 
