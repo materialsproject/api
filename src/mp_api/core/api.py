@@ -1,3 +1,4 @@
+import os
 import uvicorn
 from starlette.responses import RedirectResponse
 from fastapi import FastAPI, Header
@@ -6,6 +7,7 @@ from datetime import datetime
 from monty.json import MSONable
 from mp_api.core.resource import Resource
 from typing import Optional
+from pymatgen import __version__ as pmg_version  # type: ignore
 
 
 class MAPI(MSONable):
@@ -42,7 +44,14 @@ class MAPI(MSONable):
         @app.get("/heartbeat", include_in_schema=False)
         def heartbeat():
             """ API Heartbeat for Load Balancing """
-            return {"status": "OK", "time": datetime.utcnow()}
+
+            return {
+                "status": "OK",
+                "time": datetime.utcnow(),
+                "api": self.version,
+                "database": os.environ.get("DB_VERSION").replace("_", "."),
+                "pymatgen": pmg_version,
+            }
 
         @app.get("/login", include_in_schema=False)
         def login(
