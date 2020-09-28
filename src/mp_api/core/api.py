@@ -1,3 +1,4 @@
+import os
 import uvicorn
 from starlette.responses import RedirectResponse
 from fastapi import FastAPI, Header
@@ -46,7 +47,8 @@ class MAPI(MSONable):
             return {
                 "status": "OK",
                 "time": datetime.utcnow(),
-                "version": self.version,
+                "api": self.version,
+                "database": os.environ.get("DB_VERSION"),
             }
 
         @app.get("/login", include_in_schema=False)
