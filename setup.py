@@ -25,7 +25,7 @@ setup(
     install_requires=[
         "setuptools",
         "pydantic>=1.4",
-        "pymatgen>=2020.9.14",
+        "pymatgen>=2020.9.03",
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
     ],
@@ -33,9 +33,12 @@ setup(
         "server": [
             "fastapi>=0.46.0",
             "maggma==0.23.0",
-            "uvicorn>=0.11.2",
+            "uvicorn>=0.12.0",
             "gunicorn[gevent]>=20.0.1",
             "aws-xray-sdk>=2.4.2",
+            "boto3>=1.15.0",
+            "uvloop>=0.14.0",
+            "httptools>=0.1.1",
         ]
     },
     classifiers=[
