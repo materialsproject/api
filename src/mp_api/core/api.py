@@ -7,6 +7,7 @@ from datetime import datetime
 from monty.json import MSONable
 from mp_api.core.resource import Resource
 from typing import Optional
+from pymatgen import __version__ as pmg_version
 
 
 class MAPI(MSONable):
@@ -48,7 +49,8 @@ class MAPI(MSONable):
                 "status": "OK",
                 "time": datetime.utcnow(),
                 "api": self.version,
-                "database": os.environ.get("DB_VERSION"),
+                "database": os.environ.get("DB_VERSION").replace("_", "."),
+                "pymatgen": pmg_version,
             }
 
         @app.get("/login", include_in_schema=False)
