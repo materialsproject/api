@@ -1,15 +1,9 @@
 from mp_api.core.client import BaseRester, MPRestError
 
 
-class SimilarityRESTer(BaseRester):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the SimilarityRESTer with a MAPI URL
-        """
+class SimilarityRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/similarity/", **kwargs)
+    suffix = "similarity"
 
     def get_similar_structures(self, material_id: str):
         """

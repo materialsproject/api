@@ -4,15 +4,9 @@ from mp_api.core.client import BaseRester, MPRestError
 from mp_api.xas.models import Edge, XASType
 
 
-class XASRESTer(BaseRester):
-    def __init__(self, api_url, **kwargs):
-        """
-        Initializes the XASRester to a MAPI URL
-        """
+class XASRester(BaseRester):
 
-        self.api_url = api_url.strip("/")
-
-        super().__init__(endpoint=self.api_url + "/xas/", **kwargs)
+    suffix = "xas"
 
     def get_available_elements(
         self,

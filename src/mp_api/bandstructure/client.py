@@ -4,15 +4,9 @@ from mp_api.bandstructure.models.core import BSPathType, BSDataFields
 from mp_api.core.client import BaseRester, MPRestError
 
 
-class BSRESTer(BaseRester):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the BSRESTer with a MAPI URL
-        """
+class BSRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/bs/", **kwargs)
+    suffix = "bs"
 
     def get_bandstructure_from_material_id(
         self, material_id: str, path_type: BSPathType

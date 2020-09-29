@@ -4,15 +4,9 @@ from collections import defaultdict
 from mp_api.core.client import BaseRester, MPRestError
 
 
-class EOSRESTer(BaseRester):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the CoreRESTer to a MAPI URL
-        """
+class EOSRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/eos/", **kwargs)
+    suffix = "eos"
 
     def get_eos_from_material_id(self, material_id: str):
         """

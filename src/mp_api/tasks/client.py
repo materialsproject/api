@@ -1,22 +1,16 @@
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 from mp_api.core.client import BaseRester, MPRestError
 
 
 class TaskRESTer(BaseRester):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the TaskRESTer with a MAPI URL
-        """
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/tasks/", **kwargs)
+    suffix = "tasks"
 
     def get_task_from_material_id(
         self,
         material_id: str,
-        fields: List[str] = ["task_id", "formula_pretty", "last_updated"],
+        fields: Iterable[str] = ("task_id", "formula_pretty", "last_updated"),
     ):
         """
         Get task document data for a given Materials Project ID.

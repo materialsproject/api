@@ -7,15 +7,9 @@ from pymatgen.electronic_structure.core import Spin, OrbitalType
 from mp_api.core.client import BaseRester, MPRestError
 
 
-class DOSRESTer(BaseRester):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the DOSRESTer with a MAPI URL
-        """
+class DOSRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/dos/", **kwargs)
+    suffix = "dos"
 
     def get_dos_from_material_id(self, material_id: str):
         """
