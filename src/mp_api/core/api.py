@@ -1,10 +1,14 @@
+import os
 import uvicorn
 from starlette.responses import RedirectResponse
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 from typing import Dict
 from datetime import datetime
 from monty.json import MSONable
 from mp_api.core.resource import Resource
+from typing import Optional
+from pymatgen import __version__ as pmg_version  # type: ignore
+from fastapi.openapi.utils import get_openapi
 
 
 class MAPI(MSONable):
@@ -41,12 +45,47 @@ class MAPI(MSONable):
         @app.get("/heartbeat", include_in_schema=False)
         def heartbeat():
             """ API Heartbeat for Load Balancing """
-            return {"status": "OK", "time": datetime.utcnow()}
+
+            return {
+                "status": "OK",
+                "time": datetime.utcnow(),
+                "api": self.version,
+                "database": os.environ.get("DB_VERSION").replace("_", "."),
+                "pymatgen": pmg_version,
+            }
+
+        @app.get("/login", include_in_schema=False)
+        def login(
+            x_consumer_username: Optional[str] = Header(None),
+            x_consumer_custom_id: Optional[str] = Header(None),
+        ):
+
+            return {"user": x_consumer_username, "api-key": x_consumer_custom_id}
 
         @app.get("/", include_in_schema=False)
         def redirect_docs():
             """ Redirects the root end point to the docs """
             return RedirectResponse(url=app.docs_url, status_code=301)
+
+        def custom_openapi():
+            openapi_schema = get_openapi(
+                title=self.title, version=self.version, routes=app.routes
+            )
+
+            openapi_schema["components"]["securitySchemes"] = {
+                "ApiKeyAuth": {
+                    "descriptions": "MP API key to authorize requests",
+                    "name": "X-API-KEY",
+                    "in": "header",
+                    "type": "apiKey",
+                }
+            }
+
+            openapi_schema["security"] = [{"ApiKeyAuth": []}]
+            app.openapi_schema = openapi_schema
+            return app.openapi_schema
+
+        app.openapi = custom_openapi
 
         return app
 

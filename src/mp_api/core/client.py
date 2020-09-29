@@ -14,7 +14,7 @@ from urllib.parse import urljoin
 
 import requests
 from monty.json import MontyDecoder
-from pymatgen import __version__ as pmg_version
+from pymatgen import __version__ as pmg_version  # type: ignore
 from requests.exceptions import RequestException
 
 
@@ -23,7 +23,7 @@ class BaseRester:
     Base client class with core stubs
     """
 
-    suffix = None
+    suffix = None  # type: str
 
     def __init__(
         self,

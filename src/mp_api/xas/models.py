@@ -5,7 +5,7 @@ from datetime import datetime
 from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
 
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 
 from mp_api.materials.models.core import Structure
 from mp_api.materials.models.doc import MaterialProperty

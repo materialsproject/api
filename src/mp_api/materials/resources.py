@@ -10,7 +10,7 @@ from mp_api.materials.query_operators import (
     MultiTaskIDQuery,
 )
 
-from pymongo import MongoClient
+from pymongo import MongoClient  # type: ignore
 
 
 def materials_resource(materials_store):
@@ -19,7 +19,7 @@ def materials_resource(materials_store):
 
         async def get_versions():
             f"""
-            Obtains the database versions for the data in {model_name} 
+            Obtains the database versions for the data in {model_name}
 
             Returns:
                 A list of database versions one can use to query on
@@ -49,7 +49,7 @@ def materials_resource(materials_store):
             return response
 
         self.router.get(
-            f"/versions/",
+            "/versions/",
             response_model_exclude_unset=True,
             response_description=f"Get versions of {model_name}",
             tags=self.tags,

@@ -1,4 +1,4 @@
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 
 from mp_api.bandstructure.client import BSRester
@@ -876,7 +876,7 @@ class MPRester:
 
         """
         raise NotImplementedError
-    
+
     @staticmethod
     def parse_criteria(criteria_string):
         """

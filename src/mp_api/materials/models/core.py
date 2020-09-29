@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Union, Tuple
 from pydantic import BaseModel, Field
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 from enum import Enum
 
 Vector3D = Tuple[float, float, float]

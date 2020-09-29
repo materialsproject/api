@@ -2,9 +2,9 @@ from typing import List
 
 from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 from datetime import datetime
-from mp_api.materials.models import Structure, Composition, Status, CrystalSystem
+from mp_api.materials.models import Structure, Composition, CrystalSystem
 
 
 class SymmetryData(BaseModel):
@@ -55,18 +55,6 @@ class MaterialsCoreDoc(BaseModel):
     initial_structures: List[Structure] = Field(
         None,
         description="Initial structures used in the DFT optimizations corresponding to this material",
-    )
-
-    task_ids: List[str] = Field(
-        None,
-        title="Calculation IDs",
-        description="List of Calculations IDs used to make this XAS spectrum",
-    )
-
-    state: Status = Field(
-        None,
-        description="Currrent state of this material document as either being referenced"
-        "to an experimental structure, theoretical structure, or deprecated due to calculation parameters",
     )
 
     task_id: str = Field(

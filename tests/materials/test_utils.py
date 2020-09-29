@@ -4,13 +4,13 @@ from mp_api.materials.utils import formula_to_criteria
 def test_formula_to_criteria():
     # Regular formula
     assert formula_to_criteria("Cr2O3") == {
-        "composition_reduced.Cr": {"$gt": 1.98, "$lt": 2.02},
-        "composition_reduced.O": {"$gt": 2.9699999999999998, "$lt": 3.0300000000000002},
+        "composition_reduced.Cr": 2.0,
+        "composition_reduced.O": 3.0,
         "nelements": 2,
     }
     # Add wildcard
     assert formula_to_criteria("Cr2*3") == {
-        "composition_reduced.Cr": {"$gt": 1.98, "$lt": 2.02},
+        "composition_reduced.Cr": 2.0,
         "formula_anonymous": "A2B3",
     }
     # Anonymous element

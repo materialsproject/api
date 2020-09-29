@@ -1,4 +1,5 @@
 from typing import List, Optional, Tuple
+from collections import defaultdict
 
 from mp_api.core.client import BaseRester, MPRestError
 
@@ -13,7 +14,7 @@ class EOSRester(BaseRester):
 
         Arguments:
             material_id (str): Materials project ID
-            
+
         Returns:
             results (Dict): Dictionary containing equations of state data.
         """
@@ -27,10 +28,10 @@ class EOSRester(BaseRester):
 
     def search_eos_docs(
         self,
-        volume: Optional[Tuple[float, float]] = (None, None),
-        energy: Optional[Tuple[float, float]] = (None, None),
+        volume: Optional[Tuple[float, float]] = None,
+        energy: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
+        chunk_size: int = 100,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -46,16 +47,16 @@ class EOSRester(BaseRester):
                 Default is material_id only.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'. 
+            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
                 Defaults to Materials Project IDs only.
         """
 
-        query_params = {}
+        query_params = defaultdict(dict)  # type: dict
 
-        if any(volume):
+        if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
-        if any(energy):
+        if energy:
             query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
 
         if fields:
@@ -78,4 +79,3 @@ class EOSRester(BaseRester):
 
             count += 1
             yield results
-

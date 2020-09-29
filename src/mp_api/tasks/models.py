@@ -1,12 +1,12 @@
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Union
+from typing import List
 
 from monty.json import MontyDecoder
 from mp_api.materials.models import Structure, Composition
 from pydantic import BaseModel, Field, validator
 
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 
 monty_decoder = MontyDecoder()
 

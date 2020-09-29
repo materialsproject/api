@@ -73,4 +73,3 @@ def trajectory_resource(task_store):
     )
 
     return resource
-

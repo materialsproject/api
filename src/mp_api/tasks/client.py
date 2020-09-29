@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Iterable, Optional
 
 from mp_api.core.client import BaseRester, MPRestError
 
@@ -10,7 +10,7 @@ class TaskRESTer(BaseRester):
     def get_task_from_material_id(
         self,
         material_id: str,
-        fields: Optional[List[str]] = ("task_id", "formula_pretty", "last_updated"),
+        fields: Optional[Iterable[str]] = ("task_id", "formula_pretty", "last_updated"),
     ):
         """
         Get task document data for a given Materials Project ID.
@@ -34,8 +34,8 @@ class TaskRESTer(BaseRester):
         self,
         chemsys_formula: Optional[str] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
-        fields: Optional[List[str]] = [None],
+        chunk_size: int = 100,
+        fields: Optional[List[str]] = None,
     ):
         """
         Query core task docs using a variety of search criteria.
@@ -50,23 +50,17 @@ class TaskRESTer(BaseRester):
                 Default is material_id, last_updated, and formula_pretty.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'. 
+            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
                 Defaults to Materials Project IDs reduced chemical formulas, and last updated tags.
         """
 
-        query_params = {}
+        query_params = {}  # type: dict
 
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
 
-        if any(fields):
+        if fields:
             query_params.update({"fields": ",".join(fields)})
-
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
 
         query_params.update({"limit": chunk_size, "skip": 0})
         count = 0

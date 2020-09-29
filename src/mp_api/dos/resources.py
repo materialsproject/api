@@ -86,4 +86,3 @@ def dos_resource(dos_store, s3_store):
     )
 
     return resource
-

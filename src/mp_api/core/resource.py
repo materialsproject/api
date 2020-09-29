@@ -1,5 +1,4 @@
-from typing import List, Dict, Union, Optional, Callable
-from jinja2.nodes import Call
+from typing import List, Dict, Union, Optional, Callable, Type
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from monty.json import MSONable
@@ -41,9 +40,9 @@ class Resource(MSONable):
         model: Union[BaseModel, str],
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
-        route_class: APIRoute = None,
-        key_fields: List[str] = [None],
-        custom_endpoint_funcs: List[Callable] = [None],
+        route_class: Type[APIRoute] = None,
+        key_fields: List[str] = None,
+        custom_endpoint_funcs: List[Callable] = None,
         enable_get_by_key: bool = True,
         enable_default_search: bool = True,
     ):
@@ -57,7 +56,7 @@ class Resource(MSONable):
                 into a python path string
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
-            route_class: Custom APIRoute class to define post-processing or custom validation 
+            route_class: Custom APIRoute class to define post-processing or custom validation
                 of response data
             key_fields: List of fields to always project. Default uses SparseFieldsQuery
                 to allow user's to define these on-the-fly.
@@ -116,8 +115,8 @@ class Resource(MSONable):
         for routes
         """
 
-        for func in self.cep:
-            if func is not None:
+        if self.cep is not None:
+            for func in self.cep:
                 func(self)
 
         if self.enable_get_by_key:
@@ -130,12 +129,14 @@ class Resource(MSONable):
         key_name = self.store.key
         model_name = self.model.__name__
 
-        if None in self.key_fields:
+        if self.key_fields is None:
             field_input = SparseFieldsQuery(
                 self.model, [self.store.key, self.store.last_updated_field]
             ).query
         else:
-            field_input = lambda: {"properties": self.key_fields}
+
+            def field_input():
+                return {"properties": self.key_fields}
 
         if not self.versioned:
 
@@ -172,9 +173,17 @@ class Resource(MSONable):
 
                 return response
 
+            self.router.get(
+                f"/{{{key_name}}}/",
+                response_description=f"Get an {model_name} by {key_name}",
+                response_model=self.response_model,
+                response_model_exclude_unset=True,
+                tags=self.tags,
+            )(get_by_key)
+
         else:
 
-            async def get_by_key(
+            async def get_by_key_versioned(
                 key: str = Path(
                     ...,
                     alias=key_name,
@@ -217,13 +226,13 @@ class Resource(MSONable):
 
                 return response
 
-        self.router.get(
-            f"/{{{key_name}}}/",
-            response_description=f"Get an {model_name} by {key_name}",
-            response_model=self.response_model,
-            response_model_exclude_unset=True,
-            tags=self.tags,
-        )(get_by_key)
+            self.router.get(
+                f"/{{{key_name}}}/",
+                response_description=f"Get an {model_name} by {key_name}",
+                response_model=self.response_model,
+                response_model_exclude_unset=True,
+                tags=self.tags,
+            )(get_by_key_versioned)
 
     def set_dynamic_model_search(self):
 
@@ -233,10 +242,7 @@ class Resource(MSONable):
 
             query: STORE_PARAMS = merge_queries(list(queries.values()))
 
-            if (
-                self.versioned
-                and query.get("criteria").get("version", None) is not None
-            ):
+            if self.versioned and query["criteria"].get("version", None) is not None:
                 version = query["criteria"]["version"].replace(".", "_")
                 self.store.collection_name = f"{self.store.collection_name}_{version}"
                 query["criteria"].pop("version")

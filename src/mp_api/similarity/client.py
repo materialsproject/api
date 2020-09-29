@@ -11,7 +11,7 @@ class SimilarityRester(BaseRester):
 
         Arguments:
             material_id (str): Materials project ID
-            
+
         Returns:
             results (Dict): Dictionary containing structure similarity data.
         """

@@ -1,7 +1,7 @@
 from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.xas.models import Edge, XASType
-from pymatgen import Element
+from pymatgen.core.periodic_table import Element
 
 
 class XASQuery(QueryOperator):
