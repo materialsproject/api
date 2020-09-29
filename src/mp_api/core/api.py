@@ -9,6 +9,7 @@ from mp_api.core.resource import Resource
 from typing import Optional
 from pymatgen import __version__ as pmg_version  # type: ignore
 from fastapi.openapi.utils import get_openapi
+import base64
 
 
 class MAPI(MSONable):
@@ -56,11 +57,14 @@ class MAPI(MSONable):
 
         @app.get("/login", include_in_schema=False)
         def login(
-            x_consumer_username: Optional[str] = Header(None),
-            x_consumer_custom_id: Optional[str] = Header(None),
+            x_consumer_username: str = Header(None),
+            x_consumer_custom_id: str = Header(None),
         ):
 
-            return {"user": x_consumer_username, "api-key": x_consumer_custom_id}
+            return {
+                "user": x_consumer_username,
+                "api-key": base64.b64decode(x_consumer_custom_id).decode("utf-8"),
+            }
 
         @app.get("/", include_in_schema=False)
         def redirect_docs():
