@@ -95,7 +95,6 @@ class BaseRester:
             sub_url: the URL to request
             monty_decode: Decode the data using monty into python objects
         """
-        response = None
         url = self.endpoint + sub_url
         if self.debug:
             print(f"URL: {url}")
@@ -111,9 +110,24 @@ class BaseRester:
                 return data
 
             else:
-                message = json.loads(response.text, cls=MontyDecoder)["detail"]
+                try:
+                    data = json.loads(response.text)["detail"]
+                except (JSONDecodeError, KeyError):
+                    data = "Response {}".format(response.text)
+                if isinstance(data, str):
+                    message = data
+                else:
+                    try:
+                        message = ", ".join(
+                            "{} - {}".format(entry["loc"][1], entry["msg"])
+                            for entry in data
+                        )
+                    except (KeyError, IndexError):
+                        message = str(data)
+
                 raise MPRestError(
-                    f"REST query returned with error status code {response.status_code} on url {url} : {message}"
+                    f"REST query returned with error status code {response.status_code} "
+                    f"on URL {response.url} with message:\n{message}"
                 )
 
         except RequestException as ex:
@@ -135,8 +149,6 @@ class BaseRester:
             else None
         )
 
-        response = None
-
         try:
             response = self.session.get(self.endpoint, verify=True, params=criteria)
 
@@ -149,11 +161,10 @@ class BaseRester:
                 return data
 
             else:
-                data = json.loads(response.text)["detail"]
                 try:
                     data = json.loads(response.text)["detail"]
-                except JSONDecodeError:
-                    data = "Invalid data {}".format(response.text)
+                except (JSONDecodeError, KeyError):
+                    data = "Response {}".format(response.text)
                 if isinstance(data, str):
                     message = data
                 else:
