@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 
 from mp_api.core.client import BaseRester, MPRestError
 
