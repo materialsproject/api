@@ -1,3 +1,5 @@
+from os import environ
+
 from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 
@@ -14,6 +16,10 @@ _DEPRECATION_WARNING = "MPRester is being modernized. Please use the new method 
                        "methods will be retained until at least January 2022 for backwards compatibility."
 
 
+# TODO: think about how to migrate from PMG_MAPI_KEY
+DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
+
+
 class MPRester:
     """
     Intended as a drop-in replacement for the current MPRester.
@@ -21,7 +27,7 @@ class MPRester:
 
     def __init__(
             self,
-            api_key=None,
+            api_key=DEFAULT_API_KEY,
             endpoint="https://api.materialsproject.org/",
             version=None,
             notify_db_version=True,
