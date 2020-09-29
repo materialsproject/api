@@ -1,11 +1,17 @@
-from monty.dev import deprecated
 from pymatgen import Structure
+from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 
+from mp_api.bandstructure.client import BSRester
+from mp_api.dos.client import DOSRester
+from mp_api.eos.client import EOSRester
 from mp_api.materials.client import MaterialsRester
+from mp_api.similarity.client import SimilarityRester
+from mp_api.tasks.client import TaskRESTer
+from mp_api.xas.client import XASRester
 
 _DEPRECATION_WARNING = "MPRester is being modernized. Please use the new method suggested and " \
                        "read more about these changes at https://docs.materialsproject.org/api. The current " \
-                       "methods will be retained for backwards compatibility."
+                       "methods will be retained until at least January 2022 for backwards compatibility."
 
 
 class MPRester:
@@ -16,7 +22,7 @@ class MPRester:
     def __init__(
             self,
             api_key=None,
-            endpoint=None,
+            endpoint="https://api.materialsproject.org/",
             version=None,
             notify_db_version=True,
             include_user_agent=True,
@@ -54,10 +60,12 @@ class MPRester:
         self.version = version
 
         self.materials = MaterialsRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
-        self.xas = None
-        self.similarity = None
-        self.eos = None
-        self.tasks = None
+        self.xas = XASRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        self.similarity = SimilarityRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        self.eos = EOSRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        self.tasks = TaskRESTer(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        self.bandstructure = BSRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        self.dos = DOSRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
 
     ###########################################################################
     # The following methods are retained for backwards compatibility, but will

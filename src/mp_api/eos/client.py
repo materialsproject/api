@@ -1,17 +1,11 @@
 from typing import List, Optional, Tuple
 
-from mp_api.core.client import RESTer, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
-class EOSRESTer(RESTer):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the CoreRESTer to a MAPI URL
-        """
+class EOSRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/eos/", **kwargs)
+    suffix = "eos"
 
     def get_eos_from_material_id(self, material_id: str):
         """
@@ -29,7 +23,7 @@ class EOSRESTer(RESTer):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_eos_docs(
         self,
@@ -37,7 +31,7 @@ class EOSRESTer(RESTer):
         energy: Optional[Tuple[float, float]] = (None, None),
         num_chunks: Optional[int] = None,
         chunk_size: Optional[int] = 100,
-        fields: Optional[List[str]] = [None],
+        fields: Optional[List[str]] = None,
     ):
         """
         Query equations of state docs using a variety of search criteria.
@@ -62,9 +56,9 @@ class EOSRESTer(RESTer):
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
         if any(energy):
-            query_params.update({"energy_min": emergy[0], "energy_max": energy[1]})
+            query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
 
-        if any(fields):
+        if fields:
             query_params.update({"fields": ",".join(fields)})
 
         query_params = {

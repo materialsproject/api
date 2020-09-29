@@ -10,7 +10,7 @@ import platform
 import sys
 from json import JSONDecodeError
 from typing import Dict, Optional
-from pathlib import Path
+from urllib.parse import urljoin
 
 import requests
 from monty.json import MontyDecoder
@@ -25,7 +25,14 @@ class BaseRester:
 
     suffix = None
 
-    def __init__(self, api_key, endpoint, debug=True, version=None, include_user_agent=True):
+    def __init__(
+        self,
+        api_key=None,
+        endpoint="https://api.materialsproject.org/",
+        debug=True,
+        version=None,
+        include_user_agent=True,
+    ):
         """
         Args:
             api_key (str): A String API key for accessing the MaterialsProject
@@ -53,7 +60,8 @@ class BaseRester:
         self.version = version
 
         if self.suffix:
-            self.endpoint = str(Path(self.endpoint) / self.suffix)
+            self.endpoint = urljoin(self.endpoint, self.suffix)
+        self.endpoint += "/"
 
         self.session = requests.Session()
         self.session.headers = {"x-api-key": self.api_key}
@@ -150,7 +158,10 @@ class BaseRester:
                     message = data
                 else:
                     try:
-                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
+                        message = ", ".join(
+                            "{} - {}".format(entry["loc"][1], entry["msg"])
+                            for entry in data
+                        )
                     except (KeyError, IndexError):
                         message = str(data)
 

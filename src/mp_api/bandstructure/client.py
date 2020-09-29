@@ -1,18 +1,12 @@
 from typing import List, Optional, Tuple
 from mp_api.bandstructure.models.core import BSPathType, BSDataFields
 
-from mp_api.core.client import BaseRester, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
-class BSRESTer(BaseRester,):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the BSRESTer with a MAPI URL
-        """
+class BSRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/bs/", **kwargs)
+    suffix = "bs"
 
     def get_bandstructure_from_material_id(
         self, material_id: str, path_type: BSPathType = None
@@ -38,7 +32,7 @@ class BSRESTer(BaseRester,):
         if result.get("object", None) is not None:
             return result["object"]
         else:
-            raise RESTError("No document found")
+            raise MPMPRestError("No document found")
 
     def get_bandstructure_summary_from_material_id(self, material_id: str):
         """
@@ -56,7 +50,7 @@ class BSRESTer(BaseRester,):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_bandstructure_docs(
         self,

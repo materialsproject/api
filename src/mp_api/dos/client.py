@@ -4,18 +4,12 @@ from pymatgen.core.periodic_table import Element
 from mp_api.dos.models.core import DOSProjection
 from pymatgen.electronic_structure.core import Spin, OrbitalType
 
-from mp_api.core.client import BaseRester, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
-class DOSRESTer(BaseRester):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the DOSRESTer with a MAPI URL
-        """
+class DOSRester(BaseRester):
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/dos/", **kwargs)
+    suffix = "dos"
 
     def get_dos_from_material_id(self, material_id: str):
         """
@@ -36,7 +30,7 @@ class DOSRESTer(BaseRester):
         if result.get("object", None) is not None:
             return result["object"]
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def get_dos_summary_from_material_id(self, material_id: str):
         """
@@ -54,7 +48,7 @@ class DOSRESTer(BaseRester):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_dos_docs(
         self,

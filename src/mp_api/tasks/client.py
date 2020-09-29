@@ -1,22 +1,16 @@
 from typing import List, Optional
 
-from mp_api.core.client import BaseRester, RESTError
+from mp_api.core.client import BaseRester, MPRestError
 
 
 class TaskRESTer(BaseRester):
-    def __init__(self, endpoint, **kwargs):
-        """
-        Initializes the TaskRESTer with a MAPI URL
-        """
 
-        self.endpoint = endpoint.strip("/")
-
-        super().__init__(endpoint=self.endpoint + "/tasks/", **kwargs)
+    suffix = "tasks"
 
     def get_task_from_material_id(
         self,
         material_id: str,
-        fields: Optional[List[str]] = ["task_id", "formula_pretty", "last_updated"],
+        fields: Optional[List[str]] = ("task_id", "formula_pretty", "last_updated"),
     ):
         """
         Get task document data for a given Materials Project ID.
@@ -34,7 +28,7 @@ class TaskRESTer(BaseRester):
         if len(result.get("data", [])) > 0:
             return result
         else:
-            raise RESTError("No document found")
+            raise MPRestError("No document found")
 
     def search_task_docs(
         self,
