@@ -10,7 +10,7 @@ class TaskRESTer(BaseRester):
     def get_task_from_material_id(
         self,
         material_id: str,
-        fields: Optional[Iterable[str]] = ("task_id", "formula_pretty", "last_updated"),
+        fields: Iterable[str] = ("task_id", "formula_pretty", "last_updated"),
     ):
         """
         Get task document data for a given Materials Project ID.
