@@ -1,5 +1,4 @@
 from typing import List
-
 from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
 from pymatgen.core.periodic_table import Element
