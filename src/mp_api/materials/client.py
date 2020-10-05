@@ -1,4 +1,7 @@
+import json
 from typing import List, Optional, Tuple
+from monty.serialization import MontyEncoder, MontyDecoder
+from pymatgen.core import Structure as PMGStructure
 
 from mp_api.materials.models import Structure
 from mp_api.materials.models.doc import CrystalSystem
@@ -140,3 +143,58 @@ class MaterialsRester(BaseRester):
             return result
         else:
             raise MPRestError("No data found")
+
+    def find_structure(self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5):
+        """
+        Finds matching structures on the Materials Project site.
+        Args:
+            filename_or_structure: filename or Structure object
+        Returns:
+            A list of matching materials project ids for structure, \
+                including normalized rms distances and max distances between paired sites.
+        Raises:
+            MPRestError
+        """
+
+        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol}
+
+        try:
+            if isinstance(filename_or_structure, str):
+                s = Structure.from_file(filename_or_structure)
+            elif isinstance(filename_or_structure, PMGStructure):
+                s = filename_or_structure
+            else:
+                raise MPRestError("Provide filename or Structure object.")
+            payload = json.dumps(s.as_dict(), cls=MontyEncoder)
+            response = self.session.post(
+                self.endpoint + "findstructure", data=payload, params=params
+            )
+
+            if response.status_code == 200:
+                data = json.loads(response.text, cls=MontyDecoder)
+                if len(data.get("data", [])) > 0:
+                    return data
+                else:
+                    raise MPRestError("No matching structures found.")
+            else:
+                try:
+                    data = json.loads(response.text)["detail"]
+                except (json.JSONDecodeError, KeyError):
+                    data = "Response {}".format(response.text)
+                if isinstance(data, str):
+                    message = data
+                else:
+                    try:
+                        message = ", ".join(
+                            "{} - {}".format(entry["loc"][1], entry["msg"])
+                            for entry in data
+                        )
+                    except (KeyError, IndexError):
+                        message = str(data)
+
+                raise MPRestError(
+                    f"REST query returned with error status code {response.status_code} "
+                    f"on URL {response.url} with message:\n{message}"
+                )
+        except Exception as ex:
+            raise MPRestError(str(ex))
