@@ -16,6 +16,7 @@ task_store_json = os.environ.get("TASK_STORE", "task_store.json")
 eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
 similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
+gb_store_json = os.environ.get("GB_STORE", "xas_store.json")
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
 dos_store_json = os.environ.get("DOS_STORE", "dos_store.json")
@@ -64,6 +65,13 @@ if db_uri:
         collection_name="xas",
     )
 
+    gb_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="grain_boundaries",
+    )
+
     bs_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -103,6 +111,7 @@ else:
     eos_store = loadfn(eos_store_json)
     similarity_store = loadfn(similarity_store_json)
     xas_store = loadfn(xas_store_json)
+    gb_store = loadfn(gb_store_json)
     bs_store = loadfn(bs_store_json)
     dos_store = loadfn(dos_store_json)
     s3_bs_index = loadfn(s3_bs_index_json)
@@ -139,6 +148,11 @@ resources.update({"similarity": similarity_resource(similarity_store)})
 from mp_api.xas.resources import xas_resource
 
 resources.update({"xas": xas_resource(xas_store)})
+
+# Grain Boundaries
+from mp_api.gb.resources import gb_resource
+
+resources.update({"gb": gb_resource(gb_store)})
 
 # Band Structure
 from mp_api.bandstructure.resources import bs_resource
