@@ -89,3 +89,24 @@ class GBStructureQuery(QueryOperator):
             crit["chemsys"] = chemsys
 
         return {"criteria": crit}
+
+
+class GBTaskIDQuery(QueryOperator):
+    """
+    Method to generate a query for different task_ids
+    """
+
+    def query(
+        self,
+        task_ids: Optional[str] = Query(
+            None,
+            description="Comma-separated list of Materials Project IDs to query on.",
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if task_ids:
+            crit.update({"task_id": {"$in": task_ids.split(",")}})
+
+        return {"criteria": crit}

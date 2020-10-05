@@ -1,46 +1,39 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
 
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
+
+from mp_api.gb.models import GBTypeEnum
 
 
-class EOSRester(BaseRester):
+class GBRester(BaseRester):
 
-    suffix = "eos"
+    suffix = "gb"
 
-    def get_eos_from_material_id(self, material_id: str):
-        """
-        Get equations of state data for a given Materials Project ID.
-
-        Arguments:
-            material_id (str): Materials project ID
-
-        Returns:
-            results (Dict): Dictionary containing equations of state data.
-        """
-
-        result = self._make_request("{}/?all_fields=true".format(material_id))
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No document found")
-
-    def search_eos_docs(
+    def search_gb_docs(
         self,
-        volume: Optional[Tuple[float, float]] = None,
-        energy: Optional[Tuple[float, float]] = None,
+        task_ids: Optional[List[str]] = None,
+        gb_energy: Optional[Tuple[float, float]] = None,
+        separation_energy: Optional[Tuple[float, float]] = None,
+        rotation_angle: Optional[Tuple[float, float]] = None,
+        sigma: Optional[int] = None,
+        type: Optional[GBTypeEnum] = None,
+        chemsys: Optional[str] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 100,
         fields: Optional[List[str]] = None,
     ):
         """
-        Query equations of state docs using a variety of search criteria.
+        Query grain boundary docs using a variety of search criteria.
 
         Arguments:
-            volume (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
-            energy (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
-            deprecated (bool): Whether the material is tagged as deprecated.
+            task_ids (List[str]): List of Materials Project IDs to query with.
+            gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.
+            separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.
+            rotation_angle (Tuple[float,float]): Minimum and maximum rotation angle in degrees to consider.
+            sigma (int): Sigma value of grain boundary.
+            type (GBTypeEnum): Grain boundary type.
+            chemsys (str): Dash-delimited string of elements in the material.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             fields (List[str]): List of fields in EOSDoc to return data for.
@@ -48,16 +41,43 @@ class EOSRester(BaseRester):
 
         Yields:
             ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs only.
+                Defaults to Materials Project IDs and last updated data.
         """
 
         query_params = defaultdict(dict)  # type: dict
 
-        if volume:
-            query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
+        if task_ids:
+            query_params.update({"task_ids": ",".join(task_ids)})
 
-        if energy:
-            query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
+        if gb_energy:
+            query_params.update(
+                {"gb_energy_min": gb_energy[0], "gb_energy_max": gb_energy[1]}
+            )
+
+        if separation_energy:
+            query_params.update(
+                {
+                    "w_sep_energy_min": separation_energy[0],
+                    "w_sep_energy_max": separation_energy[1],
+                }
+            )
+
+        if rotation_angle:
+            query_params.update(
+                {
+                    "rotation_angle_min": rotation_angle[0],
+                    "rotation_angle_max": rotation_angle[1],
+                }
+            )
+
+        if sigma:
+            query_params.update({"sigma": sigma})
+
+        if type:
+            query_params.update({"type": type})
+
+        if chemsys:
+            query_params.update({"chemsys": chemsys})
 
         if fields:
             query_params.update({"fields": ",".join(fields)})
