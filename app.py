@@ -46,14 +46,14 @@ if db_uri:
     eos_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="mp_id",
+        key="task_id",
         collection_name="eos",
     )
 
     similarity_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="mid",
+        key="task_id",
         collection_name="similarity",
     )
 
