@@ -85,6 +85,11 @@ class MAPI(MSONable):
             }
 
             openapi_schema["security"] = [{"ApiKeyAuth": []}]
+
+            openapi_schema["info"]["x-logo"] = {
+                "url": "https://raw.githubusercontent.com/materialsproject/api/master/src/mp_api/core/assets/mp_logo_small.png"  # noqa: E501
+            }
+
             app.openapi_schema = openapi_schema
             return app.openapi_schema
 

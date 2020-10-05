@@ -1,6 +1,29 @@
-from typing import Dict, List
+from typing import List
 
 from pydantic import BaseModel, Field
+
+
+class SimilarityEntry(BaseModel):
+    """
+    Model for an entry in a structure similarity doc
+    """
+
+    task_id: str = Field(
+        None,
+        description="The Materials Project ID for the matched material. This comes in the form: mp-******",
+    )
+
+    nelements: int = Field(
+        None, description="Number of elements in the matched material",
+    )
+
+    dissimilarity: float = Field(
+        None, description="Dissimilarity measure for the matched material",
+    )
+
+    formula: str = Field(
+        None, description="Formula of the matched material",
+    )
 
 
 class SimilarityDoc(BaseModel):
@@ -8,12 +31,12 @@ class SimilarityDoc(BaseModel):
     Model for a document containing structure similarity data
     """
 
-    sim: List[Dict] = Field(
+    sim: List[SimilarityEntry] = Field(
         None,
         description="List containing similar structure data for a given material.",
     )
 
-    mid: str = Field(
+    task_id: str = Field(
         None,
         description="The Materials Project ID for the material. This comes in the form: mp-******",
     )
