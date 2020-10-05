@@ -80,7 +80,7 @@ def materials_resource(materials_store):
                 5, title="Angle tolerance in degrees. Default is 5 degrees.",
             ),
         ):
-            f"""
+            """
             Obtains material structures that match a given input structure within some tolerance.
 
             Returns:
