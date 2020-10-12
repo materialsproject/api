@@ -241,7 +241,7 @@ class Resource(MSONable):
 
         async def search(**queries: STORE_PARAMS):
 
-            request = queries.pop("request")  # type: ignore
+            request: Request = queries.pop("request")  # type: ignore
 
             query: STORE_PARAMS = merge_queries(list(queries.values()))
 
