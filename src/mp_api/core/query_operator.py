@@ -168,7 +168,8 @@ class VersionQuery(QueryOperator):
     def query(
         self,
         version: Optional[str] = Query(
-            None, description="Database version to query on formatted as YYYY.MM.DD",
+            None,
+            description="Database version to query on formatted as YYYY.MM.DD",
         ),
     ) -> STORE_PARAMS:
 
