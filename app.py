@@ -17,6 +17,7 @@ eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
 similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
 gb_store_json = os.environ.get("GB_STORE", "xas_store.json")
+fermi_store_json = os.environ.get("FERMI_STORE", "fermi_store.json")
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
 dos_store_json = os.environ.get("DOS_STORE", "dos_store.json")
@@ -72,6 +73,13 @@ if db_uri:
         collection_name="grain_boundaries",
     )
 
+    fermi_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="fermi_surface",
+    )
+
     bs_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -112,6 +120,8 @@ else:
     similarity_store = loadfn(similarity_store_json)
     xas_store = loadfn(xas_store_json)
     gb_store = loadfn(gb_store_json)
+    fermi_store = loadfn(fermi_store_json)
+
     bs_store = loadfn(bs_store_json)
     dos_store = loadfn(dos_store_json)
     s3_bs_index = loadfn(s3_bs_index_json)
@@ -153,6 +163,11 @@ resources.update({"xas": xas_resource(xas_store)})
 from mp_api.gb.resources import gb_resource
 
 resources.update({"gb": gb_resource(gb_store)})
+
+# Fermi Surface
+from mp_api.fermi.resources import fermi_resource
+
+resources.update({"fermi": fermi_resource(fermi_store)})
 
 # Band Structure
 from mp_api.bandstructure.resources import bs_resource
