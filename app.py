@@ -18,6 +18,7 @@ similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.jso
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
 gb_store_json = os.environ.get("GB_STORE", "xas_store.json")
 fermi_store_json = os.environ.get("FERMI_STORE", "fermi_store.json")
+doi_store_json = os.environ.get("DOI_STORE", "doi_store.json")
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
 dos_store_json = os.environ.get("DOS_STORE", "dos_store.json")
@@ -80,6 +81,13 @@ if db_uri:
         collection_name="fermi_surface",
     )
 
+    doi_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="dois",
+    )
+
     bs_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -121,6 +129,7 @@ else:
     xas_store = loadfn(xas_store_json)
     gb_store = loadfn(gb_store_json)
     fermi_store = loadfn(fermi_store_json)
+    doi_store = loadfn(doi_store_json)
 
     bs_store = loadfn(bs_store_json)
     dos_store = loadfn(dos_store_json)
@@ -168,6 +177,11 @@ resources.update({"gb": gb_resource(gb_store)})
 from mp_api.fermi.resources import fermi_resource
 
 resources.update({"fermi": fermi_resource(fermi_store)})
+
+# DOIs
+from mp_api.dois.resources import dois_resource
+
+resources.update({"doi": dois_resource(doi_store)})
 
 # Band Structure
 from mp_api.bandstructure.resources import bs_resource
