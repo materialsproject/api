@@ -97,6 +97,7 @@ class SparseFieldsQuery(QueryOperator):
 
         self.model = model
 
+        model_name = self.model.__name__  # type: ignore
         model_fields = list(self.model.__fields__.keys())
 
         self.default_fields = (
@@ -106,7 +107,7 @@ class SparseFieldsQuery(QueryOperator):
         def query(
             fields: str = Query(
                 None,
-                description=f"Fields to project from {str(model)} as a list of comma seperated strings",
+                description=f"Fields to project from {str(model_name)} as a list of comma seperated strings",
             ),
             all_fields: bool = Query(False, description="Include all fields."),
         ) -> STORE_PARAMS:
