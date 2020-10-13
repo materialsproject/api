@@ -2,8 +2,9 @@ from typing import List, Dict, Union, Optional, Callable, Type
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from monty.json import MSONable
-from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends, Query
+from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends, Query, Request
 from fastapi.routing import APIRoute
+from inspect import signature
 
 from maggma.core import Store
 
@@ -240,7 +241,26 @@ class Resource(MSONable):
 
         async def search(**queries: STORE_PARAMS):
 
+            request: Request = queries.pop("request")  # type: ignore
+
             query: STORE_PARAMS = merge_queries(list(queries.values()))
+
+            query_params = [
+                entry
+                for _, i in enumerate(self.query_operators)
+                for entry in signature(i.query).parameters
+            ]
+
+            overlap = [
+                key for key in request.query_params.keys() if key not in query_params
+            ]
+            if any(overlap):
+                raise HTTPException(
+                    status_code=404,
+                    detail="Request contains query parameters which cannot be used: {}".format(
+                        ", ".join(overlap)
+                    ),
+                )
 
             if self.versioned and query["criteria"].get("version", None) is not None:
                 version = query["criteria"]["version"].replace(".", "_")
@@ -260,11 +280,11 @@ class Resource(MSONable):
 
             return response
 
+        ann = {f"dep{i}": STORE_PARAMS for i, _ in enumerate(self.query_operators)}
+        ann.update({"request": Request})
         attach_signature(
             search,
-            annotations={
-                f"dep{i}": STORE_PARAMS for i, _ in enumerate(self.query_operators)
-            },
+            annotations=ann,
             defaults={
                 f"dep{i}": Depends(dep.query)
                 for i, dep in enumerate(self.query_operators)

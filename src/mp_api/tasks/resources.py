@@ -21,7 +21,8 @@ def task_resource(task_store):
             FormulaQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
-                TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],
+                TaskDoc,
+                default_fields=["task_id", "formula_pretty", "last_updated"],
             ),
         ],
         tags=["Tasks"],

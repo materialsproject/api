@@ -4,7 +4,11 @@ from mp_api.materials.models.core import Structure
 from mp_api.materials.models.doc import MaterialsCoreDoc
 
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery, VersionQuery
+from mp_api.core.query_operator import (
+    PaginationQuery,
+    SparseFieldsQuery,
+    VersionQuery,
+)
 from mp_api.materials.query_operators import (
     FormulaQuery,
     DeprecationQuery,
@@ -66,10 +70,12 @@ def materials_resource(materials_store):
 
         async def find_structure(
             structure: Structure = Body(
-                ..., title="Pymatgen structure object to query with",
+                ...,
+                title="Pymatgen structure object to query with",
             ),
             ltol: float = Query(
-                0.2, title="Fractional length tolerance. Default is 0.2.",
+                0.2,
+                title="Fractional length tolerance. Default is 0.2.",
             ),
             stol: float = Query(
                 0.3,
@@ -77,7 +83,8 @@ def materials_resource(materials_store):
                     length per atom := ( V / Nsites ) ** (1/3). Default is 0.3.",
             ),
             angle_tol: float = Query(
-                5, title="Angle tolerance in degrees. Default is 5 degrees.",
+                5,
+                title="Angle tolerance in degrees. Default is 5 degrees.",
             ),
         ):
             """

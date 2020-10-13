@@ -1,5 +1,5 @@
 from pymatgen.core import Composition
-from pymatgen.core.periodic_table import DummySpecie
+from pymatgen.core.periodic_table import DummySpecies
 from typing import Dict
 
 
@@ -48,7 +48,7 @@ def formula_to_criteria(formula: str) -> Dict:
 
         return crit
 
-    elif any(isinstance(el, DummySpecie) for el in Composition(formula)):
+    elif any(isinstance(el, DummySpecies) for el in Composition(formula)):
         # Assume fully anonymized formula
         return {"formula_anonymous": Composition(formula).anonymized_formula}
 
