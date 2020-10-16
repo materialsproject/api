@@ -23,6 +23,7 @@ substrates_store_json = os.environ.get("SUBSTRATES_STORE", "substrates_store.jso
 surface_props_store_json = os.environ.get(
     "SURFACE_PROPS_STORE", "surface_props_store.json"
 )
+wulff_store_json = os.environ.get("WULFF_STORE", "wulff_store.json")
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
 dos_store_json = os.environ.get("DOS_STORE", "dos_store.json")
@@ -106,6 +107,13 @@ if db_uri:
         collection_name="surface_properties",
     )
 
+    wulff_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="wulff",
+    )
+
     bs_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -150,6 +158,7 @@ else:
     doi_store = loadfn(doi_store_json)
     substrates_store = loadfn(substrates_store_json)
     surface_props_store = loadfn(surface_props_store_json)
+    wulff_store = loadfn(wulff_store_json)
 
     bs_store = loadfn(bs_store_json)
     dos_store = loadfn(dos_store_json)
@@ -212,6 +221,11 @@ resources.update({"substrates": substrates_resource(substrates_store)})
 from mp_api.surface_properties.resources import surface_props_resource
 
 resources.update({"surface_properties": surface_props_resource(surface_props_store)})
+
+# Surface Properties
+from mp_api.wulff.resources import wulff_resource
+
+resources.update({"wulff": wulff_resource(wulff_store)})
 
 # Band Structure
 from mp_api.bandstructure.resources import bs_resource
