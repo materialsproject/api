@@ -20,6 +20,9 @@ gb_store_json = os.environ.get("GB_STORE", "xas_store.json")
 fermi_store_json = os.environ.get("FERMI_STORE", "fermi_store.json")
 doi_store_json = os.environ.get("DOI_STORE", "doi_store.json")
 substrates_store_json = os.environ.get("SUBSTRATES_STORE", "substrates_store.json")
+surface_props_store_json = os.environ.get(
+    "SURFACE_PROPS_STORE", "surface_props_store.json"
+)
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
 dos_store_json = os.environ.get("DOS_STORE", "dos_store.json")
@@ -96,6 +99,13 @@ if db_uri:
         collection_name="substrates",
     )
 
+    surface_props_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="surface_properties",
+    )
+
     bs_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -139,6 +149,7 @@ else:
     fermi_store = loadfn(fermi_store_json)
     doi_store = loadfn(doi_store_json)
     substrates_store = loadfn(substrates_store_json)
+    surface_props_store = loadfn(surface_props_store_json)
 
     bs_store = loadfn(bs_store_json)
     dos_store = loadfn(dos_store_json)
@@ -196,6 +207,11 @@ resources.update({"doi": dois_resource(doi_store)})
 from mp_api.substrates.resources import substrates_resource
 
 resources.update({"substrates": substrates_resource(substrates_store)})
+
+# Surface Properties
+from mp_api.surface_properties.resources import surface_props_resource
+
+resources.update({"surface_properties": surface_props_resource(surface_props_store)})
 
 # Band Structure
 from mp_api.bandstructure.resources import bs_resource
