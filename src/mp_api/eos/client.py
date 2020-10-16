@@ -40,7 +40,6 @@ class EOSRester(BaseRester):
         Arguments:
             volume (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
             energy (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
-            deprecated (bool): Whether the material is tagged as deprecated.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             fields (List[str]): List of fields in EOSDoc to return data for.

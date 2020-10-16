@@ -44,7 +44,8 @@ class DeprecationQuery(QueryOperator):
     def query(
         self,
         deprecated: Optional[bool] = Query(
-            None, description="Whether the material is marked as deprecated",
+            None,
+            description="Whether the material is marked as deprecated",
         ),
     ) -> STORE_PARAMS:
 
@@ -64,22 +65,28 @@ class MinMaxQuery(QueryOperator):
     def query(
         self,
         nsites_max: Optional[int] = Query(
-            None, description="Maximum value for the number of sites",
+            None,
+            description="Maximum value for the number of sites",
         ),
         nsites_min: Optional[int] = Query(
-            None, description="Minimum value for the number of sites",
+            None,
+            description="Minimum value for the number of sites",
         ),
         volume_max: Optional[float] = Query(
-            None, description="Maximum value for the cell volume",
+            None,
+            description="Maximum value for the cell volume",
         ),
         volume_min: Optional[float] = Query(
-            None, description="Minimum value for the cell volume",
+            None,
+            description="Minimum value for the cell volume",
         ),
         density_max: Optional[float] = Query(
-            None, description="Maximum value for the density",
+            None,
+            description="Maximum value for the density",
         ),
         density_min: Optional[float] = Query(
-            None, description="Minimum value for the density",
+            None,
+            description="Minimum value for the density",
         ),
     ) -> STORE_PARAMS:
 
@@ -109,13 +116,16 @@ class SymmetryQuery(QueryOperator):
     def query(
         self,
         crystal_system: Optional[CrystalSystem] = Query(
-            None, description="Crystal system of the material",
+            None,
+            description="Crystal system of the material",
         ),
         spacegroup_number: Optional[int] = Query(
-            None, description="Space group number of the material",
+            None,
+            description="Space group number of the material",
         ),
         spacegroup_symbol: Optional[str] = Query(
-            None, description="Space group symbol of the material",
+            None,
+            description="Space group symbol of the material",
         ),
     ) -> STORE_PARAMS:
 

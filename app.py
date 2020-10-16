@@ -18,6 +18,12 @@ similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.jso
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
 gb_store_json = os.environ.get("GB_STORE", "xas_store.json")
 fermi_store_json = os.environ.get("FERMI_STORE", "fermi_store.json")
+doi_store_json = os.environ.get("DOI_STORE", "doi_store.json")
+substrates_store_json = os.environ.get("SUBSTRATES_STORE", "substrates_store.json")
+surface_props_store_json = os.environ.get(
+    "SURFACE_PROPS_STORE", "surface_props_store.json"
+)
+wulff_store_json = os.environ.get("WULFF_STORE", "wulff_store.json")
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
 dos_store_json = os.environ.get("DOS_STORE", "dos_store.json")
@@ -80,6 +86,34 @@ if db_uri:
         collection_name="fermi_surface",
     )
 
+    doi_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="dois",
+    )
+
+    substrates_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="film_id",
+        collection_name="substrates",
+    )
+
+    surface_props_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="surface_properties",
+    )
+
+    wulff_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="wulff",
+    )
+
     bs_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -121,6 +155,10 @@ else:
     xas_store = loadfn(xas_store_json)
     gb_store = loadfn(gb_store_json)
     fermi_store = loadfn(fermi_store_json)
+    doi_store = loadfn(doi_store_json)
+    substrates_store = loadfn(substrates_store_json)
+    surface_props_store = loadfn(surface_props_store_json)
+    wulff_store = loadfn(wulff_store_json)
 
     bs_store = loadfn(bs_store_json)
     dos_store = loadfn(dos_store_json)
@@ -168,6 +206,26 @@ resources.update({"gb": gb_resource(gb_store)})
 from mp_api.fermi.resources import fermi_resource
 
 resources.update({"fermi": fermi_resource(fermi_store)})
+
+# DOIs
+from mp_api.dois.resources import dois_resource
+
+resources.update({"doi": dois_resource(doi_store)})
+
+# Substrates
+from mp_api.substrates.resources import substrates_resource
+
+resources.update({"substrates": substrates_resource(substrates_store)})
+
+# Surface Properties
+from mp_api.surface_properties.resources import surface_props_resource
+
+resources.update({"surface_properties": surface_props_resource(surface_props_store)})
+
+# Surface Properties
+from mp_api.wulff.resources import wulff_resource
+
+resources.update({"wulff": wulff_resource(wulff_store)})
 
 # Band Structure
 from mp_api.bandstructure.resources import bs_resource

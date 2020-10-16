@@ -36,7 +36,7 @@ class GBRester(BaseRester):
             chemsys (str): Dash-delimited string of elements in the material.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (List[str]): List of fields in GBDoc to return data for.
                 Default is material_id only.
 
         Yields:

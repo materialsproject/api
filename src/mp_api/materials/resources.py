@@ -86,6 +86,10 @@ def materials_resource(materials_store):
                 5,
                 title="Angle tolerance in degrees. Default is 5 degrees.",
             ),
+            limit: int = Query(
+                1,
+                title="Maximum number of matches to show. Defaults to 1, only showing the best match.",
+            ),
         ):
             """
             Obtains material structures that match a given input structure within some tolerance.
@@ -136,12 +140,20 @@ def materials_resource(materials_store):
                         }
                     )
 
-            response = {"data": matches}
+            response = {
+                "data": sorted(
+                    matches[:1],
+                    key=lambda x: (
+                        x["normalized_rms_displacement"],
+                        x["max_distance_paired_sites"],
+                    ),
+                )
+            }
 
             return response
 
         self.router.post(
-            "/findstructure/",
+            "/find_structure/",
             response_model_exclude_unset=True,
             response_description=f"Get matching structures using data from {model_name}",
             tags=self.tags,
