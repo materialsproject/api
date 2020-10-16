@@ -141,7 +141,7 @@ def materials_resource(materials_store):
             return response
 
         self.router.post(
-            "/findstructure/",
+            "/find_structure/",
             response_model_exclude_unset=True,
             response_description=f"Get matching structures using data from {model_name}",
             tags=self.tags,

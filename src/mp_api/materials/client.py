@@ -167,7 +167,7 @@ class MaterialsRester(BaseRester):
                 raise MPRestError("Provide filename or Structure object.")
             payload = json.dumps(s.as_dict(), cls=MontyEncoder)
             response = self.session.post(
-                self.endpoint + "findstructure", data=payload, params=params
+                self.endpoint + "find_structure", data=payload, params=params
             )
 
             if response.status_code == 200:
