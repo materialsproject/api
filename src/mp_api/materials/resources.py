@@ -142,7 +142,7 @@ def materials_resource(materials_store):
 
             response = {
                 "data": sorted(
-                    matches[:1],
+                    matches[:limit],
                     key=lambda x: (
                         x["normalized_rms_displacement"],
                         x["max_distance_paired_sites"],
