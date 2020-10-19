@@ -33,17 +33,15 @@ class XASRester(BaseRester):
         absorbing_element: Optional[Element] = None,
         required_elements: Optional[List[Element]] = None,
         formula: Optional[str] = None,
-        skip: Optional[int] = 0,
-        limit: Optional[int] = 10,
+        num_chunks: Optional[int] = None,
+        chunk_size: int = 100,
         fields: Optional[List[str]] = None,
     ):
         query_params = {
             "edge": str(edge.value) if edge else None,
             "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "formula": formula,
-            "skip": skip,
-            "limit": limit,
-        }
+        }  # type: dict
 
         if required_elements:
             query_params["elements"] = ",".join([str(el) for el in required_elements])
@@ -51,8 +49,17 @@ class XASRester(BaseRester):
         if fields is not None:
             query_params["fields"] = ",".join(fields)
 
-        result = self.query(query_params)
-        return result.get("data", [])
+        query_params.update({"limit": chunk_size, "skip": 0})
+        count = 0
+        while True:
+            query_params["skip"] = count * chunk_size
+            results = self.query(query_params).get("data", [])
+
+            if not any(results) or (num_chunks is not None and count == num_chunks):
+                break
+
+            count += 1
+            yield results
 
     def count_xas_docs(
         self,

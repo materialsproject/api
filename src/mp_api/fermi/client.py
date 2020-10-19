@@ -1,6 +1,7 @@
 from mp_api.core.client import BaseRester, MPRestError
 from collections import defaultdict
 from typing import Optional, List
+import warnings
 
 
 class FermiRester(BaseRester):
@@ -46,6 +47,10 @@ class FermiRester(BaseRester):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if chunk_size <= 0 or chunk_size > 100:
+            warnings.warn("Improper chunk size given. Setting value to 100.")
+            chunk_size = 100
 
         if fields:
             query_params.update({"fields": ",".join(fields)})

@@ -1,4 +1,5 @@
 from typing import Iterable, List, Optional
+import warnings
 
 from mp_api.core.client import BaseRester, MPRestError
 
@@ -45,7 +46,7 @@ class TaskRester(BaseRester):
                 or formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
-            chunk_size (int): Number of data entries per chunk.
+            chunk_size (int): Number of data entries per chunk. Max size is 100.
             fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty.
 
@@ -55,6 +56,10 @@ class TaskRester(BaseRester):
         """
 
         query_params = {}  # type: dict
+
+        if chunk_size <= 0 or chunk_size > 100:
+            warnings.warn("Improper chunk size given. Setting value to 100.")
+            chunk_size = 100
 
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})

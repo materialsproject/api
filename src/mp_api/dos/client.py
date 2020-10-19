@@ -6,6 +6,8 @@ from pymatgen.electronic_structure.core import Spin, OrbitalType
 
 from mp_api.core.client import BaseRester, MPRestError
 
+import warnings
+
 
 class DOSRester(BaseRester):
 
@@ -97,6 +99,10 @@ class DOSRester(BaseRester):
             "energy_min": energy[0],
             "energy_max": energy[1],
         }
+
+        if chunk_size <= 0 or chunk_size > 100:
+            warnings.warn("Improper chunk size given. Setting value to 100.")
+            chunk_size = 100
 
         if element:
             query_params.update({"element": element.value})
