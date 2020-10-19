@@ -3,7 +3,7 @@ from typing import Iterable, List, Optional
 from mp_api.core.client import BaseRester, MPRestError
 
 
-class TaskRESTer(BaseRester):
+class TaskRester(BaseRester):
 
     suffix = "tasks"
 

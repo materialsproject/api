@@ -8,12 +8,19 @@ from mp_api.dos.client import DOSRester
 from mp_api.eos.client import EOSRester
 from mp_api.materials.client import MaterialsRester
 from mp_api.similarity.client import SimilarityRester
-from mp_api.tasks.client import TaskRESTer
+from mp_api.tasks.client import TaskRester
 from mp_api.xas.client import XASRester
+from mp_api.fermi.client import FermiRester
+from mp_api.gb.client import GBRester
+from mp_api.substrates.client import SubstratesRester
+from mp_api.surface_properties.client import SurfacePropertiesRester
+from mp_api.wulff.client import WulffRester
 
-_DEPRECATION_WARNING = "MPRester is being modernized. Please use the new method suggested and " \
-                       "read more about these changes at https://docs.materialsproject.org/api. The current " \
-                       "methods will be retained until at least January 2022 for backwards compatibility."
+_DEPRECATION_WARNING = (
+    "MPRester is being modernized. Please use the new method suggested and "
+    "read more about these changes at https://docs.materialsproject.org/api. The current "
+    "methods will be retained until at least January 2022 for backwards compatibility."
+)
 
 
 # TODO: think about how to migrate from PMG_MAPI_KEY
@@ -26,12 +33,12 @@ class MPRester:
     """
 
     def __init__(
-            self,
-            api_key=DEFAULT_API_KEY,
-            endpoint="https://api.materialsproject.org/",
-            version=None,
-            notify_db_version=True,
-            include_user_agent=True,
+        self,
+        api_key=DEFAULT_API_KEY,
+        endpoint="https://api.materialsproject.org/",
+        version=None,
+        notify_db_version=True,
+        include_user_agent=True,
     ):
         """
         Args:
@@ -65,13 +72,69 @@ class MPRester:
         self.endpoint = endpoint
         self.version = version
 
-        self.materials = MaterialsRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
-        self.xas = XASRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
-        self.similarity = SimilarityRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
-        self.eos = EOSRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
-        self.tasks = TaskRESTer(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
-        self.bandstructure = BSRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
-        self.dos = DOSRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        self.materials = MaterialsRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.xas = XASRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.similarity = SimilarityRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.eos = EOSRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.tasks = TaskRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.bandstructure = BSRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.dos = DOSRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.fermi = FermiRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.gb = GBRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.substrates = SubstratesRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.surface_properties = SurfacePropertiesRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.wulff = WulffRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+
+    def __enter__(self):
+        """
+        Support for "with" context.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Support for "with" context.
+        """
+        # TODO: share sessions between different Resters
+        for rester in (
+            self.materials,
+            self.xas,
+            self.similarity,
+            self.eos,
+            self.tasks,
+            self.bandstructure,
+            self.dos,
+            self.fermi,
+            self.gb,
+            self.substrates,
+            self.surface_properties,
+            self.wulff
+        ):
+            rester.session.close()
 
     ###########################################################################
     # The following methods are retained for backwards compatibility, but will
