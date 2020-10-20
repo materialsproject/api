@@ -37,7 +37,6 @@ class MPRester:
         api_key=DEFAULT_API_KEY,
         endpoint=DEFAULT_ENDPOINT,
         version=None,
-        version=None,
         notify_db_version=True,
         include_user_agent=True,
     ):
