@@ -25,7 +25,7 @@ _DEPRECATION_WARNING = (
 
 # TODO: think about how to migrate from PMG_MAPI_KEY
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
-
+DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
 class MPRester:
     """
@@ -35,7 +35,8 @@ class MPRester:
     def __init__(
         self,
         api_key=DEFAULT_API_KEY,
-        endpoint="https://api.materialsproject.org/",
+        endpoint=DEFAULT_ENDPOINT,
+        version=None,
         version=None,
         notify_db_version=True,
         include_user_agent=True,
