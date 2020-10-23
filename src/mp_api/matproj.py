@@ -27,6 +27,7 @@ _DEPRECATION_WARNING = (
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
+
 class MPRester:
     """
     Intended as a drop-in replacement for the current MPRester.
@@ -132,7 +133,7 @@ class MPRester:
             self.gb,
             self.substrates,
             self.surface_properties,
-            self.wulff
+            self.wulff,
         ):
             rester.session.close()
 
