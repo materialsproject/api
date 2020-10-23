@@ -160,8 +160,15 @@ class Resource(MSONable):
                 """
                 self.store.connect()
 
+                crit = {self.store.key: key}
+
+                if model_name == "MaterialsCoreDoc":
+                    crit.update({"_sbxn": "core"})
+                elif model_name == "TaskDoc":
+                    crit.update({"sbxn": "core"})
+
                 item = self.store.query_one(
-                    criteria={self.store.key: key}, properties=fields["properties"]
+                    criteria=crit, properties=fields["properties"]
                 )
 
                 if item is None:
@@ -213,8 +220,15 @@ class Resource(MSONable):
                     )
                 self.store.connect()
 
+                crit = {self.store.key: key}
+
+                if model_name == "MaterialsCoreDoc":
+                    crit.update({"_sbxn": "core"})
+                elif model_name == "TaskDoc":
+                    crit.update({"sbxn": "core"})
+
                 item = self.store.query_one(
-                    criteria={self.store.key: key}, properties=fields["properties"]
+                    criteria=crit, properties=fields["properties"]
                 )
 
                 if item is None:
@@ -268,6 +282,11 @@ class Resource(MSONable):
                 query["criteria"].pop("version")
 
             self.store.connect()
+
+            if model_name == "MaterialsCoreDoc":
+                query["criteria"].update({"_sbxn": "core"})
+            elif model_name == "TaskDoc":
+                query["criteria"].update({"sbxn": "core"})
 
             data = list(self.store.query(**query))  # type: ignore
             operator_metas = [

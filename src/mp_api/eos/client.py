@@ -3,6 +3,8 @@ from collections import defaultdict
 
 from mp_api.core.client import BaseRester, MPRestError
 
+import warnings
+
 
 class EOSRester(BaseRester):
 
@@ -51,6 +53,10 @@ class EOSRester(BaseRester):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if chunk_size <= 0 or chunk_size > 100:
+            warnings.warn("Improper chunk size given. Setting value to 100.")
+            chunk_size = 100
 
         if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})

@@ -1,4 +1,5 @@
 from typing import List
+from mp_api.materials.models.core import Structure
 
 from pydantic import BaseModel, Field
 
@@ -102,4 +103,9 @@ class SurfacePropDoc(BaseModel):
     task_id: str = Field(
         None,
         description="The Materials Project ID of the material. This comes in the form: mp-******",
+    )
+
+    structure: Structure = Field(
+        None,
+        description="The conventional crystal structure of the material.",
     )

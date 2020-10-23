@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import List
 
 
-def calcs_revered_to_trajectory(calcs_reversed: List[dict]):
+def calcs_reversed_to_trajectory(calcs_reversed: List[dict]):
     """
     Converts data from calc_reversed to pymatgen Trajectory objects
     that contain structure, energy, force and stress data for each

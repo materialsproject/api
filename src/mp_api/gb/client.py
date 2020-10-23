@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
+import warnings
 
 from mp_api.core.client import BaseRester
 
@@ -45,6 +46,10 @@ class GBRester(BaseRester):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if chunk_size <= 0 or chunk_size > 100:
+            warnings.warn("Improper chunk size given. Setting value to 100.")
+            chunk_size = 100
 
         if task_ids:
             query_params.update({"task_ids": ",".join(task_ids)})

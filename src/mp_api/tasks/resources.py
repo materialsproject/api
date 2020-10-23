@@ -1,6 +1,6 @@
 from mp_api.core.resource import Resource
 from mp_api.tasks.models import TaskDoc
-from mp_api.tasks.utils import calcs_revered_to_trajectory
+from mp_api.tasks.utils import calcs_reversed_to_trajectory
 
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
 from mp_api.materials.query_operators import FormulaQuery
@@ -44,7 +44,7 @@ def trajectory_resource(task_store):
                 trajectories = []
                 for entry in d["data"]:
                     trajectories.append(
-                        calcs_revered_to_trajectory(entry["calcs_reversed"])
+                        calcs_reversed_to_trajectory(entry["calcs_reversed"])
                     )
 
                 trajectories = jsanitize(trajectories)
