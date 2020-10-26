@@ -294,8 +294,6 @@ class Resource(MSONable):
             elif model_name == "ThermoDoc":
                 query["criteria"].update({"_sbxn": "core"})
 
-            print({**query})
-
             data = list(self.store.query(**query))  # type: ignore
             operator_metas = [
                 operator.meta(self.store, query.get("criteria", {}))
