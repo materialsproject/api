@@ -166,6 +166,8 @@ class Resource(MSONable):
                     crit.update({"_sbxn": "core"})
                 elif model_name == "TaskDoc":
                     crit.update({"sbxn": "core"})
+                elif model_name == "ThermoDoc":
+                    crit.update({"_sbxn": "core"})
 
                 item = self.store.query_one(
                     criteria=crit, properties=fields["properties"]
@@ -226,6 +228,8 @@ class Resource(MSONable):
                     crit.update({"_sbxn": "core"})
                 elif model_name == "TaskDoc":
                     crit.update({"sbxn": "core"})
+                elif model_name == "ThermoDoc":
+                    crit.update({"_sbxn": "core"})
 
                 item = self.store.query_one(
                     criteria=crit, properties=fields["properties"]
@@ -287,6 +291,8 @@ class Resource(MSONable):
                 query["criteria"].update({"_sbxn": "core"})
             elif model_name == "TaskDoc":
                 query["criteria"].update({"sbxn": "core"})
+            elif model_name == "ThermoDoc":
+                query["criteria"].update({"_sbxn": "core"})
 
             data = list(self.store.query(**query))  # type: ignore
             operator_metas = [
