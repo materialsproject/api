@@ -186,6 +186,11 @@ from mp_api.tasks.resources import task_resource
 
 resources.update({"tasks": task_resource(task_store)})
 
+# Task Deprecation
+from mp_api.tasks.resources import task_deprecation_resource
+
+resources.update({"deprecation": task_deprecation_resource(materials_store)})
+
 # Trajectory
 from mp_api.tasks.resources import trajectory_resource
 
