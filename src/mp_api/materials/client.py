@@ -100,7 +100,11 @@ class MaterialsRester(BaseRester):
             query_params.update({"task_ids": ",".join(task_ids)})
 
         query_params.update(
-            {"crystal_system": crystal_system, "spacegroup_number": spacegroup_number}
+            {
+                "crystal_system": crystal_system,
+                "spacegroup_number": spacegroup_number,
+                "spacegroup_symbol": spacegroup_symbol,
+            }
         )
 
         if nsites:

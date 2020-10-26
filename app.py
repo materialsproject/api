@@ -13,6 +13,7 @@ db_version = os.environ.get("DB_VERSION")
 
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
+thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
 eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
 similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
@@ -49,6 +50,13 @@ if db_uri:
         database="mp_core",
         key="task_id",
         collection_name="tasks",
+    )
+
+    thermo_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name=f"thermo_{db_version}",
     )
 
     eos_store = MongoURIStore(
@@ -150,6 +158,7 @@ if db_uri:
 else:
     materials_store = loadfn(materials_store_json)
     task_store = loadfn(task_store_json)
+    thermo_store = loadfn(thermo_store_json)
     eos_store = loadfn(eos_store_json)
     similarity_store = loadfn(similarity_store_json)
     xas_store = loadfn(xas_store_json)
@@ -181,6 +190,11 @@ resources.update({"tasks": task_resource(task_store)})
 from mp_api.tasks.resources import trajectory_resource
 
 resources.update({"trajectory": trajectory_resource(task_store)})
+
+# Thermo
+from mp_api.thermo.resources import thermo_resource
+
+resources.update({"thermo": thermo_resource(thermo_store)})
 
 # EOS
 from mp_api.eos.resources import eos_resource
@@ -226,6 +240,7 @@ resources.update({"surface_properties": surface_props_resource(surface_props_sto
 from mp_api.wulff.resources import wulff_resource
 
 resources.update({"wulff": wulff_resource(wulff_store)})
+
 
 # Band Structure
 from mp_api.bandstructure.resources import bs_resource
