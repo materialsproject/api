@@ -9,7 +9,7 @@ import json
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from urllib.parse import urljoin
 
 import requests
@@ -134,13 +134,20 @@ class BaseRester:
 
             raise MPRestError(str(ex))
 
-    def query(self, criteria: Optional[Dict] = None, monty_decode: bool = True):
+    def query(self, criteria: Optional[Dict] = None, fields: Optional[List[str]]=None, monty_decode: bool = True, suburl: Optional[str]=None):
         """
-        Query the endpoint
+        Query the endpoint for a set of documents.
 
         Arguments:
             criteria: dictionary of criteria to filter down
+            fields: list of fields to return
             monty_decode: Decode the data using monty into python objects
+            suburl: make a request to a specified sub-url
+
+        Returns:
+            Dict with two key, "data" containing a list of documents, and
+            "meta" containing meta information, e.g. total number of documents
+            available.
         """
 
         criteria = (
@@ -149,8 +156,14 @@ class BaseRester:
             else None
         )
 
+        if fields:
+            criteria['fields'] = ",".join(fields)
+
         try:
-            response = self.session.get(self.endpoint, verify=True, params=criteria)
+            url = self.endpoint
+            if suburl:
+                url = urljoin(self.endpoint, suburl)
+            response = self.session.get(url, verify=True, params=criteria)
 
             if response.status_code == 200:
                 if monty_decode:
@@ -184,6 +197,24 @@ class BaseRester:
         except RequestException as ex:
 
             raise MPRestError(str(ex))
+
+    def query_by_task_id(self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True):
+        """
+        Query the endpoint for a single document.
+
+        Arguments:
+            task_id: a task_id key
+            criteria: dictionary of criteria to filter down
+            monty_decode: Decode the data using monty into python objects
+
+        Returns:
+            A dictionary corresponding to a single document.
+        """
+
+        return self.query(fields=fields, monty_decode=monty_decode, suburl=task_id)["data"][0]
+
+    def available_fields(self) -> List[str]:
+        raise NotImplementedError
 
 
 class MPRestError(Exception):
