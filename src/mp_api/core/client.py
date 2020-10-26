@@ -136,7 +136,7 @@ class BaseRester:
 
     def query(
         self,
-        criteria: Optional[Dict] = None,
+        criteria: Dict = {},
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         suburl: Optional[str] = None,
@@ -156,11 +156,7 @@ class BaseRester:
             available.
         """
 
-        criteria = (
-            {k: v for k, v in criteria.items() if v is not None}
-            if criteria is not None
-            else None
-        )
+        criteria = {k: v for k, v in criteria.items() if v is not None}
 
         if fields:
             criteria["fields"] = ",".join(fields)
