@@ -134,7 +134,13 @@ class BaseRester:
 
             raise MPRestError(str(ex))
 
-    def query(self, criteria: Optional[Dict] = None, fields: Optional[List[str]]=None, monty_decode: bool = True, suburl: Optional[str]=None):
+    def query(
+        self,
+        criteria: Optional[Dict] = None,
+        fields: Optional[List[str]] = None,
+        monty_decode: bool = True,
+        suburl: Optional[str] = None,
+    ):
         """
         Query the endpoint for a set of documents.
 
@@ -157,7 +163,7 @@ class BaseRester:
         )
 
         if fields:
-            criteria['fields'] = ",".join(fields)
+            criteria["fields"] = ",".join(fields)
 
         try:
             url = self.endpoint
@@ -198,7 +204,9 @@ class BaseRester:
 
             raise MPRestError(str(ex))
 
-    def query_by_task_id(self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True):
+    def query_by_task_id(
+        self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True
+    ):
         """
         Query the endpoint for a single document.
 
@@ -211,7 +219,9 @@ class BaseRester:
             A dictionary corresponding to a single document.
         """
 
-        return self.query(fields=fields, monty_decode=monty_decode, suburl=task_id)["data"][0]
+        return self.query(fields=fields, monty_decode=monty_decode, suburl=task_id)[
+            "data"
+        ][0]
 
     def available_fields(self) -> List[str]:
         raise NotImplementedError
