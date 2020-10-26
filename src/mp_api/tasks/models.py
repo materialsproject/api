@@ -34,19 +34,23 @@ class PotcarSpec(BaseModel):
 
 class OrigInputs(BaseModel):
     incar: str = Field(
-        None, description="Pymatgen object representing the INCAR file",
+        None,
+        description="Pymatgen object representing the INCAR file",
     )
 
     poscar: str = Field(
-        None, description="Pymatgen object representing the POSCAR file",
+        None,
+        description="Pymatgen object representing the POSCAR file",
     )
 
     kpoints: str = Field(
-        None, description="Pymatgen object representing the KPOINTS file",
+        None,
+        description="Pymatgen object representing the KPOINTS file",
     )
 
     potcar: PotcarSpec = Field(
-        None, description="Pymatgen object representing the POTCAR file",
+        None,
+        description="Pymatgen object representing the POTCAR file",
     )
 
     # Convert all other input files into strings
@@ -86,6 +90,59 @@ class CalcsReversedDoc(BaseModel):
         None,
         title="Calcs Reversed Output",
         description="Detailed output data for VASP calculations in calcs reversed.",
+    )
+    input: dict = Field(
+        None,
+        title="Calcs Reversed Input",
+        description="Detailed input data for VASP calculations in calcs reversed.",
+    )
+    vasp_version: str = Field(
+        None,
+        title="Vasp Version",
+        description="Version of VASP used for the calculation.",
+    )
+
+
+class CustodiandDoc(BaseModel):
+    corrections: List[dict] = Field(
+        None,
+        title="Custodian Corrections",
+        description="List of custodian correction data for calculation.",
+    )
+    job: dict = Field(
+        None,
+        title="Cusotodian Job Data",
+        description="Job data logged by custodian.",
+    )
+
+
+class AnalysisDoc(BaseModel):
+    delta_volume: float = Field(
+        None,
+        title="Volume Change",
+        description="Volume change for the calculation.",
+    )
+    delta_volume_percent: float = Field(
+        None,
+        title="Volume Change Percent",
+        description="Percent volume change for the calculation.",
+    )
+    max_force: float = Field(
+        None,
+        title="Max Force",
+        description="Maximum force on any atom at the end of the calculation.",
+    )
+
+    warnings: List[str] = Field(
+        None,
+        title="Calculation Warnings",
+        description="Warnings issued after analysis.",
+    )
+
+    errors: List[str] = Field(
+        None,
+        title="Calculation Errors",
+        description="Errors issued after analysis.",
     )
 
 
@@ -155,6 +212,18 @@ class TaskDoc(BaseModel):
     output: OutputDoc = Field(
         None,
         description="The exact set of output parameters used to generate the current task document.",
+    )
+
+    custodian: List[CustodiandDoc] = Field(
+        None,
+        title="Calcs reversed data",
+        description="Detailed custodian data for each VASP calculation contributing to the task document.",
+    )
+
+    analysis: AnalysisDoc = Field(
+        None,
+        title="Calculation Analysis",
+        description="Some analysis of calculation data after collection.",
     )
 
     last_updated: datetime = Field(
