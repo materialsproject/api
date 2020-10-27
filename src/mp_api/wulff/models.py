@@ -44,7 +44,7 @@ class WulffDoc(BaseModel):
         description="Thumbnail image data.",
     )
 
-    task_id: bytes = Field(
+    task_id: str = Field(
         None,
         description="The Materials Project ID of the material. This comes in the form: mp-******",
     )

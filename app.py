@@ -17,6 +17,8 @@ thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
 dielectric_piezo_store_json = os.environ.get(
     "DIELECTRIC_PIEZO_STORE", "dielectric_piezo_store.json"
 )
+phonon_bs_store_json = os.environ.get("PHONON_BS_STORE", "phonon_bs_store.json")
+phonon_img_store_json = os.environ.get("PHONON_IMG_STORE", "phonon_img_store.json")
 eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
 similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
@@ -68,6 +70,20 @@ if db_uri:
         database="mp_core",
         key="task_id",
         collection_name="dielectric",
+    )
+
+    phonon_bs_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="phonon_bs",
+    )
+
+    phonon_img_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="phonon_img",
     )
 
     eos_store = MongoURIStore(
@@ -178,6 +194,8 @@ else:
     task_store = loadfn(task_store_json)
     thermo_store = loadfn(thermo_store_json)
     dielectric_piezo_store = loadfn(dielectric_piezo_store_json)
+    phonon_bs_store = loadfn(phonon_bs_store_json)
+    phonon_img_store = loadfn(phonon_img_store_json)
     eos_store = loadfn(eos_store_json)
     similarity_store = loadfn(similarity_store_json)
     xas_store = loadfn(xas_store_json)
@@ -230,6 +248,12 @@ resources.update({"dielectric": dielectric_resource(dielectric_piezo_store)})
 from mp_api.piezo.resources import piezo_resource
 
 resources.update({"piezoelectric": piezo_resource(dielectric_piezo_store)})
+
+# Phonon
+from mp_api.phonon.resources import phonon_bs_resource, phonon_img_resource
+
+resources.update({"phonon": phonon_bs_resource(phonon_bs_store)})
+resources.update({"phonon_img": phonon_img_resource(phonon_img_store)})
 
 # EOS
 from mp_api.eos.resources import eos_resource
