@@ -14,6 +14,9 @@ db_version = os.environ.get("DB_VERSION")
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
 thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
+dielectric_piezo_store_json = os.environ.get(
+    "DIELECTRIC_PIEZO_STORE", "dielectric_piezo_store.json"
+)
 eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
 similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
@@ -58,6 +61,13 @@ if db_uri:
         database="mp_core",
         key="task_id",
         collection_name=f"thermo_{db_version}",
+    )
+
+    dielectric_piezo_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="dielectric",
     )
 
     eos_store = MongoURIStore(
@@ -167,6 +177,7 @@ else:
     materials_store = loadfn(materials_store_json)
     task_store = loadfn(task_store_json)
     thermo_store = loadfn(thermo_store_json)
+    dielectric_piezo_store = loadfn(dielectric_piezo_store_json)
     eos_store = loadfn(eos_store_json)
     similarity_store = loadfn(similarity_store_json)
     xas_store = loadfn(xas_store_json)
@@ -209,6 +220,16 @@ resources.update({"trajectory": trajectory_resource(task_store)})
 from mp_api.thermo.resources import thermo_resource
 
 resources.update({"thermo": thermo_resource(thermo_store)})
+
+# Dielectric
+from mp_api.dielectric.resources import dielectric_resource
+
+resources.update({"dielectric": dielectric_resource(dielectric_piezo_store)})
+
+# Piezoelectric
+from mp_api.piezo.resources import piezo_resource
+
+resources.update({"piezoelectric": piezo_resource(dielectric_piezo_store)})
 
 # EOS
 from mp_api.eos.resources import eos_resource
