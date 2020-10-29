@@ -17,6 +17,7 @@ thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
 dielectric_piezo_store_json = os.environ.get(
     "DIELECTRIC_PIEZO_STORE", "dielectric_piezo_store.json"
 )
+magnetism_store_json = os.environ.get("MAGNETISM_STORE", "magnetism_store.json")
 phonon_bs_store_json = os.environ.get("PHONON_BS_STORE", "phonon_bs_store.json")
 phonon_img_store_json = os.environ.get("PHONON_IMG_STORE", "phonon_img_store.json")
 eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
@@ -71,6 +72,13 @@ if db_uri:
         database="mp_core",
         key="task_id",
         collection_name="dielectric",
+    )
+
+    magnetism_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="magnetism",
     )
 
     phonon_bs_store = MongoURIStore(
@@ -202,6 +210,7 @@ else:
     task_store = loadfn(task_store_json)
     thermo_store = loadfn(thermo_store_json)
     dielectric_piezo_store = loadfn(dielectric_piezo_store_json)
+    magnetism_store = loadfn(magnetism_store_json)
     phonon_bs_store = loadfn(phonon_bs_store_json)
     phonon_img_store = loadfn(phonon_img_store_json)
     eos_store = loadfn(eos_store_json)
@@ -252,6 +261,11 @@ resources.update({"thermo": thermo_resource(thermo_store)})
 from mp_api.dielectric.resources import dielectric_resource
 
 resources.update({"dielectric": dielectric_resource(dielectric_piezo_store)})
+
+# Magnetiem
+from mp_api.magnetism.resources import magnetism_resource
+
+resources.update({"magnetism": magnetism_resource(magnetism_store)})
 
 # Piezoelectric
 from mp_api.piezo.resources import piezo_resource
