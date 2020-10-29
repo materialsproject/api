@@ -48,7 +48,8 @@ class MagnetismRester(BaseRester):
             total_magnetization_normalization (TotalMagNormalizationEnum): Type of normalization applied to values
                 of total_magnetization supplied.
             num_magnetic_sites (Tuple[float,float]): Minimum and maximum number of magnetic sites to consider.
-            num_unique_magnetic_sites (Tuple[float,float]): Minimum and maximum number of unique magnetic sites to consider.
+            num_unique_magnetic_sites (Tuple[float,float]): Minimum and maximum number of unique magnetic sites
+                to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             fields (List[str]): List of fields in EOSDoc to return data for.
