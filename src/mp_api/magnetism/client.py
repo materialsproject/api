@@ -33,6 +33,8 @@ class MagnetismRester(BaseRester):
         ordering: Optional[MagneticOrderingEnum] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalization: Optional[TotalMagNormalizationEnum] = None,
+        num_magnetic_sites: Optional[Tuple[float, float]] = None,
+        num_unique_magnetic_sites: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 100,
         fields: Optional[List[str]] = None,
@@ -45,6 +47,8 @@ class MagnetismRester(BaseRester):
             total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.
             total_magnetization_normalization (TotalMagNormalizationEnum): Type of normalization applied to values
                 of total_magnetization supplied.
+            num_magnetic_sites (Tuple[float,float]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (Tuple[float,float]): Minimum and maximum number of unique magnetic sites to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             fields (List[str]): List of fields in EOSDoc to return data for.
@@ -73,6 +77,22 @@ class MagnetismRester(BaseRester):
             query_params.update(
                 {
                     "total_magnetization_normalization": total_magnetization_normalization.value,
+                }
+            )
+
+        if num_magnetic_sites:
+            query_params.update(
+                {
+                    "num_magnetic_sites_min": num_magnetic_sites[0],
+                    "num_magnetic_sites_max": num_magnetic_sites[1],
+                }
+            )
+
+        if num_unique_magnetic_sites:
+            query_params.update(
+                {
+                    "num_unique_magnetic_sites_min": num_unique_magnetic_sites[0],
+                    "num_unique_magnetic_sites_max": num_unique_magnetic_sites[1],
                 }
             )
 

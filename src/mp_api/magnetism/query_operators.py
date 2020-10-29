@@ -29,6 +29,22 @@ class MagneticQuery(QueryOperator):
             None,
             description="Type of normalization of the total magnetization values supplied.",
         ),
+        num_magnetic_sites_max: Optional[int] = Query(
+            None,
+            description="Maximum value for the total number of magnetic sites.",
+        ),
+        num_magnetic_sites_min: Optional[int] = Query(
+            None,
+            description="Minimum value for the total number of magnetic sites.",
+        ),
+        num_unique_magnetic_sites_max: Optional[int] = Query(
+            None,
+            description="Maximum value for the total number of unique magnetic sites.",
+        ),
+        num_unique_magnetic_sites_min: Optional[int] = Query(
+            None,
+            description="Minimum value for the total number of unique magnetic sites.",
+        ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
@@ -46,7 +62,15 @@ class MagneticQuery(QueryOperator):
                 total_magnetization_min,
                 total_magnetization_max,
             ],
-        }
+            "magnetism.num_magnetic_sites": [
+                num_magnetic_sites_min,
+                num_magnetic_sites_max,
+            ],
+            "magnetism.num_unique_magnetic_sites": [
+                num_unique_magnetic_sites_min,
+                num_unique_magnetic_sites_max,
+            ],
+        }  # type: dict
 
         for entry in d:
             if d[entry][0]:
