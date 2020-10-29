@@ -49,7 +49,7 @@ def phonon_img_resource(phonon_img_store):
                 io.BytesIO(img),
                 media_type="img/png",
                 headers={
-                    "Content-Disposition": "inline; filename='{}_phonon_bs'.png".format(
+                    "Content-Disposition": 'inline; filename="{}_phonon_bs.png"'.format(
                         task_id
                     )
                 },
