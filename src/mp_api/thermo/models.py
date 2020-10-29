@@ -58,12 +58,12 @@ class ThermoData(BaseModel):
 
     energy: float = Field(
         None,
-        description="Total energy in eV.",
+        description="Total DFT energy in eV.",
     )
 
     energy_per_atom: float = Field(
         None,
-        description="Total energy in eV/atom.",
+        description="Total DFT energy in eV/atom.",
     )
 
     formation_energy_per_atom: float = Field(
@@ -81,7 +81,7 @@ class ThermoData(BaseModel):
         description="Whether the material is stable.",
     )
 
-    eq_reaction_e: bool = Field(
+    eq_reaction_e: float = Field(
         None,
         description="Equilibrium reaction energy in eV/atom.",
     )
