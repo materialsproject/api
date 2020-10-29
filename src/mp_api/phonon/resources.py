@@ -1,4 +1,5 @@
 import io
+from fastapi.exceptions import HTTPException
 from fastapi.param_functions import Path
 from fastapi.responses import StreamingResponse
 
@@ -43,7 +44,16 @@ def phonon_img_resource(phonon_img_store):
 
             self.store.connect()
 
-            img = self.store.query_one(criteria=crit, properties=["plot"])["plot"]
+            img = self.store.query_one(criteria=crit, properties=["plot"])
+
+            if img is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No image found for {task_id}.",
+                )
+
+            else:
+                img = img["plot"]
 
             response = StreamingResponse(
                 io.BytesIO(img),
