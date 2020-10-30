@@ -173,7 +173,9 @@ class MPRester:
 
     def has(self, mpid):
         # TODO: remove, here until search end-point has a client
-        return self.materials.session.get(urljoin(self.endpoint, f"search/{mpid}/?fields=has_props")).json()['data'][0]['has_props']
+        return self.materials.session.get(
+            urljoin(self.endpoint, f"search/{mpid}/?fields=has_props")
+        ).json()["data"][0]["has_props"]
 
     ###########################################################################
     # The following methods are retained for backwards compatibility, but will
