@@ -1,4 +1,5 @@
 from os import environ
+from urllib.parse import urljoin
 
 from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
@@ -15,6 +16,13 @@ from mp_api.gb.client import GBRester
 from mp_api.substrates.client import SubstratesRester
 from mp_api.surface_properties.client import SurfacePropertiesRester
 from mp_api.wulff.client import WulffRester
+from mp_api.phonon.client import PhononRester, PhononImgRester
+from mp_api.elasticity.client import ElasticityRester
+from mp_api.thermo.client import ThermoRester
+from mp_api.dielectric.client import DielectricRester
+from mp_api.dois.client import DOIRester
+from mp_api.piezo.client import PiezoRester
+from mp_api.magnetism.client import MagnetismRester
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -109,6 +117,32 @@ class MPRester:
         self.wulff = WulffRester(
             api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
         )
+        self.phonon = PhononRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.elasticity = ElasticityRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.thermo = ThermoRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.dielectric = DielectricRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.doi = DOIRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.piezo = PiezoRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.magnetism = MagnetismRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+
+        # TODO: remove this from public client?
+        self.phonon_img = PhononImgRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
 
     def __enter__(self):
         """
@@ -136,6 +170,10 @@ class MPRester:
             self.wulff,
         ):
             rester.session.close()
+
+    def has(self, mpid):
+        # TODO: remove, here until search end-point has a client
+        return self.materials.session.get(urljoin(self.endpoint, f"search/{mpid}/?fields=has_props")).json()['data'][0]['has_props']
 
     ###########################################################################
     # The following methods are retained for backwards compatibility, but will

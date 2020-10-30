@@ -135,7 +135,8 @@ class MaterialsRester(BaseRester):
                 break
 
             count += 1
-            yield results
+            for result in results:
+                yield result
 
     def get_database_versions(self):
         """
