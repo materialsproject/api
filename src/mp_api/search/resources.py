@@ -8,7 +8,7 @@ from mp_api.materials.query_operators import (
     SymmetryQuery,
     DeprecationQuery,
 )
-from mp_api.thermo.query_operators import IsStableQuery, ThermoEnergyQuery
+from mp_api.thermo.query_operators import IsStableQuery
 from mp_api.elasticity.query_operators import (
     BulkModulusQuery,
     ShearModulusQuery,
@@ -17,7 +17,11 @@ from mp_api.elasticity.query_operators import (
 from mp_api.dielectric.query_operators import DielectricQuery
 from mp_api.piezo.query_operators import PiezoelectricQuery
 from mp_api.surface_properties.query_operators import SurfaceMinMaxQuery
-from mp_api.search.query_operators import SearchBandGapQuery, HasPropsQuery
+from mp_api.search.query_operators import (
+    SearchBandGapQuery,
+    HasPropsQuery,
+    ThermoEnergySearchQuery,
+)
 
 
 def search_resource(eos_store):
@@ -28,7 +32,7 @@ def search_resource(eos_store):
             FormulaQuery(),
             MinMaxQuery(),
             SymmetryQuery(),
-            ThermoEnergyQuery(),
+            ThermoEnergySearchQuery(),
             IsStableQuery(),
             SearchBandGapQuery(),
             BulkModulusQuery(),

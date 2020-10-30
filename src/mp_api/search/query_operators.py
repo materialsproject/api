@@ -132,6 +132,90 @@ class SearchBandGapQuery(QueryOperator):
         return {"criteria": crit}
 
 
+class ThermoEnergySearchQuery(QueryOperator):
+    """
+    Method to generate a query for ranges of thermo energy data in search docs
+    """
+
+    def query(
+        self,
+        energy_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the total energy in eV.",
+        ),
+        energy_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the total energy in eV.",
+        ),
+        energy_per_atom_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the total energy in eV/atom.",
+        ),
+        energy_per_atom_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the total energy in eV/atom.",
+        ),
+        formation_energy_per_atom_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the formation energy in eV/atom.",
+        ),
+        formation_energy_per_atom_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the formation energy in eV/atom.",
+        ),
+        e_above_hull_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the energy above the hull in eV/atom.",
+        ),
+        e_above_hull_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the energy above the hull in eV/atom.",
+        ),
+        eq_reaction_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the equilibrium reaction energy in eV/atom.",
+        ),
+        eq_reaction_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the equilibrium reaction energy in eV/atom.",
+        ),
+        corrected_energy_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the corrected total energy in eV.",
+        ),
+        corrected_energy_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the corrected total energy in eV.",
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = defaultdict(dict)  # type: dict
+
+        d = {
+            "energy": [energy_min, energy_max],
+            "energy_per_atom": [energy_per_atom_min, energy_per_atom_max],
+            "formation_energy_per_atom": [
+                formation_energy_per_atom_min,
+                formation_energy_per_atom_max,
+            ],
+            "e_above_hull": [e_above_hull_min, e_above_hull_max],
+            "eq_reaction_e": [eq_reaction_min, eq_reaction_max],
+            "explanation.corrected_energy": [
+                corrected_energy_min,
+                corrected_energy_max,
+            ],
+        }
+
+        for entry in d:
+            if d[entry][0] is not None:
+                crit[entry]["$gte"] = d[entry][0]
+
+            if d[entry][1] is not None:
+                crit[entry]["$lte"] = d[entry][1]
+
+        return {"criteria": crit}
+
+
 # TODO:
 # XAS and GB sub doc query operators
 # Magnetism query ops from endpoint
