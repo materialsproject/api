@@ -5,5 +5,5 @@ pytest-cov==2.10.1
 pytest-mock==3.3.1
 pycodestyle==2.6.0
 flake8==3.8.4
-mypy==0.782
+mypy==0.790
 mypy-extensions==0.4.3
