@@ -21,6 +21,7 @@ from mp_api.search.query_operators import (
     SearchBandGapQuery,
     HasPropsQuery,
     ThermoEnergySearchQuery,
+    SearchTaskIDsQuery,
 )
 
 
@@ -41,6 +42,7 @@ def search_resource(eos_store):
             DielectricQuery(),
             PiezoelectricQuery(),
             SurfaceMinMaxQuery(),
+            SearchTaskIDsQuery(),
             HasPropsQuery(),
             DeprecationQuery(),
             PaginationQuery(),

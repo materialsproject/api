@@ -216,6 +216,26 @@ class ThermoEnergySearchQuery(QueryOperator):
         return {"criteria": crit}
 
 
+class SearchTaskIDsQuery(QueryOperator):
+    """
+    Method to generate a query on search docs using multiple task_id values
+    """
+
+    def query(
+        self,
+        task_ids: Optional[str] = Query(
+            None, description="Comma-separated list of task_ids to query on"
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if task_ids:
+            crit.update({"task_id": {"$in": task_ids.split(",")}})
+
+        return {"criteria": crit}
+
+
 # TODO:
 # XAS and GB sub doc query operators
 # Magnetism query ops from endpoint
