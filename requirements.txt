@@ -1,5 +1,5 @@
-pydantic==1.5.1
+pydantic==1.7.2
 pymatgen>=2020.9.14
-typing-extensions==3.7.4.2
+typing-extensions==3.7.4.3
 requests==2.24.0
-maggma==0.23.0
+maggma==0.23.3

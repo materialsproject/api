@@ -1,6 +1,6 @@
-fastapi==0.58.1
-maggma==0.23.0
-uvicorn==0.12.0
+fastapi==0.61.1
+maggma==0.23.3
+uvicorn==0.12.2
 gunicorn[gevent]>=20.0.1
 aws-xray-sdk==2.6.0
-boto3==1.15.0
+boto3==1.16.9

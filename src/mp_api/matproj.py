@@ -23,6 +23,7 @@ from mp_api.dielectric.client import DielectricRester
 from mp_api.dois.client import DOIRester
 from mp_api.piezo.client import PiezoRester
 from mp_api.magnetism.client import MagnetismRester
+from mp_api.search.client import SearchRester
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -141,6 +142,10 @@ class MPRester:
 
         # TODO: remove this from public client?
         self.phonon_img = PhononImgRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+
+        self.search = SearchRester(
             api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
         )
 
