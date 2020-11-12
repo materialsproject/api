@@ -54,19 +54,11 @@ class VoltageStep(BaseModel):
     )
 
     fracA_charge: float = Field(
-        None, description=""
+        None, description="Atomic fraction of the working ion in the charged state."
     )
 
     fracA_discharge: float = Field(
-        None, description=""
-    )
-
-class ConverionVoltageStep(VoltageStep):
-    """
-    Features specific to conversion electrode
-    """
-    reactions: float = Field(
-        None, description=""
+        None, description="Atomic fraction of the working ion in the discharged state."
     )
 
 class InsertionVoltageStep(VoltageStep):
@@ -91,8 +83,7 @@ class InsertionElectrode(InsertionVoltageStep):
 
     framework: Composition = Field(
         None,
-        description="Framework structure (take the structure with the most working ion"
-            "Then remove the working ions to get a host structure)",
+        description="The composition of the host framework (structure without the working ion)",
     )
 
     voltage_pairs: List = Field(
@@ -107,6 +98,47 @@ class InsertionElectrode(InsertionVoltageStep):
         None,
         description="The number of distinct voltage steps in from fully charge to "
         "discharge based on the stable intermediate states",
+    )
+
+    max_voltage_step: float = Field(
+        None, description="Maximum absolute difference in adjacent voltage steps"
+    )
+
+    last_updated: datetime = Field(
+        None,
+        description="Timestamp for the most recent calculation for this Material document",
+    )
+
+    # Make sure that the datetime field is properly formatted
+    @validator("last_updated", pre=True)
+    def last_updated_dict_ok(cls, v):
+        return MontyDecoder().process_decoded(v)
+
+
+class ConversionVoltageStep(VoltageStep):
+    """
+    Features specific to conversion electrode
+    """
+    reactions: Dict = Field(
+        None, description="The reaction the characterizes that particular voltage step."
+    )
+
+class ConversionElectrode(ConversionVoltageStep):
+
+    battery_id: str = Field(None, description="The id for this battery document.")
+
+    voltage_pairs: List = Field(
+        None, description="Returns all the Voltage Steps",
+    )
+
+    working_ion: str = Field(
+        None, description="The working ion as an Element object",
+    )
+
+    num_steps: float = Field(
+        None,
+        description="The number of distinct voltage steps in from fully charge to "
+                    "discharge based on the stable intermediate states",
     )
 
     max_voltage_step: float = Field(
