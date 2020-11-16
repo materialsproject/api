@@ -32,6 +32,7 @@ surface_props_store_json = os.environ.get(
     "SURFACE_PROPS_STORE", "surface_props_store.json"
 )
 wulff_store_json = os.environ.get("WULFF_STORE", "wulff_store.json")
+robocrys_store_json = os.environ.get("ROBOCRYS_STORE", "robocrys_store.json")
 search_store_json = os.environ.get("SEARCH_STORE", "search_store.json")
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
@@ -165,6 +166,13 @@ if db_uri:
         collection_name="wulff",
     )
 
+    robo_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="robocrys",
+    )
+
     search_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -223,6 +231,7 @@ else:
     substrates_store = loadfn(substrates_store_json)
     surface_props_store = loadfn(surface_props_store_json)
     wulff_store = loadfn(wulff_store_json)
+    robo_store = loadfn(robocrys_store_json)
     search_store = loadfn(search_store_json)
 
     bs_store = loadfn(bs_store_json)
@@ -262,7 +271,7 @@ from mp_api.dielectric.resources import dielectric_resource
 
 resources.update({"dielectric": dielectric_resource(dielectric_piezo_store)})
 
-# Magnetiem
+# Magnetism
 from mp_api.magnetism.resources import magnetism_resource
 
 resources.update({"magnetism": magnetism_resource(magnetism_store)})
@@ -327,6 +336,11 @@ resources.update({"surface_properties": surface_props_resource(surface_props_sto
 from mp_api.wulff.resources import wulff_resource
 
 resources.update({"wulff": wulff_resource(wulff_store)})
+
+# Robocrystallographer
+from mp_api.robocrys.resources import robo_resource
+
+resources.update({"robocrys": robo_resource(robo_store)})
 
 # Search
 from mp_api.search.resources import search_resource
