@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 from pydantic import BaseModel
-from fastapi import Query
+from fastapi import Query, HTTPException
 from monty.json import MSONable
 from maggma.core import Store
 from mp_api.core.utils import STORE_PARAMS, dynamic_import
@@ -180,3 +180,31 @@ class VersionQuery(QueryOperator):
             crit.update({"version": version})
 
         return {"criteria": crit}
+
+
+class SortQuery(QueryOperator):
+    """
+    Method to generate the sorting portion of a query
+    """
+
+    def query(
+        self,
+        field: Optional[str] = Query(None, description="Field to sort with"),
+        ascending: Optional[bool] = Query(
+            None,
+            description="Whether the sorting should be ascending",
+        ),
+    ) -> STORE_PARAMS:
+
+        sort = {}
+
+        if field and ascending is not None:
+            sort.update({field: 1 if ascending else -1})
+
+        elif field or ascending is not None:
+            raise HTTPException(
+                status_code=404,
+                detail="Must specify both a field and order for sorting.",
+            )
+
+        return {"sort": sort}
