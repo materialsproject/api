@@ -3,8 +3,8 @@ from typing import List, Dict, Callable, Any
 from typing_extensions import Literal
 from importlib import import_module
 
-QUERY_PARAMS = ["criteria", "properties", "skip", "limit"]
-STORE_PARAMS = Dict[Literal["criteria", "properties", "skip", "limit"], Any]
+QUERY_PARAMS = ["criteria", "properties", "sort", "skip", "limit"]
+STORE_PARAMS = Dict[Literal["criteria", "properties", "sort", "skip", "limit"], Any]
 
 
 def dynamic_import(abs_module_path: str, class_name: str):

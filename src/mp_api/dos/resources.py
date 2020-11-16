@@ -3,7 +3,7 @@ from mp_api.dos.models.doc import DOSDoc, DOSObjectReturn
 
 from fastapi.param_functions import Query
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.materials.query_operators import FormulaQuery, MinMaxQuery
 from mp_api.dos.query_operators import DOSDataQuery
 
@@ -25,19 +25,21 @@ def dos_resource(dos_store, s3_store):
 
         async def get_object(
             key: str = Query(
-                ..., alias=key_name, title=f"The {key_name} of the {model_name} to get",
+                ...,
+                alias=key_name,
+                title=f"The {key_name} of the {model_name} to get",
             ),
             fields: STORE_PARAMS = Depends(field_input),
         ):
             f"""
-                    Get's a document by the primary key in the store
+            Get's a document by the primary key in the store
 
-                    Args:
-                        {key_name}: the id of a single {model_name}
+            Args:
+                {key_name}: the id of a single {model_name}
 
-                    Returns:
-                        a single {model_name} document
-                    """
+            Returns:
+                a single {model_name} document
+            """
 
             self.store.connect()
 
@@ -78,6 +80,7 @@ def dos_resource(dos_store, s3_store):
             DOSDataQuery(),
             FormulaQuery(),
             MinMaxQuery(),
+            SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(DOSDoc, default_fields=["task_id", "last_updated"]),
         ],

@@ -1,7 +1,7 @@
 from mp_api.core.resource import Resource
 from mp_api.elasticity.models import ElasticityDoc
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.elasticity.query_operators import (
     ChemsysQuery,
     BulkModulusQuery,
@@ -19,6 +19,7 @@ def elasticity_resource(elasticity_store):
             BulkModulusQuery(),
             ShearModulusQuery(),
             PoissonQuery(),
+            SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
                 ElasticityDoc,

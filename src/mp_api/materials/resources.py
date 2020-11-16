@@ -8,6 +8,7 @@ from mp_api.core.query_operator import (
     PaginationQuery,
     SparseFieldsQuery,
     VersionQuery,
+    SortQuery,
 )
 from mp_api.materials.query_operators import (
     FormulaQuery,
@@ -169,6 +170,7 @@ def materials_resource(materials_store):
             SymmetryQuery(),
             DeprecationQuery(),
             MinMaxQuery(),
+            SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
                 MaterialsCoreDoc,

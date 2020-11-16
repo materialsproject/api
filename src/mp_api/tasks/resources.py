@@ -4,7 +4,7 @@ from mp_api.tasks.utils import calcs_reversed_to_trajectory
 
 from mp_api.materials.models.doc import MaterialsCoreDoc
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.materials.query_operators import FormulaQuery
 
 from monty.json import jsanitize
@@ -21,6 +21,7 @@ def task_resource(task_store):
         TaskDoc,
         query_operators=[
             FormulaQuery(),
+            SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
                 TaskDoc,

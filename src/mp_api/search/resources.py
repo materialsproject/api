@@ -1,7 +1,7 @@
 from mp_api.core.resource import Resource
 from mp_api.search.models import SearchDoc
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.materials.query_operators import (
     FormulaQuery,
     MinMaxQuery,
@@ -45,6 +45,7 @@ def search_resource(eos_store):
             SearchTaskIDsQuery(),
             HasPropsQuery(),
             DeprecationQuery(),
+            SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(SearchDoc, default_fields=["task_id"]),
         ],

@@ -3,7 +3,7 @@ from mp_api.core.resource import Resource
 from mp_api.bandstructure.models.doc import BSDoc, BSObjectReturn
 from mp_api.bandstructure.models.core import BSPathType
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery, SortQuery
 from mp_api.materials.query_operators import FormulaQuery, MinMaxQuery
 from mp_api.bandstructure.query_operators import BSDataQuery
 
@@ -25,22 +25,25 @@ def bs_resource(bs_store, s3_store):
 
         async def get_object(
             key: str = Query(
-                ..., alias=key_name, title=f"The {key_name} of the {model_name} to get",
+                ...,
+                alias=key_name,
+                title=f"The {key_name} of the {model_name} to get",
             ),
             path_type: BSPathType = Query(
-                ..., title="The k-path convention type for the band structure object",
+                ...,
+                title="The k-path convention type for the band structure object",
             ),
             fields: STORE_PARAMS = Depends(field_input),
         ):
             f"""
-                    Get's a document by the primary key in the store
+            Get's a document by the primary key in the store
 
-                    Args:
-                        {key_name}: the id of a single {model_name}
+            Args:
+                {key_name}: the id of a single {model_name}
 
-                    Returns:
-                        a single {model_name} document
-                    """
+            Returns:
+                a single {model_name} document
+            """
 
             self.store.connect()
 
@@ -81,6 +84,7 @@ def bs_resource(bs_store, s3_store):
             BSDataQuery(),
             FormulaQuery(),
             MinMaxQuery(),
+            SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(BSDoc, default_fields=["task_id", "last_updated"]),
         ],
