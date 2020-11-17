@@ -20,7 +20,9 @@ from mp_api.materials.query_operators import (
 
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 from pymatgen.core import Structure as PS
+from pymatgen.core import Composition
 from pymongo import MongoClient  # type: ignore
+from itertools import permutations
 from fastapi import Query, Body
 
 
@@ -160,6 +162,80 @@ def materials_resource(materials_store):
             tags=self.tags,
         )(find_structure)
 
+    def custom_autocomplete_prep(self):
+        async def formula_autocomplete(
+            text: str = Query(
+                ...,
+                description="Text to run against formula autocomplete",
+            ),
+            limit: int = Query(
+                10,
+                description="Maximum number of matches to show. Defaults to 10",
+            ),
+        ):
+
+            comp = Composition(text)
+
+            ind_str = []
+
+            if len(comp) == 1:
+                d = comp.get_integer_formula_and_factor()
+
+                s = d[0] + str(int(d[1])) if d[1] != 1 else d[0]
+                print(s)
+
+                ind_str.append(s)
+            else:
+
+                comp_red = comp.reduced_composition.items()
+
+                for (i, j) in comp_red:
+
+                    if j != 1:
+                        ind_str.append(i.name + str(int(j)))
+                    else:
+                        ind_str.append(i.name)
+
+            final_terms = ["".join(entry) for entry in permutations(ind_str)]
+
+            print(final_terms)
+
+            pipeline = [
+                {
+                    "$search": {
+                        "index": "formula_autocomplete",
+                        "autocomplete": {
+                            "path": "formula_pretty",
+                            "query": final_terms,
+                            "tokenOrder": "any",
+                        },
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$formula_pretty",
+                    }
+                },
+                {"$project": {"score": {"$strLenCP": "$_id"}}},
+                {"$sort": {"score": 1}},
+                {"$limit": limit},
+            ]
+
+            self.store.connect()
+
+            data = list(self.store._collection.aggregate(pipeline, allowDiskUse=True))
+
+            response = {"data": data}
+
+            return response
+
+        self.router.get(
+            "/formula_autocomplete/",
+            response_model_exclude_unset=True,
+            response_description="Get autocomplete results for a formula",
+            tags=self.tags,
+        )(formula_autocomplete)
+
     resource = Resource(
         materials_store,
         MaterialsCoreDoc,
@@ -178,7 +254,11 @@ def materials_resource(materials_store):
             ),
         ],
         tags=["Materials"],
-        custom_endpoint_funcs=[custom_version_prep, custom_findstructure_prep],
+        custom_endpoint_funcs=[
+            custom_version_prep,
+            custom_findstructure_prep,
+            custom_autocomplete_prep,
+        ],
     )
 
     return resource
