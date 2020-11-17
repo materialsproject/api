@@ -180,7 +180,7 @@ class BaseRester:
                     data = json.loads(response.text)
 
                 if self.document_model:
-                    data["data"] = [self.document_model(**d) for d in data["data"]]
+                    data["data"] = [self.document_model(**d) for d in data["data"]]  # type: ignore
 
                 return data
 
@@ -227,7 +227,7 @@ class BaseRester:
         if fields is None:
             criteria = {"all_fields": True}
         else:
-            criteria = None
+            criteria = None  # type: ignore
 
         if isinstance(fields, str):
             fields = (fields,)
