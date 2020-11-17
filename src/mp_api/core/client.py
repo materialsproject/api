@@ -16,6 +16,7 @@ import requests
 from monty.json import MontyDecoder
 from pymatgen import __version__ as pmg_version  # type: ignore
 from requests.exceptions import RequestException
+from pydantic import BaseModel
 
 
 class BaseRester:
@@ -23,7 +24,8 @@ class BaseRester:
     Base client class with core stubs
     """
 
-    suffix = None  # type: str
+    suffix: Optional[str] = None
+    document_model: Optional[BaseModel] = None
 
     def __init__(
         self,
@@ -136,7 +138,7 @@ class BaseRester:
 
     def query(
         self,
-        criteria: Dict = {},
+        criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         suburl: Optional[str] = None,
@@ -156,7 +158,10 @@ class BaseRester:
             available.
         """
 
-        criteria = {k: v for k, v in criteria.items() if v is not None}
+        if criteria:
+            criteria = {k: v for k, v in criteria.items() if v is not None}
+        else:
+            criteria = {}
 
         if fields:
             criteria["fields"] = ",".join(fields)
@@ -168,10 +173,14 @@ class BaseRester:
             response = self.session.get(url, verify=True, params=criteria)
 
             if response.status_code == 200:
+
                 if monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
                 else:
                     data = json.loads(response.text)
+
+                if self.document_model:
+                    data["data"] = [self.document_model(**d) for d in data["data"]]
 
                 return data
 
@@ -212,10 +221,18 @@ class BaseRester:
             monty_decode: Decode the data using monty into python objects
 
         Returns:
-            A dictionary corresponding to a single document.
+            A single document.
         """
 
-        return self.query(fields=fields, monty_decode=monty_decode, suburl=task_id)[
+        if fields is None:
+            criteria = {"all_fields": True}
+        else:
+            criteria = None
+
+        if isinstance(fields, str):
+            fields = (fields, )
+
+        return self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id)[
             "data"
         ][0]
 
