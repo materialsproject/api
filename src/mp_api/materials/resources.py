@@ -182,7 +182,6 @@ def materials_resource(materials_store):
                 d = comp.get_integer_formula_and_factor()
 
                 s = d[0] + str(int(d[1])) if d[1] != 1 else d[0]
-                print(s)
 
                 ind_str.append(s)
             else:
@@ -197,8 +196,6 @@ def materials_resource(materials_store):
                         ind_str.append(i.name)
 
             final_terms = ["".join(entry) for entry in permutations(ind_str)]
-
-            print(final_terms)
 
             pipeline = [
                 {
