@@ -230,11 +230,11 @@ class BaseRester:
             criteria = None
 
         if isinstance(fields, str):
-            fields = (fields, )
+            fields = (fields,)
 
-        return self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id)[
-            "data"
-        ][0]
+        return self.query(
+            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id
+        )["data"][0]
 
     def available_fields(self) -> List[str]:
         raise NotImplementedError
