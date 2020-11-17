@@ -103,7 +103,7 @@ class CalcsReversedDoc(BaseModel):
     )
 
 
-class CustodiandDoc(BaseModel):
+class CustodianDoc(BaseModel):
     corrections: List[dict] = Field(
         None,
         title="Custodian Corrections",
@@ -214,7 +214,7 @@ class TaskDoc(BaseModel):
         description="The exact set of output parameters used to generate the current task document.",
     )
 
-    custodian: List[CustodiandDoc] = Field(
+    custodian: List[CustodianDoc] = Field(
         None,
         title="Calcs reversed data",
         description="Detailed custodian data for each VASP calculation contributing to the task document.",
