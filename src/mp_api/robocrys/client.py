@@ -1,13 +1,9 @@
-from typing import List, Optional, Tuple
-from collections import defaultdict
-
-from mp_api.core.client import BaseRester, MPRestError
+from typing import List, Optional
 from mp_api.robocrys.models import RobocrysDoc
 
-import warnings
 
-
-class RobocrysRester(BaseRester):
-
-    suffix = "robocrys"
-    document_model = RobocrysDoc
+class RobocrysRester:
+    def query_by_task_id(
+        self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True
+    ) -> RobocrysDoc:
+        ...
