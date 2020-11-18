@@ -217,10 +217,10 @@ class Resource(MSONable):
 
                 if version is not None:
                     version = version.replace(".", "_")
-                    self.store.collection_name = (
-                        f"{self.store.collection_name}_{version}"
-                    )
-                self.store.connect()
+                    prefix = self.store.collection_name.split("_")[0]
+                    self.store.collection_name = f"{prefix}_{version}"
+
+                self.store.connect(force_reset=True)
 
                 crit = {self.store.key: key}
 
@@ -282,10 +282,11 @@ class Resource(MSONable):
 
             if self.versioned and query["criteria"].get("version", None) is not None:
                 version = query["criteria"]["version"].replace(".", "_")
-                self.store.collection_name = f"{self.store.collection_name}_{version}"
+                prefix = self.store.collection_name.split("_")[0]
+                self.store.collection_name = f"{prefix}_{version}"
                 query["criteria"].pop("version")
 
-            self.store.connect()
+            self.store.connect(force_reset=True)
 
             if model_name == "MaterialsCoreDoc":
                 query["criteria"].update({"_sbxn": "core"})
