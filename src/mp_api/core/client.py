@@ -321,7 +321,7 @@ class BaseRester:
         return (
             f"{self.__class__.__name__} connected to {self.endpoint}\n"
             f"Available fields: {', '.join(self.available_fields)}\n"
-            f"Available documents: {self.count():n}"
+            f"Available documents: {self.count()}"
         )
 
 
