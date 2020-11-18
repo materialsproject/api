@@ -33,6 +33,7 @@ surface_props_store_json = os.environ.get(
 )
 wulff_store_json = os.environ.get("WULFF_STORE", "wulff_store.json")
 robocrys_store_json = os.environ.get("ROBOCRYS_STORE", "robocrys_store.json")
+synth_store_json = os.environ.get("SYNTH_STORE", "synth_store.json")
 search_store_json = os.environ.get("SEARCH_STORE", "search_store.json")
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
@@ -173,6 +174,13 @@ if db_uri:
         collection_name="robocrys",
     )
 
+    synth_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="_id",
+        collection_name="synth_descriptions",
+    )
+
     search_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -232,6 +240,7 @@ else:
     surface_props_store = loadfn(surface_props_store_json)
     wulff_store = loadfn(wulff_store_json)
     robo_store = loadfn(robocrys_store_json)
+    synth_store = loadfn(synth_store_json)
     search_store = loadfn(search_store_json)
 
     bs_store = loadfn(bs_store_json)
@@ -341,6 +350,11 @@ resources.update({"wulff": wulff_resource(wulff_store)})
 from mp_api.robocrys.resources import robo_resource
 
 resources.update({"robocrys": robo_resource(robo_store)})
+
+# Synthesis
+from mp_api.synth.resources import synth_resource
+
+resources.update({"synthesis": synth_resource(synth_store)})
 
 # Search
 from mp_api.search.resources import search_resource
