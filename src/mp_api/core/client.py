@@ -264,7 +264,7 @@ class BaseRester:
         """
 
         if fields is None:
-            criteria = {"all_fields": True, "limit": 1}
+            criteria = {"all_fields": True, "limit": 1}  # type: dict
         else:
             criteria = {"limit": 1}
 
