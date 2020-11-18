@@ -11,12 +11,17 @@ import sys
 from json import JSONDecodeError
 from typing import Dict, Optional, List
 from urllib.parse import urljoin
+from os import environ
 
 import requests
 from monty.json import MontyDecoder
 from pymatgen import __version__ as pmg_version  # type: ignore
 from requests.exceptions import RequestException
 from pydantic import BaseModel
+
+# TODO: think about how to migrate from PMG_MAPI_KEY
+DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
+DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
 
 class BaseRester:
@@ -29,8 +34,8 @@ class BaseRester:
 
     def __init__(
         self,
-        api_key=None,
-        endpoint="https://api.materialsproject.org/",
+        api_key=DEFAULT_API_KEY,
+        endpoint=DEFAULT_ENDPOINT,
         debug=True,
         version=None,
         include_user_agent=True,
@@ -268,8 +273,32 @@ class BaseRester:
         else:
             return results[0]
 
+    def count(self, criteria: Optional[Dict] = None) -> int:
+        """
+        Return a count of total documents.
+        :param criteria: As in .query()
+        :return:
+        """
+        criteria = criteria or {}
+        criteria["limit"] = 1  # we just want the meta information, only ask for single document
+        results = self._query_resource(criteria=criteria, monty_decode=False)  # do not waste cycles Monty decoding
+        return results["meta"]["total"]
+
+    @property
     def available_fields(self) -> List[str]:
-        raise NotImplementedError
+        if self.document_model is None:
+            return ["Unknown fields."]
+        return list(self.document_model().fields.keys())
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.endpoint}>"
+
+    def __str__(self):
+        if self.document_model is None:
+            return self.__repr__()
+        return f"{self.__repr__()}\nAvailable fields: {self.available_fields}"
+
+
 
 
 class MPRestError(Exception):
