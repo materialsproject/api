@@ -52,7 +52,7 @@ def robo_resource(robo_store):
             return response
 
         self.router.get(
-            "/search/",
+            "/text_search/",
             response_model=self.response_model,
             response_model_exclude_unset=True,
             response_description="Find robocrystallographer documents through text search.",
