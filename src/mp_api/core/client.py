@@ -191,7 +191,7 @@ class BaseRester:
                     data = json.loads(response.text)
 
                 if self.document_model:
-                    data["data"] = [self.document_model(**d) for d in data["data"]]  # type: ignore
+                    data["data"] = [self.document_model.construct(**d) for d in data["data"]]  # type: ignore
 
                 return data
 
@@ -301,7 +301,7 @@ class BaseRester:
             return self.__repr__()
         return f"{self.__class__.__name__} connected to {self.endpoint}\n" \
                f"Available fields: {', '.join(self.available_fields)}\n" \
-               f"Available documents: {self.count()}"
+               f"Available documents: {self.count():n}"
 
 
 
