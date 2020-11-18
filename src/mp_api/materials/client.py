@@ -5,7 +5,7 @@ from monty.serialization import MontyEncoder, MontyDecoder
 from pymatgen.core import Structure as PMGStructure
 
 from mp_api.materials.models import Structure
-from mp_api.materials.models.doc import CrystalSystem
+from mp_api.materials.models.doc import CrystalSystem, MaterialsCoreDoc
 
 from mp_api.core.client import BaseRester, MPRestError
 
@@ -13,6 +13,7 @@ from mp_api.core.client import BaseRester, MPRestError
 class MaterialsRester(BaseRester):
 
     suffix = "materials"
+    document_model = MaterialsCoreDoc
 
     def get_structure_by_material_id(
         self, material_id: str, version: Optional[str] = None
