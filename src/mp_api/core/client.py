@@ -296,7 +296,8 @@ class BaseRester:
     def __str__(self):
         if self.document_model is None:
             return self.__repr__()
-        return f"{self.__repr__()}\nAvailable fields: {self.available_fields}"
+        return f"{self.__class__.__name__} connected to {self.endpoint}\n" \
+               f"Available fields: {', '.join(self.available_fields)}"
 
 
 
