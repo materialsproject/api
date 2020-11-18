@@ -9,7 +9,7 @@ import json
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Union
 from urllib.parse import urljoin
 from os import environ
 
@@ -273,16 +273,19 @@ class BaseRester:
         else:
             return results[0]
 
-    def count(self, criteria: Optional[Dict] = None) -> int:
+    def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
         """
         Return a count of total documents.
         :param criteria: As in .query()
         :return:
         """
-        criteria = criteria or {}
-        criteria["limit"] = 1  # we just want the meta information, only ask for single document
-        results = self._query_resource(criteria=criteria, monty_decode=False)  # do not waste cycles Monty decoding
-        return results["meta"]["total"]
+        try:
+            criteria = criteria or {}
+            criteria["limit"] = 1  # we just want the meta information, only ask for single document
+            results = self._query_resource(criteria=criteria, monty_decode=False)  # do not waste cycles Monty decoding
+            return results["meta"]["total"]
+        except Exception:
+            return "unknown"
 
     @property
     def available_fields(self) -> List[str]:
@@ -297,7 +300,8 @@ class BaseRester:
         if self.document_model is None:
             return self.__repr__()
         return f"{self.__class__.__name__} connected to {self.endpoint}\n" \
-               f"Available fields: {', '.join(self.available_fields)}"
+               f"Available fields: {', '.join(self.available_fields)}\n" \
+               f"Available documents: {self.count()}"
 
 
 
