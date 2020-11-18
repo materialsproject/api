@@ -3,30 +3,13 @@ from collections import defaultdict
 import warnings
 
 from mp_api.core.client import BaseRester, MPRestError
-from mp_api.magnetism.models import MagneticOrderingEnum, TotalMagNormalizationEnum
+from mp_api.magnetism.models import MagnetismDoc, MagneticOrderingEnum, TotalMagNormalizationEnum
 
 
 class MagnetismRester(BaseRester):
 
     suffix = "magnetism"
-
-    def get_magnetism_from_material_id(self, material_id: str):
-        """
-        Get magnetic data for a given Materials Project ID.
-
-        Arguments:
-            material_id (str): Materials project ID
-
-        Returns:
-            results (Dict): Dictionary containing magnetic data.
-        """
-
-        result = self._make_request("{}/?all_fields=true".format(material_id))
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No document found")
+    document_model = MagnetismDoc
 
     def search_magnetism_docs(
         self,
@@ -52,7 +35,7 @@ class MagnetismRester(BaseRester):
                 to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (List[str]): List of fields in MagnetismDoc to return data for.
                 Default is material_id only.
 
         Yields:
@@ -119,4 +102,5 @@ class MagnetismRester(BaseRester):
                 break
 
             count += 1
-            yield results
+            for result in results:
+                yield result
