@@ -59,7 +59,7 @@ class IsStableQuery(QueryOperator):
         crit = {}
 
         if is_stable is not None:
-            crit["is_stable"] = is_stable
+            crit["thermo.is_stable"] = is_stable
 
         return {"criteria": crit}
 
