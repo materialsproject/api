@@ -236,6 +236,26 @@ class SearchTaskIDsQuery(QueryOperator):
         return {"criteria": crit}
 
 
+class SearchIsStableQuery(QueryOperator):
+    """
+    Method to generate a query on whether a material is stable
+    """
+
+    def query(
+        self,
+        is_stable: Optional[bool] = Query(
+            None, description="Whether the material is stable."
+        ),
+    ):
+
+        crit = {}
+
+        if is_stable is not None:
+            crit["is_stable"] = is_stable
+
+        return {"criteria": crit}
+
+
 # TODO:
 # XAS and GB sub doc query operators
 # Magnetism query ops from endpoint
