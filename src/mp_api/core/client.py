@@ -12,6 +12,7 @@ from json import JSONDecodeError
 from typing import Dict, Optional, List, Union
 from urllib.parse import urljoin
 from os import environ
+import warnings
 
 import requests
 from monty.json import MontyDecoder
@@ -239,10 +240,16 @@ class BaseRester:
         Returns:
             A list of documents
         """
-        return self._query_resource(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl).get("data")
+        return self._query_resource(
+            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl
+        ).get("data")
 
     def query_by_task_id(
-        self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True, version: Optional[str] = None
+        self,
+        task_id,
+        fields: Optional[List[str]] = None,
+        monty_decode: bool = True,
+        version: Optional[str] = None,
     ):
         """
         Query the endpoint for a single document.
@@ -267,13 +274,17 @@ class BaseRester:
         if isinstance(fields, str):
             fields = (fields,)
 
-        results = self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id)
+        results = self.query(
+            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id
+        )
 
         if not results:
             warnings.warn(f"No result for record {task_id}.")
             return
         elif len(results) > 1:
-            raise ValueError(f"Multiple records for {task_id}, this shouldn't happen. Please report as a bug.")
+            raise ValueError(
+                f"Multiple records for {task_id}, this shouldn't happen. Please report as a bug."
+            )
         else:
             return results[0]
 
@@ -285,8 +296,12 @@ class BaseRester:
         """
         try:
             criteria = criteria or {}
-            criteria["limit"] = 1  # we just want the meta information, only ask for single document
-            results = self._query_resource(criteria=criteria, monty_decode=False)  # do not waste cycles Monty decoding
+            criteria[
+                "limit"
+            ] = 1  # we just want the meta information, only ask for single document
+            results = self._query_resource(
+                criteria=criteria, monty_decode=False
+            )  # do not waste cycles Monty decoding
             return results["meta"]["total"]
         except Exception:
             return "unknown"
@@ -295,7 +310,7 @@ class BaseRester:
     def available_fields(self) -> List[str]:
         if self.document_model is None:
             return ["Unknown fields."]
-        return list(self.document_model().fields.keys())
+        return list(self.document_model().fields.keys())  # type: ignore
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.endpoint}>"
@@ -303,11 +318,11 @@ class BaseRester:
     def __str__(self):
         if self.document_model is None:
             return self.__repr__()
-        return f"{self.__class__.__name__} connected to {self.endpoint}\n" \
-               f"Available fields: {', '.join(self.available_fields)}\n" \
-               f"Available documents: {self.count():n}"
-
-
+        return (
+            f"{self.__class__.__name__} connected to {self.endpoint}\n"
+            f"Available fields: {', '.join(self.available_fields)}\n"
+            f"Available documents: {self.count():n}"
+        )
 
 
 class MPRestError(Exception):
