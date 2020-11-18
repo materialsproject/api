@@ -1,9 +1,7 @@
-from typing import List, Optional
+from mp_api.core.client import BaseRester
 from mp_api.robocrys.models import RobocrysDoc
 
+class RobocrysRester(BaseRester):
 
-class RobocrysRester:
-    def query_by_task_id(
-        self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True
-    ) -> RobocrysDoc:
-        ...
+    suffix = "robocrys"
+    document_model = RobocrysDoc
