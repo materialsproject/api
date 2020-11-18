@@ -242,14 +242,14 @@ class BaseRester:
         return self._query_resource(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl).get("data")
 
     def query_by_task_id(
-        self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True
+        self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True, version: Optional[str] = None
     ):
         """
         Query the endpoint for a single document.
 
         Arguments:
             task_id: a task_id key
-            criteria: dictionary of criteria to filter down
+            fields: list of fields to return
             monty_decode: Decode the data using monty into python objects
 
         Returns:
@@ -261,15 +261,19 @@ class BaseRester:
         else:
             criteria = {"limit": 1}
 
+        if version:
+            criteria["version"] = version
+
         if isinstance(fields, str):
             fields = (fields,)
 
         results = self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id)
 
         if not results:
-            raise ValueError(f"No result for {task_id}")
+            warnings.warn(f"No result for record {task_id}.")
+            return
         elif len(results) > 1:
-            raise ValueError(f"Multiple results for {task_id}, this shouldn't happen. Please report as a bug.")
+            raise ValueError(f"Multiple records for {task_id}, this shouldn't happen. Please report as a bug.")
         else:
             return results[0]
 
