@@ -97,6 +97,8 @@ class BaseRester:
             sub_url: the URL to request
             monty_decode: Decode the data using monty into python objects
         """
+        print("_make_request is going away", sub_url)
+
         url = self.endpoint + sub_url
         if self.debug:
             print(f"URL: {url}")
@@ -136,7 +138,7 @@ class BaseRester:
 
             raise MPRestError(str(ex))
 
-    def query(
+    def _query_resource(
         self,
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
@@ -144,7 +146,11 @@ class BaseRester:
         suburl: Optional[str] = None,
     ):
         """
-        Query the endpoint for a set of documents.
+        Query the endpoint for a Resource containing a list of documents
+        and meta information about pagination and total document count.
+
+        For the end-user, methods .query() and .count() are intended to be
+        easier to use.
 
         Arguments:
             criteria: dictionary of criteria to filter down
@@ -153,7 +159,7 @@ class BaseRester:
             suburl: make a request to a specified sub-url
 
         Returns:
-            Dict with two key, "data" containing a list of documents, and
+            A Resource, a dict with two keys, "data" containing a list of documents, and
             "meta" containing meta information, e.g. total number of documents
             available.
         """
@@ -209,6 +215,27 @@ class BaseRester:
 
             raise MPRestError(str(ex))
 
+    def query(
+        self,
+        criteria: Optional[Dict] = None,
+        fields: Optional[List[str]] = None,
+        monty_decode: bool = True,
+        suburl: Optional[str] = None,
+    ):
+        """
+        Query the endpoint for a list of documents.
+
+        Arguments:
+            criteria: dictionary of criteria to filter down
+            fields: list of fields to return
+            monty_decode: Decode the data using monty into python objects
+            suburl: make a request to a specified sub-url
+
+        Returns:
+            A list of documents
+        """
+        return self._query_resource(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl).get("data")
+
     def query_by_task_id(
         self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True
     ):
@@ -225,16 +252,21 @@ class BaseRester:
         """
 
         if fields is None:
-            criteria = {"all_fields": True}
+            criteria = {"all_fields": True, "limit": 1}
         else:
-            criteria = None  # type: ignore
+            criteria = {"limit": 1}
 
         if isinstance(fields, str):
             fields = (fields,)
 
-        return self.query(
-            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id
-        )["data"][0]
+        results = self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id)
+
+        if not results:
+            raise ValueError(f"No result for {task_id}")
+        elif len(results) > 1:
+            raise ValueError(f"Multiple results for {task_id}, this shouldn't happen. Please report as a bug.")
+        else:
+            return results[0]
 
     def available_fields(self) -> List[str]:
         raise NotImplementedError
