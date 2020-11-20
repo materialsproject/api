@@ -19,9 +19,9 @@ class XASRester(BaseRester):
 
     def get_xas_doc(self, xas_id: str):
         # TODO do some checking here for sub-components
-        query_params = {"xas_id": xas_id, "all_fields": True}
+        query_params = {"all_fields": True}
 
-        result = self.query(query_params)
+        result = self._query_resource(query_params, suburl=xas_id)
         if len(result.get("data", [])) > 0:
             return result["data"][0]
         else:
@@ -53,7 +53,7 @@ class XASRester(BaseRester):
         count = 0
         while True:
             query_params["skip"] = count * chunk_size
-            results = self.query(query_params).get("data", [])
+            results = self._query_resource(query_params).get("data", [])
 
             if not any(results) or (num_chunks is not None and count == num_chunks):
                 break
@@ -78,5 +78,5 @@ class XASRester(BaseRester):
             query_params["elements"] = ",".join([str(el) for el in required_elements])
 
         query_params["limit"] = "1"
-        result = self.query(query_params)
+        result = self._query_resource(query_params)
         return result.get("meta", {}).get("total", 0)
