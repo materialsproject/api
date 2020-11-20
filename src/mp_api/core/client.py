@@ -319,8 +319,8 @@ class BaseRester:
         if self.document_model is None:
             return self.__repr__()
         return (
-            f"{self.__class__.__name__} connected to {self.endpoint}\n"
-            f"Available fields: {', '.join(self.available_fields)}\n"
+            f"{self.__class__.__name__} connected to {self.endpoint}\n\n"
+            f"Available fields: {', '.join(self.available_fields)}\n\n"
             f"Available documents: {self.count()}"
         )
 
