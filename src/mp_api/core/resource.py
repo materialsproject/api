@@ -1,3 +1,4 @@
+import os
 from typing import List, Dict, Union, Optional, Callable, Type
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
@@ -217,8 +218,11 @@ class Resource(MSONable):
 
                 if version is not None:
                     version = version.replace(".", "_")
-                    prefix = self.store.collection_name.split("_")[0]
-                    self.store.collection_name = f"{prefix}_{version}"
+                else:
+                    version = os.environ.get("DB_VERSION")
+
+                prefix = self.store.collection_name.split("_")[0]
+                self.store.collection_name = f"{prefix}_{version}"
 
                 self.store.connect(force_reset=True)
 
@@ -280,11 +284,16 @@ class Resource(MSONable):
                     ),
                 )
 
-            if self.versioned and query["criteria"].get("version", None) is not None:
-                version = query["criteria"]["version"].replace(".", "_")
+            if self.versioned:
+                if query["criteria"].get("version", None) is not None:
+                    version = query["criteria"]["version"].replace(".", "_")
+                    query["criteria"].pop("version")
+
+                else:
+                    version = os.environ.get("DB_VERSION")
+
                 prefix = self.store.collection_name.split("_")[0]
                 self.store.collection_name = f"{prefix}_{version}"
-                query["criteria"].pop("version")
 
             self.store.connect(force_reset=True)
 
