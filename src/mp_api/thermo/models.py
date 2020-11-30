@@ -96,6 +96,11 @@ class ThermoData(BaseModel):
         description="Thermo entry explanation data.",
     )
 
+    decomposes_to: List[dict] = Field(
+        None,
+        description="List of decomposition materials data.",
+    )
+
 
 class ThermoDoc(BaseModel):
     """
