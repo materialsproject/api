@@ -39,7 +39,7 @@ class VoltageStep(BaseModel):
     )
 
     energy_vol: float = Field(
-        None, description="Volumetric energy (Eneryg Density) in Wh/l."
+        None, description="Volumetric energy (Energy Density) in Wh/l."
     )
 
     fracA_charge: float = Field(
