@@ -2,11 +2,11 @@ from monty.json import MontyDecoder
 
 
 """ Core definition of an Electrode Document """
-from typing import List, Dict, ClassVar
+from typing import Dict, List
 from datetime import datetime
 
 from pydantic import BaseModel, Field, validator
-from mp_api.materials.models import Structure, Composition, CrystalSystem
+from mp_api.materials.models import Composition
 
 
 class VoltageStep(BaseModel):
@@ -18,64 +18,51 @@ class VoltageStep(BaseModel):
 
     max_delta_volume: str = Field(
         None,
-        description="Volume changes in % for a particular voltage step using: " 
-                    "max(charge, discharge) / min(charge, discharge) - 1"
+        description="Volume changes in % for a particular voltage step using: "
+        "max(charge, discharge) / min(charge, discharge) - 1",
     )
 
     average_voltage: float = Field(
-        None,
-        description="The average voltage in V for a particular voltage step.",
-    )
-
-    max_voltage: float = Field(
-        None,
-        description="The max voltage in V for a particular voltage step.",
+        None, description="The average voltage in V for a particular voltage step.",
     )
 
     min_voltage: float = Field(
-        None,
-        description="The min voltage in V for a particular voltage step.",
+        None, description="The min voltage in V for a particular voltage step.",
     )
 
-    capacity_grav: float = Field(
-        None, description="Gravimetric capacity in mAh/g."
-    )
+    capacity_grav: float = Field(None, description="Gravimetric capacity in mAh/g.")
 
-    capacity_vol: float = Field(
-        None, description="Volumetric capacity in mAh/cc."
-    )
+    capacity_vol: float = Field(None, description="Volumetric capacity in mAh/cc.")
 
     energy_grav: float = Field(
         None, description="Gravimetric energy (Specific energy) in Wh/kg."
     )
 
     energy_vol: float = Field(
-        None, description="Volumetric energy (Eneryg Density) in Wh/l."
+        None, description="Volumetric energy (Energy Density) in Wh/l."
     )
 
     fracA_charge: float = Field(
         None, description="Atomic fraction of the working ion in the charged state."
     )
-
     fracA_discharge: float = Field(
         None, description="Atomic fraction of the working ion in the discharged state."
     )
+
 
 class InsertionVoltageStep(VoltageStep):
     """
     Features specific to insertion electrode
     """
-    framework: float = Field(
-        None, description=""
-    )
 
     stability_charge: float = Field(
-        None, description=""
+        None, description="The energy above hull of the charged material."
     )
 
     stability_discharge: float = Field(
-        None, description=""
+        None, description="The energy above hull of the discharged material."
     )
+
 
 class InsertionElectrode(InsertionVoltageStep):
 
@@ -86,7 +73,7 @@ class InsertionElectrode(InsertionVoltageStep):
         description="The composition of the host framework (structure without the working ion)",
     )
 
-    voltage_pairs: List = Field(
+    voltage_pairs: List[InsertionVoltageStep] = Field(
         None, description="Returns all the Voltage Steps",
     )
 
@@ -119,15 +106,17 @@ class ConversionVoltageStep(VoltageStep):
     """
     Features specific to conversion electrode
     """
+
     reactions: Dict = Field(
         None, description="The reaction the characterizes that particular voltage step."
     )
+
 
 class ConversionElectrode(ConversionVoltageStep):
 
     battery_id: str = Field(None, description="The id for this battery document.")
 
-    voltage_pairs: List = Field(
+    voltage_pairs: List[ConversionVoltageStep] = Field(
         None, description="Returns all the Voltage Steps",
     )
 
@@ -138,7 +127,7 @@ class ConversionElectrode(ConversionVoltageStep):
     num_steps: float = Field(
         None,
         description="The number of distinct voltage steps in from fully charge to "
-                    "discharge based on the stable intermediate states",
+        "discharge based on the stable intermediate states",
     )
 
     max_voltage_step: float = Field(
