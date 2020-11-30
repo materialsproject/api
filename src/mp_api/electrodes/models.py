@@ -27,11 +27,6 @@ class VoltageStep(BaseModel):
         description="The average voltage in V for a particular voltage step.",
     )
 
-    max_voltage: float = Field(
-        None,
-        description="The max voltage in V for a particular voltage step.",
-    )
-
     min_voltage: float = Field(
         None,
         description="The min voltage in V for a particular voltage step.",
@@ -65,16 +60,12 @@ class InsertionVoltageStep(VoltageStep):
     """
     Features specific to insertion electrode
     """
-    framework: float = Field(
-        None, description=""
-    )
-
     stability_charge: float = Field(
-        None, description=""
+        None, description="The energy above hull of the charged material."
     )
 
     stability_discharge: float = Field(
-        None, description=""
+        None, description="The energy above hull of the discharged material."
     )
 
 class InsertionElectrode(InsertionVoltageStep):
@@ -86,7 +77,7 @@ class InsertionElectrode(InsertionVoltageStep):
         description="The composition of the host framework (structure without the working ion)",
     )
 
-    voltage_pairs: List = Field(
+    voltage_pairs: List[InsertionVoltageStep] = Field(
         None, description="Returns all the Voltage Steps",
     )
 
@@ -127,7 +118,7 @@ class ConversionElectrode(ConversionVoltageStep):
 
     battery_id: str = Field(None, description="The id for this battery document.")
 
-    voltage_pairs: List = Field(
+    voltage_pairs: List[ConversionVoltageStep] = Field(
         None, description="Returns all the Voltage Steps",
     )
 
