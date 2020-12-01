@@ -49,6 +49,10 @@ s3_dos_index_json = os.environ.get("S3_DOS_INDEX_STORE", "s3_dos_index.json")
 s3_bs_json = os.environ.get("S3_BS_STORE", "s3_bs.json")
 s3_dos_json = os.environ.get("S3_DOS_STORE", "s3_dos.json")
 
+s3_chgcar_index_json = os.environ.get("CHGCAR_INDEX_STORE", "chgcar_index_store.json")
+s3_chgcar_json = os.environ.get("S3_CHGCAR_STORE", "s3_chgcar.json")
+
+
 if db_uri:
     from maggma.stores import MongoURIStore, S3Store
 
@@ -238,6 +242,22 @@ if db_uri:
 
     s3_dos = S3Store(index=s3_dos_index, bucket="mp-dos", compress=True)
 
+    s3_chgcar_index = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="fs_id",
+        collection_name="atomate_chgcar_fs_index",
+    )
+
+    s3_chgcar = S3Store(
+        index=s3_chgcar_index,
+        bucket="mp-volumetric",
+        sub_dir="atomate_chgcar_fs/",
+        compress=False,
+        key="fs_id",
+        searchable_fields=["task_id", "fs_id"],
+    )
+
 
 else:
     materials_store = loadfn(materials_store_json)
@@ -269,6 +289,9 @@ else:
     s3_dos_index = loadfn(s3_dos_index_json)
     s3_bs = loadfn(s3_bs_json)
     s3_dos = loadfn(s3_dos_json)
+
+    s3_chgcar_index = loadfn(s3_chgcar_index_json)
+    s3_chgcar = loadfn(s3_chgcar_json)
 
 # Materials
 from mp_api.materials.resources import materials_resource
@@ -387,6 +410,11 @@ resources.update(
 from mp_api.molecules.resources import molecules_resource
 
 resources.update({"molecules": molecules_resource(molecules_store)})
+
+# Charge Density
+from mp_api.charge_density.resources import charge_density_resource
+
+resources.update({"charge_density": charge_density_resource(s3_chgcar)})
 
 # Search
 from mp_api.search.resources import search_resource

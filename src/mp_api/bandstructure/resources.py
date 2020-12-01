@@ -73,7 +73,7 @@ def bs_resource(bs_store, s3_store):
             "/object/",
             response_description=f"Get an {model_name} by {key_name}",
             response_model=model,
-            response_model_exclude_unset=True,
+            response_model_exclude_unset=False,
             tags=self.tags,
         )(get_object)
 
