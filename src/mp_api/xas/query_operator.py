@@ -2,6 +2,7 @@ from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.xas.models import Edge, XASType
 from pymatgen.core.periodic_table import Element
+from typing import Optional
 
 
 class XASQuery(QueryOperator):
@@ -21,3 +22,23 @@ class XASQuery(QueryOperator):
         query = {k: v for k, v in query.items() if v}
 
         return {"criteria": query} if len(query) > 0 else {}
+
+
+class XASTaskIDQuery(QueryOperator):
+    """
+    Method to generate a query for XAS data given a list of task_ids
+    """
+
+    def query(
+        self,
+        task_ids: Optional[str] = Query(
+            None, description="Comma-separated list of task_ids to query on"
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if task_ids:
+            crit.update({"task_id": {"$in": task_ids.split(",")}})
+
+        return {"criteria": crit}

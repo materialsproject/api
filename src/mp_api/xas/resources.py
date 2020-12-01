@@ -3,7 +3,7 @@ from mp_api.xas.models import XASDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.materials.query_operators import FormulaQuery
-from mp_api.xas.query_operator import XASQuery
+from mp_api.xas.query_operator import XASQuery, XASTaskIDQuery
 
 
 def xas_resource(xas_store):
@@ -13,6 +13,7 @@ def xas_resource(xas_store):
         query_operators=[
             FormulaQuery(),
             XASQuery(),
+            XASTaskIDQuery(),
             SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(

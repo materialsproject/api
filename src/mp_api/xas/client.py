@@ -33,6 +33,7 @@ class XASRester(BaseRester):
         absorbing_element: Optional[Element] = None,
         required_elements: Optional[List[Element]] = None,
         formula: Optional[str] = None,
+        task_ids: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 100,
         fields: Optional[List[str]] = None,
@@ -42,6 +43,9 @@ class XASRester(BaseRester):
             "absorbing_element": str(absorbing_element) if absorbing_element else None,
             "formula": formula,
         }  # type: dict
+
+        if task_ids is not None:
+            query_params["task_ids"] = ",".join(task_ids)
 
         if required_elements:
             query_params["elements"] = ",".join([str(el) for el in required_elements])
