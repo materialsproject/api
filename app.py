@@ -37,6 +37,7 @@ synth_store_json = os.environ.get("SYNTH_STORE", "synth_store.json")
 insertion_electrodes_store_json = os.environ.get(
     "INSERTION_ELECTRODES_STORE", "insertion_electrodes_store.json"
 )
+molecules_store_json = os.environ.get("MOLECULES_STORE", "molecules_store.json")
 search_store_json = os.environ.get("SEARCH_STORE", "search_store.json")
 
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
@@ -191,6 +192,13 @@ if db_uri:
         collection_name="insertion_electrodes",
     )
 
+    molecules_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="task_id",
+        collection_name="molecules",
+    )
+
     search_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -251,7 +259,8 @@ else:
     wulff_store = loadfn(wulff_store_json)
     robo_store = loadfn(robocrys_store_json)
     synth_store = loadfn(synth_store_json)
-    insertion_electrodes_store = loadn(insertion_electrodes_store_json)
+    insertion_electrodes_store = loadfn(insertion_electrodes_store_json)
+    molecules_store = loadfn(molecules_store_json)
     search_store = loadfn(search_store_json)
 
     bs_store = loadfn(bs_store_json)
@@ -373,6 +382,11 @@ from mp_api.electrodes.resources import insertion_electrodes_resource
 resources.update(
     {"insertion_electrodes": insertion_electrodes_resource(insertion_electrodes_store)}
 )
+
+# Molecules
+from mp_api.molecules.resources import molecules_resource
+
+resources.update({"molecules": molecules_resource(molecules_store)})
 
 # Search
 from mp_api.search.resources import search_resource
