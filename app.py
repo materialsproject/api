@@ -395,7 +395,7 @@ from mp_api.robocrys.resources import robo_resource
 resources.update({"robocrys": robo_resource(robo_store)})
 
 # Synthesis
-from mp_api.synth.resources import synth_resource
+from mp_api.synthesis.resources import synth_resource
 
 resources.update({"synthesis": synth_resource(synth_store)})
 

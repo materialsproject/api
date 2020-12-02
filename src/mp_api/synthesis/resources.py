@@ -1,5 +1,5 @@
 from mp_api.core.resource import Resource
-from mp_api.synth.models import SynthDoc
+from mp_api.synthesis.models import SynthesisDoc
 
 from fastapi import Query
 
@@ -61,7 +61,7 @@ def synth_resource(synth_store):
 
     resource = Resource(
         synth_store,
-        SynthDoc,
+        SynthesisDoc,
         tags=["Synthesis"],
         custom_endpoint_funcs=[custom_synth_prep],
         enable_default_search=False,
