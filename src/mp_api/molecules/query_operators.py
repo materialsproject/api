@@ -51,13 +51,13 @@ class MoleculeBaseQuery(QueryOperator):
             None,
             description="Minimum value for the electron affinity in eV.",
         ),
-        IP_max: Optional[float] = Query(
+        IE_max: Optional[float] = Query(
             None,
-            description="Maximum value for the ionization potential in eV.",
+            description="Maximum value for the ionization energy in eV.",
         ),
-        IP_min: Optional[float] = Query(
+        IE_min: Optional[float] = Query(
             None,
-            description="Minimum value for the ionization potential in eV.",
+            description="Minimum value for the ionization energy in eV.",
         ),
         charge_max: Optional[int] = Query(
             None,
@@ -83,7 +83,7 @@ class MoleculeBaseQuery(QueryOperator):
         d = {
             "nelements": [nelements_min, nelements_max],
             "EA": [EA_min, EA_max],
-            "IP": [IP_min, IP_max],
+            "IE": [IE_min, IE_max],
             "charge": [charge_min, charge_max],
         }  # type: dict
 

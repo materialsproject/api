@@ -34,7 +34,7 @@ class MoleculesRester(BaseRester):
         elements: Optional[List[Element]] = None,
         nelements: Optional[Tuple[float, float]] = None,
         EA: Optional[Tuple[float, float]] = None,
-        IP: Optional[Tuple[float, float]] = None,
+        IE: Optional[Tuple[float, float]] = None,
         charge: Optional[Tuple[float, float]] = None,
         pointgroup: Optional[str] = None,
         smiles: Optional[str] = None,
@@ -49,7 +49,7 @@ class MoleculesRester(BaseRester):
             film_orientation (List[Elements]): List of elements that are in the molecule.
             nelements (Tuple[float,float]): Minimum and maximum number of elements in the molecule to consider.
             EA (Tuple[float,float]): Minimum and maximum value of the electron affinity in eV to consider.
-            IP (Tuple[float,float]): Minimum and maximum value of the ionization potential in eV to consider.
+            IE (Tuple[float,float]): Minimum and maximum value of the ionization energy in eV to consider.
             charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
             pointgroup (str): Point group of the molecule in Schoenflies notation.
             smiles (str): The simplified molecular input line-entry system (SMILES) representation of the molecule.
@@ -86,8 +86,8 @@ class MoleculesRester(BaseRester):
         if EA:
             query_params.update({"EA_min": EA[0], "EA_max": EA[1]})
 
-        if IP:
-            query_params.update({"IP_min": IP[0], "IP_max": IP[1]})
+        if IE:
+            query_params.update({"IE_min": IE[0], "IE_max": IE[1]})
 
         if charge:
             query_params.update({"charge_min": charge[0], "charge_max": charge[1]})
