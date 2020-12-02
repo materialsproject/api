@@ -25,6 +25,7 @@ from mp_api.piezo.client import PiezoRester
 from mp_api.magnetism.client import MagnetismRester
 from mp_api.search.client import SearchRester
 from mp_api.robocrys.client import RobocrysRester
+from mp_api.molecules.client import MoleculesRester
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -149,9 +150,12 @@ class MPRester:
         self.search = SearchRester(
             api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
         )
-
         self.robocrys = RobocrysRester(
             api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.molecules = MoleculesRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+
         )
 
     def __enter__(self):
