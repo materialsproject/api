@@ -16,9 +16,9 @@ class MoleculesDoc(BaseModel):
         description="Electron affinity of the molecule in eV.",
     )
 
-    IP: float = Field(
+    IE: float = Field(
         None,
-        description="Ionization potential of the molecule in eV.",
+        description="Ionization energy of the molecule in eV.",
     )
 
     charge: int = Field(
