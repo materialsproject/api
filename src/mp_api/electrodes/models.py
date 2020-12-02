@@ -1,10 +1,16 @@
 from monty.json import MontyDecoder
-from pymatgen.core.periodic_table import Element
+from pymatgen.core.periodic_table import Element, ElementBase
 from typing import Dict, List
 from datetime import datetime
 
 from pydantic import BaseModel, Field, validator
-from mp_api.materials.models import Composition
+from mp_api.materials.models import Structure
+
+
+class WorkingIon(ElementBase):
+    Li = "Li"
+    Ca = "Ca"
+    Mg = "Mg"
 
 
 class VoltageStep(BaseModel):
@@ -21,13 +27,11 @@ class VoltageStep(BaseModel):
     )
 
     average_voltage: float = Field(
-        None,
-        description="The average voltage in V for a particular voltage step.",
+        None, description="The average voltage in V for a particular voltage step.",
     )
 
     min_voltage: float = Field(
-        None,
-        description="The min voltage in V for a particular voltage step.",
+        None, description="The min voltage in V for a particular voltage step.",
     )
 
     capacity_grav: float = Field(None, description="Gravimetric capacity in mAh/g.")
@@ -68,19 +72,16 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
 
     battery_id: str = Field(None, description="The id for this battery document.")
 
-    framework: Composition = Field(
-        None,
-        description="The composition of the host framework (structure without the working ion)",
+    host_structure: Structure = Field(
+        None, description="Host structure (structure without the working ion)",
     )
 
     voltage_pairs: List[InsertionVoltageStep] = Field(
-        None,
-        description="Returns all the Voltage Steps",
+        None, description="Returns all the Voltage Steps",
     )
 
     working_ion: Element = Field(
-        None,
-        description="The working ion as an Element object",
+        None, description="The working ion as an Element object",
     )
 
     num_steps: float = Field(
@@ -119,13 +120,11 @@ class ConversionElectrode(ConversionVoltageStep):
     battery_id: str = Field(None, description="The id for this battery document.")
 
     voltage_pairs: List[ConversionVoltageStep] = Field(
-        None,
-        description="Returns all the Voltage Steps",
+        None, description="Returns all the Voltage Steps",
     )
 
     working_ion: str = Field(
-        None,
-        description="The working ion as an Element object",
+        None, description="The working ion as an Element object",
     )
 
     num_steps: float = Field(
