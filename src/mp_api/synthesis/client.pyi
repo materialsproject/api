@@ -1,5 +1,5 @@
 from typing import List
-from mp_api.synth.models import SynthDoc
+from mp_api.synthesis.models import SynthDoc
 
 
 class SynthsRester:

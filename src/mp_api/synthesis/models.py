@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class SynthDoc(BaseModel):
+class SynthesisDoc(BaseModel):
     """
     Model for a document containing synthesis description data
     """
