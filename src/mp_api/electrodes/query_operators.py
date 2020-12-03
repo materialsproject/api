@@ -1,9 +1,10 @@
 from typing import Optional
 from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
-from pymatgen.core.periodic_table import Element
 
 from collections import defaultdict
+
+from mp_api.electrodes.models import WorkingIon
 
 
 class VoltageStepQuery(QueryOperator):
@@ -46,20 +47,16 @@ class VoltageStepQuery(QueryOperator):
             description="Minimum value for the minimum voltage for a particular voltage step in V.",
         ),
         capacity_grav_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the gravimetric capacity in maH/g.",
+            None, description="Maximum value for the gravimetric capacity in maH/g.",
         ),
         capacity_grav_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the gravimetric capacity in maH/g.",
+            None, description="Minimum value for the gravimetric capacity in maH/g.",
         ),
         capacity_vol_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the volumetric capacity in maH/cc.",
+            None, description="Maximum value for the volumetric capacity in maH/cc.",
         ),
         capacity_vol_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the volumetric capacity in maH/cc.",
+            None, description="Minimum value for the volumetric capacity in maH/cc.",
         ),
         energy_grav_max: Optional[float] = Query(
             None,
@@ -169,7 +166,7 @@ class InsertionElectrodeQuery(QueryOperator):
 
     def query(
         self,
-        working_ion: Optional[Element] = Query(
+        working_ion: Optional[WorkingIon] = Query(
             None, title="Element of the working ion"
         ),
         num_steps_max: Optional[float] = Query(
