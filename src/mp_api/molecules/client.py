@@ -11,7 +11,7 @@ from mp_api.molecules.models import MoleculesDoc
 class MoleculesRester(BaseRester):
 
     suffix = "molecules"
-    document_model = MoleculesDoc
+    document_model = MoleculesDoc  # type: ignore
 
     def get_molecule_from_molecule_id(self, molecule_id: str):
         """
