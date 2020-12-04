@@ -15,7 +15,7 @@ class SynthFormulaQuery(QueryOperator):
         self,
         formula: Optional[str] = Query(
             None,
-            description="Materials Project ID of the film material.",
+            description="Chemical formula of the material.",
         ),
     ) -> STORE_PARAMS:
 
