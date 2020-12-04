@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
 from pymatgen.core.periodic_table import Element
+from pymatgen.core import Composition
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 
 from collections import defaultdict
@@ -99,5 +100,28 @@ class MoleculeBaseQuery(QueryOperator):
 
         if smiles:
             crit["smiles"] = smiles
+
+        return {"criteria": crit}
+
+
+class MoleculeFormulaQuery(QueryOperator):
+    """
+    Method to generate a query for molecule data using a chemical formula
+    """
+
+    def query(
+        self,
+        formula: Optional[str] = Query(
+            None,
+            description="Chemical formula of the molecule.",
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = defaultdict(dict)  # type: dict
+
+        if formula:
+
+            reduced_formula = Composition(formula).get_reduced_formula_and_factor()[0]
+            crit["formula_pretty"] = reduced_formula
 
         return {"criteria": crit}
