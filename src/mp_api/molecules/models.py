@@ -47,7 +47,7 @@ class MoleculesDoc(BaseModel):
         description="Pymatgen molecule object.",
     )
 
-    pretty_formula: str = Field(
+    formula_pretty: str = Field(
         None,
         description="Chemical formula of the molecule.",
     )
