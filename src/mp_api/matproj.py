@@ -156,9 +156,10 @@ class MPRester:
         )
         self.molecules = MoleculesRester(
             api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-
         )
-        self.synth = SynthesisRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        self.synth = SynthesisRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
 
     def __enter__(self):
         """
