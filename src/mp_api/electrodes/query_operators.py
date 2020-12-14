@@ -1,10 +1,12 @@
 from typing import Optional
 from fastapi import Query
+from pymatgen.core.periodic_table import ElementBase
+
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 
 from collections import defaultdict
 
-from mp_api.electrodes.models import WorkingIon
+# from mp_api.electrodes.models import WorkingIon
 
 
 class VoltageStepQuery(QueryOperator):
@@ -166,7 +168,7 @@ class InsertionElectrodeQuery(QueryOperator):
 
     def query(
         self,
-        working_ion: Optional[WorkingIon] = Query(
+        working_ion: Optional[ElementBase] = Query(
             None, title="Element of the working ion"
         ),
         num_steps_max: Optional[float] = Query(

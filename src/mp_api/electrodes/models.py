@@ -1,5 +1,5 @@
 from monty.json import MontyDecoder
-from pymatgen.core.periodic_table import Element, ElementBase
+from pymatgen.core.periodic_table import ElementBase
 from typing import Dict, List
 from datetime import datetime
 
@@ -80,7 +80,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
         None, description="Returns all the Voltage Steps",
     )
 
-    working_ion: Element = Field(
+    working_ion: ElementBase = Field(
         None, description="The working ion as an Element object",
     )
 

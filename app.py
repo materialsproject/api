@@ -1,6 +1,34 @@
 import os
 from monty.serialization import loadfn
 from mp_api.core.api import MAPI
+from mp_api.materials.resources import materials_resource
+from mp_api.tasks.resources import task_resource
+from mp_api.tasks.resources import task_deprecation_resource
+from mp_api.tasks.resources import trajectory_resource
+from mp_api.thermo.resources import thermo_resource
+from mp_api.dielectric.resources import dielectric_resource
+from mp_api.magnetism.resources import magnetism_resource
+from mp_api.piezo.resources import piezo_resource
+from mp_api.phonon.resources import phonon_bs_resource, phonon_img_resource
+from mp_api.eos.resources import eos_resource
+from mp_api.similarity.resources import similarity_resource
+from mp_api.xas.resources import xas_resource
+from mp_api.gb.resources import gb_resource
+from mp_api.fermi.resources import fermi_resource
+from mp_api.elasticity.resources import elasticity_resource
+from mp_api.dois.resources import dois_resource
+from mp_api.substrates.resources import substrates_resource
+from mp_api.surface_properties.resources import surface_props_resource
+from mp_api.wulff.resources import wulff_resource
+from mp_api.robocrys.resources import robo_resource
+from mp_api.synthesis.resources import synth_resource
+from mp_api.electrodes.resources import insertion_electrodes_resource
+from mp_api.molecules.resources import molecules_resource
+from mp_api.charge_density.resources import charge_density_resource
+from mp_api.search.resources import search_resource
+from mp_api.bandstructure.resources import bs_resource
+from mp_api.dos.resources import dos_resource
+
 
 resources = {}
 
@@ -71,171 +99,85 @@ if db_uri:
     )
 
     thermo_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name=f"thermo_{db_version}",
+        uri=db_uri, key="task_id", collection_name=f"thermo_{db_version}",
     )
 
     dielectric_piezo_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="dielectric",
+        uri=db_uri, key="task_id", collection_name="dielectric",
     )
 
     magnetism_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="magnetism",
+        uri=db_uri, key="task_id", collection_name="magnetism",
     )
 
     phonon_bs_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="phonon_bs",
+        uri=db_uri, key="task_id", collection_name="phonon_bs",
     )
 
     phonon_img_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="phonon_img",
+        uri=db_uri, key="task_id", collection_name="phonon_img",
     )
 
-    eos_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="eos",
-    )
+    eos_store = MongoURIStore(uri=db_uri, key="task_id", collection_name="eos",)
 
     similarity_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="similarity",
+        uri=db_uri, key="task_id", collection_name="similarity",
     )
 
-    xas_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="xas_id",
-        collection_name="xas",
-    )
+    xas_store = MongoURIStore(uri=db_uri, key="xas_id", collection_name="xas",)
 
     gb_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="grain_boundaries",
+        uri=db_uri, key="task_id", collection_name="grain_boundaries",
     )
 
     fermi_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="fermi_surface",
+        uri=db_uri, key="task_id", collection_name="fermi_surface",
     )
 
     elasticity_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="elasticity",
+        uri=db_uri, key="task_id", collection_name="elasticity",
     )
 
-    doi_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="dois",
-    )
+    doi_store = MongoURIStore(uri=db_uri, key="task_id", collection_name="dois",)
 
     substrates_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="film_id",
-        collection_name="substrates",
+        uri=db_uri, key="film_id", collection_name="substrates",
     )
 
     surface_props_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="surface_properties",
+        uri=db_uri, key="task_id", collection_name="surface_properties",
     )
 
-    wulff_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="wulff",
-    )
+    wulff_store = MongoURIStore(uri=db_uri, key="task_id", collection_name="wulff",)
 
-    robo_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="robocrys",
-    )
+    robo_store = MongoURIStore(uri=db_uri, key="task_id", collection_name="robocrys",)
 
     synth_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="_id",
-        collection_name="synth_descriptions",
+        uri=db_uri, key="_id", collection_name="synth_descriptions",
     )
 
     insertion_electrodes_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="battery_id",
-        collection_name="insertion_electrodes",
+        uri=db_uri, key="battery_id", collection_name="insertion_electrodes",
     )
 
     molecules_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="molecules",
+        uri=db_uri, key="task_id", collection_name="molecules",
     )
 
-    search_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="search",
-    )
+    search_store = MongoURIStore(uri=db_uri, key="task_id", collection_name="search",)
 
     bs_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="bandstructure",
+        uri=db_uri, key="task_id", collection_name="bandstructure",
     )
 
     s3_bs_index = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="s3_bandstructure_index",
+        uri=db_uri, key="task_id", collection_name="s3_bandstructure_index",
     )
 
-    dos_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="dos",
-    )
+    dos_store = MongoURIStore(uri=db_uri, key="task_id", collection_name="dos",)
 
     s3_dos_index = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="s3_dos_index",
+        uri=db_uri, key="task_id", collection_name="s3_dos_index",
     )
 
     s3_bs = S3Store(index=s3_bs_index, bucket="mp-bandstructures", compress=True)
@@ -243,7 +185,7 @@ if db_uri:
     s3_dos = S3Store(index=s3_dos_index, bucket="mp-dos", compress=True)
 
     s3_chgcar_index = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
+        uri=db_uri,
         database="mp_core",
         key="fs_id",
         collection_name="atomate_chgcar_fs_index",
@@ -294,141 +236,87 @@ else:
     s3_chgcar = loadfn(s3_chgcar_json)
 
 # Materials
-from mp_api.materials.resources import materials_resource
-
 resources.update({"materials": materials_resource(materials_store)})
 
 # Tasks
-from mp_api.tasks.resources import task_resource
-
 resources.update({"tasks": task_resource(task_store)})
 
 # Task Deprecation
-from mp_api.tasks.resources import task_deprecation_resource
-
 resources.update({"deprecation": task_deprecation_resource(materials_store)})
 
 # Trajectory
-from mp_api.tasks.resources import trajectory_resource
-
 resources.update({"trajectory": trajectory_resource(task_store)})
 
 # Thermo
-from mp_api.thermo.resources import thermo_resource
-
 resources.update({"thermo": thermo_resource(thermo_store)})
 
 # Dielectric
-from mp_api.dielectric.resources import dielectric_resource
-
 resources.update({"dielectric": dielectric_resource(dielectric_piezo_store)})
 
 # Magnetism
-from mp_api.magnetism.resources import magnetism_resource
-
 resources.update({"magnetism": magnetism_resource(magnetism_store)})
 
 # Piezoelectric
-from mp_api.piezo.resources import piezo_resource
-
 resources.update({"piezoelectric": piezo_resource(dielectric_piezo_store)})
 
 # Phonon
-from mp_api.phonon.resources import phonon_bs_resource, phonon_img_resource
-
 resources.update({"phonon": phonon_bs_resource(phonon_bs_store)})
 resources.update({"phonon_img": phonon_img_resource(phonon_img_store)})
 
 # EOS
-from mp_api.eos.resources import eos_resource
-
 resources.update({"eos": eos_resource(eos_store)})
 
 # Similarity
-from mp_api.similarity.resources import similarity_resource
-
 resources.update({"similarity": similarity_resource(similarity_store)})
 
 # XAS
-from mp_api.xas.resources import xas_resource
-
 resources.update({"xas": xas_resource(xas_store)})
 
 # Grain Boundaries
-from mp_api.gb.resources import gb_resource
-
 resources.update({"gb": gb_resource(gb_store)})
 
 # Fermi Surface
-from mp_api.fermi.resources import fermi_resource
-
 resources.update({"fermi": fermi_resource(fermi_store)})
 
 # Elasticity
-from mp_api.elasticity.resources import elasticity_resource
-
 resources.update({"elasticity": elasticity_resource(elasticity_store)})
 
 # DOIs
-from mp_api.dois.resources import dois_resource
-
 resources.update({"doi": dois_resource(doi_store)})
 
 # Substrates
-from mp_api.substrates.resources import substrates_resource
-
 resources.update({"substrates": substrates_resource(substrates_store)})
 
 # Surface Properties
-from mp_api.surface_properties.resources import surface_props_resource
-
 resources.update({"surface_properties": surface_props_resource(surface_props_store)})
 
 # Wulff
-from mp_api.wulff.resources import wulff_resource
-
 resources.update({"wulff": wulff_resource(wulff_store)})
 
 # Robocrystallographer
-from mp_api.robocrys.resources import robo_resource
-
 resources.update({"robocrys": robo_resource(robo_store)})
 
 # Synthesis
-from mp_api.synthesis.resources import synth_resource
-
 resources.update({"synthesis": synth_resource(synth_store)})
 
 # Electrodes
-from mp_api.electrodes.resources import insertion_electrodes_resource
-
 resources.update(
     {"insertion_electrodes": insertion_electrodes_resource(insertion_electrodes_store)}
 )
 
 # Molecules
-from mp_api.molecules.resources import molecules_resource
-
 resources.update({"molecules": molecules_resource(molecules_store)})
 
 # Charge Density
-from mp_api.charge_density.resources import charge_density_resource
-
 resources.update({"charge_density": charge_density_resource(s3_chgcar)})
 
 # Search
-from mp_api.search.resources import search_resource
-
 resources.update({"search": search_resource(search_store)})
 
 # Band Structure
-from mp_api.bandstructure.resources import bs_resource
-
 resources.update({"bs": bs_resource(bs_store, s3_bs)})
 
 # DOS
-from mp_api.dos.resources import dos_resource
-
 resources.update({"dos": dos_resource(dos_store, s3_dos)})
 
 api = MAPI(resources=resources)
