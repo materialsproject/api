@@ -69,7 +69,8 @@ class BaseRester:
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
-        self.endpoint += "/"
+        if not self.endpoint.endswith("/"):
+            self.endpoint += "/"
 
         self.session = requests.Session()
         self.session.headers = {"x-api-key": self.api_key}
@@ -106,6 +107,9 @@ class BaseRester:
         print("_make_request is going away", sub_url)
 
         url = self.endpoint + sub_url
+        if not url.endswith("/"):
+            url += "/"
+
         if self.debug:
             print(f"URL: {url}")
 
@@ -182,6 +186,8 @@ class BaseRester:
             url = self.endpoint
             if suburl:
                 url = urljoin(self.endpoint, suburl)
+                if not url.endswith("/"):
+                    url += "/"
             response = self.session.get(url, verify=True, params=criteria)
 
             if response.status_code == 200:
