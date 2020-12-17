@@ -70,7 +70,7 @@ class InsertionVoltageStep(VoltageStep):
 
 class InsertionElectrodeDoc(InsertionVoltageStep):
 
-    battery_id: str = Field(None, description="The id for this battery document.")
+    task_id: str = Field(None, description="The id for this battery document.")
 
     host_structure: Structure = Field(
         None, description="Host structure (structure without the working ion)",
@@ -80,7 +80,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
         None, description="Returns all the Voltage Steps",
     )
 
-    working_ion: ElementBase = Field(
+    working_ion: WorkingIon = Field(
         None, description="The working ion as an Element object",
     )
 
@@ -117,13 +117,13 @@ class ConversionVoltageStep(VoltageStep):
 
 class ConversionElectrode(ConversionVoltageStep):
 
-    battery_id: str = Field(None, description="The id for this battery document.")
+    task_id: str = Field(None, description="The id for this battery document.")
 
-    voltage_pairs: List[ConversionVoltageStep] = Field(
-        None, description="Returns all the Voltage Steps",
+    adj_pairs: List[ConversionVoltageStep] = Field(
+        None, description="Returns all the adjacent Voltage Steps",
     )
 
-    working_ion: str = Field(
+    working_ion: WorkingIon = Field(
         None, description="The working ion as an Element object",
     )
 

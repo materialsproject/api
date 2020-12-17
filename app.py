@@ -157,7 +157,7 @@ if db_uri:
     )
 
     insertion_electrodes_store = MongoURIStore(
-        uri=db_uri, key="battery_id", collection_name="insertion_electrodes",
+        uri=db_uri, key="task_id", collection_name="insertion_electrodes",
     )
 
     molecules_store = MongoURIStore(

@@ -20,8 +20,7 @@ def insertion_electrodes_resource(insertion_electrodes_store):
             SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
-                InsertionElectrodeDoc,
-                default_fields=["battery_id", "last_updated"],
+                InsertionElectrodeDoc, default_fields=["task_id", "last_updated"],
             ),
         ],
         tags=["Electrodes"],
