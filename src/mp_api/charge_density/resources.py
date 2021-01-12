@@ -1,4 +1,4 @@
-from fastapi.param_functions import Query, Path
+from fastapi.param_functions import Path
 from mp_api.core.resource import Resource
 from mp_api.charge_density.models import ChgcarDataDoc
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery, SortQuery
