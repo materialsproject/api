@@ -106,9 +106,10 @@ class BaseRester:
         """
         print("_make_request is going away", sub_url)
 
+        if not self.endpoint.endswith("/"):
+            self.endpoint += "/"
+
         url = self.endpoint + sub_url
-        if not url.endswith("/"):
-            url += "/"
 
         if self.debug:
             print(f"URL: {url}")
