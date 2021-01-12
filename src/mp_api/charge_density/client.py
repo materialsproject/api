@@ -1,5 +1,3 @@
-from typing import List, Optional, Tuple
-
 from mp_api.core.client import BaseRester, MPRestError
 from mp_api.tasks.client import TaskRester
 
@@ -37,4 +35,3 @@ class ChargeDensityRester(BaseRester):
             return {**c, "chgcar": d}
         else:
             raise MPRestError("No document found")
-
