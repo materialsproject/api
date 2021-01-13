@@ -1,6 +1,9 @@
 from mp_api.core.resource import Resource
 from mp_api.synthesis.models import SynthesisDoc
 
+from mp_api.synthesis.query_operators import SynthFormulaQuery
+from mp_api.core.query_operator import SortQuery, PaginationQuery, SparseFieldsQuery
+
 from fastapi import Query
 
 
@@ -62,9 +65,15 @@ def synth_resource(synth_store):
     resource = Resource(
         synth_store,
         SynthesisDoc,
+        query_operators=[
+            SynthFormulaQuery(),
+            SortQuery(),
+            PaginationQuery(),
+            SparseFieldsQuery(SynthesisDoc, default_fields=["formula", "doi"]),
+        ],
         tags=["Synthesis"],
         custom_endpoint_funcs=[custom_synth_prep],
-        enable_default_search=False,
+        enable_default_search=True,
         enable_get_by_key=False,
     )
 

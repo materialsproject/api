@@ -1,4 +1,4 @@
-from fastapi.param_functions import Query
+from fastapi.param_functions import Path
 from mp_api.core.resource import Resource
 from mp_api.charge_density.models import ChgcarDataDoc
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery, SortQuery
@@ -19,7 +19,7 @@ def charge_density_resource(s3_store):
         ).query
 
         async def get_chgcar_data(
-            material_id: str = Query(
+            material_id: str = Path(
                 ...,
                 alias=key_name,
                 title=f"The Material ID ({key_name}) associated with the {model_name}",
@@ -39,8 +39,7 @@ def charge_density_resource(s3_store):
             self.s3.connect()
 
             chgcar_key = self.s3.query_one(
-                criteria={key_name: material_id},
-                properties=[key_name],
+                criteria={key_name: material_id}, properties=[key_name],
             ).get(key_name, None)
 
             if chgcar_key is None:
@@ -57,7 +56,7 @@ def charge_density_resource(s3_store):
             return response
 
         self.router.get(
-            f"/{{{key_name}}}",
+            f"/{{{key_name}}}/",
             response_description=f"Get an {model_name} by {key_name}",
             response_model=model,
             response_model_exclude_unset=True,

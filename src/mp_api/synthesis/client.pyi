@@ -1,7 +1,7 @@
 from typing import List
-from mp_api.synthesis.models import SynthDoc
+from mp_api.synthesis.models import SynthesisDoc
 
 
-class SynthsRester:
-    def query_text(self, keywords: List[str]) -> SynthDoc:
+class SynthesisRester:
+    def query_text(self, keywords: List[str]) -> SynthesisDoc:
         ...

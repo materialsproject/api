@@ -8,7 +8,6 @@ from monty.json import MSONable
 from mp_api.core.resource import Resource
 from pymatgen import __version__ as pmg_version  # type: ignore
 from fastapi.openapi.utils import get_openapi
-import base64
 
 
 class MAPI(MSONable):
@@ -62,7 +61,7 @@ class MAPI(MSONable):
 
             return {
                 "user": x_consumer_username,
-                "api-key": base64.b64decode(x_consumer_custom_id).decode("utf-8"),
+                "api-key": x_consumer_custom_id,
             }
 
         @app.get("/", include_in_schema=False)
