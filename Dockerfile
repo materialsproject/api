@@ -12,7 +12,7 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION dev
 RUN pip install $PIP_FLAGS -e .[server]
 
 FROM base
-COPY --from=builder /root/.local/lib/python3.8/site-packages /root/.local/lib/python3.8/site-packages
+COPY --from=builder /root/.local/lib/python3.9/site-packages /root/.local/lib/python3.9/site-packages
 COPY --from=builder /root/.local/bin /root/.local/bin
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libsnappy* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /app/src/mp_api /app/src/mp_api
