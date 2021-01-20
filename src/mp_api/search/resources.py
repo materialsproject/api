@@ -19,6 +19,7 @@ from mp_api.search.query_operators import (
     SearchTaskIDsQuery,
     SearchIsStableQuery,
     SearchElasticityQuery,
+    SearchMagneticQuery
 )
 
 
@@ -27,6 +28,7 @@ def search_resource(eos_store):
         eos_store,
         SearchDoc,
         query_operators=[
+            SearchTaskIDsQuery(),
             FormulaQuery(),
             MinMaxQuery(),
             SymmetryQuery(),
@@ -37,7 +39,7 @@ def search_resource(eos_store):
             DielectricQuery(),
             PiezoelectricQuery(),
             SurfaceMinMaxQuery(),
-            SearchTaskIDsQuery(),
+            SearchMagneticQuery(),
             HasPropsQuery(),
             DeprecationQuery(),
             SortQuery(),

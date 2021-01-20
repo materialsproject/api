@@ -155,7 +155,7 @@ class SearchDoc(BaseModel):
 
     grain_boundaries: List[GBSearchData] = Field(
         None,
-        description="List of xas documents.",
+        description="List of grain boundary documents.",
     )
 
     # Band structure
