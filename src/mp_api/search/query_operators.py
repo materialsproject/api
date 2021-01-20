@@ -476,14 +476,8 @@ class SearchDielectricPiezoQuery(QueryOperator):
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
-
-
-
 # TODO:
 # XAS and GB sub doc query operators
 # Add weighted work function to data
 # Add dimensionality to search endpoint
 # Add "has_reconstructed" data
-
-
-
