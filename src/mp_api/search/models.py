@@ -226,7 +226,7 @@ class SearchDoc(BaseModel):
 
     # Elasticity
 
-    k_voight: float = Field(
+    k_voigt: float = Field(
         None,
         description="Voigt average of the bulk modulus.",
     )
@@ -241,7 +241,7 @@ class SearchDoc(BaseModel):
         description="Voigt-Reuss-Hill average of the bulk modulus in GPa.",
     )
 
-    g_voight: float = Field(
+    g_voigt: float = Field(
         None,
         description="Voigt average of the shear modulus in GPa.",
     )
