@@ -1,4 +1,4 @@
-FROM materialsproject/devops:python-3.86.1 as base
+FROM materialsproject/devops:python-3.90.10 as base
 
 FROM base as builder
 RUN apt-get update && apt-get install -y --no-install-recommends gcc git g++ cmake make libsnappy-dev && apt-get clean
@@ -12,7 +12,7 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION dev
 RUN pip install $PIP_FLAGS -e .[server]
 
 FROM base
-COPY --from=builder /root/.local/lib/python3.8/site-packages /root/.local/lib/python3.8/site-packages
+COPY --from=builder /root/.local/lib/python3.9/site-packages /root/.local/lib/python3.9/site-packages
 COPY --from=builder /root/.local/bin /root/.local/bin
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libsnappy* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /app/src/mp_api /app/src/mp_api
