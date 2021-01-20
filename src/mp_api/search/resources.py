@@ -9,8 +9,6 @@ from mp_api.materials.query_operators import (
     DeprecationQuery,
 )
 
-from mp_api.dielectric.query_operators import DielectricQuery
-from mp_api.piezo.query_operators import PiezoelectricQuery
 from mp_api.surface_properties.query_operators import SurfaceMinMaxQuery
 from mp_api.search.query_operators import (
     SearchBandGapQuery,
@@ -19,7 +17,8 @@ from mp_api.search.query_operators import (
     SearchTaskIDsQuery,
     SearchIsStableQuery,
     SearchElasticityQuery,
-    SearchMagneticQuery
+    SearchMagneticQuery,
+    SearchDielectricPiezoQuery
 )
 
 
@@ -36,8 +35,7 @@ def search_resource(eos_store):
             SearchIsStableQuery(),
             SearchBandGapQuery(),
             SearchElasticityQuery(),
-            DielectricQuery(),
-            PiezoelectricQuery(),
+            SearchDielectricPiezoQuery(),
             SurfaceMinMaxQuery(),
             SearchMagneticQuery(),
             HasPropsQuery(),

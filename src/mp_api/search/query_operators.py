@@ -409,10 +409,81 @@ class SearchMagneticQuery(QueryOperator):
         return {"criteria": crit}
 
 
+class SearchDielectricPiezoQuery(QueryOperator):
+    """
+    Method to generate a query for ranges of dielectric and piezo data in search docs
+    """
+
+    def query(
+        self,
+        e_total_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the total dielectric constant.",
+        ),
+        e_total_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the total dielectric constant.",
+        ),
+        e_ionic_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the ionic dielectric constant.",
+        ),
+        e_ionic_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the ionic dielectric constant.",
+        ),
+        e_static_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the static dielectric constant.",
+        ),
+        e_static_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the static dielectric constant.",
+        ),
+        n_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the refractive index.",
+        ),
+        n_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the refractive index.",
+        ),
+        piezo_modulus_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the piezoelectric modulus in C/m².",
+        ),
+        piezo_modulus_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the piezoelectric modulus in C/m².",
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = defaultdict(dict)  # type: dict
+
+        d = {
+            "e_total": [e_total_min, e_total_max],
+            "e_ionic": [e_ionic_min, e_ionic_max],
+            "e_static": [e_static_min, e_static_max],
+            "n": [n_min, n_max],
+            "e_ij_max": [piezo_modulus_min, piezo_modulus_max],
+        }
+
+        for entry in d:
+            if d[entry][0]:
+                crit[entry]["$gte"] = d[entry][0]
+
+            if d[entry][1]:
+                crit[entry]["$lte"] = d[entry][1]
+
+        return {"criteria": crit}
 
 
 
 # TODO:
 # XAS and GB sub doc query operators
-# Magnetism query ops from endpoint
+# Add weighted work function to data
+# Add dimensionality to search endpoint
+# Add "has_reconstructed" data
+
+
 
