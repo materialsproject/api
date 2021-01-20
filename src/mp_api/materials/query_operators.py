@@ -22,6 +22,10 @@ class FormulaQuery(QueryOperator):
             None,
             description="Query by elements in the material composition as a comma-separated list",
         ),
+        exclude_elements: Optional[str] = Query(
+            None,
+            description="Query by excluded elements in the material composition as a comma-separated list",
+        ),
     ) -> STORE_PARAMS:
 
         crit = {}
@@ -29,9 +33,17 @@ class FormulaQuery(QueryOperator):
         if formula:
             crit.update(formula_to_criteria(formula))
 
+        if elements or exclude_elements:
+            crit["elements"] = {}
+
         if elements:
             element_list = [Element(e) for e in elements.strip().split(",")]
-            crit["elements"] = {"$all": [str(el) for el in element_list]}
+            crit["elements"]["$all"] = [str(el) for el in element_list]
+
+        if exclude_elements:
+            element_list = [Element(e) for e in exclude_elements.strip().split(",")]
+            crit["elements"]["$nin"] = [str(el) for el in element_list]
+
 
         return {"criteria": crit}
 
