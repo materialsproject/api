@@ -26,7 +26,7 @@ from itertools import permutations
 from fastapi import Query, Body
 
 
-def materials_resource(materials_store):
+def materials_resource(materials_store, formula_autocomplete_store):
     def custom_version_prep(self):
         model_name = self.model.__name__
 
@@ -73,12 +73,10 @@ def materials_resource(materials_store):
 
         async def find_structure(
             structure: Structure = Body(
-                ...,
-                title="Pymatgen structure object to query with",
+                ..., title="Pymatgen structure object to query with",
             ),
             ltol: float = Query(
-                0.2,
-                title="Fractional length tolerance. Default is 0.2.",
+                0.2, title="Fractional length tolerance. Default is 0.2.",
             ),
             stol: float = Query(
                 0.3,
@@ -86,8 +84,7 @@ def materials_resource(materials_store):
                     length per atom := ( V / Nsites ) ** (1/3). Default is 0.3.",
             ),
             angle_tol: float = Query(
-                5,
-                title="Angle tolerance in degrees. Default is 5 degrees.",
+                5, title="Angle tolerance in degrees. Default is 5 degrees.",
             ),
             limit: int = Query(
                 1,
@@ -165,64 +162,80 @@ def materials_resource(materials_store):
     def custom_autocomplete_prep(self):
         async def formula_autocomplete(
             text: str = Query(
-                ...,
-                description="Text to run against formula autocomplete",
+                ..., description="Text to run against formula autocomplete",
             ),
             limit: int = Query(
-                10,
-                description="Maximum number of matches to show. Defaults to 10",
+                10, description="Maximum number of matches to show. Defaults to 10",
             ),
         ):
+            store = formula_autocomplete_store
 
-            comp = Composition(text)
+            try:
 
-            ind_str = []
+                comp = Composition(text)
 
-            if len(comp) == 1:
-                d = comp.get_integer_formula_and_factor()
+                ind_str = []
+                eles = []
 
-                s = d[0] + str(int(d[1])) if d[1] != 1 else d[0]
+                if len(comp) == 1:
+                    d = comp.get_integer_formula_and_factor()
 
-                ind_str.append(s)
-            else:
+                    s = d[0] + str(int(d[1])) if d[1] != 1 else d[0]
 
-                comp_red = comp.reduced_composition.items()
+                    ind_str.append(s)
+                    eles.append(d[0])
+                else:
 
-                for (i, j) in comp_red:
+                    comp_red = comp.reduced_composition.items()
 
-                    if j != 1:
-                        ind_str.append(i.name + str(int(j)))
-                    else:
-                        ind_str.append(i.name)
+                    for (i, j) in comp_red:
 
-            final_terms = ["".join(entry) for entry in permutations(ind_str)]
+                        if j != 1:
+                            ind_str.append(i.name + str(int(j)))
+                        else:
+                            ind_str.append(i.name)
 
-            pipeline = [
-                {
-                    "$search": {
-                        "index": "formula_autocomplete",
-                        "autocomplete": {
-                            "path": "formula_pretty",
-                            "query": final_terms,
-                            "tokenOrder": "any",
-                        },
-                    }
-                },
-                {
-                    "$group": {
-                        "_id": "$formula_pretty",
-                    }
-                },
-                {"$project": {"score": {"$strLenCP": "$_id"}}},
-                {"$sort": {"score": 1}},
-                {"$limit": limit},
-            ]
+                        eles.append(i.name)
 
-            self.store.connect()
+                final_terms = ["".join(entry) for entry in permutations(ind_str)]
 
-            data = list(self.store._collection.aggregate(pipeline, allowDiskUse=True))
+                pipeline = [
+                    {
+                        "$search": {
+                            "index": "formula_autocomplete",
+                            "text": {"path": "formula_pretty", "query": final_terms},
+                        }
+                    },
+                    {
+                        "$project": {
+                            "_id": 0,
+                            "formula_pretty": 1,
+                            "elements": 1,
+                            "length": {"$strLenCP": "$formula_pretty"},
+                        }
+                    },
+                    {
+                        "$match": {
+                            "length": {"$gte": len(final_terms[0])},
+                            "elements": {"$all": eles},
+                        }
+                    },
+                    {"$limit": limit},
+                    {"$sort": {"length": 1}},
+                    {"$project": {"elements": 0, "length": 0}},
+                ]
 
-            response = {"data": data}
+                store.connect()
+
+                data = list(store._collection.aggregate(pipeline, allowDiskUse=True))
+
+                response = {"data": data}
+
+            except Exception:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Cannot autocomplete with provided formula.",
+                )
 
             return response
 
