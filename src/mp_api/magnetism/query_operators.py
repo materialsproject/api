@@ -4,7 +4,7 @@ from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 
 from collections import defaultdict
 
-from mp_api.magnetism.models import MagneticOrderingEnum, TotalMagNormalizationEnum
+from mp_api.magnetism.models import MagneticOrderingEnum
 
 
 class MagneticQuery(QueryOperator):
@@ -18,24 +18,32 @@ class MagneticQuery(QueryOperator):
             None, description="Magnetic ordering of the material."
         ),
         total_magnetization_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total magnetization.",
+            None, description="Maximum value for the total magnetization.",
         ),
         total_magnetization_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total magnetization.",
+            None, description="Minimum value for the total magnetization.",
         ),
-        total_magnetization_normalization: Optional[TotalMagNormalizationEnum] = Query(
+        total_magnetization_normalized_vol_max: Optional[float] = Query(
             None,
-            description="Type of normalization of the total magnetization values supplied.",
+            description="Maximum value for the total magnetization normalized with volume.",
+        ),
+        total_magnetization_normalized_vol_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the total magnetization normalized with volume.",
+        ),
+        total_magnetization_normalized_formula_units_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the total magnetization normalized with formula units.",
+        ),
+        total_magnetization_normalized_formula_units_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the total magnetization normalized with formula units.",
         ),
         num_magnetic_sites_max: Optional[int] = Query(
-            None,
-            description="Maximum value for the total number of magnetic sites.",
+            None, description="Maximum value for the total number of magnetic sites.",
         ),
         num_magnetic_sites_min: Optional[int] = Query(
-            None,
-            description="Minimum value for the total number of magnetic sites.",
+            None, description="Minimum value for the total number of magnetic sites.",
         ),
         num_unique_magnetic_sites_max: Optional[int] = Query(
             None,
@@ -49,18 +57,18 @@ class MagneticQuery(QueryOperator):
 
         crit = defaultdict(dict)  # type: dict
 
-        mag = "magnetism.total_magnetization"
-
-        if total_magnetization_normalization:
-            if total_magnetization_normalization.value == "volume":
-                mag = "magnetism.total_magnetization_normalized_vol"
-            elif total_magnetization_normalization.value == "formula_units":
-                mag = "magnetism.total_magnetization_normalized_formula_units"
-
         d = {
-            mag: [
+            "magnetism.total_magnetization": [
                 total_magnetization_min,
                 total_magnetization_max,
+            ],
+            "magnetism.total_magnetization_normalized_vol": [
+                total_magnetization_normalized_vol_min,
+                total_magnetization_normalized_vol_max,
+            ],
+            "magnetism.total_magnetization_normalized_formula_units": [
+                total_magnetization_normalized_formula_units_min,
+                total_magnetization_normalized_formula_units_max,
             ],
             "magnetism.num_magnetic_sites": [
                 num_magnetic_sites_min,

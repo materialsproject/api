@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import Query
 
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
-from mp_api.magnetism.models import MagneticOrderingEnum, TotalMagNormalizationEnum
+from mp_api.magnetism.models import MagneticOrderingEnum
 
 from collections import defaultdict
 
@@ -58,48 +58,37 @@ class SearchBandGapQuery(QueryOperator):
             description="Minimum value for the Setyawan-Curtarolo band gap in eV.",
         ),
         sc_direct: Optional[bool] = Query(
-            None,
-            description="Whether the Setyawan-Curtarolo band gap is direct.",
+            None, description="Whether the Setyawan-Curtarolo band gap is direct.",
         ),
         hin_band_gap_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Hinuma et al. band gap in eV.",
+            None, description="Maximum value for the Hinuma et al. band gap in eV.",
         ),
         hin_band_gap_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Hinuma et al. band gap in eV.",
+            None, description="Minimum value for the Hinuma et al. band gap in eV.",
         ),
         hin_direct: Optional[bool] = Query(
-            None,
-            description="Whether the Hinuma et al. band gap is direct.",
+            None, description="Whether the Hinuma et al. band gap is direct.",
         ),
         lm_band_gap_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Latimer-Munro band gap in eV.",
+            None, description="Maximum value for the Latimer-Munro band gap in eV.",
         ),
         lm_band_gap_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Latimer-Munro band gap in eV.",
+            None, description="Minimum value for the Latimer-Munro band gap in eV.",
         ),
         lm_direct: Optional[bool] = Query(
-            None,
-            description="Whether the Latimer-Munro band gap is direct.",
+            None, description="Whether the Latimer-Munro band gap is direct.",
         ),
         dos_band_gap_up_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the DOS spin-up band gap in eV.",
+            None, description="Maximum value for the DOS spin-up band gap in eV.",
         ),
         dos_band_gap_up_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the DOS spin-up band gap in eV.",
+            None, description="Minimum value for the DOS spin-up band gap in eV.",
         ),
         dos_band_gap_down_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the DOS spin-down band gap in eV.",
+            None, description="Maximum value for the DOS spin-down band gap in eV.",
         ),
         dos_band_gap_down_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the DOS spin-down band gap in eV.",
+            None, description="Minimum value for the DOS spin-down band gap in eV.",
         ),
     ) -> STORE_PARAMS:
 
@@ -140,36 +129,28 @@ class ThermoEnergySearchQuery(QueryOperator):
     def query(
         self,
         energy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total energy in eV.",
+            None, description="Maximum value for the total energy in eV.",
         ),
         energy_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total energy in eV.",
+            None, description="Minimum value for the total energy in eV.",
         ),
         energy_per_atom_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total energy in eV/atom.",
+            None, description="Maximum value for the total energy in eV/atom.",
         ),
         energy_per_atom_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total energy in eV/atom.",
+            None, description="Minimum value for the total energy in eV/atom.",
         ),
         formation_energy_per_atom_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the formation energy in eV/atom.",
+            None, description="Maximum value for the formation energy in eV/atom.",
         ),
         formation_energy_per_atom_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the formation energy in eV/atom.",
+            None, description="Minimum value for the formation energy in eV/atom.",
         ),
         e_above_hull_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the energy above the hull in eV/atom.",
+            None, description="Maximum value for the energy above the hull in eV/atom.",
         ),
         e_above_hull_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the energy above the hull in eV/atom.",
+            None, description="Minimum value for the energy above the hull in eV/atom.",
         ),
         eq_reaction_max: Optional[float] = Query(
             None,
@@ -180,12 +161,10 @@ class ThermoEnergySearchQuery(QueryOperator):
             description="Minimum value for the equilibrium reaction energy in eV/atom.",
         ),
         corrected_energy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the corrected total energy in eV.",
+            None, description="Maximum value for the corrected total energy in eV.",
         ),
         corrected_energy_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the corrected total energy in eV.",
+            None, description="Minimum value for the corrected total energy in eV.",
         ),
     ) -> STORE_PARAMS:
 
@@ -312,20 +291,16 @@ class SearchElasticityQuery(QueryOperator):
             description="Minimum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
         ),
         elastic_anisotropy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the elastic anisotropy.",
+            None, description="Maximum value for the elastic anisotropy.",
         ),
         elastic_anisotropy_min: Optional[float] = Query(
-            None,
-            description="Maximum value for the elastic anisotropy.",
+            None, description="Maximum value for the elastic anisotropy.",
         ),
         poisson_max: Optional[float] = Query(
-            None,
-            description="Maximum value for Poisson's ratio.",
+            None, description="Maximum value for Poisson's ratio.",
         ),
         poisson_min: Optional[float] = Query(
-            None,
-            description="Minimum value for Poisson's ratio.",
+            None, description="Minimum value for Poisson's ratio.",
         ),
     ) -> STORE_PARAMS:
 
@@ -338,10 +313,7 @@ class SearchElasticityQuery(QueryOperator):
             "g_voigt": [g_voigt_min, g_voigt_max],
             "g_reuss": [g_reuss_min, g_reuss_max],
             "g_vrh": [g_vrh_min, g_vrh_max],
-            "universal_anisotropy": [
-                elastic_anisotropy_min,
-                elastic_anisotropy_max,
-            ],
+            "universal_anisotropy": [elastic_anisotropy_min, elastic_anisotropy_max],
             "homogeneous_poisson": [poisson_min, poisson_max],
         }
 
@@ -366,33 +338,40 @@ class SearchMagneticQuery(QueryOperator):
             None, description="Magnetic ordering of the material."
         ),
         total_magnetization_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total magnetization.",
+            None, description="Maximum value for the total magnetization.",
         ),
         total_magnetization_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total magnetization.",
+            None, description="Minimum value for the total magnetization.",
         ),
-        total_magnetization_normalization: Optional[TotalMagNormalizationEnum] = Query(
+        total_magnetization_normalized_vol_max: Optional[float] = Query(
             None,
-            description="Type of normalization of the total magnetization values supplied.",
+            description="Maximum value for the total magnetization normalized with volume.",
+        ),
+        total_magnetization_normalized_vol_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the total magnetization normalized with volume.",
+        ),
+        total_magnetization_normalized_formula_units_max: Optional[float] = Query(
+            None,
+            description="Maximum value for the total magnetization normalized with formula units.",
+        ),
+        total_magnetization_normalized_formula_units_min: Optional[float] = Query(
+            None,
+            description="Minimum value for the total magnetization normalized with formula units.",
         ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
 
-        mag = "total_magnetization"
-
-        if total_magnetization_normalization:
-            if total_magnetization_normalization.value == "volume":
-                mag = "total_magnetization_normalized_vol"
-            elif total_magnetization_normalization.value == "formula_units":
-                mag = "total_magnetization_normalized_formula_units"
-
         d = {
-            mag: [
-                total_magnetization_min,
-                total_magnetization_max,
+            "total_magnetization": [total_magnetization_min, total_magnetization_max],
+            "total_magnetization_normalized_vol": [
+                total_magnetization_normalized_vol_min,
+                total_magnetization_normalized_vol_max,
+            ],
+            "total_magnetization_normalized_formula_units": [
+                total_magnetization_normalized_formula_units_min,
+                total_magnetization_normalized_formula_units_max,
             ],
         }  # type: dict
 
@@ -417,44 +396,34 @@ class SearchDielectricPiezoQuery(QueryOperator):
     def query(
         self,
         e_total_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total dielectric constant.",
+            None, description="Maximum value for the total dielectric constant.",
         ),
         e_total_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total dielectric constant.",
+            None, description="Minimum value for the total dielectric constant.",
         ),
         e_ionic_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the ionic dielectric constant.",
+            None, description="Maximum value for the ionic dielectric constant.",
         ),
         e_ionic_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the ionic dielectric constant.",
+            None, description="Minimum value for the ionic dielectric constant.",
         ),
         e_static_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the static dielectric constant.",
+            None, description="Maximum value for the static dielectric constant.",
         ),
         e_static_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the static dielectric constant.",
+            None, description="Minimum value for the static dielectric constant.",
         ),
         n_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the refractive index.",
+            None, description="Maximum value for the refractive index.",
         ),
         n_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the refractive index.",
+            None, description="Minimum value for the refractive index.",
         ),
         piezo_modulus_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the piezoelectric modulus in C/m².",
+            None, description="Maximum value for the piezoelectric modulus in C/m².",
         ),
         piezo_modulus_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the piezoelectric modulus in C/m².",
+            None, description="Minimum value for the piezoelectric modulus in C/m².",
         ),
     ) -> STORE_PARAMS:
 
@@ -476,6 +445,8 @@ class SearchDielectricPiezoQuery(QueryOperator):
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
+
+
 # TODO:
 # XAS and GB sub doc query operators
 # Add weighted work function to data

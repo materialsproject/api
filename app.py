@@ -12,6 +12,9 @@ db_version = os.environ.get("DB_VERSION")
 # task_store = JSONStore("./test_files/tasks_Li_Fe_V.json")
 
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
+formula_autocomplete_store_json = os.environ.get(
+    "FORMULA_AUTOCOMPLETE_STORE", "formula_autocomplete_store.json"
+)
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
 thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
 dielectric_piezo_store_json = os.environ.get(
@@ -61,6 +64,13 @@ if db_uri:
         database="mp_core",
         key="task_id",
         collection_name=f"materials.core_{db_version}",
+    )
+
+    formula_autocomplete_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="_id",
+        collection_name="formula_autocomplete",
     )
 
     task_store = MongoURIStore(
@@ -261,6 +271,7 @@ if db_uri:
 
 else:
     materials_store = loadfn(materials_store_json)
+    formula_autocomplete_store = loadfn(formula_autocomplete_store_json)
     task_store = loadfn(task_store_json)
     thermo_store = loadfn(thermo_store_json)
     dielectric_piezo_store = loadfn(dielectric_piezo_store_json)
@@ -296,7 +307,9 @@ else:
 # Materials
 from mp_api.materials.resources import materials_resource
 
-resources.update({"materials": materials_resource(materials_store)})
+resources.update(
+    {"materials": materials_resource(materials_store, formula_autocomplete_store)}
+)
 
 # Tasks
 from mp_api.tasks.resources import task_resource
