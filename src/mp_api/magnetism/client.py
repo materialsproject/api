@@ -6,7 +6,6 @@ from mp_api.core.client import BaseRester
 from mp_api.magnetism.models import (
     MagnetismDoc,
     MagneticOrderingEnum,
-    TotalMagNormalizationEnum,
 )
 
 
@@ -19,7 +18,10 @@ class MagnetismRester(BaseRester):
         self,
         ordering: Optional[MagneticOrderingEnum] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalization: Optional[TotalMagNormalizationEnum] = None,
+        total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
+        total_magnetization_normalized_formula_units: Optional[
+            Tuple[float, float]
+        ] = None,
         num_magnetic_sites: Optional[Tuple[float, float]] = None,
         num_unique_magnetic_sites: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
@@ -32,8 +34,10 @@ class MagnetismRester(BaseRester):
         Arguments:
             ordering (MagneticOrderingEnum]): The magnetic ordering of the material.
             total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.
-            total_magnetization_normalization (TotalMagNormalizationEnum): Type of normalization applied to values
-                of total_magnetization supplied.
+            total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values
+                normalized by volume to consider.
+            total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
+                values normalized by formula units to consider.
             num_magnetic_sites (Tuple[float,float]): Minimum and maximum number of magnetic sites to consider.
             num_unique_magnetic_sites (Tuple[float,float]): Minimum and maximum number of unique magnetic sites
                 to consider.
@@ -61,10 +65,27 @@ class MagnetismRester(BaseRester):
                 }
             )
 
-        if total_magnetization_normalization:
+        if total_magnetization_normalized_vol:
             query_params.update(
                 {
-                    "total_magnetization_normalization": total_magnetization_normalization.value,
+                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[
+                        0
+                    ],
+                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[
+                        1
+                    ],
+                }
+            )
+
+        if total_magnetization_normalized_formula_units:
+            query_params.update(
+                {
+                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[
+                        0
+                    ],
+                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[
+                        1
+                    ],
                 }
             )
 
