@@ -28,23 +28,19 @@ class GBSearchData(BaseModel):
     """
 
     sigma: int = Field(
-        None,
-        description="Sigma value of the boundary",
+        None, description="Sigma value of the boundary",
     )
 
     type: GBTypeEnum = Field(
-        None,
-        description="Grain boundary type",
+        None, description="Grain boundary type",
     )
 
     gb_energy: float = Field(
-        None,
-        description="Grain boundary energy in J/m^2",
+        None, description="Grain boundary energy in J/m^2",
     )
 
     rotation_angle: float = Field(
-        None,
-        description="Rotation angle in degrees",
+        None, description="Rotation angle in degrees",
     )
 
 
@@ -111,28 +107,23 @@ class SearchDoc(BaseModel):
     # Thermo
 
     energy: float = Field(
-        None,
-        description="Total DFT energy in eV.",
+        None, description="Total DFT energy in eV.",
     )
 
     energy_per_atom: float = Field(
-        None,
-        description="Total DFT energy in eV/atom.",
+        None, description="Total DFT energy in eV/atom.",
     )
 
     formation_energy_per_atom: float = Field(
-        None,
-        description="Formation energy in eV/atom.",
+        None, description="Formation energy in eV/atom.",
     )
 
     e_above_hull: float = Field(
-        None,
-        description="Energy above the hull in eV/atom.",
+        None, description="Energy above the hull in eV/atom.",
     )
 
     eq_reaction_e: float = Field(
-        None,
-        description="Equilibrium reaction energy in eV/atom.",
+        None, description="Equilibrium reaction energy in eV/atom.",
     )
 
     corrected_energy: float = Field(
@@ -140,189 +131,156 @@ class SearchDoc(BaseModel):
     )
 
     is_stable: bool = Field(
-        None,
-        description="Whether the material is stable.",
+        None, description="Whether the material is stable.",
     )
 
     # XAS
 
     xas: List[XASSearchData] = Field(
-        None,
-        description="List of xas documents.",
+        None, description="List of xas documents.",
     )
 
     # GB
 
     grain_boundaries: List[GBSearchData] = Field(
-        None,
-        description="List of grain boundary documents.",
+        None, description="List of grain boundary documents.",
     )
 
     # Band structure
 
     sc_energy: float = Field(
-        None,
-        description="Setyawan-Curtarolo band gap energy in eV.",
+        None, description="Setyawan-Curtarolo band gap energy in eV.",
     )
 
     sc_direct: float = Field(
-        None,
-        description="Whether the Setyawan-Curtarolo band gap is direct.",
+        None, description="Whether the Setyawan-Curtarolo band gap is direct.",
     )
 
     hin_energy: float = Field(
-        None,
-        description="Hinuma et al. band gap energy in eV.",
+        None, description="Hinuma et al. band gap energy in eV.",
     )
 
     hin_direct: float = Field(
-        None,
-        description="Whether the Hinuma et al. band gap is direct.",
+        None, description="Whether the Hinuma et al. band gap is direct.",
     )
 
     lm_energy: float = Field(
-        None,
-        description="Latimer-Munro band gap energy in eV.",
+        None, description="Latimer-Munro band gap energy in eV.",
     )
 
     lm_direct: float = Field(
-        None,
-        description="Whether the Latimer-Munro band gap is direct.",
+        None, description="Whether the Latimer-Munro band gap is direct.",
     )
 
     # DOS
 
     dos_energy_up: float = Field(
-        None,
-        description="Spin-up DOS band gap.",
+        None, description="Spin-up DOS band gap.",
     )
 
     dos_energy_down: float = Field(
-        None,
-        description="Spin-down DOS band gap.",
+        None, description="Spin-down DOS band gap.",
     )
 
     # Magnetism
 
     ordering: str = Field(
-        None,
-        description="Type of magnetic ordering.",
+        None, description="Type of magnetic ordering.",
     )
 
     total_magnetization: float = Field(
-        None,
-        description="Total magnetization.",
+        None, description="Total magnetization in μB.",
     )
 
     total_magnetization_normalized_vol: float = Field(
-        None,
-        description="Total magnetization per unit volume.",
+        None, description="Total magnetization normalized by volume in μB/Å³.",
     )
 
     total_magnetization_normalized_formula_units: float = Field(
-        None,
-        description="Total magnetization for formula unit.",
+        None, description="Total magnetization normalized by formula unit in μB/f.u. .",
     )
 
     # Elasticity
 
     k_voigt: float = Field(
-        None,
-        description="Voigt average of the bulk modulus.",
+        None, description="Voigt average of the bulk modulus.",
     )
 
     k_reuss: float = Field(
-        None,
-        description="Reuss average of the bulk modulus in GPa.",
+        None, description="Reuss average of the bulk modulus in GPa.",
     )
 
     k_vrh: float = Field(
-        None,
-        description="Voigt-Reuss-Hill average of the bulk modulus in GPa.",
+        None, description="Voigt-Reuss-Hill average of the bulk modulus in GPa.",
     )
 
     g_voigt: float = Field(
-        None,
-        description="Voigt average of the shear modulus in GPa.",
+        None, description="Voigt average of the shear modulus in GPa.",
     )
 
     g_reuss: float = Field(
-        None,
-        description="Reuss average of the shear modulus in GPa.",
+        None, description="Reuss average of the shear modulus in GPa.",
     )
 
     g_vrh: float = Field(
-        None,
-        description="Voigt-Reuss-Hill average of the shear modulus in GPa.",
+        None, description="Voigt-Reuss-Hill average of the shear modulus in GPa.",
     )
 
     universal_anisotropy: float = Field(
-        None,
-        description="Elastic anisotropy.",
+        None, description="Elastic anisotropy.",
     )
 
     homogeneous_poisson: float = Field(
-        None,
-        description="Poisson's ratio.",
+        None, description="Poisson's ratio.",
     )
 
     # Dielectric and Piezo
 
     e_total: float = Field(
-        None,
-        description="Total dielectric constant",
+        None, description="Total dielectric constant",
     )
 
     e_ionic: float = Field(
-        None,
-        description="Ionic contributio to dielectric constant",
+        None, description="Ionic contributio to dielectric constant",
     )
 
     e_static: float = Field(
-        None,
-        description="Electronic contribution to dielectric constant",
+        None, description="Electronic contribution to dielectric constant",
     )
 
     n: float = Field(
-        None,
-        description="Refractive index",
+        None, description="Refractive index",
     )
 
     e_ij_max: float = Field(
-        None,
-        description="Piezoelectric modulus",
+        None, description="Piezoelectric modulus",
     )
 
     # Surface Properties
 
     weighted_surface_energy_EV_PER_ANG2: float = Field(
-        None,
-        description="Weighted surface energy in eV/Å²",
+        None, description="Weighted surface energy in eV/Å²",
     )
 
     weighted_surface_energy: float = Field(
-        None,
-        description="Weighted surface energy in J/m²",
+        None, description="Weighted surface energy in J/m²",
     )
 
     weighted_work_function: float = Field(
-        None,
-        description="Weighted work function in eV.",
+        None, description="Weighted work function in eV.",
     )
 
     surface_anisotropy: float = Field(
-        None,
-        description="Surface energy anisotropy.",
+        None, description="Surface energy anisotropy.",
     )
 
     shape_factor: float = Field(
-        None,
-        description="Shape factor.",
+        None, description="Shape factor.",
     )
 
     # Has Props
 
     has_props: List[str] = Field(
-        None,
-        description="List of properties that are available for a given material.",
+        None, description="List of properties that are available for a given material.",
     )
+
