@@ -59,6 +59,7 @@ class MagnetismData(BaseModel):
         None, description="Total magnetization normalized by formula unit in μB/f.u. .",
     )
 
+
 class MagnetismDoc(BaseModel):
     """
     Model for a magnetism doc
