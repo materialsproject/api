@@ -48,15 +48,15 @@ class MagnetismData(BaseModel):
     )
 
     total_magnetization: float = Field(
-        None, description="Total magnetization.",
+        None, description="Total magnetization in μB.",
     )
 
     total_magnetization_normalized_vol: float = Field(
-        None, description="Total magnetization normalized by volume.",
+        None, description="Total magnetization normalized by volume in μB/Å³.",
     )
 
     total_magnetization_normalized_formula_units: float = Field(
-        None, description="Total magnetization normalized by formula unit.",
+        None, description="Total magnetization normalized by formula unit in μB/f.u. .",
     )
 
 
