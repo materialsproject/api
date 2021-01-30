@@ -15,11 +15,17 @@ class SearchStats(BaseModel):
     """
 
     field: str = Field(None, title="Field", description="Field name corresponding to a field in SearchDoc")
-    sample: Optional[int] = Field(None, title="Sample", description="The number of documents sampled to generate statistics. "
-                                                                    "If unspecified, statistics will be from entire database.")
-    min_max: List[float] = Field(None, title="Range", description="The minimum and maximum values "
-                                                                  "of the specified field used to "
-                                                                  "generate statistics.")
+    num_samples: Optional[int] = Field(None, title="Sample",
+                                       description="The number of documents sampled to generate statistics. "
+                                                   "If unspecified, statistics will be from entire database.")
+    min: float = Field(None, title="Minimum", description="The minimum value "
+                                                          "of the specified field used to "
+                                                          "generate statistics.")
+    max: float = Field(None, title="Maximum", description="The maximum value "
+                                                          "of the specified field used to "
+                                                          "generate statistics.")
+    median: float = Field(None, title="Median", description="The median of the field values.")
+    mean: float = Field(None, title="Mean", description="The mean of the field values.")
     distribution: List[float] = Field(None,
                                       title="Distribution",
                                       description="List of floats specifying a kernel density "

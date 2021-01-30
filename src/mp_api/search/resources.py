@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, List
+from typing import Optional
 
 import numpy as np
 from fastapi import Query
@@ -32,19 +32,27 @@ def search_resource(search_store):
 
         async def generate_stats(
             field: str = Query(
-                None,
+                "density",
                 title=f"SearchDoc field to query on, must be a numerical field, "
-                      f"choose from: {', '.join(SearchDoc().__fields__.keys())}",
+                f"choose from: {', '.join(SearchDoc().__fields__.keys())}",
             ),
-            sample: Optional[int] = Query(
+            num_samples: Optional[int] = Query(
                 None, title="If specified, will only sample this number of documents.",
             ),
-            # TODO: is there a better type hint than List[float]? e.g. Tuple[float, float]
-            min_max: Optional[List[float]] = Query(
+            min_val: Optional[float] = Query(
                 None,
                 title="If specified, will only consider documents with field values "
-                "within this range (inclusive).",
+                "greater than or equal to this minimum value.",
             ),
+            max_val: Optional[float] = Query(
+                None,
+                title="If specified, will only consider documents with field values "
+                "less than or equal to this minimum value.",
+            ),
+            num_points: int = Query(
+                100,
+                title="The number of values in the returned distribution."
+            )
         ):
             """
             Generate statistics for a given numerical field specified in SearchDoc.
@@ -55,13 +63,17 @@ def search_resource(search_store):
 
             self.store.connect()
 
-            if min_max:
-                pipeline = [{"$match": {field: {"$gte": min_max[0], "$lte": min_max[1]}}}]
+            if min_val or max_val:
+                pipeline = [{"$match": {field: {}}}]
+                if min_val:
+                    pipeline[0]["$match"][field]["$gte"] = min_val
+                if max_val:
+                    pipeline[0]["$match"][field]["$lte"] = max_val
             else:
                 pipeline = []
 
-            if sample:
-                pipeline.append({"$sample": {"size": sample}})
+            if num_samples:
+                pipeline.append({"$sample": {"size": num_samples}})
 
             pipeline.append({"$project": {field: 1}})
 
@@ -69,24 +81,29 @@ def search_resource(search_store):
                 d[field]
                 for d in self.store._collection.aggregate(pipeline, allowDiskUse=True)
             ]
+            if not min_val:
+                min_val = min(values)
+            if not max_val:
+                max_val = max(values)
+
             kernel = gaussian_kde(values)
 
-            if not min_max:
-                min_max = [min(values), max(values)]
-
-            num_points = 100
             distribution = list(
                 kernel(
                     np.arange(
-                        min_max[0],
-                        min_max[1],
-                        step=(min_max[1] - min_max[0]) / num_points,
+                        min_val,
+                        max_val,
+                        step=(max_val - min_val) / num_points,
                     )
                 )
             )
 
-            response = dict(
-                field=field, sample=sample, min_max=min_max, distribution=distribution,
+            median = float(np.median(values))
+            mean = float(np.mean(values))
+
+            response = SearchStats(
+                field=field, num_samples=num_samples, min=min_val, max=max_val, distribution=distribution,
+                median=median, mean=mean
             )
 
             return response
