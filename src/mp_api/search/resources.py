@@ -18,13 +18,13 @@ from mp_api.search.query_operators import (
     SearchIsStableQuery,
     SearchElasticityQuery,
     SearchMagneticQuery,
-    SearchDielectricPiezoQuery
+    SearchDielectricPiezoQuery,
 )
 
 
-def search_resource(eos_store):
+def search_resource(search_store):
     resource = Resource(
-        eos_store,
+        search_store,
         SearchDoc,
         query_operators=[
             SearchTaskIDsQuery(),
