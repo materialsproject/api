@@ -32,9 +32,9 @@ def search_resource(search_store):
 
         async def generate_stats(
             field: str = Query(
-                # TODO: add "choose from: {', '.join(SearchDoc().__fields__.keys())}"
                 None,
-                title=f"SearchDoc field to query on, must be a numerical field.",
+                title=f"SearchDoc field to query on, must be a numerical field, "
+                      f"choose from: {', '.join(SearchDoc().__fields__.keys())}",
             ),
             sample: Optional[int] = Query(
                 None, title="If specified, will only sample this number of documents.",
@@ -47,10 +47,10 @@ def search_resource(search_store):
             ),
         ):
             """
-            Obtains material structures that match a given input structure within some tolerance.
+            Generate statistics for a given numerical field specified in SearchDoc.
 
             Returns:
-                A list of Material IDs for materials with matched structures alongside the associated RMS values
+                A SearchStats object.
             """
 
             self.store.connect()
@@ -99,10 +99,6 @@ def search_resource(search_store):
             tags=self.tags,
         )(generate_stats)
 
-<<<<<<< Updated upstream
-def search_resource(search_store):
-=======
->>>>>>> Stashed changes
     resource = Resource(
         search_store,
         SearchDoc,
