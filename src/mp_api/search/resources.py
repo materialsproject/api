@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 
 import numpy as np
 from fastapi import Query
@@ -30,11 +30,14 @@ def search_resource(search_store):
     def generate_stats_prep(self):
         model_name = self.model.__name__
 
+        valid_numeric_fields = tuple(k for k, v in SearchDoc().__fields__.items() if v.type_ == float)
+
+
         async def generate_stats(
-            field: str = Query(
+            field: Literal[valid_numeric_fields] = Query(
                 "density",
                 title=f"SearchDoc field to query on, must be a numerical field, "
-                f"choose from: {', '.join(SearchDoc().__fields__.keys())}",
+                f"choose from: {', '.join(valid_numeric_fields)}",
             ),
             num_samples: Optional[int] = Query(
                 None, title="If specified, will only sample this number of documents.",
