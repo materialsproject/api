@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple, Optional
 from pymatgen.core.periodic_table import Element
 
 from mp_api.materials.models import Structure, Composition
@@ -7,6 +7,24 @@ from mp_api.xas.models import Edge, XASType
 from mp_api.gb.models import GBTypeEnum
 
 from pydantic import BaseModel, Field
+
+
+class SearchStats(BaseModel):
+    """
+    Statistics about a specified SearchDoc field.
+    """
+
+    field: str = Field(None, title="Field", description="Field name corresponding to a field in SearchDoc")
+    sample: Optional[int] = Field(None, title="Sample", description="The number of documents sampled to generate statistics. "
+                                                                    "If unspecified, statistics will be from entire database.")
+    min_max: List[float] = Field(None, title="Range", description="The minimum and maximum values "
+                                                                  "of the specified field used to "
+                                                                  "generate statistics.")
+    distribution: List[float] = Field(None,
+                                      title="Distribution",
+                                      description="List of floats specifying a kernel density "
+                                                  "estimator of the distribution, equally spaced "
+                                                  "between specified minimum and maximum values.")
 
 
 class XASSearchData(BaseModel):
