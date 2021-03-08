@@ -1,4 +1,4 @@
-pydantic==1.8
+pydantic==1.8.1
 pymatgen>=2020.9.14
 typing-extensions==3.7.4.3
 maggma==0.26.0
