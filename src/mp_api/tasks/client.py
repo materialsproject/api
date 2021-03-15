@@ -1,12 +1,14 @@
 from typing import Iterable, List, Optional
 import warnings
 
+from mp_api.tasks.models import TaskDoc
 from mp_api.core.client import BaseRester, MPRestError
 
 
 class TaskRester(BaseRester):
 
     suffix = "tasks"
+    document_model = TaskDoc
 
     def get_task_from_material_id(
         self,

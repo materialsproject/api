@@ -3,34 +3,9 @@ from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from monty.json import MontyDecoder
 
-from mp_api.materials.models.core import Composition, Element
+from mp_api.materials.models.core import Element
 
-
-class ComputedEntry(BaseModel):
-    """
-    Model for a computed entry
-    """
-
-    composition: Composition = Field(
-        None, description="Full composition for this entry"
-    )
-    energy: float = Field(None, description="DFT total energy in eV")
-    correction: float = Field(None, description="Energy correction in eV")
-    energy_adjustments: List = Field(
-        None,
-        description="An optional list of EnergyAdjustment to be applied to the energy."
-        " This is used to modify the energy for certain analyses."
-        " Defaults to None.",
-    )
-    parameters: Dict = Field(
-        None,
-        description="Dictionary of extra parameters for the underlying calculation",
-    )
-    data: Dict = Field(None, description="Dictionary of extra data")
-    entry_id: str = Field(None, description="Entry ID")
-
-    class Config:
-        extra = "allow"
+from pymatgen.entries.computed_entries import ComputedEntry
 
 
 class ExplanationDoc(BaseModel):
@@ -38,7 +13,7 @@ class ExplanationDoc(BaseModel):
     Model for explanation data in thermo doc
     """
 
-    compatability: str = Field(None, description="Pymatgen compatability data used.")
+    compatibility: str = Field(None, description="Pymatgen compatibility data used.")
     uncorrected_energy: float = Field(
         None, description="Uncorrected DFT total energy in eV"
     )
