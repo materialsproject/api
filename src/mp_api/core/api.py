@@ -1,7 +1,7 @@
 import os
 import uvicorn
 from starlette.responses import RedirectResponse
-from fastapi import FastAPI, Header
+from fastapi import FastAPI
 from typing import Dict
 from datetime import datetime
 from monty.json import MSONable
@@ -51,17 +51,6 @@ class MAPI(MSONable):
                 "api": self.version,
                 "database": os.environ.get("DB_VERSION").replace("_", "."),
                 "pymatgen": pmg_version,
-            }
-
-        @app.get("/login", include_in_schema=False)
-        def login(
-            x_consumer_username: str = Header(None),
-            x_consumer_custom_id: str = Header(None),
-        ):
-
-            return {
-                "user": x_consumer_username,
-                "api-key": x_consumer_custom_id,
             }
 
         @app.get("/", include_in_schema=False)

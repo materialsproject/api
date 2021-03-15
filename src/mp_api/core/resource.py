@@ -53,8 +53,8 @@ class Resource(MSONable):
             store: The Maggma Store to get data from
             model: the pydantic model to apply to the documents from the Store
                 This can be a string with a full python path to a model or
-                an actuall pydantic Model if this is being instantied in python
-                code. Serializing this via Monty will autoconvert the pydantic model
+                an actual pydantic Model if this is being instantiated in python
+                code. Serializing this via Monty will auto-convert the pydantic model
                 into a python path string
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
