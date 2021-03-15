@@ -30,8 +30,8 @@ def search_resource(search_store):
     def generate_stats_prep(self):
         model_name = self.model.__name__
 
+        # we can only generate statistics for fields that return numbers
         valid_numeric_fields = tuple(sorted(k for k, v in SearchDoc().__fields__.items() if v.type_ == float))
-
 
         async def generate_stats(
             field: Literal[valid_numeric_fields] = Query(
