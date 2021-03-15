@@ -5,6 +5,7 @@ from mp_api.tasks.utils import calcs_reversed_to_trajectory
 from mp_api.materials.models.doc import MaterialsCoreDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
+from mp_api.tasks.query_operators import MultipleTaskIDsQuery
 from mp_api.materials.query_operators import FormulaQuery
 
 from monty.json import jsanitize
@@ -21,11 +22,11 @@ def task_resource(task_store):
         TaskDoc,
         query_operators=[
             FormulaQuery(),
+            MultipleTaskIDsQuery(),
             SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
-                TaskDoc,
-                default_fields=["task_id", "formula_pretty", "last_updated"],
+                TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],
             ),
         ],
         tags=["Tasks"],
@@ -38,9 +39,7 @@ def task_deprecation_resource(materials_store):
     def custom_deprecation_prep(self):
         async def check_deprecation(
             task_id: str = Path(
-                ...,
-                alias="task_id",
-                title="Task id to check for deprecation.",
+                ..., alias="task_id", title="Task id to check for deprecation.",
             ),
         ):
             """
@@ -75,9 +74,7 @@ def task_deprecation_resource(materials_store):
     resource = Resource(
         materials_store,
         MaterialsCoreDoc,
-        query_operators=[
-            PaginationQuery(),
-        ],
+        query_operators=[PaginationQuery(),],
         tags=["Tasks"],
         custom_endpoint_funcs=[custom_deprecation_prep],
         enable_get_by_key=False,
@@ -95,7 +92,7 @@ def trajectory_resource(task_store):
             async def custom_route_handler(request: Request) -> Response:
                 response: Response = await original_route_handler(request)
 
-                d = json.loads(response.body, encoding=response.charset)
+                d = json.loads(response.body)
 
                 trajectories = []
                 for entry in d["data"]:
