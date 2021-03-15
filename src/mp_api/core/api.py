@@ -6,7 +6,7 @@ from typing import Dict
 from datetime import datetime
 from monty.json import MSONable
 from mp_api.core.resource import Resource
-from pymatgen import __version__ as pmg_version  # type: ignore
+from pymatgen.core import __version__ as pmg_version  # type: ignore
 from fastapi.openapi.utils import get_openapi
 
 
