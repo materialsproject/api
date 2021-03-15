@@ -199,7 +199,7 @@ class BaseRester:
                     data = json.loads(response.text)
 
                 if self.document_model:
-                    data["data"] = [self.document_model.construct(**d) for d in data["data"]]  # type: ignore
+                    data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
 
