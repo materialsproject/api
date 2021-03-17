@@ -7,7 +7,7 @@ from mp_api.molecules.query_operators import (
     MoleculeElementsQuery,
     MoleculeFormulaQuery,
 )
-from mp_api.search.query_operators import SearchTaskIDsQuery
+from mp_api.tasks.query_operators import MultipleTaskIDsQuery
 
 
 def molecules_resource(molecules_store):
@@ -18,7 +18,7 @@ def molecules_resource(molecules_store):
             MoleculeBaseQuery(),
             MoleculeElementsQuery(),
             MoleculeFormulaQuery(),
-            SearchTaskIDsQuery(),
+            MultipleTaskIDsQuery(),
             SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(MoleculesDoc, default_fields=["task_id"]),
