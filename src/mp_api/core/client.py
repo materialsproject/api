@@ -16,7 +16,7 @@ import warnings
 
 import requests
 from monty.json import MontyDecoder
-from pymatgen import __version__ as pmg_version  # type: ignore
+from pymatgen.core import __version__ as pmg_version  # type: ignore
 from requests.exceptions import RequestException
 from pydantic import BaseModel
 
