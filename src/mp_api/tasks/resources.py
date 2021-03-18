@@ -13,7 +13,7 @@ from monty.json import jsanitize
 import json
 from typing import Callable
 
-from fastapi import Request, Response, Path
+from fastapi import Request, Response
 from fastapi.routing import APIRoute
 
 
@@ -89,7 +89,7 @@ def task_deprecation_resource(materials_store):
     resource = Resource(
         materials_store,
         MaterialsCoreDoc,
-        query_operators=[PaginationQuery(),],
+        query_operators=[PaginationQuery()],
         tags=["Tasks"],
         custom_endpoint_funcs=[custom_deprecation_prep],
         enable_get_by_key=False,
