@@ -3,4 +3,4 @@ maggma==0.26.0
 uvicorn==0.13.4
 gunicorn[gevent]>=20.0.1
 aws-xray-sdk==2.6.0
-boto3==1.17.22
+boto3==1.17.32
