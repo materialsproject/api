@@ -15,7 +15,20 @@ def formula_to_criteria(formula: str) -> Dict:
     """
     dummies = "ADEGJLMQRXZ"
 
-    if "*" in formula:
+    if "-" in formula:
+        crit = {}
+        eles = formula.split("-")
+
+        if "*" in eles:
+            crit["nelements"] = len(eles)
+            crit["elements"] = {"$in": [ele for ele in eles if ele != "*"]}
+            return crit
+        else:
+            chemsys = "-".join(sorted(eles))
+            crit["chemsys"] = chemsys
+            return crit
+
+    elif "*" in formula:
         # Wild card in formula
         nstars = formula.count("*")
 
@@ -36,15 +49,6 @@ def formula_to_criteria(formula: str) -> Dict:
         for el, n in comp.to_reduced_dict.items():
             if el in real_elts:
                 crit[f"composition_reduced.{el}"] = n
-
-        return crit
-
-    elif "-" in formula:
-        crit = {}
-        eles = formula.split("-")
-        chemsys = "-".join(sorted(eles))
-
-        crit["chemsys"] = chemsys
 
         return crit
 
