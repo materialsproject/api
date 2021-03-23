@@ -16,7 +16,7 @@ def formula_to_criteria(formula: str) -> Dict:
     dummies = "ADEGJLMQRXZ"
 
     if "-" in formula:
-        crit = {}
+        crit = {}  # type: dict
         eles = formula.split("-")
 
         if "*" in eles:
