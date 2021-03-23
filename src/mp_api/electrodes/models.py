@@ -6,6 +6,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field, validator
 from mp_api.materials.models import Composition
 
+from pymatgen.apps.battery.insertion_battery import InsertionElectrode
+
 
 class VoltageStep(BaseModel):
     """
@@ -75,7 +77,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
         None, description="Returns all the Voltage Steps",
     )
 
-    electrode_object: dict = Field(
+    electrode_object: InsertionElectrode = Field(
         None, description="Returns InsertionElectrode object",
     )
 
@@ -118,7 +120,7 @@ class ConversionElectrode(ConversionVoltageStep):
 
     battery_id: str = Field(None, description="The id for this battery document.")
 
-    electrode_object: dict = Field(
+    electrode_object: InsertionElectrode = Field(
         None, description="Returns InsertionElectrode object",
     )
 
