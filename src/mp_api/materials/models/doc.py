@@ -7,6 +7,7 @@ from mp_api.materials.models import CrystalSystem
 from pymatgen.core.structure import Structure
 from pymatgen.core.composition import Composition
 
+
 class SymmetryData(BaseModel):
     """
     Defines a symmetry data set for materials documents
