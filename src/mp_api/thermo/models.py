@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from monty.json import MontyDecoder
@@ -32,48 +32,39 @@ class ThermoData(BaseModel):
     """
 
     energy: float = Field(
-        None,
-        description="Total DFT energy in eV.",
+        None, description="Total DFT energy in eV.",
     )
 
     energy_per_atom: float = Field(
-        None,
-        description="Total DFT energy in eV/atom.",
+        None, description="Total DFT energy in eV/atom.",
     )
 
     formation_energy_per_atom: float = Field(
-        None,
-        description="Formation energy in eV/atom.",
+        None, description="Formation energy in eV/atom.",
     )
 
     e_above_hull: float = Field(
-        None,
-        description="Energy above the hull in eV/atom.",
+        None, description="Energy above the hull in eV/atom.",
     )
 
     is_stable: bool = Field(
-        None,
-        description="Whether the material is stable.",
+        None, description="Whether the material is stable.",
     )
 
     eq_reaction_e: float = Field(
-        None,
-        description="Equilibrium reaction energy in eV/atom.",
+        None, description="Equilibrium reaction energy in eV/atom.",
     )
 
     entry: ComputedEntry = Field(
-        None,
-        description="Computed entry for the material.",
+        None, description="Computed entry for the material.",
     )
 
     explanation: ExplanationDoc = Field(
-        None,
-        description="Thermo entry explanation data.",
+        None, description="Thermo entry explanation data.",
     )
 
     decomposes_to: List[dict] = Field(
-        None,
-        description="List of decomposition materials data.",
+        None, description="List of decomposition materials data.",
     )
 
 
@@ -88,18 +79,15 @@ class ThermoDoc(BaseModel):
     )
 
     thermo: ThermoData = Field(
-        None,
-        description="Thermo data for the material.",
+        None, description="Thermo data for the material.",
     )
 
     chemsys: str = Field(
-        None,
-        description="Dash-delimited string of elements in the material.",
+        None, description="Dash-delimited string of elements in the material.",
     )
 
     nelements: int = Field(
-        None,
-        description="Number of elements in the material.",
+        None, description="Number of elements in the material.",
     )
 
     elements: List[Element] = Field(

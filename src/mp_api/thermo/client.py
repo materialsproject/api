@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
 
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
 from mp_api.thermo.models import ThermoDoc
 
 import warnings
