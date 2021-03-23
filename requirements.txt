@@ -3,4 +3,5 @@ pymatgen>=2020.9.14,<2022
 typing-extensions==3.7.4.3
 maggma==0.26.0
 requests==2.25.1
-monty>=2021.3.3
+git+git://github.com/mkhorton/monty@patch-4#egg=monty
+#monty>=2021.3.3
