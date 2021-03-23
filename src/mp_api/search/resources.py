@@ -68,7 +68,7 @@ def search_resource(search_store):
             self.store.connect()
 
             if min_val or max_val:
-                pipeline = [{"$match": {field: {}}}]
+                pipeline = [{"$match": {field: {}}}]  # type: list
                 if min_val:
                     pipeline[0]["$match"][field]["$gte"] = min_val
                 if max_val:
@@ -94,7 +94,7 @@ def search_resource(search_store):
 
             distribution = list(
                 kernel(
-                    np.arange(min_val, max_val, step=(max_val - min_val) / num_points,)
+                    np.arange(min_val, max_val, step=(max_val - min_val) / num_points,)  # type: ignore
                 )
             )
 
