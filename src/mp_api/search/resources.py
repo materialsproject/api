@@ -1,4 +1,5 @@
-from typing import Optional, Literal
+from typing import Optional
+from typing_extensions import Literal
 
 import numpy as np
 from fastapi import Query
