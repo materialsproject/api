@@ -121,6 +121,11 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
                     "The stable entries can be found in the adjacent pairs.",
     )
 
+    elements: List[Element] = Field(
+        None,
+        description="The atomic species contained in this electrode.",
+    )
+
     electrode_object: InsertionElectrode = Field(
         None, description="Returns InsertionElectrode object",
     )
