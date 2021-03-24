@@ -63,32 +63,42 @@ class InsertionVoltageStep(VoltageStep):
         None, description="The energy above hull of the discharged material."
     )
 
+    id_charge: Union[MPID, int, None] = Field(
+        None, description="The material-id of the charged structure."
+    )
+
+    id_discharge: Union[MPID, int, None] = Field(
+        None, description="The material-id of the discharged structure."
+    )
+
 
 class InsertionElectrodeDoc(InsertionVoltageStep):
 
     battery_id: str = Field(None, description="The id for this battery document.")
 
-    framework: Composition = Field(
+    framework_formula: str = Field(
+        None, description="The id for this battery document."
+    )
+
+    host_structure: Structure = Field(
         None,
-        description="The composition of the host framework (structure without the working ion)",
+        description="Host structure (structure without the working ion)",
     )
 
-    adj_pairs: List[InsertionVoltageStep] = Field(
-        None, description="Returns all the Voltage Steps",
-    )
-
-    electrode_object: InsertionElectrode = Field(
-        None, description="Returns InsertionElectrode object",
+    adj_pairs: List[InsertionVoltagePairDoc] = Field(
+        None,
+        description="Returns all the Voltage Steps",
     )
 
     working_ion: Element = Field(
-        None, description="The working ion as an Element object",
+        None,
+        description="The working ion as an Element object",
     )
 
     num_steps: float = Field(
         None,
         description="The number of distinct voltage steps in from fully charge to "
-        "discharge based on the stable intermediate states",
+                    "discharge based on the stable intermediate states",
     )
 
     max_voltage_step: float = Field(
@@ -98,6 +108,21 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
     last_updated: datetime = Field(
         None,
         description="Timestamp for the most recent calculation for this Material document",
+    )
+
+    framework: Composition = Field(
+        None,
+        description="The chemical compositions of the host framework",
+    )
+
+    material_ids: List[Union[MPID]] = Field(
+        None,
+        description="The ids of all structures that matched to the present host lattice, regardless of stability. "
+                    "The stable entries can be found in the adjacent pairs.",
+    )
+
+    electrode_object: InsertionElectrode = Field(
+        None, description="Returns InsertionElectrode object",
     )
 
     # Make sure that the datetime field is properly formatted
