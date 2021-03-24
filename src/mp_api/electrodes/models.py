@@ -56,6 +56,14 @@ class InsertionVoltageStep(VoltageStep):
     Features specific to insertion electrode
     """
 
+    formula_charge: str = Field(
+        None, description="The chemical formula of the charged material."
+    )
+
+    formula_discharge: str = Field(
+        None, description="The chemical formula of the discharged material."
+    )
+
     stability_charge: float = Field(
         None, description="The energy above hull of the charged material."
     )
@@ -125,6 +133,12 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
     elements: List[Element] = Field(
         None,
         description="The atomic species contained in this electrode.",
+    )
+
+    chemsys: str = Field(
+        None,
+        description="The chemical system this electrode belongs to. "
+                    "Note: The conversion electrode can be calculated on this chemical system",
     )
 
     electrode_object: InsertionElectrode = Field(
