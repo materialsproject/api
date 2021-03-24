@@ -1,6 +1,7 @@
 from monty.json import MontyDecoder
 from pymatgen.core.periodic_table import Element
-from typing import Dict, List
+from pymatgen.core import Structure
+from typing import Dict, List, Union
 from datetime import datetime
 
 from pydantic import BaseModel, Field, validator
@@ -55,6 +56,14 @@ class InsertionVoltageStep(VoltageStep):
     Features specific to insertion electrode
     """
 
+    formula_charge: str = Field(
+        None, description="The chemical formula of the charged material."
+    )
+
+    formula_discharge: str = Field(
+        None, description="The chemical formula of the discharged material."
+    )
+
     stability_charge: float = Field(
         None, description="The energy above hull of the charged material."
     )
@@ -63,32 +72,42 @@ class InsertionVoltageStep(VoltageStep):
         None, description="The energy above hull of the discharged material."
     )
 
+    id_charge: Union[str] = Field(
+        None, description="The material-id of the charged structure."
+    )
+
+    id_discharge: Union[str] = Field(
+        None, description="The material-id of the discharged structure."
+    )
+
 
 class InsertionElectrodeDoc(InsertionVoltageStep):
 
     battery_id: str = Field(None, description="The id for this battery document.")
 
-    framework: Composition = Field(
+    framework_formula: str = Field(
+        None, description="The id for this battery document."
+    )
+
+    host_structure: Structure = Field(
         None,
-        description="The composition of the host framework (structure without the working ion)",
+        description="Host structure (structure without the working ion)",
     )
 
     adj_pairs: List[InsertionVoltageStep] = Field(
-        None, description="Returns all the Voltage Steps",
-    )
-
-    electrode_object: InsertionElectrode = Field(
-        None, description="Returns InsertionElectrode object",
+        None,
+        description="Returns all the Voltage Steps",
     )
 
     working_ion: Element = Field(
-        None, description="The working ion as an Element object",
+        None,
+        description="The working ion as an Element object",
     )
 
     num_steps: float = Field(
         None,
         description="The number of distinct voltage steps in from fully charge to "
-        "discharge based on the stable intermediate states",
+                    "discharge based on the stable intermediate states",
     )
 
     max_voltage_step: float = Field(
@@ -98,6 +117,32 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
     last_updated: datetime = Field(
         None,
         description="Timestamp for the most recent calculation for this Material document",
+    )
+
+    framework: Composition = Field(
+        None,
+        description="The chemical compositions of the host framework",
+    )
+
+    material_ids: List[str] = Field(
+        None,
+        description="The ids of all structures that matched to the present host lattice, regardless of stability. "
+                    "The stable entries can be found in the adjacent pairs.",
+    )
+
+    elements: List[Element] = Field(
+        None,
+        description="The atomic species contained in this electrode.",
+    )
+
+    chemsys: str = Field(
+        None,
+        description="The chemical system this electrode belongs to. "
+                    "Note: The conversion electrode can be calculated on this chemical system",
+    )
+
+    electrode_object: InsertionElectrode = Field(
+        None, description="Returns InsertionElectrode object",
     )
 
     # Make sure that the datetime field is properly formatted
