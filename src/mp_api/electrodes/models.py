@@ -1,6 +1,7 @@
 from monty.json import MontyDecoder
 from pymatgen.core.periodic_table import Element
-from typing import Dict, List
+from pymatgen.core import Structure
+from typing import Dict, List, Union
 from datetime import datetime
 
 from pydantic import BaseModel, Field, validator
@@ -85,7 +86,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
         description="Host structure (structure without the working ion)",
     )
 
-    adj_pairs: List[InsertionVoltagePairDoc] = Field(
+    adj_pairs: List[InsertionVoltageStep] = Field(
         None,
         description="Returns all the Voltage Steps",
     )
