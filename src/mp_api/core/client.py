@@ -16,9 +16,14 @@ import warnings
 
 import requests
 from monty.json import MontyDecoder
-from pymatgen import __version__ as pmg_version  # type: ignore
 from requests.exceptions import RequestException
 from pydantic import BaseModel
+
+try:
+    from pymatgen.core import __version__ as pmg_version  # type: ignore
+except ImportError:
+    # fallback to root-level import for older pymatgen versions
+    from pymatgen import __version__ as pmg_version  # type: ignore
 
 # TODO: think about how to migrate from PMG_MAPI_KEY
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
@@ -199,7 +204,7 @@ class BaseRester:
                     data = json.loads(response.text)
 
                 if self.document_model:
-                    data["data"] = [self.document_model.construct(**d) for d in data["data"]]  # type: ignore
+                    data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
 

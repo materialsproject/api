@@ -46,20 +46,16 @@ class VoltageStepQuery(QueryOperator):
             description="Minimum value for the minimum voltage for a particular voltage step in V.",
         ),
         capacity_grav_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the gravimetric capacity in maH/g.",
+            None, description="Maximum value for the gravimetric capacity in maH/g.",
         ),
         capacity_grav_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the gravimetric capacity in maH/g.",
+            None, description="Minimum value for the gravimetric capacity in maH/g.",
         ),
         capacity_vol_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the volumetric capacity in maH/cc.",
+            None, description="Maximum value for the volumetric capacity in maH/cc.",
         ),
         capacity_vol_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the volumetric capacity in maH/cc.",
+            None, description="Minimum value for the volumetric capacity in maH/cc.",
         ),
         energy_grav_max: Optional[float] = Query(
             None,

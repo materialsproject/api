@@ -1,4 +1,5 @@
-from typing import Optional, Literal
+from typing import Optional
+from typing_extensions import Literal
 
 import numpy as np
 from fastapi import Query
@@ -12,12 +13,12 @@ from mp_api.materials.query_operators import (
     SymmetryQuery,
     DeprecationQuery,
 )
+from mp_api.tasks.query_operators import MultipleTaskIDsQuery
 from mp_api.search.models import SearchDoc, SearchStats
 from mp_api.search.query_operators import (
     SearchBandGapQuery,
     HasPropsQuery,
     ThermoEnergySearchQuery,
-    SearchTaskIDsQuery,
     SearchIsStableQuery,
     SearchElasticityQuery,
     SearchMagneticQuery,
@@ -30,8 +31,10 @@ def search_resource(search_store):
     def generate_stats_prep(self):
         model_name = self.model.__name__
 
-        valid_numeric_fields = tuple(sorted(k for k, v in SearchDoc().__fields__.items() if v.type_ == float))
-
+        # we can only generate statistics for fields that return numbers
+        valid_numeric_fields = tuple(
+            sorted(k for k, v in SearchDoc().__fields__.items() if v.type_ == float)
+        )
 
         async def generate_stats(
             field: Literal[valid_numeric_fields] = Query(
@@ -53,9 +56,8 @@ def search_resource(search_store):
                 "less than or equal to this minimum value.",
             ),
             num_points: int = Query(
-                100,
-                title="The number of values in the returned distribution."
-            )
+                100, title="The number of values in the returned distribution."
+            ),
         ):
             """
             Generate statistics for a given numerical field specified in SearchDoc.
@@ -67,7 +69,7 @@ def search_resource(search_store):
             self.store.connect()
 
             if min_val or max_val:
-                pipeline = [{"$match": {field: {}}}]
+                pipeline = [{"$match": {field: {}}}]  # type: list
                 if min_val:
                     pipeline[0]["$match"][field]["$gte"] = min_val
                 if max_val:
@@ -93,11 +95,7 @@ def search_resource(search_store):
 
             distribution = list(
                 kernel(
-                    np.arange(
-                        min_val,
-                        max_val,
-                        step=(max_val - min_val) / num_points,
-                    )
+                    np.arange(min_val, max_val, step=(max_val - min_val) / num_points,)  # type: ignore
                 )
             )
 
@@ -105,8 +103,13 @@ def search_resource(search_store):
             mean = float(np.mean(values))
 
             response = SearchStats(
-                field=field, num_samples=num_samples, min=min_val, max=max_val, distribution=distribution,
-                median=median, mean=mean
+                field=field,
+                num_samples=num_samples,
+                min=min_val,
+                max=max_val,
+                distribution=distribution,
+                median=median,
+                mean=mean,
             )
 
             return response
@@ -123,7 +126,7 @@ def search_resource(search_store):
         search_store,
         SearchDoc,
         query_operators=[
-            SearchTaskIDsQuery(),
+            MultipleTaskIDsQuery(),
             FormulaQuery(),
             MinMaxQuery(),
             SymmetryQuery(),

@@ -1,3 +1,4 @@
+from fastapi.param_functions import Query
 from mp_api.core.resource import Resource
 from mp_api.tasks.models import TaskDoc
 from mp_api.tasks.utils import calcs_reversed_to_trajectory
@@ -5,13 +6,14 @@ from mp_api.tasks.utils import calcs_reversed_to_trajectory
 from mp_api.materials.models.doc import MaterialsCoreDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
+from mp_api.tasks.query_operators import MultipleTaskIDsQuery
 from mp_api.materials.query_operators import FormulaQuery
 
 from monty.json import jsanitize
 import json
 from typing import Callable
 
-from fastapi import Request, Response, Path
+from fastapi import Request, Response
 from fastapi.routing import APIRoute
 
 
@@ -21,11 +23,11 @@ def task_resource(task_store):
         TaskDoc,
         query_operators=[
             FormulaQuery(),
+            MultipleTaskIDsQuery(),
             SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
-                TaskDoc,
-                default_fields=["task_id", "formula_pretty", "last_updated"],
+                TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],
             ),
         ],
         tags=["Tasks"],
@@ -37,47 +39,57 @@ def task_resource(task_store):
 def task_deprecation_resource(materials_store):
     def custom_deprecation_prep(self):
         async def check_deprecation(
-            task_id: str = Path(
+            task_ids: str = Query(
                 ...,
-                alias="task_id",
-                title="Task id to check for deprecation.",
+                alias="task_ids",
+                title="Comma separated list of task ids to check for deprecation.",
+                description="Comma separated list of task ids to check for deprecation.",
             ),
         ):
             """
-            Checks whether a task_id is deprecated.
+            Checks whether a list of task_ids is deprecated.
 
             Returns:
                 Dictionary containing deprecation information
             """
 
-            crit = {"deprecated_tasks": task_id}
+            tlist = task_ids.split(",")
+
+            crit = {"deprecated_tasks": {"$in": tlist}}
 
             self.store.connect()
 
-            deprecation = {"deprecated": False, "deprecation_reason": None}
+            deprecation = {
+                task_id: {"deprecated": False, "deprecation_reason": None}
+                for task_id in tlist
+            }
 
-            for r in self.store.query(criteria=crit, properties=["deprecated_tasks"]):
-                if r != {}:
-                    deprecation = {"deprecated": True, "deprecation_reason": None}
-                    break
+            q = self.store.query(
+                criteria=crit, properties=["deprecated_tasks", "task_id"]
+            )
+
+            for r in q:
+
+                deprecation[r["task_id"]] = {
+                    "deprecated": True,
+                    "deprecation_reason": None,
+                }
 
             response = {"data": deprecation}
 
             return response
 
         self.router.get(
-            "/{task_id}/",
+            "/",
             response_model_exclude_unset=True,
-            response_description="Check deprecation of a specific task_id",
+            response_description="Check deprecation of a list of task_ids",
             tags=self.tags,
         )(check_deprecation)
 
     resource = Resource(
         materials_store,
         MaterialsCoreDoc,
-        query_operators=[
-            PaginationQuery(),
-        ],
+        query_operators=[PaginationQuery()],
         tags=["Tasks"],
         custom_endpoint_funcs=[custom_deprecation_prep],
         enable_get_by_key=False,
@@ -95,7 +107,7 @@ def trajectory_resource(task_store):
             async def custom_route_handler(request: Request) -> Response:
                 response: Response = await original_route_handler(request)
 
-                d = json.loads(response.body, encoding=response.charset)
+                d = json.loads(response.body)
 
                 trajectories = []
                 for entry in d["data"]:

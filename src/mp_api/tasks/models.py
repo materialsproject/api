@@ -3,9 +3,10 @@ from enum import Enum
 from typing import List
 
 from monty.json import MontyDecoder
-from mp_api.materials.models import Structure, Composition
 from pydantic import BaseModel, Field, validator
 
+from pymatgen.core.structure import Structure
+from pymatgen.core.composition import Composition
 from pymatgen.core.periodic_table import Element
 
 monty_decoder = MontyDecoder()

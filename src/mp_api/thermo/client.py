@@ -1,7 +1,8 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
 
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
+from mp_api.thermo.models import ThermoDoc
 
 import warnings
 
@@ -9,24 +10,7 @@ import warnings
 class ThermoRester(BaseRester):
 
     suffix = "thermo"
-
-    def get_thermo_from_material_id(self, material_id: str):
-        """
-        Get thermo data for a given Materials Project ID.
-
-        Arguments:
-            material_id (str): Materials project ID
-
-        Returns:
-            results (Dict): Dictionary containing equations of state data.
-        """
-
-        result = self._make_request("{}/?all_fields=true".format(material_id))
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No document found")
+    document_model = ThermoDoc
 
     def search_thermo_docs(
         self,

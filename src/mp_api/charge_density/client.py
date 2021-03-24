@@ -38,12 +38,12 @@ class ChargeDensityRester(BaseRester):
         """
 
         base_endpoint = "/".join(self.endpoint.split("/")[0:3])
-        task_rester = TaskRester(api_key=self.api_key, endpoint=base_endpoint)
+        task_rester = TaskRester(api_key=self.api_key, endpoint=base_endpoint)  # type: ignore
 
-        result = task_rester.get_task_from_material_id(
+        result = task_rester.get_task_from_material_id(  # type: ignore
             material_id, fields=["task_id", "orig_inputs"]
         ).get("data")[0]
 
-        task_rester.session.close()
+        task_rester.session.close()  # type: ignore
 
         return result
