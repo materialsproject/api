@@ -64,11 +64,11 @@ class InsertionVoltageStep(VoltageStep):
         None, description="The energy above hull of the discharged material."
     )
 
-    id_charge: Union[MPID, int, None] = Field(
+    id_charge: Union[str] = Field(
         None, description="The material-id of the charged structure."
     )
 
-    id_discharge: Union[MPID, int, None] = Field(
+    id_discharge: Union[str] = Field(
         None, description="The material-id of the discharged structure."
     )
 
@@ -116,7 +116,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
         description="The chemical compositions of the host framework",
     )
 
-    material_ids: List[Union[MPID]] = Field(
+    material_ids: List[str] = Field(
         None,
         description="The ids of all structures that matched to the present host lattice, regardless of stability. "
                     "The stable entries can be found in the adjacent pairs.",
