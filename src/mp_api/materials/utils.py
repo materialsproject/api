@@ -21,7 +21,7 @@ def formula_to_criteria(formula: str) -> Dict:
 
         if "*" in eles:
             crit["nelements"] = len(eles)
-            crit["elements"] = {"$in": [ele for ele in eles if ele != "*"]}
+            crit["elements"] = {"$all": [ele for ele in eles if ele != "*"]}
             return crit
         else:
             chemsys = "-".join(sorted(eles))
