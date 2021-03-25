@@ -6,6 +6,7 @@ from mp_api.electrodes.query_operators import (
     VoltageStepQuery,
     InsertionVoltageStepQuery,
     InsertionElectrodeQuery,
+    ElectrodeFormulaQuery,
 )
 from mp_api.materials.query_operators import ElementsQuery
 
@@ -15,6 +16,7 @@ def insertion_electrodes_resource(insertion_electrodes_store):
         insertion_electrodes_store,
         InsertionElectrodeDoc,
         query_operators=[
+            ElectrodeFormulaQuery(),
             ElementsQuery(),
             VoltageStepQuery(),
             InsertionVoltageStepQuery(),
