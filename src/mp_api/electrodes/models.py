@@ -82,6 +82,9 @@ class InsertionVoltageStep(VoltageStep):
 
 
 class InsertionElectrodeDoc(InsertionVoltageStep):
+    """
+    Insertion electrode
+    """
 
     battery_id: str = Field(None, description="The id for this battery document.")
 
@@ -122,24 +125,31 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
         None, description="The chemical compositions of the host framework",
     )
 
-    material_ids: List[str] = Field(
-        None,
-        description="The ids of all structures that matched to the present host lattice, regardless of stability. "
-        "The stable entries can be found in the adjacent pairs.",
+    elements: List[Element] = Field(
+        None, description="The atomic species contained in this electrode (not including the working ion).",
     )
 
-    elements: List[Element] = Field(
-        None, description="The atomic species contained in this electrode.",
+    nelements: int = Field(
+        None, description="The number of elements in the material (not including the working ion).",
     )
 
     chemsys: str = Field(
-        None,
-        description="The chemical system this electrode belongs to. "
-        "Note: The conversion electrode can be calculated on this chemical system",
+        None, description="The chemical system this electrode belongs to (not including the working ion)"
     )
 
-    electrode_object: InsertionElectrode = Field(
-        None, description="Returns InsertionElectrode object",
+    formula_anonymous: str = Field(
+        None,
+        title="Anonymous Formula",
+        description="Anonymized representation of the formula (not including the working ion)",
+    )
+
+    material_ids: List[str] = Field(
+        None, description="The ids of all structures that matched to the present host lattice, regardless of stability. "
+                    "The stable entries can be found in the adjacent pairs.",
+    )
+
+    electrode_object: Dict = Field(
+        None, description="The pymatgen electrode object",
     )
 
     # Make sure that the datetime field is properly formatted
