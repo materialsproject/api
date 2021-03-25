@@ -80,6 +80,12 @@ class MinMaxQuery(QueryOperator):
         nsites_min: Optional[int] = Query(
             None, description="Minimum value for the number of sites",
         ),
+        nelements_max: Optional[float] = Query(
+            None, description="Maximum value for the number of elements.",
+        ),
+        nelements_min: Optional[float] = Query(
+            None, description="Minimum value for the number of elements.",
+        ),
         volume_max: Optional[float] = Query(
             None, description="Maximum value for the cell volume",
         ),
@@ -98,6 +104,7 @@ class MinMaxQuery(QueryOperator):
 
         entries = {
             "nsites": [nsites_min, nsites_max],
+            "nelements": [nelements_min, nelements_max],
             "volume": [volume_min, volume_max],
             "density": [density_min, density_max],
         }  # type: dict
