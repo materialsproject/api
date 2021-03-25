@@ -144,8 +144,8 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
     )
 
     material_ids: List[str] = Field(
-        None, description="The ids of all structures that matched to the present host lattice, regardless of stability. "
-                    "The stable entries can be found in the adjacent pairs.",
+        None, description="The ids of all structures that matched to the present host lattice, "
+                          "regardless of stability. The stable entries can be found in the adjacent pairs.",
     )
 
     electrode_object: Dict = Field(
