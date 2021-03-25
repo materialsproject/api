@@ -11,4 +11,3 @@ class ElectrodeRester(BaseRester):
 
     suffix = "insertion_electrodes"
     document_model = InsertionElectrodeDoc
-
