@@ -1,9 +1,37 @@
 from typing import Optional
 from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from mp_api.materials.utils import formula_to_criteria
 from pymatgen.core.periodic_table import Element
 
 from collections import defaultdict
+
+
+class ElectrodeFormulaQuery(QueryOperator):
+    """
+    Method to generate a query for framework formula data
+    """
+
+    def query(
+        self,
+        formula: Optional[str] = Query(
+            None,
+            description="Query by formula including anonymized formula or by including wild cards",
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if formula:
+            crit.update(formula_to_criteria(formula))
+
+            for key in list(crit):
+                if "composition_reduced" in key:
+                    framework_entry = "framework.{}".format(key.split(".")[1])
+                    crit[framework_entry] = crit[key]
+                    crit.pop(key)
+
+        return {"criteria": crit}
 
 
 class VoltageStepQuery(QueryOperator):
