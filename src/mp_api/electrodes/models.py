@@ -86,7 +86,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
     battery_id: str = Field(None, description="The id for this battery document.")
 
     framework_formula: str = Field(
-        None, description="The id for this battery document."
+        None, description="The chemical formula without the working ion."
     )
 
     host_structure: Structure = Field(
@@ -103,7 +103,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
         description="The working ion as an Element object",
     )
 
-    num_steps: float = Field(
+    num_steps: int = Field(
         None,
         description="The number of distinct voltage steps in from fully charge to "
                     "discharge based on the stable intermediate states",
