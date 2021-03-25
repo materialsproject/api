@@ -18,6 +18,23 @@ class FormulaQuery(QueryOperator):
             None,
             description="Query by formula including anonymized formula or by including wild cards",
         ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if formula:
+            crit.update(formula_to_criteria(formula))
+
+        return {"criteria": crit}
+
+
+class ElementsQuery(QueryOperator):
+    """
+    Factory method to generate a dependency for querying by element data
+    """
+
+    def query(
+        self,
         elements: Optional[str] = Query(
             None,
             description="Query by elements in the material composition as a comma-separated list",
@@ -29,9 +46,6 @@ class FormulaQuery(QueryOperator):
     ) -> STORE_PARAMS:
 
         crit = {}
-
-        if formula:
-            crit.update(formula_to_criteria(formula))
 
         if elements or exclude_elements:
             crit["elements"] = {}

@@ -11,6 +11,7 @@ from mp_api.core.query_operator import (
     SortQuery,
 )
 from mp_api.materials.query_operators import (
+    ElementsQuery,
     FormulaQuery,
     DeprecationQuery,
     MinMaxQuery,
@@ -252,6 +253,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
         query_operators=[
             VersionQuery(),
             FormulaQuery(),
+            ElementsQuery(),
             MultiTaskIDQuery(),
             SymmetryQuery(),
             DeprecationQuery(),
