@@ -45,7 +45,7 @@ class ElementsQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
-        crit = {}
+        crit = {}  # type: dict
 
         if elements or exclude_elements:
             crit["elements"] = {}
