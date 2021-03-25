@@ -8,6 +8,7 @@ from scipy.stats import gaussian_kde
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.core.resource import Resource
 from mp_api.materials.query_operators import (
+    ElementsQuery,
     FormulaQuery,
     MinMaxQuery,
     SymmetryQuery,
@@ -128,6 +129,7 @@ def search_resource(search_store):
         query_operators=[
             MultipleTaskIDsQuery(),
             FormulaQuery(),
+            ElementsQuery(),
             MinMaxQuery(),
             SymmetryQuery(),
             ThermoEnergySearchQuery(),
