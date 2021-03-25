@@ -7,6 +7,7 @@ from mp_api.electrodes.query_operators import (
     InsertionVoltageStepQuery,
     InsertionElectrodeQuery,
 )
+from mp_api.materials.query_operators import ElementsQuery
 
 
 def insertion_electrodes_resource(insertion_electrodes_store):
@@ -14,14 +15,14 @@ def insertion_electrodes_resource(insertion_electrodes_store):
         insertion_electrodes_store,
         InsertionElectrodeDoc,
         query_operators=[
+            ElementsQuery(),
             VoltageStepQuery(),
             InsertionVoltageStepQuery(),
             InsertionElectrodeQuery(),
             SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
-                InsertionElectrodeDoc,
-                default_fields=["battery_id", "last_updated"],
+                InsertionElectrodeDoc, default_fields=["battery_id", "last_updated"],
             ),
         ],
         tags=["Electrodes"],

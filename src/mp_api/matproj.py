@@ -27,6 +27,7 @@ from mp_api.search.client import SearchRester
 from mp_api.robocrys.client import RobocrysRester
 from mp_api.molecules.client import MoleculesRester
 from mp_api.synthesis.client import SynthesisRester
+from mp_api.electrodes.client import ElectrodeRester
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -158,6 +159,9 @@ class MPRester:
             api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
         )
         self.synth = SynthesisRester(
+            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        )
+        self.electrodes = ElectrodeRester(
             api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
         )
 

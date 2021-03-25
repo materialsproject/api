@@ -90,8 +90,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
     )
 
     host_structure: Structure = Field(
-        None,
-        description="Host structure (structure without the working ion)",
+        None, description="Host structure (structure without the working ion)",
     )
 
     adj_pairs: List[InsertionVoltageStep] = Field(
@@ -120,25 +119,23 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
     )
 
     framework: Composition = Field(
-        None,
-        description="The chemical compositions of the host framework",
+        None, description="The chemical compositions of the host framework",
     )
 
     material_ids: List[str] = Field(
         None,
         description="The ids of all structures that matched to the present host lattice, regardless of stability. "
-                    "The stable entries can be found in the adjacent pairs.",
+        "The stable entries can be found in the adjacent pairs.",
     )
 
     elements: List[Element] = Field(
-        None,
-        description="The atomic species contained in this electrode.",
+        None, description="The atomic species contained in this electrode.",
     )
 
     chemsys: str = Field(
         None,
         description="The chemical system this electrode belongs to. "
-                    "Note: The conversion electrode can be calculated on this chemical system",
+        "Note: The conversion electrode can be calculated on this chemical system",
     )
 
     electrode_object: InsertionElectrode = Field(

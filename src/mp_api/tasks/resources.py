@@ -7,7 +7,7 @@ from mp_api.materials.models.doc import MaterialsCoreDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.tasks.query_operators import MultipleTaskIDsQuery
-from mp_api.materials.query_operators import FormulaQuery
+from mp_api.materials.query_operators import ElementsQuery, FormulaQuery
 
 from monty.json import jsanitize
 import json
@@ -23,6 +23,7 @@ def task_resource(task_store):
         TaskDoc,
         query_operators=[
             FormulaQuery(),
+            ElementsQuery(),
             MultipleTaskIDsQuery(),
             SortQuery(),
             PaginationQuery(),

@@ -18,6 +18,23 @@ class FormulaQuery(QueryOperator):
             None,
             description="Query by formula including anonymized formula or by including wild cards",
         ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if formula:
+            crit.update(formula_to_criteria(formula))
+
+        return {"criteria": crit}
+
+
+class ElementsQuery(QueryOperator):
+    """
+    Factory method to generate a dependency for querying by element data
+    """
+
+    def query(
+        self,
         elements: Optional[str] = Query(
             None,
             description="Query by elements in the material composition as a comma-separated list",
@@ -28,10 +45,7 @@ class FormulaQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
-        crit = {}
-
-        if formula:
-            crit.update(formula_to_criteria(formula))
+        crit = {}  # type: dict
 
         if elements or exclude_elements:
             crit["elements"] = {}
@@ -80,6 +94,12 @@ class MinMaxQuery(QueryOperator):
         nsites_min: Optional[int] = Query(
             None, description="Minimum value for the number of sites",
         ),
+        nelements_max: Optional[float] = Query(
+            None, description="Maximum value for the number of elements.",
+        ),
+        nelements_min: Optional[float] = Query(
+            None, description="Minimum value for the number of elements.",
+        ),
         volume_max: Optional[float] = Query(
             None, description="Maximum value for the cell volume",
         ),
@@ -98,6 +118,7 @@ class MinMaxQuery(QueryOperator):
 
         entries = {
             "nsites": [nsites_min, nsites_max],
+            "nelements": [nelements_min, nelements_max],
             "volume": [volume_min, volume_max],
             "density": [density_min, density_max],
         }  # type: dict
