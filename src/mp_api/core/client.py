@@ -267,9 +267,11 @@ class BaseRester:
         Query the endpoint for a single document.
 
         Arguments:
-            task_id: a task_id key
-            fields: list of fields to return
+            task_id: the unique key, typically a task_id
+            fields: list of fields to return, by default will return all fields
             monty_decode: Decode the data using monty into python objects
+            version: For supported endpoints, specify a specific database
+                version
 
         Returns:
             A single document.
