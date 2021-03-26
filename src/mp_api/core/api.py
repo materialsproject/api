@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from typing import Dict
 from datetime import datetime
 from monty.json import MSONable
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from pymatgen.core import __version__ as pmg_version  # type: ignore
 from fastapi.openapi.utils import get_openapi
 
@@ -21,7 +21,7 @@ class MAPI(MSONable):
 
     def __init__(
         self,
-        resources: Dict[str, Resource],
+        resources: Dict[str, GetResource],
         title="Materials Project API",
         version="3.0.0-dev",
     ):
