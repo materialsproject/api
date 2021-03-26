@@ -256,9 +256,9 @@ class BaseRester:
             criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl
         ).get("data")
 
-    def query_by_task_id(
+    def get_document_by_id(
         self,
-        task_id,
+        document_id,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         version: Optional[str] = None,
@@ -267,7 +267,7 @@ class BaseRester:
         Query the endpoint for a single document.
 
         Arguments:
-            task_id: the unique key, typically a task_id
+            document_id: the unique key for this kind of document, typically a task_id
             fields: list of fields to return, by default will return all fields
             monty_decode: Decode the data using monty into python objects
             version: For supported endpoints, specify a specific database
@@ -276,6 +276,10 @@ class BaseRester:
         Returns:
             A single document.
         """
+
+        if document_id is None:
+            raise ValueError("Please supply a specific id. You can use the query method to find "
+                             "ids of interest.")
 
         if fields is None:
             criteria = {"all_fields": True, "limit": 1}  # type: dict
@@ -289,18 +293,22 @@ class BaseRester:
             fields = (fields,)
 
         results = self.query(
-            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=task_id
+            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id
         )
 
         if not results:
-            warnings.warn(f"No result for record {task_id}.")
+            warnings.warn(f"No result for record {document_id}.")
             return
         elif len(results) > 1:
             raise ValueError(
-                f"Multiple records for {task_id}, this shouldn't happen. Please report as a bug."
+                f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
             )
         else:
             return results[0]
+
+    def query_by_task_id(self, *args, **kwargs):
+        print("query_by_task_id has been renamed to get_document_by_id to be more general")
+        return self.get_document_by_id(*args, **kwargs)
 
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
         """
@@ -335,7 +343,6 @@ class BaseRester:
         return (
             f"{self.__class__.__name__} connected to {self.endpoint}\n\n"
             f"Available fields: {', '.join(self.available_fields)}\n\n"
-            f"Available documents: {self.count()}"
         )
 
 
