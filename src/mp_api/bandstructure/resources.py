@@ -1,5 +1,5 @@
 from fastapi.param_functions import Query
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.bandstructure.models.doc import BSDoc, BSObjectReturn
 from mp_api.bandstructure.models.core import BSPathType
 
@@ -74,7 +74,7 @@ def bs_resource(bs_store, s3_store):
             tags=self.tags,
         )(get_object)
 
-    resource = Resource(
+    resource = GetResource(
         bs_store,
         BSDoc,
         query_operators=[

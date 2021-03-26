@@ -3,14 +3,14 @@ from fastapi.exceptions import HTTPException
 from fastapi.param_functions import Path
 from fastapi.responses import StreamingResponse
 
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.phonon.models import PhononBSDoc, PhononImgDoc
 
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
 
 
 def phonon_bs_resource(phonon_bs_store):
-    resource = Resource(
+    resource = GetResource(
         phonon_bs_store,
         PhononBSDoc,
         query_operators=[
@@ -28,9 +28,7 @@ def phonon_img_resource(phonon_img_store):
     def phonon_img_prep(self):
         async def get_image(
             task_id: str = Path(
-                ...,
-                alias="task_id",
-                title="Materials Project ID of the material.",
+                ..., alias="task_id", title="Materials Project ID of the material.",
             ),
         ):
             """
@@ -48,8 +46,7 @@ def phonon_img_resource(phonon_img_store):
 
             if img is None:
                 raise HTTPException(
-                    status_code=404,
-                    detail=f"No image found for {task_id}.",
+                    status_code=404, detail=f"No image found for {task_id}.",
                 )
 
             else:
@@ -74,7 +71,7 @@ def phonon_img_resource(phonon_img_store):
             tags=self.tags,
         )(get_image)
 
-    resource = Resource(
+    resource = GetResource(
         phonon_img_store,
         PhononImgDoc,
         # query_operators=[PaginationQuery()],

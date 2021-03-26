@@ -1,5 +1,5 @@
 from fastapi import Query
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.robocrys.models import RobocrysDoc
 
 
@@ -59,7 +59,7 @@ def robo_resource(robo_store):
             tags=self.tags,
         )(query_robo_text)
 
-    resource = Resource(
+    resource = GetResource(
         robo_store,
         RobocrysDoc,
         tags=["Robocrystallographer"],
