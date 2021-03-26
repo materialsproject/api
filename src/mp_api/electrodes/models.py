@@ -148,7 +148,7 @@ class InsertionElectrodeDoc(InsertionVoltageStep):
                           "regardless of stability. The stable entries can be found in the adjacent pairs.",
     )
 
-    electrode_object: Dict = Field(
+    electrode_object: InsertionElectrode = Field(
         None, description="The pymatgen electrode object",
     )
 
