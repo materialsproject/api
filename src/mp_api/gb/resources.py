@@ -1,4 +1,4 @@
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.gb.models import GBDoc
 
 from mp_api.gb.query_operators import GBEnergyQuery, GBStructureQuery, GBTaskIDQuery
@@ -6,7 +6,7 @@ from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQ
 
 
 def gb_resource(gb_store):
-    resource = Resource(
+    resource = GetResource(
         gb_store,
         GBDoc,
         query_operators=[

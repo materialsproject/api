@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.materials.models.core import Structure
 from mp_api.materials.models.doc import MaterialsCoreDoc
 
@@ -247,7 +247,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
             tags=self.tags,
         )(formula_autocomplete)
 
-    resource = Resource(
+    resource = GetResource(
         materials_store,
         MaterialsCoreDoc,
         query_operators=[

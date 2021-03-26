@@ -1,4 +1,4 @@
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.surface_properties.models import SurfacePropDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
@@ -9,7 +9,7 @@ from mp_api.surface_properties.query_operators import (
 
 
 def surface_props_resource(surface_prop_store):
-    resource = Resource(
+    resource = GetResource(
         surface_prop_store,
         SurfacePropDoc,
         query_operators=[

@@ -1,5 +1,5 @@
 from fastapi.param_functions import Path
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.charge_density.models import ChgcarDataDoc
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery, SortQuery
 from mp_api.core.utils import STORE_PARAMS
@@ -63,7 +63,7 @@ def charge_density_resource(s3_store):
             tags=self.tags,
         )(get_chgcar_data)
 
-    resource = Resource(
+    resource = GetResource(
         s3_store,
         ChgcarDataDoc,
         query_operators=[

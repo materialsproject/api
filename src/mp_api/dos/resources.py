@@ -1,4 +1,4 @@
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.dos.models.doc import DOSDoc, DOSObjectReturn
 
 from fastapi.param_functions import Query
@@ -71,7 +71,7 @@ def dos_resource(dos_store, s3_store):
         )(get_object)
 
     # Define resource
-    resource = Resource(
+    resource = GetResource(
         dos_store,
         DOSDoc,
         query_operators=[

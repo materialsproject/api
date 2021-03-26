@@ -1,4 +1,4 @@
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.thermo.models import ThermoDoc
 
 from mp_api.core.query_operator import (
@@ -15,7 +15,7 @@ from mp_api.thermo.query_operators import (
 
 
 def thermo_resource(thermo_store):
-    resource = Resource(
+    resource = GetResource(
         thermo_store,
         ThermoDoc,
         query_operators=[

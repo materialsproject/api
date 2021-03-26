@@ -1,4 +1,4 @@
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.substrates.models import SubstratesDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
@@ -6,7 +6,7 @@ from mp_api.substrates.query_operators import SubstrateStructureQuery, EnergyAre
 
 
 def substrates_resource(substrates_store):
-    resource = Resource(
+    resource = GetResource(
         substrates_store,
         SubstratesDoc,
         query_operators=[
