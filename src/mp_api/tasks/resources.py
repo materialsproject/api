@@ -10,7 +10,6 @@ from mp_api.tasks.query_operators import MultipleTaskIDsQuery
 from mp_api.materials.query_operators import ElementsQuery, FormulaQuery
 
 
-
 from monty.json import jsanitize
 import json
 from typing import Callable
