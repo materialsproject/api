@@ -6,7 +6,7 @@ from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
 
 from pymatgen.core.structure import Structure
-from pymatgen.core.composition import Composition
+from mp_api.materials.models import Composition
 from pymatgen.core.periodic_table import Element
 
 monty_decoder = MontyDecoder()
@@ -35,23 +35,19 @@ class PotcarSpec(BaseModel):
 
 class OrigInputs(BaseModel):
     incar: str = Field(
-        None,
-        description="Pymatgen object representing the INCAR file",
+        None, description="Pymatgen object representing the INCAR file",
     )
 
     poscar: str = Field(
-        None,
-        description="Pymatgen object representing the POSCAR file",
+        None, description="Pymatgen object representing the POSCAR file",
     )
 
     kpoints: str = Field(
-        None,
-        description="Pymatgen object representing the KPOINTS file",
+        None, description="Pymatgen object representing the KPOINTS file",
     )
 
     potcar: PotcarSpec = Field(
-        None,
-        description="Pymatgen object representing the POTCAR file",
+        None, description="Pymatgen object representing the POTCAR file",
     )
 
     # Convert all other input files into strings
@@ -111,17 +107,13 @@ class CustodianDoc(BaseModel):
         description="List of custodian correction data for calculation.",
     )
     job: dict = Field(
-        None,
-        title="Cusotodian Job Data",
-        description="Job data logged by custodian.",
+        None, title="Cusotodian Job Data", description="Job data logged by custodian.",
     )
 
 
 class AnalysisDoc(BaseModel):
     delta_volume: float = Field(
-        None,
-        title="Volume Change",
-        description="Volume change for the calculation.",
+        None, title="Volume Change", description="Volume change for the calculation.",
     )
     delta_volume_percent: float = Field(
         None,
@@ -141,9 +133,7 @@ class AnalysisDoc(BaseModel):
     )
 
     errors: List[str] = Field(
-        None,
-        title="Calculation Errors",
-        description="Errors issued after analysis.",
+        None, title="Calculation Errors", description="Errors issued after analysis.",
     )
 
 
