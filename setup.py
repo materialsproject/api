@@ -35,7 +35,6 @@ setup(
             "maggma==0.26.0",
             "uvicorn>=0.12.0",
             "gunicorn[gevent]>=20.0.1",
-            "aws-xray-sdk>=2.4.2",
             "boto3>=1.15.0",
             "uvloop>=0.14.0",
             "httptools>=0.1.1",
