@@ -1,10 +1,11 @@
 from typing import Optional
-from fastapi import Query
+from fastapi import Query, Body, HTTPException
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.materials.utils import formula_to_criteria
 from mp_api.materials.models.core import CrystalSystem
 from pymatgen.core.periodic_table import Element
 from collections import defaultdict
+from pymatgen.core.structure import Structure
 
 
 class FormulaQuery(QueryOperator):
@@ -183,3 +184,70 @@ class MultiTaskIDQuery(QueryOperator):
             crit.update({"task_ids": {"$in": task_ids.split(",")}})
 
         return {"criteria": crit}
+
+
+class StructureMatchQuery(QueryOperator):
+    """
+    Method to generate a query for structure matching
+    """
+
+    def query(
+        self,
+        structure: Structure = Body(
+            ..., title="Pymatgen structure object to query with",
+        ),
+        ltol: float = Query(0.2, title="Fractional length tolerance. Default is 0.2.",),
+        stol: float = Query(
+            0.3,
+            title="Site tolerance. Defined as the fraction of the average free \
+                    length per atom := ( V / Nsites ) ** (1/3). Default is 0.3.",
+        ),
+        angle_tol: float = Query(
+            5, title="Angle tolerance in degrees. Default is 5 degrees.",
+        ),
+        limit: int = Query(
+            1,
+            title="Maximum number of matches to show. Defaults to 1, only showing the best match.",
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        try:
+            self.s = Structure.from_dict(structure.dict())
+        except Exception:
+            raise HTTPException(
+                status_code=404,
+                detail="Body cannot be converted to a pymatgen structure object.",
+            )
+
+        if task_ids:
+            crit.update({"task_ids": {"$in": task_ids.split(",")}})
+
+        return {"criteria": crit}
+
+    def post_process(self, docs):
+        """
+        Post processing for structure match endpoint
+        """
+
+        d = []
+
+        for task_id in self.task_ids:
+            deprecation = {
+                "task_id": task_id,
+                "deprecated": False,
+                "deprecation_reason": None,
+            }
+            for doc in docs:
+                if task_id in doc["deprecated_tasks"]:
+                    deprecation = {
+                        "task_id": task_id,
+                        "deprecated": True,
+                        "deprecation_reason": None,
+                    }
+                    break
+
+            d.append(deprecation)
+
+        return d
