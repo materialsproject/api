@@ -410,7 +410,7 @@ class GetResource(Resource):
 class ConsumerPostResource(Resource):
     """
     Implements a REST Compatible Resource as a POST URL endpoint
-    for private consumer data. 
+    for private consumer data.
     """
 
     def prepare_endpoint(self):
@@ -485,4 +485,3 @@ class ConsumerPostResource(Resource):
             response_model_exclude_unset=True,
             include_in_schema=False,
         )(search)
-

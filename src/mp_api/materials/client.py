@@ -182,4 +182,3 @@ class MaterialsRester(BaseRester):
             suburl="find_structure",
             use_document_model=False,
         ).get("data")
-
