@@ -156,7 +156,7 @@ class BaseRester:
 
     def _post_resource(
         self,
-        data: Dict = None,
+        body: Dict = None,
         params: Optional[Dict] = None,
         monty_decode: bool = True,
         suburl: Optional[str] = None,
@@ -166,7 +166,7 @@ class BaseRester:
         Post data to the endpoint for a Resource.
 
         Arguments:
-            data: body json to send in post request
+            body: body json to send in post request
             params: extra params to send in post request
             monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
@@ -178,7 +178,7 @@ class BaseRester:
             available.
         """
 
-        payload = json.dumps(data, cls=MontyEncoder)
+        payload = json.dumps(body, cls=MontyEncoder)
 
         try:
             url = self.endpoint

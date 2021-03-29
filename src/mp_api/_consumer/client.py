@@ -19,5 +19,5 @@ class UserSettingsRester(BaseRester):
             MPRestError
         """
         return self._post_resource(
-            data=settings, params={"consumer_id": consumer_id}
+            body=settings, params={"consumer_id": consumer_id}
         ).get("data")

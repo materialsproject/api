@@ -49,7 +49,7 @@ class Resource(MSONable, ABC):
         """
         self.store = store
         self.tags = tags or []
-        self.query_operators = query_operators
+        self.query_operators = query_operators or []
 
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
@@ -144,8 +144,7 @@ class GetResource(Resource):
             enable_get_by_key: Enable default key route for endpoint.
             enable_default_search: Enable default endpoint search behavior.
         """
-        self.store = store
-        self.tags = tags or []
+
         self.key_fields = key_fields
         self.versioned = False
         self.cep = custom_endpoint_funcs
@@ -155,8 +154,8 @@ class GetResource(Resource):
         super().__init__(store, model=model, tags=tags, query_operators=query_operators)
 
         self.query_operators = (
-            query_operators
-            if query_operators is not None
+            query_operators  # type: ignore
+            if len(query_operators) != 0  # type: ignore
             else [
                 PaginationQuery(),
                 SparseFieldsQuery(
@@ -454,12 +453,12 @@ class ConsumerPostResource(Resource):
 
             try:
                 self.store.update(docs=query["criteria"])  # type: ignore
-                written = True
+                w = [{"written": True}]
             except Exception:
-                written = False
+                w = [{"written": False}]
 
             for operator in self.query_operators:
-                data = operator.post_process(written)
+                data = operator.post_process(w)
 
             response = {"data": data, "meta": meta}
 

@@ -69,7 +69,7 @@ class DeprecationQuery(QueryOperator):
 
     def query(
         self,
-        task_ids: Optional[str] = Query(
+        task_ids: str = Query(
             None, description="Comma-separated list of task_ids to query on"
         ),
     ) -> STORE_PARAMS:
