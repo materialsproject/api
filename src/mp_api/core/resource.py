@@ -115,10 +115,6 @@ class GetResource(Resource):
     This class provides a number of convenience features
     including full pagination, field projection, and the
     MAPI query lanaugage
-
-    - implements custom error handlers to provide MAPI Responses
-    - implement standard metadata respomse for class
-    - JSON Configuration
     """
 
     def __init__(
@@ -409,3 +405,84 @@ class GetResource(Resource):
             response_description=f"Search for a {model_name}",
             response_model_exclude_unset=True,
         )(search)
+
+
+class ConsumerPostResource(Resource):
+    """
+    Implements a REST Compatible Resource as a POST URL endpoint
+    for private consumer data. 
+    """
+
+    def prepare_endpoint(self):
+        """
+        Internal method to prepare the endpoint by setting up default handlers
+        for routes
+        """
+
+        model_name = self.model.__name__
+
+        async def search(**queries: STORE_PARAMS):
+
+            request: Request = queries.pop("request")  # type: ignore
+
+            query: STORE_PARAMS = merge_queries(list(queries.values()))
+
+            query_params = [
+                entry
+                for _, i in enumerate(self.query_operators)
+                for entry in signature(i.query).parameters
+            ]
+
+            overlap = [
+                key for key in request.query_params.keys() if key not in query_params
+            ]
+            if any(overlap):
+                raise HTTPException(
+                    status_code=404,
+                    detail="Request contains query parameters which cannot be used: {}".format(
+                        ", ".join(overlap)
+                    ),
+                )
+
+            self.store.connect(force_reset=True)
+
+            operator_metas = [
+                operator.meta(self.store, query.get("criteria", {}))
+                for operator in self.query_operators
+            ]
+            meta = {k: v for m in operator_metas for k, v in m.items()}
+
+            try:
+                self.store.update(docs=query["criteria"])  # type: ignore
+                written = True
+            except Exception:
+                written = False
+
+            for operator in self.query_operators:
+                data = operator.post_process(written)
+
+            response = {"data": data, "meta": meta}
+
+            return response
+
+        ann = {f"dep{i}": STORE_PARAMS for i, _ in enumerate(self.query_operators)}
+        ann.update({"request": Request})
+        attach_signature(
+            search,
+            annotations=ann,
+            defaults={
+                f"dep{i}": Depends(dep.query)
+                for i, dep in enumerate(self.query_operators)
+            },
+        )
+
+        self.router.post(
+            "/",
+            tags=self.tags,
+            summary=f"Post {model_name} documents",
+            response_model=self.response_model,
+            response_description=f"Post consumer data {model_name}",
+            response_model_exclude_unset=True,
+            # include_in_schema=False,
+        )(search)
+
