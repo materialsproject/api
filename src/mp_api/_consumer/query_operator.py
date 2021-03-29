@@ -14,6 +14,7 @@ class UserSettingsQuery(QueryOperator):
     ) -> STORE_PARAMS:
 
         self.cid = consumer_id
+        self.settings = settings
 
         crit = {"consumer_id": consumer_id, "settings": settings}
 
@@ -21,9 +22,6 @@ class UserSettingsQuery(QueryOperator):
 
     def post_process(self, written):
 
-        d = [{"consumer_id": self.cid, "successful": False}]
-
-        if written:
-            d = [{"consumer_id": self.cid, "successful": True}]
+        d = [{"consumer_id": self.cid, "settings": self.settings}]
 
         return d

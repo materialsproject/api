@@ -10,8 +10,8 @@ class UserSettingsDoc(BaseModel):
         None, title="Consumer ID", description="Consumer ID for a specific user."
     )
 
-    successful: bool = Field(
+    settings: dict = Field(
         None,
-        title="Successful Write",
-        description="Whether the user settings were written successfully.",
+        title="Consumer ID settings",
+        description="Settings defined for a specific user.",
     )
