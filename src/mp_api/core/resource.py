@@ -483,6 +483,6 @@ class ConsumerPostResource(Resource):
             response_model=self.response_model,
             response_description=f"Post consumer data {model_name}",
             response_model_exclude_unset=True,
-            # include_in_schema=False,
+            include_in_schema=False,
         )(search)
 
