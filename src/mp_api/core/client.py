@@ -15,7 +15,7 @@ from os import environ
 import warnings
 
 import requests
-from monty.json import MontyDecoder
+from monty.json import MontyEncoder, MontyDecoder
 from requests.exceptions import RequestException
 from pydantic import BaseModel
 
@@ -154,12 +154,84 @@ class BaseRester:
 
             raise MPRestError(str(ex))
 
+    def _post_resource(
+        self,
+        data: Dict = None,
+        params: Optional[Dict] = None,
+        monty_decode: bool = True,
+        suburl: Optional[str] = None,
+        use_document_model: Optional[bool] = True,
+    ):
+        """
+        Post data to the endpoint for a Resource.
+
+        Arguments:
+            data: body json to send in post request
+            params: extra params to send in post request
+            monty_decode: Decode the data using monty into python objects
+            suburl: make a request to a specified sub-url
+            use_document_model: whether to use the core document model for data reconstruction
+
+        Returns:
+            A Resource, a dict with two keys, "data" containing a list of documents, and
+            "meta" containing meta information, e.g. total number of documents
+            available.
+        """
+
+        payload = json.dumps(data, cls=MontyEncoder)
+
+        try:
+            url = self.endpoint
+            if suburl:
+                url = urljoin(self.endpoint, suburl)
+                if not url.endswith("/"):
+                    url += "/"
+            response = self.session.post(url, data=payload, verify=True, params=params)
+
+            if response.status_code == 200:
+
+                if monty_decode:
+                    data = json.loads(response.text, cls=MontyDecoder)
+                else:
+                    data = json.loads(response.text)
+
+                if self.document_model and use_document_model:
+                    data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+
+                return data
+
+            else:
+                try:
+                    data = json.loads(response.text)["detail"]
+                except (JSONDecodeError, KeyError):
+                    data = "Response {}".format(response.text)
+                if isinstance(data, str):
+                    message = data
+                else:
+                    try:
+                        message = ", ".join(
+                            "{} - {}".format(entry["loc"][1], entry["msg"])
+                            for entry in data
+                        )
+                    except (KeyError, IndexError):
+                        message = str(data)
+
+                raise MPRestError(
+                    f"REST post query returned with error status code {response.status_code} "
+                    f"on URL {response.url} with message:\n{message}"
+                )
+
+        except RequestException as ex:
+
+            raise MPRestError(str(ex))
+
     def _query_resource(
         self,
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         suburl: Optional[str] = None,
+        use_document_model: Optional[bool] = True,
     ):
         """
         Query the endpoint for a Resource containing a list of documents
@@ -173,6 +245,7 @@ class BaseRester:
             fields: list of fields to return
             monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
+            use_document_model: whether to use the core document model for data reconstruction
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -203,7 +276,7 @@ class BaseRester:
                 else:
                     data = json.loads(response.text)
 
-                if self.document_model:
+                if self.document_model and use_document_model:
                     data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
@@ -278,8 +351,10 @@ class BaseRester:
         """
 
         if document_id is None:
-            raise ValueError("Please supply a specific id. You can use the query method to find "
-                             "ids of interest.")
+            raise ValueError(
+                "Please supply a specific id. You can use the query method to find "
+                "ids of interest."
+            )
 
         if fields is None:
             criteria = {"all_fields": True, "limit": 1}  # type: dict
@@ -293,7 +368,10 @@ class BaseRester:
             fields = (fields,)
 
         results = self.query(
-            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id
+            criteria=criteria,
+            fields=fields,
+            monty_decode=monty_decode,
+            suburl=document_id,
         )
 
         if not results:
@@ -307,7 +385,9 @@ class BaseRester:
             return results[0]
 
     def query_by_task_id(self, *args, **kwargs):
-        print("query_by_task_id has been renamed to get_document_by_id to be more general")
+        print(
+            "query_by_task_id has been renamed to get_document_by_id to be more general"
+        )
         return self.get_document_by_id(*args, **kwargs)
 
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
