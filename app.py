@@ -56,6 +56,11 @@ s3_chgcar_index_json = os.environ.get("CHGCAR_INDEX_STORE", "chgcar_index_store.
 s3_chgcar_json = os.environ.get("S3_CHGCAR_STORE", "s3_chgcar.json")
 
 
+consumer_settings_store_json = os.environ.get(
+    "CONSUMER_SETTINGS_STORE", "consumer_settings_store.json"
+)
+
+
 if db_uri:
     from maggma.stores import MongoURIStore, S3Store
 
@@ -268,6 +273,13 @@ if db_uri:
         searchable_fields=["task_id", "fs_id"],
     )
 
+    consumer_settings_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_consumers",
+        key="consumer_id",
+        collection_name="settings",
+    )
+
 
 else:
     materials_store = loadfn(materials_store_json)
@@ -303,6 +315,8 @@ else:
 
     s3_chgcar_index = loadfn(s3_chgcar_index_json)
     s3_chgcar = loadfn(s3_chgcar_json)
+
+    consumer_settings_store = loadfn(consumer_settings_store_json)
 
 # Materials
 from mp_api.materials.resources import materials_resource
@@ -443,6 +457,13 @@ resources.update({"bs": bs_resource(bs_store, s3_bs)})
 from mp_api.dos.resources import dos_resource
 
 resources.update({"dos": dos_resource(dos_store, s3_dos)})
+
+
+# Consumers
+from mp_api._consumer.resources import set_settings_resource
+
+resources.update({"user_settings": set_settings_resource(consumer_settings_store)})
+
 
 api = MAPI(resources=resources)
 app = api.app
