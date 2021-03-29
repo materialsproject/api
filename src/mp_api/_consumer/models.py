@@ -15,4 +15,3 @@ class UserSettingsDoc(BaseModel):
         title="Successful Write",
         description="Whether the user settings were written successfully.",
     )
-
