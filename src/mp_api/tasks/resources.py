@@ -1,8 +1,5 @@
-from fastapi.param_functions import Query
 from mp_api.core.resource import GetResource
 from mp_api.tasks.models import DeprecationDoc, TaskDoc, TrajectoryDoc
-
-from mp_api.materials.models.doc import MaterialsCoreDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.tasks.query_operators import (

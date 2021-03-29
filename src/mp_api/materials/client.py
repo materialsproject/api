@@ -1,7 +1,5 @@
-import json
 import warnings
 from typing import List, Optional, Tuple
-from monty.serialization import MontyEncoder, MontyDecoder
 from pymatgen.core import Structure as PMGStructure
 
 from mp_api.materials.models import Structure
