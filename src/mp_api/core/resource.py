@@ -49,7 +49,7 @@ class Resource(MSONable, ABC):
         """
         self.store = store
         self.tags = tags or []
-        self.query_operators = query_operators or []
+        self.query_operators = query_operators
 
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
@@ -154,8 +154,8 @@ class GetResource(Resource):
         super().__init__(store, model=model, tags=tags, query_operators=query_operators)
 
         self.query_operators = (
-            query_operators  # type: ignore
-            if len(query_operators) != 0  # type: ignore
+            query_operators
+            if query_operators is not None
             else [
                 PaginationQuery(),
                 SparseFieldsQuery(
@@ -163,7 +163,7 @@ class GetResource(Resource):
                     default_fields=[self.store.key, self.store.last_updated_field],
                 ),
             ]
-        )
+        )  # type: list
 
         if any(
             isinstance(qop_entry, VersionQuery) for qop_entry in self.query_operators
@@ -428,7 +428,7 @@ class ConsumerPostResource(Resource):
 
             query_params = [
                 entry
-                for _, i in enumerate(self.query_operators)
+                for _, i in enumerate(self.query_operators)  # type: ignore
                 for entry in signature(i.query).parameters
             ]
 
@@ -447,18 +447,19 @@ class ConsumerPostResource(Resource):
 
             operator_metas = [
                 operator.meta(self.store, query.get("criteria", {}))
-                for operator in self.query_operators
+                for operator in self.query_operators  # type: ignore
             ]
             meta = {k: v for m in operator_metas for k, v in m.items()}
 
             try:
-                self.store.update(docs=query["criteria"])  # type: ignore
-                w = [{"written": True}]
+                docs = self.store.update(docs=query["criteria"])  # type: ignore
             except Exception:
-                w = [{"written": False}]
+                raise HTTPException(
+                    status_code=404, detail="Problem when trying to set consumer data.",
+                )
 
-            for operator in self.query_operators:
-                data = operator.post_process(w)
+            for operator in self.query_operators:  # type: ignore
+                data = operator.post_process(docs)
 
             response = {"data": data, "meta": meta}
 
