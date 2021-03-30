@@ -1,10 +1,10 @@
 import os
-from typing import List, Dict, Union, Optional, Callable, Type
+from abc import ABC, abstractmethod
+from typing import List, Dict, Union, Optional, Callable
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from monty.json import MSONable
 from fastapi import FastAPI, APIRouter, Path, HTTPException, Depends, Query, Request
-from fastapi.routing import APIRoute
 from inspect import signature
 
 from maggma.core import Store
@@ -24,16 +24,97 @@ from mp_api.core.query_operator import (
 )
 
 
-class Resource(MSONable):
+class Resource(MSONable, ABC):
     """
-    Implements a REST Compatible Resource as a URL endpoint
+    Base class for a REST Compatible Resource
+    """
+
+    def __init__(
+        self,
+        store: Store,
+        model: Union[BaseModel, str] = None,
+        tags: Optional[List[str]] = None,
+        query_operators: Optional[List[QueryOperator]] = None,
+    ):
+        """
+        Args:
+            store: The Maggma Store to get data from
+            model: the pydantic model to apply to the documents from the Store
+                This can be a string with a full python path to a model or
+                an actual pydantic Model if this is being instantiated in python
+                code. Serializing this via Monty will auto-convert the pydantic model
+                into a python path string
+            tags: list of tags for the Endpoint
+            query_operators: operators for the query language
+        """
+        self.store = store
+        self.tags = tags or []
+        self.query_operators = query_operators
+
+        if isinstance(model, str):
+            module_path = ".".join(model.split(".")[:-1])
+            class_name = model.split(".")[-1]
+            class_model = dynamic_import(module_path, class_name)
+            assert issubclass(
+                class_model, BaseModel
+            ), "The resource model has to be a PyDantic Model"
+            self.model = class_model
+        elif isinstance(model, type) and issubclass(model, (BaseModel, MSONable)):
+            self.model = model
+        else:
+            raise ValueError("The resource model has to be a PyDantic Model")
+
+        self.router = APIRouter()
+        self.response_model = Response[self.model]  # type: ignore
+        self.setup_redirect()
+        self.prepare_endpoint()
+
+    @abstractmethod
+    def prepare_endpoint(self):
+        """
+        Internal method to prepare the endpoint by setting up default handlers
+        for routes
+        """
+        pass
+
+    def setup_redirect(self):
+        @self.router.get("", include_in_schema=False)
+        def redirect_unslashes():
+            """
+            Redirects unforward slashed url to resource
+            url with the forward slash
+            """
+
+            url = self.router.url_path_for("/")
+            return RedirectResponse(url=url, status_code=301)
+
+    def run(self):  # pragma: no cover
+        """
+        Runs the Endpoint cluster locally
+        This is intended for testing not production
+        """
+        import uvicorn
+
+        app = FastAPI()
+        app.include_router(self.router, prefix="")
+        uvicorn.run(app)
+
+    def as_dict(self) -> Dict:
+        """
+        Special as_dict implemented to convert pydantic models into strings
+        """
+
+        d = super().as_dict()  # Ensures sub-classes serialize correctly
+        d["model"] = f"{self.model.__module__}.{self.model.__name__}"
+        return d
+
+
+class GetResource(Resource):
+    """
+    Implements a REST Compatible Resource as a GET URL endpoint
     This class provides a number of convenience features
     including full pagination, field projection, and the
     MAPI query lanaugage
-
-    - implements custom error handlers to provide MAPI Responses
-    - implement standard metadata respomse for class
-    - JSON Configuration
     """
 
     def __init__(
@@ -42,7 +123,6 @@ class Resource(MSONable):
         model: Union[BaseModel, str],
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
-        route_class: Type[APIRoute] = None,
         key_fields: List[str] = None,
         custom_endpoint_funcs: List[Callable] = None,
         enable_get_by_key: bool = True,
@@ -58,34 +138,20 @@ class Resource(MSONable):
                 into a python path string
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
-            route_class: Custom APIRoute class to define post-processing or custom validation
-                of response data
             key_fields: List of fields to always project. Default uses SparseFieldsQuery
                 to allow user's to define these on-the-fly.
             custom_endpoint_funcs: Custom endpoint preparation functions to be used
             enable_get_by_key: Enable default key route for endpoint.
             enable_default_search: Enable default endpoint search behavior.
         """
-        self.store = store
-        self.tags = tags or []
+
         self.key_fields = key_fields
         self.versioned = False
         self.cep = custom_endpoint_funcs
         self.enable_get_by_key = enable_get_by_key
         self.enable_default_search = enable_default_search
 
-        if isinstance(model, str):
-            module_path = ".".join(model.split(".")[:-1])
-            class_name = model.split(".")[-1]
-            class_model = dynamic_import(module_path, class_name)
-            assert issubclass(
-                class_model, BaseModel
-            ), "The resource model has to be a PyDantic Model"
-            self.model = class_model
-        elif isinstance(model, type) and issubclass(model, BaseModel):
-            self.model = model
-        else:
-            raise ValueError("The resource model has to be a PyDantic Model")
+        super().__init__(store, model=model, tags=tags, query_operators=query_operators)
 
         self.query_operators = (
             query_operators
@@ -97,18 +163,13 @@ class Resource(MSONable):
                     default_fields=[self.store.key, self.store.last_updated_field],
                 ),
             ]
-        )
+        )  # type: list
 
         if any(
             isinstance(qop_entry, VersionQuery) for qop_entry in self.query_operators
         ):
             self.versioned = True
 
-        if route_class is not None:
-            self.router = APIRouter(route_class=route_class)
-        else:
-            self.router = APIRouter()
-        self.response_model = Response[self.model]  # type: ignore
         self.prepare_endpoint()
 
     def prepare_endpoint(self):
@@ -170,17 +231,20 @@ class Resource(MSONable):
                 elif model_name == "ThermoDoc":
                     crit.update({"_sbxn": "core"})
 
-                item = self.store.query_one(
-                    criteria=crit, properties=fields["properties"]
-                )
+                item = [
+                    self.store.query_one(criteria=crit, properties=fields["properties"])
+                ]
 
-                if item is None:
+                if item == [None]:
                     raise HTTPException(
                         status_code=404,
                         detail=f"Item with {self.store.key} = {key} not found",
                     )
 
-                response = {"data": [item]}
+                for operator in self.query_operators:
+                    item = operator.post_process(item)
+
+                response = {"data": item}
 
                 return response
 
@@ -235,17 +299,20 @@ class Resource(MSONable):
                 elif model_name == "ThermoDoc":
                     crit.update({"_sbxn": "core"})
 
-                item = self.store.query_one(
-                    criteria=crit, properties=fields["properties"]
-                )
+                item = [
+                    self.store.query_one(criteria=crit, properties=fields["properties"])
+                ]
 
-                if item is None:
+                if item == [None]:
                     raise HTTPException(
                         status_code=404,
                         detail=f"Item with {self.store.key} = {key} not found",
                     )
 
-                response = {"data": [item]}
+                for operator in self.query_operators:
+                    item = operator.post_process(item)
+
+                response = {"data": item}
 
                 return response
 
@@ -311,6 +378,9 @@ class Resource(MSONable):
             ]
             meta = {k: v for m in operator_metas for k, v in m.items()}
 
+            for operator in self.query_operators:
+                data = operator.post_process(data)
+
             response = {"data": data, "meta": meta}
 
             return response
@@ -335,32 +405,83 @@ class Resource(MSONable):
             response_model_exclude_unset=True,
         )(search)
 
-        @self.router.get("", include_in_schema=False)
-        def redirect_unslashes():
-            """
-            Redirects unforward slashed url to resource
-            url with the forward slash
-            """
 
-            url = self.router.url_path_for("/")
-            return RedirectResponse(url=url, status_code=301)
+class ConsumerPostResource(Resource):
+    """
+    Implements a REST Compatible Resource as a POST URL endpoint
+    for private consumer data.
+    """
 
-    def run(self):  # pragma: no cover
+    def prepare_endpoint(self):
         """
-        Runs the Endpoint cluster locally
-        This is intended for testing not production
-        """
-        import uvicorn
-
-        app = FastAPI()
-        app.include_router(self.router, prefix="")
-        uvicorn.run(app)
-
-    def as_dict(self) -> Dict:
-        """
-        Special as_dict implemented to convert pydantic models into strings
+        Internal method to prepare the endpoint by setting up default handlers
+        for routes
         """
 
-        d = super().as_dict()  # Ensures sub-classes serialize correctly
-        d["model"] = f"{self.model.__module__}.{self.model.__name__}"
-        return d
+        model_name = self.model.__name__
+
+        async def search(**queries: STORE_PARAMS):
+
+            request: Request = queries.pop("request")  # type: ignore
+
+            query: STORE_PARAMS = merge_queries(list(queries.values()))
+
+            query_params = [
+                entry
+                for _, i in enumerate(self.query_operators)  # type: ignore
+                for entry in signature(i.query).parameters
+            ]
+
+            overlap = [
+                key for key in request.query_params.keys() if key not in query_params
+            ]
+            if any(overlap):
+                raise HTTPException(
+                    status_code=404,
+                    detail="Request contains query parameters which cannot be used: {}".format(
+                        ", ".join(overlap)
+                    ),
+                )
+
+            self.store.connect(force_reset=True)
+
+            operator_metas = [
+                operator.meta(self.store, query.get("criteria", {}))
+                for operator in self.query_operators  # type: ignore
+            ]
+            meta = {k: v for m in operator_metas for k, v in m.items()}
+
+            try:
+                docs = self.store.update(docs=query["criteria"])  # type: ignore
+            except Exception:
+                raise HTTPException(
+                    status_code=404, detail="Problem when trying to set consumer data.",
+                )
+
+            for operator in self.query_operators:  # type: ignore
+                data = operator.post_process(docs)
+
+            response = {"data": data, "meta": meta}
+
+            return response
+
+        ann = {f"dep{i}": STORE_PARAMS for i, _ in enumerate(self.query_operators)}
+        ann.update({"request": Request})
+        attach_signature(
+            search,
+            annotations=ann,
+            defaults={
+                f"dep{i}": Depends(dep.query)
+                for i, dep in enumerate(self.query_operators)
+            },
+        )
+
+        self.router.post(
+            "/",
+            tags=self.tags,
+            summary=f"Post {model_name} documents",
+            response_model=self.response_model,
+            response_description=f"Post consumer data {model_name}",
+            response_model_exclude_unset=True,
+            include_in_schema=False,
+        )(search)

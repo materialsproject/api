@@ -1,4 +1,4 @@
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.synthesis.models import SynthesisDoc
 
 from mp_api.synthesis.query_operators import SynthFormulaQuery
@@ -62,7 +62,7 @@ def synth_resource(synth_store):
             tags=self.tags,
         )(query_synth_text)
 
-    resource = Resource(
+    resource = GetResource(
         synth_store,
         SynthesisDoc,
         query_operators=[

@@ -28,11 +28,11 @@ class QueryOperator(MSONable):
         """
         return {}
 
-    def post_process(self, doc: Dict) -> Dict:
+    def post_process(self, docs: List[Dict]) -> List[Dict]:
         """
         An optional post-processing function for the data
         """
-        return doc
+        return docs
 
 
 class PaginationQuery(QueryOperator):
@@ -169,8 +169,7 @@ class VersionQuery(QueryOperator):
     def query(
         self,
         version: Optional[str] = Query(
-            None,
-            description="Database version to query on formatted as YYYY.MM.DD",
+            None, description="Database version to query on formatted as YYYY.MM.DD",
         ),
     ) -> STORE_PARAMS:
 
@@ -191,8 +190,7 @@ class SortQuery(QueryOperator):
         self,
         field: Optional[str] = Query(None, description="Field to sort with"),
         ascending: Optional[bool] = Query(
-            None,
-            description="Whether the sorting should be ascending",
+            None, description="Whether the sorting should be ascending",
         ),
     ) -> STORE_PARAMS:
 

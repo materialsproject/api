@@ -6,7 +6,7 @@ from fastapi import Query
 from scipy.stats import gaussian_kde
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
@@ -123,7 +123,7 @@ def search_resource(search_store):
             tags=self.tags,
         )(generate_stats)
 
-    resource = Resource(
+    resource = GetResource(
         search_store,
         SearchDoc,
         query_operators=[

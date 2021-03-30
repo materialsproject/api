@@ -9,6 +9,8 @@ from pymatgen.core.structure import Structure
 from mp_api.materials.models import Composition
 from pymatgen.core.periodic_table import Element
 
+from pymatgen.core.trajectory import Trajectory
+
 monty_decoder = MontyDecoder()
 
 
@@ -226,3 +228,41 @@ class TaskDoc(BaseModel):
     @validator("last_updated", pre=True)
     def last_updated_dict_ok(cls, v):
         return monty_decoder.process_decoded(v)
+
+
+class TrajectoryDoc(BaseModel):
+    """
+    Model for task trajectory data
+    """
+
+    task_id: str = Field(
+        None,
+        description="The ID of this calculation, used as a universal reference across property documents."
+        "This comes in the form: mp-******",
+    )
+
+    trajectories: List[Trajectory] = Field(
+        None,
+        title="Trajectory data for calculations associated with a task doc",
+        description="Trajectory data for calculations associated with a task doc",
+    )
+
+
+class DeprecationDoc(BaseModel):
+    """
+    Model for task deprecation data
+    """
+
+    task_id: str = Field(
+        None,
+        description="The ID of this calculation, used as a universal reference across property documents."
+        "This comes in the form: mp-******",
+    )
+
+    deprecated: bool = Field(
+        None, description="Whether the ID corresponds to a deprecated calculation.",
+    )
+
+    deprecation_reason: str = Field(
+        None, description="Reason for deprecation.",
+    )

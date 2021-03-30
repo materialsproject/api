@@ -1,4 +1,4 @@
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.molecules.models import MoleculesDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
@@ -11,7 +11,7 @@ from mp_api.tasks.query_operators import MultipleTaskIDsQuery
 
 
 def molecules_resource(molecules_store):
-    resource = Resource(
+    resource = GetResource(
         molecules_store,
         MoleculesDoc,
         query_operators=[

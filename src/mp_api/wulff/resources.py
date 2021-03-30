@@ -1,11 +1,11 @@
-from mp_api.core.resource import Resource
+from mp_api.core.resource import GetResource
 from mp_api.wulff.models import WulffDoc
 
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
 
 
 def wulff_resource(wulff_store):
-    resource = Resource(
+    resource = GetResource(
         wulff_store,
         WulffDoc,
         query_operators=[
