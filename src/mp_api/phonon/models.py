@@ -5,6 +5,7 @@ from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
 
 from mp_api.materials.models.core import Structure
+from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 
 
 class PhononBS(BaseModel):
@@ -13,18 +14,15 @@ class PhononBS(BaseModel):
     """
 
     eigendisplacements: dict = Field(
-        None,
-        description="Phonon eigendisplacements in cartesian coordinates",
+        None, description="Phonon eigendisplacements in cartesian coordinates",
     )
 
     has_nac: bool = Field(
-        None,
-        description="Whether non-analytical corrections at Gamma are included",
+        None, description="Whether non-analytical corrections at Gamma are included",
     )
 
     bands: List[List[float]] = Field(
-        None,
-        description="Phonon band eigenvalues in eV",
+        None, description="Phonon band eigenvalues in eV",
     )
 
     qpoints: List[List[float]] = Field(
@@ -33,18 +31,15 @@ class PhononBS(BaseModel):
     )
 
     labels_dict: dict = Field(
-        None,
-        description="q-point labels dictionary",
+        None, description="q-point labels dictionary",
     )
 
     lattice_rec: dict = Field(
-        None,
-        description="Reciprocal lattice of the structure",
+        None, description="Reciprocal lattice of the structure",
     )
 
     structure: Structure = Field(
-        None,
-        description="Structure of the material",
+        None, description="Structure of the material",
     )
 
     class Config:
@@ -61,9 +56,8 @@ class PhononBSDoc(BaseModel):
         description="The Materials Project ID of the material. This comes in the form: mp-******",
     )
 
-    ph_bs: PhononBS = Field(
-        None,
-        description="Phonon band structure object",
+    ph_bs: PhononBandStructureSymmLine = Field(
+        None, description="Phonon band structure object",
     )
 
     last_updated: datetime = Field(
@@ -83,8 +77,7 @@ class PhononImgDoc(BaseModel):
     """
 
     plot: bytes = Field(
-        None,
-        description="Plot image data.",
+        None, description="Plot image data.",
     )
 
     task_id: str = Field(
@@ -93,8 +86,7 @@ class PhononImgDoc(BaseModel):
     )
 
     last_updated: datetime = Field(
-        None,
-        description="Timestamp for the most recent calculation for this document",
+        None, description="Timestamp for the most recent calculation for this document",
     )
 
     # Make sure that the datetime field is properly formatted
