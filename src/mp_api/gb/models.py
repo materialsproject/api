@@ -1,10 +1,8 @@
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel, Field, validator
 from enum import Enum
 from datetime import datetime
 from monty.json import MontyDecoder
-
-from mp_api.materials.models.core import Lattice, PeriodicSite, Structure
 
 from pymatgen.analysis.gb.grain import GrainBoundary
 

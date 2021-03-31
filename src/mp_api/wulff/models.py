@@ -9,13 +9,11 @@ class ImageEntry(BaseModel):
     """
 
     miller_index: List[int] = Field(
-        None,
-        description="Miller index of surface.",
+        None, description="Miller index of surface.",
     )
 
     image: bytes = Field(
-        None,
-        description="High resolution image data.",
+        None, description="High resolution image data.",
     )
 
     # Make sure that the datetime field is properly formatted
@@ -30,18 +28,15 @@ class WulffDoc(BaseModel):
     """
 
     hi_res_images: List[ImageEntry] = Field(
-        None,
-        description="List of individual surface image data.",
+        None, description="List of individual surface image data.",
     )
 
     pretty_formula: str = Field(
-        None,
-        description="Reduced formula of the material.",
+        None, description="Reduced formula of the material.",
     )
 
     thumbnail: str = Field(
-        None,
-        description="Thumbnail image data.",
+        None, description="Thumbnail image data.",
     )
 
     task_id: str = Field(
