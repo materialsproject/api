@@ -1,5 +1,5 @@
 from typing import List
-from mp_api.materials.models.core import Structure
+from pymatgen.core.structure import Structure
 
 from pydantic import BaseModel, Field
 
@@ -10,48 +10,39 @@ class SurfaceEntry(BaseModel):
     """
 
     miller_index: List[int] = Field(
-        None,
-        description="Miller index of surface.",
+        None, description="Miller index of surface.",
     )
 
     surface_energy_EV_PER_ANG2: float = Field(
-        None,
-        description="Surface energy in eV/Å².",
+        None, description="Surface energy in eV/Å².",
     )
 
     surface_energy: float = Field(
-        None,
-        description="Surface energy in J/m².",
+        None, description="Surface energy in J/m².",
     )
 
     is_reconstructed: bool = Field(
-        None,
-        description="Whether it is a reconstructed surface.",
+        None, description="Whether it is a reconstructed surface.",
     )
 
     structure: str = Field(
-        None,
-        description="CIF of slab structure.",
+        None, description="CIF of slab structure.",
     )
 
     work_function: float = Field(
-        None,
-        description="Work function in eV.",
+        None, description="Work function in eV.",
     )
 
     efermi: float = Field(
-        None,
-        description="Fermi energy in eV.",
+        None, description="Fermi energy in eV.",
     )
 
     area_fraction: float = Field(
-        None,
-        description="Area fraction.",
+        None, description="Area fraction.",
     )
 
     has_wulff: bool = Field(
-        None,
-        description="Whether the surface has wulff entry.",
+        None, description="Whether the surface has wulff entry.",
     )
 
 
@@ -61,43 +52,35 @@ class SurfacePropDoc(BaseModel):
     """
 
     surfaces: List[SurfaceEntry] = Field(
-        None,
-        description="List of individual surface data.",
+        None, description="List of individual surface data.",
     )
 
     weighted_surface_energy_EV_PER_ANG2: float = Field(
-        None,
-        description="Weighted surface energy in eV/Å²",
+        None, description="Weighted surface energy in eV/Å²",
     )
 
     weighted_surface_energy: float = Field(
-        None,
-        description="Weighted surface energy in J/m²",
+        None, description="Weighted surface energy in J/m²",
     )
 
     surface_anisotropy: float = Field(
-        None,
-        description="Surface energy anisotropy.",
+        None, description="Surface energy anisotropy.",
     )
 
     pretty_formula: str = Field(
-        None,
-        description="Reduced Formula of the material.",
+        None, description="Reduced Formula of the material.",
     )
 
     shape_factor: float = Field(
-        None,
-        description="Shape factor.",
+        None, description="Shape factor.",
     )
 
     weighted_work_function: float = Field(
-        None,
-        description="Weighted work function in eV.",
+        None, description="Weighted work function in eV.",
     )
 
     has_reconstructed: bool = Field(
-        None,
-        description="Whether the entry has any reconstructed surfaces.",
+        None, description="Whether the entry has any reconstructed surfaces.",
     )
 
     task_id: str = Field(
@@ -106,6 +89,5 @@ class SurfacePropDoc(BaseModel):
     )
 
     structure: Structure = Field(
-        None,
-        description="The conventional crystal structure of the material.",
+        None, description="The conventional crystal structure of the material.",
     )
