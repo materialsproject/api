@@ -332,4 +332,3 @@ class SearchDoc(BaseModel):
     theoretical: bool = Field(
         None, description="Whether the material is theoretical.",
     )
-
