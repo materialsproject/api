@@ -3,8 +3,7 @@ from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from monty.json import MontyDecoder
 
-from mp_api.materials.models.core import Element
-
+from pymatgen.core import Element
 from pymatgen.entries.computed_entries import ComputedEntry
 
 
