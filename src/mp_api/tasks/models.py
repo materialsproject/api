@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, validator
 from pymatgen.core.structure import Structure
 from mp_api.materials.models import Composition
 from pymatgen.core.periodic_table import Element
-
+from pymatgen.io.vasp import Incar, Poscar, Kpoints, Potcar
 from pymatgen.core.trajectory import Trajectory
 
 monty_decoder = MontyDecoder()
@@ -30,33 +30,22 @@ class TaskType(str, Enum):
     GGA_U_Structure_Optimization = "GGA+U Structure Optimization"
 
 
-class PotcarSpec(BaseModel):
-    symbols: List[str]
-    functional: str
-
-
 class OrigInputs(BaseModel):
-    incar: str = Field(
+    incar: Incar = Field(
         None, description="Pymatgen object representing the INCAR file",
     )
 
-    poscar: str = Field(
+    poscar: Poscar = Field(
         None, description="Pymatgen object representing the POSCAR file",
     )
 
-    kpoints: str = Field(
+    kpoints: Kpoints = Field(
         None, description="Pymatgen object representing the KPOINTS file",
     )
 
-    potcar: PotcarSpec = Field(
+    potcar: Potcar = Field(
         None, description="Pymatgen object representing the POTCAR file",
     )
-
-    # Convert all other input files into strings
-    @validator("incar", "kpoints", "poscar", pre=True)
-    def convert_to_string(cls, input_dict):
-        obj = monty_decoder.process_decoded(input_dict)
-        return str(obj)
 
 
 class OutputDoc(BaseModel):
