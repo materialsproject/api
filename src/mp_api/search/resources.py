@@ -24,6 +24,7 @@ from mp_api.search.query_operators import (
     SearchElasticityQuery,
     SearchMagneticQuery,
     SearchDielectricPiezoQuery,
+    SearchIsTheoreticalQuery,
 )
 from mp_api.surface_properties.query_operators import SurfaceMinMaxQuery
 
@@ -134,6 +135,7 @@ def search_resource(search_store):
             SymmetryQuery(),
             ThermoEnergySearchQuery(),
             SearchIsStableQuery(),
+            SearchIsTheoreticalQuery(),
             SearchBandGapQuery(),
             SearchElasticityQuery(),
             SearchDielectricPiezoQuery(),

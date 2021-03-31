@@ -427,6 +427,26 @@ class SearchDielectricPiezoQuery(QueryOperator):
         return {"criteria": crit}
 
 
+class SearchIsTheoreticalQuery(QueryOperator):
+    """
+    Method to generate a query on whether a material is theoretical
+    """
+
+    def query(
+        self,
+        theoretical: Optional[bool] = Query(
+            None, description="Whether the material is theoretical."
+        ),
+    ):
+
+        crit = {}
+
+        if theoretical is not None:
+            crit["theoretical"] = theoretical
+
+        return {"criteria": crit}
+
+
 # TODO:
 # XAS and GB sub doc query operators
 # Add weighted work function to data

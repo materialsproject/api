@@ -326,3 +326,10 @@ class SearchDoc(BaseModel):
     has_props: List[str] = Field(
         None, description="List of properties that are available for a given material.",
     )
+
+    # Theoretical
+
+    theoretical: bool = Field(
+        None, description="Whether the material is theoretical.",
+    )
+
