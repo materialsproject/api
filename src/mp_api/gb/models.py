@@ -6,6 +6,8 @@ from monty.json import MontyDecoder
 
 from mp_api.materials.models.core import Lattice, PeriodicSite, Structure
 
+from pymatgen.analysis.gb.grain import GrainBoundary
+
 
 class GBTypeEnum(Enum):
     """
@@ -14,40 +16,6 @@ class GBTypeEnum(Enum):
 
     tilt = "tilt"
     twist = "twist"
-
-
-class GrainBoundary(BaseModel):
-    """
-    Model for a pymatgen grain boundary object
-    """
-
-    charge: Optional[float] = Field(None, description="Total charge")
-    lattice: Lattice = Field(None, description="Lattice for this structure")
-    sites: List[PeriodicSite] = Field(
-        None, description="List of sites in this structure"
-    )
-    init_cell: Structure = Field(
-        None, description="Initial bulk structure to form the GB"
-    )
-    rotation_axis: List[int] = Field(None, description="Rotation axis")
-    rotation_angle: float = Field(None, description="Rotation angle in degrees")
-    gb_plane: List[int] = Field(None, description="Grain boundary plane")
-    join_plane: List[int] = Field(
-        None, description="Joining plane of the second grain",
-    )
-    vacuum_thickness: float = Field(
-        None,
-        description="The thickness of vacuum inserted between two grains of the GB",
-    )
-    ab_shit: List[float] = Field(
-        None, description="The relative shift along a, b vectors"
-    )
-    oriented_unit_cell: Structure = Field(
-        None, description="Oriented unit cell of the bulk init_cell"
-    )
-
-    class Config:
-        extra = "allow"
 
 
 class GBDoc(BaseModel):
