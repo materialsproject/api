@@ -37,6 +37,7 @@ class BaseRester:
 
     suffix: Optional[str] = None
     document_model: Optional[BaseModel] = None
+    supports_versions: bool = False
 
     def __init__(
         self,
@@ -232,6 +233,7 @@ class BaseRester:
         monty_decode: bool = True,
         suburl: Optional[str] = None,
         use_document_model: Optional[bool] = True,
+        version: Optional[str] = None
     ):
         """
         Query the endpoint for a Resource containing a list of documents
@@ -246,6 +248,8 @@ class BaseRester:
             monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
             use_document_model: whether to use the core document model for data reconstruction
+            version:  If supported by the endpoint, specify a specific database version,
+                check the supports_version attribute to see if this endpoint is supported
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -260,6 +264,11 @@ class BaseRester:
 
         if fields:
             criteria["fields"] = ",".join(fields)
+
+        if version and (not self.supports_versions):
+            raise ValueError("This endpoint does not support versions.")
+        elif version:
+            criteria["version"] = version
 
         try:
             url = self.endpoint
@@ -312,6 +321,7 @@ class BaseRester:
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         suburl: Optional[str] = None,
+        version: Optional[str] = None
     ):
         """
         Query the endpoint for a list of documents.
@@ -321,12 +331,14 @@ class BaseRester:
             fields: list of fields to return
             monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
+            version: If supported by the endpoint, specify a specific database version,
+                check the supports_version attribute to see if this endpoint is supported
 
         Returns:
             A list of documents
         """
         return self._query_resource(
-            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl
+            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl, version=version
         ).get("data")
 
     def get_document_by_id(
