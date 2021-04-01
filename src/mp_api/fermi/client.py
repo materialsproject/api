@@ -1,4 +1,6 @@
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.fermi.models import FermiDoc
+
 from collections import defaultdict
 from typing import Optional, List
 import warnings
@@ -7,24 +9,7 @@ import warnings
 class FermiRester(BaseRester):
 
     suffix = "fermi"
-
-    def get_fermi_surface_from_material_id(self, material_id: str):
-        """
-        Get fermi surface data for a given Materials Project ID.
-
-        Arguments:
-            material_id (str): Materials project ID
-
-        Returns:
-            results (Dict): Dictionary containing fermi surface data.
-        """
-
-        result = self._make_request("{}/?all_fields=true".format(material_id))
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No document found")
+    document_model = FermiDoc
 
     def search_fermi_docs(
         self,
@@ -38,7 +23,7 @@ class FermiRester(BaseRester):
         Arguments:
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (List[str]): List of fields in FermiDoc to return data for.
                 Default is material_id and last_updated only.
 
         Yields:
