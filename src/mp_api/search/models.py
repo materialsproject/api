@@ -1,8 +1,8 @@
 from typing import List, Optional
 from pymatgen.core.periodic_table import Element
+from pymatgen.core.structure import Structure
 
-from mp_api.materials.models import Structure, Composition
-from mp_api.materials.models.doc import SymmetryData
+from mp_api.materials.models.doc import SymmetryData, Composition
 from mp_api.xas.models import Edge, XASType
 from mp_api.gb.models import GBTypeEnum
 
