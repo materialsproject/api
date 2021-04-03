@@ -10,28 +10,26 @@ class TaskRester(BaseRester):
     suffix = "tasks"
     document_model = TaskDoc
 
-    def get_task_from_material_id(
-        self,
-        material_id: str,
-        fields: Iterable[str] = ("task_id", "formula_pretty", "last_updated"),
-    ):
+    def get_trajectory(self, task_id):
         """
-        Get task document data for a given Materials Project ID.
+        Returns a Trajectory object containing the geometry of the
+        material throughout a calculation. This is most useful for
+        observing how a material relaxes during a geometry optimization.
 
-        Arguments:
-            material_id (str): Materials project ID
-
-        Returns:
-            data (dict): Task doc data for keys in fields. Defaults to
-                task_id, formula_pretty, and last_updated.
+        :param task_id: A specified task_id
+        :return: Trajectory object
         """
-        field_vals = ",".join(fields)
-        result = self._make_request("{}/?fields={}".format(material_id, field_vals))
 
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No document found")
+        pass
+
+    def is_deprecated(self, task_id):
+        """
+        Returns whether or not a given task is deprecated.
+        :param task_id: A specified task_id
+        :return: True or False
+        """
+
+        pass
 
     def search_task_docs(
         self,
@@ -59,7 +57,7 @@ class TaskRester(BaseRester):
 
         query_params = {}  # type: dict
 
-        if chunk_size <= 0 or chunk_size > 100:
+        if chunk_size <= 0:
             warnings.warn("Improper chunk size given. Setting value to 100.")
             chunk_size = 100
 
@@ -73,10 +71,11 @@ class TaskRester(BaseRester):
         count = 0
         while True:
             query_params["skip"] = count * chunk_size
-            results = self.query(query_params).get("data", [])
+            results = self._query_resource(query_params).get("data", [])
 
             if not any(results) or (num_chunks is not None and count == num_chunks):
                 break
 
             count += 1
-            yield results
+            for result in results:
+                yield result

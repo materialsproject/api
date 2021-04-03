@@ -39,7 +39,7 @@ class PaginationQuery(QueryOperator):
     """Query opertators to provides Pagination in the Materials API"""
 
     def __init__(
-        self, default_skip: int = 0, default_limit: int = 10, max_limit: int = 100
+        self, default_skip: int = 0, default_limit: int = 10, max_limit: int = 10000
     ):
         """
         Args:
