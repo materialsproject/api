@@ -424,7 +424,7 @@ class BaseRester:
     def available_fields(self) -> List[str]:
         if self.document_model is None:
             return ["Unknown fields."]
-        return list(self.document_model().fields.keys())  # type: ignore
+        return list(self.document_model.schema()['properties'].keys())  # type: ignore
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.endpoint}>"
