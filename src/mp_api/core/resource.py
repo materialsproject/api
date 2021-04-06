@@ -35,6 +35,7 @@ class Resource(MSONable, ABC):
         model: Union[BaseModel, str] = None,
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
+        include_in_schema: Optional[bool] = True,
     ):
         """
         Args:
@@ -46,10 +47,12 @@ class Resource(MSONable, ABC):
                 into a python path string
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
+            include_in_schema: Whether the endpoint should be shown in the documented schema.
         """
         self.store = store
         self.tags = tags or []
         self.query_operators = query_operators
+        self.include_in_schema = include_in_schema
 
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
@@ -123,10 +126,11 @@ class GetResource(Resource):
         model: Union[BaseModel, str],
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
-        key_fields: List[str] = None,
-        custom_endpoint_funcs: List[Callable] = None,
-        enable_get_by_key: bool = True,
-        enable_default_search: bool = True,
+        key_fields: Optional[List[str]] = None,
+        custom_endpoint_funcs: Optional[List[Callable]] = None,
+        enable_get_by_key: Optional[bool] = True,
+        enable_default_search: Optional[bool] = True,
+        include_in_schema: Optional[bool] = True,
     ):
         """
         Args:
@@ -143,6 +147,7 @@ class GetResource(Resource):
             custom_endpoint_funcs: Custom endpoint preparation functions to be used
             enable_get_by_key: Enable default key route for endpoint.
             enable_default_search: Enable default endpoint search behavior.
+            include_in_schema: Whether the endpoint should be shown in the documented schema.
         """
 
         self.key_fields = key_fields
@@ -151,7 +156,13 @@ class GetResource(Resource):
         self.enable_get_by_key = enable_get_by_key
         self.enable_default_search = enable_default_search
 
-        super().__init__(store, model=model, tags=tags, query_operators=query_operators)
+        super().__init__(
+            store,
+            model=model,
+            tags=tags,
+            query_operators=query_operators,
+            include_in_schema=include_in_schema,
+        )
 
         self.query_operators = (
             query_operators
@@ -254,6 +265,7 @@ class GetResource(Resource):
                 response_model=self.response_model,
                 response_model_exclude_unset=True,
                 tags=self.tags,
+                include_in_schema=self.include_in_schema,
             )(get_by_key)
 
         else:
@@ -322,6 +334,7 @@ class GetResource(Resource):
                 response_model=self.response_model,
                 response_model_exclude_unset=True,
                 tags=self.tags,
+                include_in_schema=self.include_in_schema,
             )(get_by_key_versioned)
 
     def set_dynamic_model_search(self):
@@ -403,6 +416,7 @@ class GetResource(Resource):
             response_model=self.response_model,
             response_description=f"Search for a {model_name}",
             response_model_exclude_unset=True,
+            include_in_schema=self.include_in_schema,
         )(search)
 
 
@@ -479,9 +493,9 @@ class ConsumerPostResource(Resource):
         self.router.post(
             "/",
             tags=self.tags,
-            summary=f"Post {model_name} documents",
+            summary=f"Post {model_name} data",
             response_model=self.response_model,
             response_description=f"Post consumer data {model_name}",
             response_model_exclude_unset=True,
-            include_in_schema=False,
+            include_in_schema=self.include_in_schema,
         )(search)
