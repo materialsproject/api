@@ -21,3 +21,15 @@ class UserSettingsRester(BaseRester):
         return self._post_resource(
             body=settings, params={"consumer_id": consumer_id}
         ).get("data")
+
+    def get_user_settings(self, consumer_id, settings):
+        """
+        Get user settings.
+        Args:
+            consumer_id: Consumer ID for the user
+        Returns:
+            Dictionary with consumer_id and settings.
+        Raises:
+            MPRestError
+        """
+        return self.query(query={"consumer_id": consumer_id}, monty_decode=False)

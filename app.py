@@ -460,9 +460,10 @@ resources.update({"dos": dos_resource(dos_store, s3_dos)})
 
 
 # Consumers
-from mp_api._consumer.resources import set_settings_resource
+from mp_api._consumer.resources import set_settings_resource, get_settings_resource
 
-resources.update({"user_settings": set_settings_resource(consumer_settings_store)})
+resources.update({"user_settings": get_settings_resource(consumer_settings_store)})
+resources.update({"user_settings/set": set_settings_resource(consumer_settings_store)})
 
 
 api = MAPI(resources=resources)
