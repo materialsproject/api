@@ -9,7 +9,7 @@ import warnings
 class FermiRester(BaseRester):
 
     suffix = "fermi"
-    document_model = FermiDoc
+    document_model = FermiDoc  # type: ignore
 
     def search_fermi_docs(
         self,

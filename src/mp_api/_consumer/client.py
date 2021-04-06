@@ -5,7 +5,7 @@ from mp_api.core.client import BaseRester
 class UserSettingsRester(BaseRester):
 
     suffix = "user_settings"
-    document_model = UserSettingsDoc
+    document_model = UserSettingsDoc  # type: ignore
 
     def set_user_settings(self, consumer_id, settings):
         """
