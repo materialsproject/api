@@ -13,6 +13,8 @@ from mp_api.thermo.query_operators import (
     IsStableQuery,
 )
 
+from mp_api.materials.query_operators import MultiMaterialIDQuery
+
 
 def thermo_resource(thermo_store):
     resource = GetResource(
@@ -20,6 +22,7 @@ def thermo_resource(thermo_store):
         ThermoDoc,
         query_operators=[
             VersionQuery(),
+            MultiMaterialIDQuery(),
             ThermoChemicalQuery(),
             IsStableQuery(),
             ThermoEnergyQuery(),

@@ -32,6 +32,12 @@ class ThermoDoc(BaseModel):
     A thermo entry document
     """
 
+    material_id: str = Field(
+        None,
+        description="The ID of this material, used as a universal reference across property documents."
+        "This comes in the form: mp-******",
+    )
+
     property_name: str = Field(
         "thermo", description="The subfield name for this property"
     )
