@@ -28,17 +28,7 @@ class MaterialsRester(BaseRester):
         Returns:
             structure (Structure): Pymatgen structure object
         """
-        if version is None:
-            result = self._make_request("{}/?fields=structure".format(material_id))
-        else:
-            result = self._make_request(
-                "{}/?version={}&fields=structure".format(material_id, version)
-            )
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError(f"No document found for {material_id}")
+        return self.get_document_by_id(material_id, fields=["structure"]).structure
 
     def search_material_docs(
         self,
