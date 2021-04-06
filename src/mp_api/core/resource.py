@@ -295,8 +295,6 @@ class GetResource(Resource):
                 else:
                     version = os.environ.get("DB_VERSION")
 
-                print(version)
-
                 prefix = self.store.collection_name.split("_")[0]
                 self.store.collection_name = f"{prefix}_{version}"
 
