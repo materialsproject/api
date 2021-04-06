@@ -11,6 +11,7 @@ class ThermoRester(BaseRester):
 
     suffix = "thermo"
     document_model = ThermoDoc
+    supports_versions = True
 
     def search_thermo_docs(
         self,

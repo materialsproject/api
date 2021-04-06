@@ -1,12 +1,13 @@
 from typing import List, Optional
 from pymatgen.core.periodic_table import Element
 from mp_api.core.client import BaseRester, MPRestError
-from mp_api.xas.models import Edge, XASType
+from mp_api.xas.models import Edge, XASType, XASDoc
 
 
 class XASRester(BaseRester):
 
     suffix = "xas"
+    document_model = XASDoc
 
     def get_available_elements(
         self,

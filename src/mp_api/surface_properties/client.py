@@ -3,11 +3,13 @@ from collections import defaultdict
 import warnings
 
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.surface_properties.models import SurfacePropDoc
 
 
 class SurfacePropertiesRester(BaseRester):
 
     suffix = "surface_properties"
+    document_model = SurfacePropDoc
 
     def get_surface_properties_from_material_id(self, material_id: str):
         """

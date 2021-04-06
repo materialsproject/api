@@ -1,8 +1,8 @@
 from typing import List, Optional
-from mp_api.tasks.models import TaskDoc
+from mp_api.piezo.models import PiezoDoc
 
 
-class TaskRester:
+class PiezoRester:
 
     def get_document_by_id(
             self,
@@ -10,5 +10,5 @@ class TaskRester:
             fields: Optional[List[str]] = None,
             monty_decode: bool = True,
             version: Optional[str] = None,
-    ) -> TaskDoc:
+    ) -> PiezoDoc:
         ...

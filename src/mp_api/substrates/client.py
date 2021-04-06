@@ -3,11 +3,13 @@ from collections import defaultdict
 import warnings
 
 from mp_api.core.client import BaseRester
+from mp_api.substrates.models import SubstratesDoc
 
 
 class SubstratesRester(BaseRester):
 
     suffix = "substrates"
+    document_model = SubstratesDoc
 
     def search_substrates_docs(
         self,

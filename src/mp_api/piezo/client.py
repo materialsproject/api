@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.piezo.models import PiezoDoc
 
 import warnings
 
@@ -9,6 +10,7 @@ import warnings
 class PiezoRester(BaseRester):
 
     suffix = "piezoelectric"
+    document_model = PiezoDoc
 
     def get_piezo_from_material_id(self, material_id: str):
         """
