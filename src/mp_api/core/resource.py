@@ -463,7 +463,7 @@ class ConsumerPostResource(Resource):
                 docs = self.store.update(docs=query["criteria"])  # type: ignore
             except Exception:
                 raise HTTPException(
-                    status_code=404, detail="Problem when trying to set consumer data.",
+                    status_code=404, detail="Problem when trying to post data.",
                 )
 
             for operator in self.query_operators:  # type: ignore
@@ -489,7 +489,7 @@ class ConsumerPostResource(Resource):
             tags=self.tags,
             summary=f"Post {model_name} data",
             response_model=self.response_model,
-            response_description=f"Post consumer data {model_name}",
+            response_description=f"Posted data {model_name} data",
             response_model_exclude_unset=True,
             include_in_schema=self.include_in_schema,
         )(search)

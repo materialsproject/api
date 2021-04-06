@@ -55,6 +55,7 @@ s3_dos_json = os.environ.get("S3_DOS_STORE", "s3_dos.json")
 s3_chgcar_index_json = os.environ.get("CHGCAR_INDEX_STORE", "chgcar_index_store.json")
 s3_chgcar_json = os.environ.get("S3_CHGCAR_STORE", "s3_chgcar.json")
 
+mpcomplete_store_json = os.environ.get("MPCOMPLETE_STORE", "mpcomplete_store.json")
 
 consumer_settings_store_json = os.environ.get(
     "CONSUMER_SETTINGS_STORE", "consumer_settings_store.json"
@@ -273,6 +274,13 @@ if db_uri:
         searchable_fields=["task_id", "fs_id"],
     )
 
+    mpcomplete_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_consumers",
+        key="structure",
+        collection_name="mpcomplete",
+    )
+
     consumer_settings_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_consumers",
@@ -316,6 +324,7 @@ else:
     s3_chgcar_index = loadfn(s3_chgcar_index_json)
     s3_chgcar = loadfn(s3_chgcar_json)
 
+    mpcomplete_store = loadfn(mpcomplete_store_json)
     consumer_settings_store = loadfn(consumer_settings_store_json)
 
 # Materials
@@ -458,6 +467,10 @@ from mp_api.dos.resources import dos_resource
 
 resources.update({"dos": dos_resource(dos_store, s3_dos)})
 
+# MPComplete
+from mp_api.mpcomplete.resources import mpcomplete_resource
+
+resources.update({"mpcomplete": mpcomplete_resource(mpcomplete_store)})
 
 # Consumers
 from mp_api._consumer.resources import set_settings_resource, get_settings_resource
