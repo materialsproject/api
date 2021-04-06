@@ -72,7 +72,7 @@ class ThermoDoc(BaseModel):
     Model for a document containing thermo data
     """
 
-    task_id: str = Field(
+    material_id: str = Field(
         None,
         description="The Materials Project ID of the material. This comes in the form: mp-******",
     )

@@ -25,7 +25,9 @@ def thermo_resource(thermo_store):
             ThermoEnergyQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(ThermoDoc, default_fields=["task_id", "last_updated"]),
+            SparseFieldsQuery(
+                ThermoDoc, default_fields=["material_id", "last_updated"]
+            ),
         ],
         tags=["Thermo"],
     )
