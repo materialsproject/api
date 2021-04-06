@@ -88,7 +88,7 @@ if db_uri:
     thermo_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
+        key="material_id",
         collection_name=f"thermo_{db_version}",
     )
 
