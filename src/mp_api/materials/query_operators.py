@@ -183,3 +183,23 @@ class MultiTaskIDQuery(QueryOperator):
             crit.update({"task_ids": {"$in": task_ids.split(",")}})
 
         return {"criteria": crit}
+
+
+class MultiMaterialIDQuery(QueryOperator):
+    """
+    Method to generate a query for different root-level material_id values
+    """
+
+    def query(
+        self,
+        material_ids: Optional[str] = Query(
+            None, description="Comma-separated list of material_id values to query on"
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if material_ids:
+            crit.update({"material_id": {"$in": material_ids.split(",")}})
+
+        return {"criteria": crit}
