@@ -15,4 +15,3 @@ class ThermoRester(BaseRester):
 
 
 # TODO: Add new search method
-
