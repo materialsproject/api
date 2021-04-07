@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.elasticity.models import ElasticityDoc
 
 import warnings
 
@@ -9,6 +10,7 @@ import warnings
 class ElasticityRester(BaseRester):
 
     suffix = "elasticity"
+    document_model = ElasticityDoc
 
     def get_elasticity_from_material_id(self, material_id: str):
         """

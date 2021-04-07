@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.dielectric.models import DielectricDoc
 
 import warnings
 
@@ -9,6 +10,7 @@ import warnings
 class DielectricRester(BaseRester):
 
     suffix = "dielectric"
+    document_model = DielectricDoc
 
     def get_dielectric_from_material_id(self, material_id: str):
         """

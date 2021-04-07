@@ -4,12 +4,13 @@ import warnings
 
 from mp_api.core.client import BaseRester
 
-from mp_api.gb.models import GBTypeEnum
+from mp_api.gb.models import GBTypeEnum, GBDoc
 
 
 class GBRester(BaseRester):
 
     suffix = "gb"
+    document_model = GBDoc
 
     def search_gb_docs(
         self,

@@ -1,9 +1,11 @@
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.phonon.models import PhononBSDoc, PhononImgDoc
 
 
 class PhononRester(BaseRester):
 
     suffix = "phonon"
+    document_model = PhononBSDoc
 
     def get_phonon_from_material_id(self, material_id: str):
         """
@@ -27,6 +29,7 @@ class PhononRester(BaseRester):
 class PhononImgRester(BaseRester):
 
     suffix = "phonon_img"
+    document_model = PhononImgDoc
 
     def get_phonon_img_from_material_id(self, material_id: str):
         """

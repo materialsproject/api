@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.eos.models import EOSDoc
 
 import warnings
 
@@ -9,6 +10,7 @@ import warnings
 class EOSRester(BaseRester):
 
     suffix = "eos"
+    document_model = EOSDoc
 
     def get_eos_from_material_id(self, material_id: str):
         """

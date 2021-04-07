@@ -1,9 +1,11 @@
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.dois.models import DOIDoc
 
 
 class DOIRester(BaseRester):
 
     suffix = "doi"
+    document_model = DOIDoc
 
     def get_eos_from_material_id(self, material_id: str):
         """
