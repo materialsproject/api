@@ -3,6 +3,7 @@ from fastapi import Query, Body
 from pymatgen.core.structure import Structure
 from mp_api.core.utils import STORE_PARAMS
 from mp_api.core.query_operator import QueryOperator
+from uuid import uuid4
 
 
 class MPCompletePostQuery(QueryOperator):
@@ -20,8 +21,10 @@ class MPCompletePostQuery(QueryOperator):
         self.public_name = public_name
         self.public_email = public_email
         self.comment = comment
+        self.snl_id = str(uuid4())
 
         crit = {
+            "snl_id": self.snl_id,
             "structure": structure,
             "public_email": public_email,
             "public_name": public_name,
@@ -34,6 +37,7 @@ class MPCompletePostQuery(QueryOperator):
 
         d = [
             {
+                "snl_id": self.snl_id,
                 "structure": self.structure,
                 "public_email": self.public_email,
                 "public_name": self.public_name,

@@ -7,6 +7,10 @@ class MPCompleteDoc(BaseModel):
     Defines data for MPComplete structure submissions
     """
 
+    snl_id: str = Field(
+        None, title="SNL ID", description="ID for the submission.",
+    )
+
     structure: Structure = Field(
         None,
         title="Submitted structure",
