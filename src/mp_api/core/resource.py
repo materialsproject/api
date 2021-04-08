@@ -36,6 +36,7 @@ class Resource(MSONable, ABC):
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
         include_in_schema: Optional[bool] = True,
+        ensure_indices: Optional[bool] = False,
     ):
         """
         Args:
@@ -48,11 +49,13 @@ class Resource(MSONable, ABC):
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
             include_in_schema: Whether the endpoint should be shown in the documented schema.
+            ensure_indices: Whether indices should be checked and setup.
         """
         self.store = store
         self.tags = tags or []
         self.query_operators = query_operators
         self.include_in_schema = include_in_schema
+        self.ensure_indices = ensure_indices
 
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
@@ -71,7 +74,8 @@ class Resource(MSONable, ABC):
         self.response_model = Response[self.model]  # type: ignore
         self.setup_redirect()
         self.prepare_endpoint()
-        self.ensure_indices()
+        if ensure_indices:
+            self.setup_indices()
 
     @abstractmethod
     def prepare_endpoint(self):
@@ -92,19 +96,19 @@ class Resource(MSONable, ABC):
             url = self.router.url_path_for("/")
             return RedirectResponse(url=url, status_code=301)
 
-    def ensure_indices(self):
+    def setup_indices(self):
         """
         Internal method to ensure indices in MongoDB
         """
 
         self.store.connect()
-
+        self.store.ensure_index(self.store.key, unique=True)
         if self.query_operators is not None:
             for query_operator in self.query_operators:
                 keys = query_operator.ensure_indices()
-                keys.append((self.store.key, True))
-                for (key, unique) in keys:
-                    self.store.ensure_index(key, unique=unique)
+                if keys:
+                    for (key, unique) in keys:
+                        self.store.ensure_index(key, unique=unique)
 
     def run(self):  # pragma: no cover
         """
