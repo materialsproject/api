@@ -45,6 +45,10 @@ class GBEnergyQuery(QueryOperator):
 
         return {"criteria": crit}
 
+    def ensure_indices(self):
+        keys = ["gb_energy", "w_sep"]
+        return [(key, False) for key in keys]
+
 
 class GBStructureQuery(QueryOperator):
     """
@@ -89,6 +93,11 @@ class GBStructureQuery(QueryOperator):
             crit["chemsys"] = chemsys
 
         return {"criteria": crit}
+
+    def ensure_indices(self):
+        keys = [key for key in self._keys_from_query() if "_min" not in key]
+        keys.append("rotation_angle")
+        return [(key, False) for key in keys]
 
 
 class GBTaskIDQuery(QueryOperator):
