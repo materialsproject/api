@@ -154,7 +154,7 @@ class VoltageStepQuery(QueryOperator):
                 key = key.replace("_min", "")
             indices.append((key, False))
         indices.append(("max_delta_volume", False))
-        return list(indices)
+        return indices
 
 
 class InsertionVoltageStepQuery(QueryOperator):
