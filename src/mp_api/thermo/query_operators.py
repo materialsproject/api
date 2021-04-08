@@ -148,4 +148,4 @@ class ThermoEnergyQuery(QueryOperator):
             if "_min" in key:
                 key = key.replace("_min", "")
             indices.append((key, False))
-        return list(indices)
+        return indices
