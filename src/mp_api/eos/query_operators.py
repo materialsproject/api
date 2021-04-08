@@ -41,3 +41,7 @@ class EnergyVolumeQuery(QueryOperator):
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
+
+    def ensure_indices(self):
+        keys = ["volume", "energy"]
+        return [(key, False) for key in keys]

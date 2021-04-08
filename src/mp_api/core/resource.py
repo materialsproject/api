@@ -36,7 +36,7 @@ class Resource(MSONable, ABC):
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
         include_in_schema: Optional[bool] = True,
-        ensure_indices: Optional[bool] = False,
+        ensure_indices: Optional[bool] = True,
     ):
         """
         Args:
