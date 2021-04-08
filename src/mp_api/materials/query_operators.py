@@ -141,12 +141,12 @@ class MinMaxQuery(QueryOperator):
 
     def ensure_indices(self):
         keys = self._keys_from_query()
-        indices = []
+        indices = set()
         for key in keys:
             if "min" in key or "max" in key:
                 key = key.replace("_max", "").replace("_min", "")
-            indices.append((key, False))
-        return indices
+            indices.add((key, False))
+        return list(indices)
 
 
 class SymmetryQuery(QueryOperator):
