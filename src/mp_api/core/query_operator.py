@@ -1,4 +1,5 @@
-from typing import List, Dict, Optional
+import inspect
+from typing import List, Dict, Optional, Tuple
 from pydantic import BaseModel
 from fastapi import Query, HTTPException
 from monty.json import MSONable
@@ -33,6 +34,20 @@ class QueryOperator(MSONable):
         An optional post-processing function for the data
         """
         return docs
+
+    def ensure_indices(self) -> List[Tuple[str, bool]]:
+        """
+        Returns tuples of keys other than the store index,
+        and whether they are unique, to be used to setup indices
+        in MongoDB
+        """
+        return []
+
+    def _keys_from_query(self) -> List[str]:
+        """
+        Method to extract parameters from query method to be used as index keys
+        """
+        return [key for key in inspect.signature(self.query).parameters]
 
 
 class PaginationQuery(QueryOperator):

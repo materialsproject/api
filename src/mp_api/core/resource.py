@@ -71,6 +71,7 @@ class Resource(MSONable, ABC):
         self.response_model = Response[self.model]  # type: ignore
         self.setup_redirect()
         self.prepare_endpoint()
+        self.ensure_indices()
 
     @abstractmethod
     def prepare_endpoint(self):
@@ -90,6 +91,20 @@ class Resource(MSONable, ABC):
 
             url = self.router.url_path_for("/")
             return RedirectResponse(url=url, status_code=301)
+
+    def ensure_indices(self):
+        """
+        Internal method to ensure indices in MongoDB
+        """
+
+        self.store.connect()
+
+        if self.query_operators is not None:
+            for query_operator in self.query_operators:
+                keys = query_operator.ensure_indices()
+                keys.append((self.store.key, True))
+                for (key, unique) in keys:
+                    self.store.ensure_index(key, unique=unique)
 
     def run(self):  # pragma: no cover
         """
