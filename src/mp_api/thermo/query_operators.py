@@ -143,9 +143,9 @@ class ThermoEnergyQuery(QueryOperator):
 
     def ensure_indices(self):
         keys = self._keys_from_query()
-        indices = set()
+        indices = []
         for key in keys:
-            if "min" in key or "max" in key:
-                key = key.replace("_max", "").replace("_min", "")
-            indices.add((key, False))
+            if "_min" in key:
+                key = key.replace("_min", "")
+            indices.append((key, False))
         return list(indices)
