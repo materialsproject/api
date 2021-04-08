@@ -91,3 +91,12 @@ class MagneticQuery(QueryOperator):
             crit["magnetism.ordering"] = ordering.value
 
         return {"criteria": crit}
+
+    def ensure_indices(self):
+        keys = self._keys_from_query()
+        indices = []
+        for key in keys:
+            if "_min" in key:
+                key = key.replace("_min", "")
+            indices.append(("magnetism." + key, False))
+        return indices
