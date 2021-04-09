@@ -1,8 +1,8 @@
-from typing import Iterable, List, Optional
+from typing import List, Optional
 import warnings
 
 from mp_api.tasks.models import TaskDoc
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
 
 
 class TaskRester(BaseRester):

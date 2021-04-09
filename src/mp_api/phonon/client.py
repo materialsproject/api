@@ -5,7 +5,7 @@ from mp_api.phonon.models import PhononBSDoc, PhononImgDoc
 class PhononRester(BaseRester):
 
     suffix = "phonon"
-    document_model = PhononBSDoc
+    document_model = PhononBSDoc  # type: ignore
 
     def get_phonon_from_material_id(self, material_id: str):
         """
@@ -29,7 +29,7 @@ class PhononRester(BaseRester):
 class PhononImgRester(BaseRester):
 
     suffix = "phonon_img"
-    document_model = PhononImgDoc
+    document_model = PhononImgDoc  # type: ignore
 
     def get_phonon_img_from_material_id(self, material_id: str):
         """

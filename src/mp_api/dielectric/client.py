@@ -10,7 +10,7 @@ import warnings
 class DielectricRester(BaseRester):
 
     suffix = "dielectric"
-    document_model = DielectricDoc
+    document_model = DielectricDoc  # type: ignore
 
     def get_dielectric_from_material_id(self, material_id: str):
         """

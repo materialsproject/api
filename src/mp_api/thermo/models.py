@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from monty.json import MontyDecoder
 from mp_api.materials.models import Composition
-from mp_api.materials.models.doc import SymmetryData
 
 from pymatgen.core import Element
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
