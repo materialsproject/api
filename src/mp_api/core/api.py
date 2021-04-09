@@ -2,10 +2,10 @@ import os
 import uvicorn
 from starlette.responses import RedirectResponse
 from fastapi import FastAPI
-from typing import Dict
+from typing import Dict, Union
 from datetime import datetime
 from monty.json import MSONable
-from mp_api.core.resource import GetResource
+from mp_api.core.resource import ConsumerPostResource, GetResource
 from pymatgen.core import __version__ as pmg_version  # type: ignore
 from fastapi.openapi.utils import get_openapi
 
@@ -21,13 +21,19 @@ class MAPI(MSONable):
 
     def __init__(
         self,
-        resources: Dict[str, GetResource],
+        resources: Dict[str, Union[GetResource, ConsumerPostResource]],
         title="Materials Project API",
         version="3.0.0-dev",
+        debug=False,
     ):
         self.resources = resources
         self.title = title
         self.version = version
+        self.debug = debug
+
+        if not debug:
+            for resource in resources.values():
+                resource.setup_indices()
 
     @property
     def app(self):

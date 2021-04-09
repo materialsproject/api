@@ -36,7 +36,6 @@ class Resource(MSONable, ABC):
         tags: Optional[List[str]] = None,
         query_operators: Optional[List[QueryOperator]] = None,
         include_in_schema: Optional[bool] = True,
-        ensure_indices: Optional[bool] = True,
     ):
         """
         Args:
@@ -49,13 +48,11 @@ class Resource(MSONable, ABC):
             tags: list of tags for the Endpoint
             query_operators: operators for the query language
             include_in_schema: Whether the endpoint should be shown in the documented schema.
-            ensure_indices: Whether indices should be checked and setup.
         """
         self.store = store
         self.tags = tags or []
         self.query_operators = query_operators
         self.include_in_schema = include_in_schema
-        self.ensure_indices = ensure_indices
 
         if isinstance(model, str):
             module_path = ".".join(model.split(".")[:-1])
@@ -74,8 +71,6 @@ class Resource(MSONable, ABC):
         self.response_model = Response[self.model]  # type: ignore
         self.setup_redirect()
         self.prepare_endpoint()
-        if ensure_indices:
-            self.setup_indices()
 
     @abstractmethod
     def prepare_endpoint(self):
