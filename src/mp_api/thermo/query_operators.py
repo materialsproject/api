@@ -41,7 +41,7 @@ class ThermoChemicalQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = self._keys_from_query()
         return [(key, False) for key in keys]
 
@@ -65,7 +65,7 @@ class IsStableQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = self._keys_from_query()
         return [(key, False) for key in keys]
 
@@ -141,11 +141,11 @@ class ThermoEnergyQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = self._keys_from_query()
-        indices = []
+        indexes = []
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indices.append((key, False))
-        return indices
+            indexes.append((key, False))
+        return indexes

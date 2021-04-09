@@ -56,7 +56,7 @@ class DielectricQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = [
             "dielectric.e_total",
             "dielectric.e_ionic",

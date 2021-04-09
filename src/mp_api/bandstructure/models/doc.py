@@ -33,12 +33,12 @@ class BSBandMinMax(BaseModel):
 
     band_index: dict = Field(
         None,
-        description="Band energy indices of CBM or VBM points in band structure object",
+        description="Band energy indexes of CBM or VBM points in band structure object",
     )
 
     kpoint_index: List[int] = Field(
         None,
-        description="K-point indices of CBM or VBM points in band structure object",
+        description="K-point indexes of CBM or VBM points in band structure object",
     )
 
     kpoint: Union[str, List[str]] = Field(

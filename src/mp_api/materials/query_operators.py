@@ -27,7 +27,7 @@ class FormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = ["chemsys", "formula_pretty", "formula_anonymous", "composition_reduced"]
         return [(key, False) for key in keys]
 
@@ -64,7 +64,7 @@ class ElementsQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("elements", False)]
 
 
@@ -139,14 +139,14 @@ class MinMaxQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = self._keys_from_query()
-        indices = []
+        indexes = []
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indices.append((key, False))
-        return indices
+            indexes.append((key, False))
+        return indexes
 
 
 class SymmetryQuery(QueryOperator):
@@ -180,7 +180,7 @@ class SymmetryQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = ["symmetry.crystal_system", "symmetry.number", "symmetry.symbol"]
         return [(key, False) for key in keys]
 
@@ -204,7 +204,7 @@ class MultiTaskIDQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("task_ids", False)]
 
 

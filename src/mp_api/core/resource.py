@@ -91,16 +91,16 @@ class Resource(MSONable, ABC):
             url = self.router.url_path_for("/")
             return RedirectResponse(url=url, status_code=301)
 
-    def setup_indices(self):
+    def setup_indexes(self):
         """
-        Internal method to ensure indices in MongoDB
+        Internal method to ensure indexes in MongoDB
         """
 
         self.store.connect()
         self.store.ensure_index(self.store.key, unique=True)
         if self.query_operators is not None:
             for query_operator in self.query_operators:
-                keys = query_operator.ensure_indices()
+                keys = query_operator.ensure_indexes()
                 if keys:
                     for (key, unique) in keys:
                         self.store.ensure_index(key, unique=unique)

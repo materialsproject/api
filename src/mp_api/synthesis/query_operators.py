@@ -27,5 +27,5 @@ class SynthFormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("formula", False)]

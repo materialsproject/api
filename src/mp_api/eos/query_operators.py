@@ -42,6 +42,6 @@ class EnergyVolumeQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = ["volume", "energy"]
         return [(key, False) for key in keys]

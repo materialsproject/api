@@ -33,7 +33,7 @@ class MAPI(MSONable):
 
         if not debug:
             for resource in resources.values():
-                resource.setup_indices()
+                resource.setup_indexes()
 
     @property
     def app(self):

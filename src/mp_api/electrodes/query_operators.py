@@ -33,7 +33,7 @@ class ElectrodeFormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("composition_reduced", False)]
 
 
@@ -146,15 +146,15 @@ class VoltageStepQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = [key for key in self._keys_from_query() if key != "delta_volume_min"]
-        indices = []
+        indexes = []
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indices.append((key, False))
-        indices.append(("max_delta_volume", False))
-        return indices
+            indexes.append((key, False))
+        indexes.append(("max_delta_volume", False))
+        return indexes
 
 
 class InsertionVoltageStepQuery(QueryOperator):
@@ -198,15 +198,15 @@ class InsertionVoltageStepQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = self._keys_from_query()
 
-        indices = []
+        indexes = []
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indices.append((key, False))
-        return indices
+            indexes.append((key, False))
+        return indexes
 
 
 class InsertionElectrodeQuery(QueryOperator):
@@ -258,12 +258,12 @@ class InsertionElectrodeQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = self._keys_from_query()
 
-        indices = []
+        indexes = []
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indices.append((key, False))
-        return indices
+            indexes.append((key, False))
+        return indexes

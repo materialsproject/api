@@ -35,5 +35,5 @@ class PiezoelectricQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("piezo.e_ij_max", False)]

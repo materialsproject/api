@@ -120,7 +120,7 @@ class SearchBandGapQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = ["{}_energy".format(path_type) for path_type in ["sc", "hin", "lm"]]
         keys += ["dos_energy_up", "dos_energy_down"]
         keys += ["{}_direct".format(path_type) for path_type in ["sc", "hin", "lm"]]
@@ -201,7 +201,7 @@ class ThermoEnergySearchQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = [
             "energy",
             "energy_per_atom",
@@ -232,7 +232,7 @@ class SearchIsStableQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("is_stable", False)]
 
 
@@ -327,21 +327,21 @@ class SearchElasticityQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = [
             key
             for key in self._keys_from_query()
             if "anisotropy" not in key and "poisson" not in key
         ]
 
-        indices = []
+        indexes = []
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indices.append((key, False))
-        indices.append(("universal_anisotropy", False))
-        indices.append(("homogeneous_poisson", False))
-        return indices
+            indexes.append((key, False))
+        indexes.append(("universal_anisotropy", False))
+        indexes.append(("homogeneous_poisson", False))
+        return indexes
 
 
 class SearchMagneticQuery(QueryOperator):
@@ -404,7 +404,7 @@ class SearchMagneticQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = [
             "total_magnetization",
             "total_magnetization_normalized_vol",
@@ -471,7 +471,7 @@ class SearchDielectricPiezoQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = ["e_total", "e_ionic", "e_static", "n", "e_ij_max"]
         return [(key, False) for key in keys]
 
@@ -495,7 +495,7 @@ class SearchIsTheoreticalQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("theoretical", False)]
 
 

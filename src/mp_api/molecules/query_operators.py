@@ -28,7 +28,7 @@ class MoleculeElementsQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("elements", False)]
 
 
@@ -97,14 +97,14 @@ class MoleculeBaseQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = self._keys_from_query()
-        indices = []
+        indexes = []
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indices.append((key, False))
-        return indices
+            indexes.append((key, False))
+        return indexes
 
 
 class MoleculeFormulaQuery(QueryOperator):
@@ -128,5 +128,5 @@ class MoleculeFormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("formula_pretty", False)]

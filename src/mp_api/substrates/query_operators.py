@@ -50,7 +50,7 @@ class SubstrateStructureQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = ["film_id", "sub_id", "sub_form", "film_orient", "orient"]
         return [(key, False) for key in keys]
 
@@ -95,6 +95,6 @@ class EnergyAreaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = ["area", "energy"]
         return [(key, False) for key in keys]

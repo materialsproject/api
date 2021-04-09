@@ -62,7 +62,7 @@ class SurfaceMinMaxQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = [
             "weighted_surface_energy",
             "weighted_work_function",
@@ -92,5 +92,5 @@ class ReconstructedQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         return [("has_reconstructed", False)]

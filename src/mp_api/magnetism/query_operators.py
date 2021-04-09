@@ -92,11 +92,11 @@ class MagneticQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indices(self):
+    def ensure_indexes(self):
         keys = self._keys_from_query()
-        indices = []
+        indexes = []
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indices.append(("magnetism." + key, False))
-        return indices
+            indexes.append(("magnetism." + key, False))
+        return indexes

@@ -35,10 +35,10 @@ class QueryOperator(MSONable):
         """
         return docs
 
-    def ensure_indices(self) -> List[Tuple[str, bool]]:
+    def ensure_indexes(self) -> List[Tuple[str, bool]]:
         """
         Returns tuples of keys other than the store index,
-        and whether they are unique, to be used to setup indices
+        and whether they are unique, to be used to setup indexes
         in MongoDB
         """
         return []
