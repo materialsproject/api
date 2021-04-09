@@ -10,7 +10,7 @@ from mp_api.gb.models import GBTypeEnum, GBDoc
 class GBRester(BaseRester):
 
     suffix = "gb"
-    document_model = GBDoc
+    document_model = GBDoc  # type: ignore
 
     def search_gb_docs(
         self,

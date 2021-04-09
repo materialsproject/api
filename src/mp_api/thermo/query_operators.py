@@ -13,16 +13,14 @@ class ThermoChemicalQuery(QueryOperator):
     def query(
         self,
         chemsys: Optional[str] = Query(
-            None,
-            description="Dash-delimited list of elements in the material.",
+            None, description="Dash-delimited list of elements in the material.",
         ),
         elements: Optional[str] = Query(
             None,
             description="Elements in the material composition as a comma-separated list",
         ),
         nelements: Optional[int] = Query(
-            None,
-            description="Number of elements in the material",
+            None, description="Number of elements in the material",
         ),
     ):
 
@@ -43,6 +41,10 @@ class ThermoChemicalQuery(QueryOperator):
 
         return {"criteria": crit}
 
+    def ensure_indexes(self):
+        keys = self._keys_from_query()
+        return [(key, False) for key in keys]
+
 
 class IsStableQuery(QueryOperator):
     """
@@ -59,9 +61,13 @@ class IsStableQuery(QueryOperator):
         crit = {}
 
         if is_stable is not None:
-            crit["thermo.is_stable"] = is_stable
+            crit["is_stable"] = is_stable
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+        keys = self._keys_from_query()
+        return [(key, False) for key in keys]
 
 
 class ThermoEnergyQuery(QueryOperator):
@@ -71,70 +77,58 @@ class ThermoEnergyQuery(QueryOperator):
 
     def query(
         self,
-        energy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total energy in eV.",
-        ),
-        energy_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total energy in eV.",
-        ),
         energy_per_atom_max: Optional[float] = Query(
             None,
-            description="Maximum value for the total energy in eV/atom.",
+            description="Maximum value for the corrected total energy in eV/atom.",
         ),
         energy_per_atom_min: Optional[float] = Query(
             None,
-            description="Minimum value for the total energy in eV/atom.",
+            description="Minimum value for the corrected total energy in eV/atom.",
         ),
         formation_energy_per_atom_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the formation energy in eV/atom.",
+            None, description="Maximum value for the formation energy in eV/atom.",
         ),
         formation_energy_per_atom_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the formation energy in eV/atom.",
+            None, description="Minimum value for the formation energy in eV/atom.",
         ),
-        e_above_hull_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the energy above the hull in eV/atom.",
+        energy_above_hull_max: Optional[float] = Query(
+            None, description="Maximum value for the energy above the hull in eV/atom.",
         ),
-        e_above_hull_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the energy above the hull in eV/atom.",
+        energy_above_hull_min: Optional[float] = Query(
+            None, description="Minimum value for the energy above the hull in eV/atom.",
         ),
-        eq_reaction_max: Optional[float] = Query(
+        equillibrium_reaction_energy_per_atom_max: Optional[float] = Query(
             None,
             description="Maximum value for the equilibrium reaction energy in eV/atom.",
         ),
-        eq_reaction_min: Optional[float] = Query(
+        equillibrium_reaction_energy_per_atom_min: Optional[float] = Query(
             None,
             description="Minimum value for the equilibrium reaction energy in eV/atom.",
         ),
-        corrected_energy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the corrected total energy in eV.",
+        uncorrected_energy_per_atom_max: Optional[float] = Query(
+            None, description="Maximum value for the uncorrected total energy in eV.",
         ),
-        corrected_energy_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the corrected total energy in eV.",
+        uncorrected_energy_per_atom_min: Optional[float] = Query(
+            None, description="Minimum value for the uncorrected total energy in eV.",
         ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
 
         d = {
-            "thermo.energy": [energy_min, energy_max],
-            "thermo.energy_per_atom": [energy_per_atom_min, energy_per_atom_max],
-            "thermo.formation_energy_per_atom": [
+            "energy_per_atom": [energy_per_atom_min, energy_per_atom_max],
+            "formation_energy_per_atom": [
                 formation_energy_per_atom_min,
                 formation_energy_per_atom_max,
             ],
-            "thermo.e_above_hull": [e_above_hull_min, e_above_hull_max],
-            "thermo.eq_reaction_e": [eq_reaction_min, eq_reaction_max],
-            "thermo.explanation.corrected_energy": [
-                corrected_energy_min,
-                corrected_energy_max,
+            "energy_above_hull": [energy_above_hull_min, energy_above_hull_max],
+            "equillibrium_reaction_energy_per_atom": [
+                equillibrium_reaction_energy_per_atom_min,
+                equillibrium_reaction_energy_per_atom_max,
+            ],
+            "uncorrected_energy": [
+                uncorrected_energy_per_atom_min,
+                uncorrected_energy_per_atom_max,
             ],
         }
 
@@ -146,3 +140,12 @@ class ThermoEnergyQuery(QueryOperator):
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+        keys = self._keys_from_query()
+        indexes = []
+        for key in keys:
+            if "_min" in key:
+                key = key.replace("_min", "")
+            indexes.append((key, False))
+        return indexes

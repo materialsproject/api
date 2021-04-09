@@ -6,6 +6,7 @@ resources = {}
 
 db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 db_version = os.environ.get("DB_VERSION")
+debug = os.environ.get("API_DEBUG", False)
 
 # Uncomment to use JSON store for development
 # core_store = JSONStore("./test_files/materials_Li_Fe_V.json")
@@ -479,5 +480,5 @@ resources.update({"user_settings": get_settings_resource(consumer_settings_store
 resources.update({"user_settings/set": set_settings_resource(consumer_settings_store)})
 
 
-api = MAPI(resources=resources)
+api = MAPI(resources=resources, debug=debug)
 app = api.app

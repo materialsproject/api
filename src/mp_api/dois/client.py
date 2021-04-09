@@ -5,7 +5,7 @@ from mp_api.dois.models import DOIDoc
 class DOIRester(BaseRester):
 
     suffix = "doi"
-    document_model = DOIDoc
+    document_model = DOIDoc  # type: ignore
 
     def get_eos_from_material_id(self, material_id: str):
         """

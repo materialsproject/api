@@ -13,16 +13,13 @@ class SubstrateStructureQuery(QueryOperator):
     def query(
         self,
         film_id: Optional[str] = Query(
-            None,
-            description="Materials Project ID of the film material.",
+            None, description="Materials Project ID of the film material.",
         ),
         substrate_id: Optional[str] = Query(
-            None,
-            description="Materials Project ID of the substrate material.",
+            None, description="Materials Project ID of the substrate material.",
         ),
         substrate_formula: Optional[str] = Query(
-            None,
-            description="Reduced formula of the substrate material.",
+            None, description="Reduced formula of the substrate material.",
         ),
         film_orientation: Optional[str] = Query(
             None,
@@ -53,6 +50,10 @@ class SubstrateStructureQuery(QueryOperator):
 
         return {"criteria": crit}
 
+    def ensure_indexes(self):
+        keys = ["film_id", "sub_id", "sub_form", "film_orient", "orient"]
+        return [(key, False) for key in keys]
+
 
 class EnergyAreaQuery(QueryOperator):
     """
@@ -71,12 +72,10 @@ class EnergyAreaQuery(QueryOperator):
             description="Minimum value for the minimum coincident interface area in Å².",
         ),
         energy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the energy in meV.",
+            None, description="Maximum value for the energy in meV.",
         ),
         energy_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the energy in meV.",
+            None, description="Minimum value for the energy in meV.",
         ),
     ) -> STORE_PARAMS:
 
@@ -95,3 +94,7 @@ class EnergyAreaQuery(QueryOperator):
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+        keys = ["area", "energy"]
+        return [(key, False) for key in keys]

@@ -13,36 +13,28 @@ class DielectricQuery(QueryOperator):
     def query(
         self,
         e_total_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total dielectric constant.",
+            None, description="Maximum value for the total dielectric constant.",
         ),
         e_total_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total dielectric constant.",
+            None, description="Minimum value for the total dielectric constant.",
         ),
         e_ionic_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the ionic dielectric constant.",
+            None, description="Maximum value for the ionic dielectric constant.",
         ),
         e_ionic_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the ionic dielectric constant.",
+            None, description="Minimum value for the ionic dielectric constant.",
         ),
         e_static_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the static dielectric constant.",
+            None, description="Maximum value for the static dielectric constant.",
         ),
         e_static_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the static dielectric constant.",
+            None, description="Minimum value for the static dielectric constant.",
         ),
         n_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the refractive index.",
+            None, description="Maximum value for the refractive index.",
         ),
         n_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the refractive index.",
+            None, description="Minimum value for the refractive index.",
         ),
     ) -> STORE_PARAMS:
 
@@ -63,3 +55,12 @@ class DielectricQuery(QueryOperator):
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+        keys = [
+            "dielectric.e_total",
+            "dielectric.e_ionic",
+            "dielectric.e_static",
+            "dielectric.n",
+        ]
+        return [(key, False) for key in keys]

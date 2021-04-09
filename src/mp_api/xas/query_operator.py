@@ -23,6 +23,10 @@ class XASQuery(QueryOperator):
 
         return {"criteria": query} if len(query) > 0 else {}
 
+    def ensure_indexes(self):
+        keys = ["edge", "absorbing_element"]
+        return [(key, False) for key in keys]
+
 
 class XASTaskIDQuery(QueryOperator):
     """

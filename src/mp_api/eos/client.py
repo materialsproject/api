@@ -10,7 +10,7 @@ import warnings
 class EOSRester(BaseRester):
 
     suffix = "eos"
-    document_model = EOSDoc
+    document_model = EOSDoc  # type: ignore
 
     def get_eos_from_material_id(self, material_id: str):
         """

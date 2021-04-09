@@ -27,6 +27,10 @@ class FormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
+    def ensure_indexes(self):
+        keys = ["chemsys", "formula_pretty", "formula_anonymous", "composition_reduced"]
+        return [(key, False) for key in keys]
+
 
 class ElementsQuery(QueryOperator):
     """
@@ -59,6 +63,9 @@ class ElementsQuery(QueryOperator):
             crit["elements"]["$nin"] = [str(el) for el in element_list]
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+        return [("elements", False)]
 
 
 class DeprecationQuery(QueryOperator):
@@ -132,6 +139,15 @@ class MinMaxQuery(QueryOperator):
 
         return {"criteria": crit}
 
+    def ensure_indexes(self):
+        keys = self._keys_from_query()
+        indexes = []
+        for key in keys:
+            if "_min" in key:
+                key = key.replace("_min", "")
+            indexes.append((key, False))
+        return indexes
+
 
 class SymmetryQuery(QueryOperator):
     """
@@ -164,6 +180,10 @@ class SymmetryQuery(QueryOperator):
 
         return {"criteria": crit}
 
+    def ensure_indexes(self):
+        keys = ["symmetry.crystal_system", "symmetry.number", "symmetry.symbol"]
+        return [(key, False) for key in keys]
+
 
 class MultiTaskIDQuery(QueryOperator):
     """
@@ -183,6 +203,9 @@ class MultiTaskIDQuery(QueryOperator):
             crit.update({"task_ids": {"$in": task_ids.split(",")}})
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+        return [("task_ids", False)]
 
 
 class MultiMaterialIDQuery(QueryOperator):

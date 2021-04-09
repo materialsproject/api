@@ -10,7 +10,7 @@ import warnings
 class ElasticityRester(BaseRester):
 
     suffix = "elasticity"
-    document_model = ElasticityDoc
+    document_model = ElasticityDoc  # type: ignore
 
     def get_elasticity_from_material_id(self, material_id: str):
         """
@@ -109,10 +109,7 @@ class ElasticityRester(BaseRester):
 
         if poisson_ratio:
             query_params.update(
-                {
-                    "poisson_min": poisson_ratio[0],
-                    "poisson_max": poisson_ratio[1],
-                }
+                {"poisson_min": poisson_ratio[0], "poisson_max": poisson_ratio[1]}
             )
 
         if fields:

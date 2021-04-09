@@ -13,36 +13,28 @@ class SurfaceMinMaxQuery(QueryOperator):
     def query(
         self,
         weighted_surface_energy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the weighted surface energy in J/m².",
+            None, description="Maximum value for the weighted surface energy in J/m².",
         ),
         weighted_surface_energy_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the weighted surface energy in J/m².",
+            None, description="Minimum value for the weighted surface energy in J/m².",
         ),
         weighted_work_function_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the weighted work function in eV.",
+            None, description="Maximum value for the weighted work function in eV.",
         ),
         weighted_work_function_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the weighted work function in eV.",
+            None, description="Minimum value for the weighted work function in eV.",
         ),
         surface_anisotropy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the surface energy anisotropy.",
+            None, description="Maximum value for the surface energy anisotropy.",
         ),
         surface_anisotropy_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the surface energy anisotropy.",
+            None, description="Minimum value for the surface energy anisotropy.",
         ),
         shape_factor_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the shape factor.",
+            None, description="Maximum value for the shape factor.",
         ),
         shape_factor_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the shape factor.",
+            None, description="Minimum value for the shape factor.",
         ),
     ) -> STORE_PARAMS:
 
@@ -57,14 +49,8 @@ class SurfaceMinMaxQuery(QueryOperator):
                 weighted_work_function_min,
                 weighted_work_function_max,
             ],
-            "surface_anisotropy": [
-                surface_anisotropy_min,
-                surface_anisotropy_max,
-            ],
-            "shape_factor": [
-                shape_factor_min,
-                shape_factor_max,
-            ],
+            "surface_anisotropy": [surface_anisotropy_min, surface_anisotropy_max],
+            "shape_factor": [shape_factor_min, shape_factor_max],
         }
 
         for entry in d:
@@ -76,6 +62,15 @@ class SurfaceMinMaxQuery(QueryOperator):
 
         return {"criteria": crit}
 
+    def ensure_indexes(self):
+        keys = [
+            "weighted_surface_energy",
+            "weighted_work_function",
+            "surface_anisotropy",
+            "shape_factor",
+        ]
+        return [(key, False) for key in keys]
+
 
 class ReconstructedQuery(QueryOperator):
     """
@@ -86,8 +81,7 @@ class ReconstructedQuery(QueryOperator):
     def query(
         self,
         has_reconstructed: Optional[bool] = Query(
-            None,
-            description="Whether the entry has a reconstructed surface.",
+            None, description="Whether the entry has a reconstructed surface.",
         ),
     ) -> STORE_PARAMS:
 
@@ -97,3 +91,6 @@ class ReconstructedQuery(QueryOperator):
             crit.update({"has_reconstructed": has_reconstructed})
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+        return [("has_reconstructed", False)]

@@ -1,4 +1,4 @@
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
 from mp_api.fermi.models import FermiDoc
 
 from collections import defaultdict

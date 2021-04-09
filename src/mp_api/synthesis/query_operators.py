@@ -14,8 +14,7 @@ class SynthFormulaQuery(QueryOperator):
     def query(
         self,
         formula: Optional[str] = Query(
-            None,
-            description="Chemical formula of the material.",
+            None, description="Chemical formula of the material.",
         ),
     ) -> STORE_PARAMS:
 
@@ -27,3 +26,6 @@ class SynthFormulaQuery(QueryOperator):
             crit["formula"] = reduced_formula
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+        return [("formula", False)]
