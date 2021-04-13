@@ -42,11 +42,22 @@ def charge_density_resource(s3_store):
                 criteria={key_name: material_id}, properties=[key_name],
             ).get(key_name, None)
 
-            if chgcar_key is None:
+            r = self.s3.query_one(
+                criteria={key_name: material_id}, properties=[key_name],
+            )
+
+            if r is None:
                 raise HTTPException(
                     status_code=404,
-                    detail=f"Charge density data with {key_name} = {chgcar_key} not found",
+                    detail=f"Charge density data with {key_name} = {material_id} not found",
                 )
+            else:
+                chgcar_key = r.get(key_name, None)
+                if chgcar_key is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Charge density data with {key_name} = {material_id} not found",
+                    )
 
             item = self.s3.query_one(
                 {key_name: chgcar_key}, properties=fields["properties"]
