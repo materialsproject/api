@@ -38,10 +38,6 @@ def charge_density_resource(s3_store):
 
             self.s3.connect()
 
-            chgcar_key = self.s3.query_one(
-                criteria={key_name: material_id}, properties=[key_name],
-            ).get(key_name, None)
-
             r = self.s3.query_one(
                 criteria={key_name: material_id}, properties=[key_name],
             )
