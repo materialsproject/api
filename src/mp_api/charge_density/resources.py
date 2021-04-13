@@ -59,6 +59,8 @@ def charge_density_resource(s3_store):
                         detail=f"Charge density data with {key_name} = {material_id} not found",
                     )
 
+            self.s3.connect()
+
             item = self.s3.query_one(
                 {key_name: chgcar_key}, properties=fields["properties"]
             )
