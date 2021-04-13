@@ -270,7 +270,7 @@ if db_uri:
         index=s3_chgcar_index,
         bucket="mp-volumetric",
         sub_dir="atomate_chgcar_fs/",
-        compress=False,
+        compress=True,
         key="fs_id",
         searchable_fields=["task_id", "fs_id"],
     )
