@@ -48,7 +48,7 @@ def charge_density_resource(s3_store):
                     detail=f"Item with {key_name} = {material_id} not found",
                 )
 
-            response = {"data": item}
+            response = item
 
             return response
 
