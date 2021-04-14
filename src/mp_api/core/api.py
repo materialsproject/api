@@ -31,16 +31,17 @@ class MAPI(MSONable):
         self.version = version
         self.debug = debug
 
-        if not debug:
-            for resource in resources.values():
-                resource.setup_indexes()
-
     @property
     def app(self):
         """
         App server for the cluster manager
         """
-        app = FastAPI(title=self.title, version=self.version)
+
+        # TODO this should run on `not self.debug`!
+        on_startup = [
+            resource.setup_indexes for resource in self.resources.values()
+        ] if self.debug else []
+        app = FastAPI(title=self.title, version=self.version, on_startup=on_startup)
         if len(self.resources) == 0:
             raise RuntimeError("ERROR: There are no resources provided")
 
