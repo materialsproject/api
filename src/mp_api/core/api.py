@@ -9,6 +9,7 @@ from mp_api.core.resource import ConsumerPostResource, GetResource
 from mp_api.core.settings import MAPISettings
 from pymatgen.core import __version__ as pmg_version  # type: ignore
 from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
 
 
 class MAPI(MSONable):
@@ -45,6 +46,14 @@ class MAPI(MSONable):
             else []
         )
         app = FastAPI(title=self.title, version=self.version, on_startup=on_startup)
+
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["GET"],
+            allow_headers=["*"],
+        )
+
         if len(self.resources) == 0:
             raise RuntimeError("ERROR: There are no resources provided")
 
