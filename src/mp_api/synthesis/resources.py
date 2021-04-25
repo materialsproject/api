@@ -26,7 +26,9 @@ def synth_resource(synth_store):
                     "$search": {
                         "index": "synth_descriptions",
                         "regex": {
-                            "query": [word + ".*" for word in keywords.split(",")],
+                            # TODO: should handle multiple-word queries explicitly, for now will split by
+                            # space and query as multiple words
+                            "query": [word + ".*" for word in keywords.replace(" ", ",").split(",") if word],
                             "path": "text",
                             "allowAnalyzedField": True,
                         },
