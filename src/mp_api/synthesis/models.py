@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-
+from typing import List, Dict
 
 class SynthesisDoc(BaseModel):
     """
@@ -19,4 +19,9 @@ class SynthesisDoc(BaseModel):
     text: str = Field(
         None,
         description="Synthesis description.",
+    )
+
+    highlights: List[Dict] = Field(
+        None,
+        description="Highlighted search terms when searching by keyword(s)."
     )

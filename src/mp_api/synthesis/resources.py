@@ -30,6 +30,10 @@ def synth_resource(synth_store):
                             "path": "text",
                             "allowAnalyzedField": True,
                         },
+                        "highlight": {
+                            "path": "text",
+                            "maxNumPassages": 1
+                        }
                     }
                 },
                 {
@@ -39,6 +43,7 @@ def synth_resource(synth_store):
                         "formula": 1,
                         "text": 1,
                         "search_score": {"$meta": "searchScore"},
+                        "highlights": {"$meta": "searchHighlights"}
                     }
                 },
                 {"$sort": {"search_score": -1}},
