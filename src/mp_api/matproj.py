@@ -1,6 +1,7 @@
 from os import environ
 from urllib.parse import urljoin
 
+from monty.dev import deprecated
 from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 
@@ -28,6 +29,7 @@ from mp_api.robocrys.client import RobocrysRester
 from mp_api.molecules.client import MoleculesRester
 from mp_api.synthesis.client import SynthesisRester
 from mp_api.electrodes.client import ElectrodeRester
+from mp_api.charge_density.client import ChargeDensityRester
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -164,6 +166,7 @@ class MPRester:
         self.electrodes = ElectrodeRester(
             api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
         )
+        self.charge_density = ChargeDensityRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
 
     def __enter__(self):
         """
@@ -192,17 +195,11 @@ class MPRester:
         ):
             rester.session.close()
 
-    def has(self, mpid):
-        # TODO: remove, here until search end-point has a client
-        return self.materials.session.get(
-            urljoin(self.endpoint, f"search/{mpid}/?fields=has_props")
-        ).json()["data"][0]["has_props"]
-
     ###########################################################################
     # The following methods are retained for backwards compatibility, but will
     # eventually be retired.
 
-    # @deprecated(MPRester.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
+    #@deprecated(self.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
     def get_structure_by_material_id(
         self, material_id, final=True, conventional_unit_cell=False
     ) -> Structure:
@@ -222,9 +219,6 @@ class MPRester:
         """
         # TODO: decide about `final` and `conventional_unit_cell`
         return self.materials.get_structure_by_material_id(material_id=material_id)
-
-    ###########################################################################
-    # The following methods have not been implemented yet.
 
     # @deprecated(self.materials.get_database_version, _DEPRECATION_WARNING)
     def get_database_version(self):
@@ -256,44 +250,6 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_materials_id_references(self, material_id):
-        """
-        Returns all references for a materials id.
-
-        Args:
-            material_id (str): A material id.
-
-        Returns:
-            BibTeX (str)
-        """
-        raise NotImplementedError
-
-    def get_data(self, chemsys_formula_id, data_type="vasp", prop=""):
-        """
-        Flexible method to get any data using the Materials Project REST
-        interface. Generally used by other methods for more specific queries.
-
-        Format of REST return is *always* a list of dict (regardless of the
-        number of pieces of data returned. The general format is as follows:
-
-        [{"material_id": material_id, "property_name" : value}, ...]
-
-        This is generally a call to
-        https://www.materialsproject.org/rest/v2/materials/vasp/<prop>.
-        See https://github.com/materialsproject/mapidoc for details.
-
-        Args:
-            chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
-            data_type (str): Type of data to return. Currently can either be
-                "vasp" or "exp".
-            prop (str): Property to be obtained. Should be one of the
-                MPRester.supported_task_properties. Leave as empty string for a
-                general list of useful properties.
-        """
-        # TODO: this will likely not stay in current form, e.g. exp key?
-        raise NotImplementedError
-
     def get_materials_ids(self, chemsys_formula):
         """
         Get all materials ids for a formula or chemsys.
@@ -305,61 +261,9 @@ class MPRester:
         Returns:
             ([str]) List of all materials ids.
         """
-        raise NotImplementedError
+        return sorted(doc.task_id for doc in self.materials.search_material_docs(chemsys_formula=chemsys_formula))
 
-    def get_doc(self, materials_id):
-        """
-        Get the entire data document for one materials id. Use this judiciously.
-
-        REST Endpoint: https://www.materialsproject.org/materials/<mp-id>/doc.
-
-        Args:
-            materials_id (str): E.g., mp-1143 for Al2O3
-
-        Returns:
-            Dict of json document of all data that is displayed on a materials
-            details page.
-        """
-        raise NotImplementedError
-
-    def get_xas_data(self, material_id, absorbing_element):
-        """
-        Get X-ray absorption spectroscopy data for absorbing element in the
-        structure corresponding to a material_id. Only X-ray Absorption Near Edge
-        Structure (XANES) for K-edge is supported.
-
-        REST Endpoint:
-        https://www.materialsproject.org/materials/<mp-id>/xas/<absorbing_element>.
-
-        Args:
-            material_id (str): E.g., mp-1143 for Al2O3
-            absorbing_element (str): The absorbing element in the corresponding
-                structure. E.g., Al in Al2O3
-        """
-        raise NotImplementedError
-
-    def get_task_data(self, chemsys_formula_id, prop=""):
-        """
-        Flexible method to get any data using the Materials Project REST
-        interface. Generally used by other methods for more specific queries.
-        Unlike the :func:`get_data`_, this method queries the task collection
-        for specific run information.
-
-        Format of REST return is *always* a list of dict (regardless of the
-        number of pieces of data returned. The general format is as follows:
-
-        [{"material_id": material_id, "property_name" : value}, ...]
-
-        Args:
-            chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
-            prop (str): Property to be obtained. Should be one of the
-                MPRester.supported_properties. Leave as empty string for a
-                general list of useful properties.
-        """
-        raise NotImplementedError
-
-    def get_structures(self, chemsys_formula_id, final=True):
+    def get_structures(self, chemsys_formula_id, energy_above_hull_cutoff=0):
         """
         Get a list of Structures corresponding to a chemical system, formula,
         or materials_id.
@@ -367,8 +271,6 @@ class MPRester:
         Args:
             chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
                 or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
-            final (bool): Whether to get the final structure, or the initial
-                (pre-relaxation) structure. Defaults to True.
 
         Returns:
             List of Structure objects.
