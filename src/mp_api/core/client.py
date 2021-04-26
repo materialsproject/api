@@ -18,6 +18,7 @@ import requests
 from monty.json import MontyEncoder, MontyDecoder
 from requests.exceptions import RequestException
 from pydantic import BaseModel
+from tqdm import tqdm
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
@@ -395,6 +396,42 @@ class BaseRester:
             )
         else:
             return results[0]
+
+    def _get_all_documents(self, query_params, fields=None, version=None, chunk_size=100, num_chunks=None):
+        """
+        Iterates over pages until all documents are retrieved. Displays
+        progress using tqdm. This method is designed to give a common
+        implementation for the search_* methods on various endpoints. See
+        materials endpoint for an example of this in use.
+        """
+
+        results = self._query_resource(query_params, fields=fields, version=version)
+
+        # if we have all the results in a single page, return directly
+        if len(results["data"]) == results["meta"]["total"]:
+            return results["data"]
+
+        # otherwise prepare to iterate over all pages
+        all_results = results["data"]
+        count = 1
+
+        # progress bar
+        t = tqdm(desc="Retrieving documents", total=results["meta"]["total"])
+        t.update(len(all_results))
+
+        while True:
+            query_params["skip"] = count * chunk_size
+            results = self._query_resource(query_params, fields=fields, version=version)
+
+            t.update(len(results["data"]))
+
+            if not any(results["data"]) or (num_chunks is not None and count == num_chunks):
+                break
+
+            count += 1
+            all_results += results["data"]
+
+        return all_results
 
     def query_by_task_id(self, *args, **kwargs):
         print(
