@@ -80,6 +80,7 @@ class BaseRester:
             self.endpoint += "/"
 
         self.session = requests.Session()
+        self.session.trust_env = False
         self.session.headers = {"x-api-key": self.api_key}
         if include_user_agent:
             pymatgen_info = "pymatgen/" + pmg_version
