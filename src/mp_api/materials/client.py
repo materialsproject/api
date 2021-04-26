@@ -75,10 +75,6 @@ class MaterialsRester(BaseRester):
 
         query_params = {"deprecated": deprecated}  # type: dict
 
-        if chunk_size <= 0 or chunk_size > 100:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
-
         if version:
             query_params.update({"version": version})
 
