@@ -5,6 +5,7 @@ from monty.dev import deprecated
 from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 
+from mp_api.core.client import BaseRester
 from mp_api.bandstructure.client import BSRester
 from mp_api.dos.client import DOSRester
 from mp_api.eos.client import EOSRester
@@ -88,85 +89,17 @@ class MPRester:
         self.endpoint = endpoint
         self.version = version
 
-        self.materials = MaterialsRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.xas = XASRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.similarity = SimilarityRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.eos = EOSRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.tasks = TaskRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.bandstructure = BSRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.dos = DOSRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.fermi = FermiRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.gb = GBRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.substrates = SubstratesRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.surface_properties = SurfacePropertiesRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.wulff = WulffRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.phonon = PhononRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.elasticity = ElasticityRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.thermo = ThermoRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.dielectric = DielectricRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.doi = DOIRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.piezo = PiezoRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.magnetism = MagnetismRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-
-        # TODO: remove this from public client?
-        self.phonon_img = PhononImgRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-
-        self.search = SearchRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.robocrys = RobocrysRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.molecules = MoleculesRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.synth = SynthesisRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.electrodes = ElectrodeRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.charge_density = ChargeDensityRester(api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent)
+        for cls in BaseRester.__subclasses__():
+            setattr(
+                self,
+                cls.suffix,
+                cls(
+                    api_key=api_key,
+                    endpoint=endpoint,
+                    version=version,
+                    include_user_agent=include_user_agent,
+                ),
+            )
 
     def __enter__(self):
         """
@@ -199,7 +132,7 @@ class MPRester:
     # The following methods are retained for backwards compatibility, but will
     # eventually be retired.
 
-    #@deprecated(self.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
+    # @deprecated(self.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
     def get_structure_by_material_id(
         self, material_id, final=True, conventional_unit_cell=False
     ) -> Structure:
@@ -261,7 +194,12 @@ class MPRester:
         Returns:
             ([str]) List of all materials ids.
         """
-        return sorted(doc.task_id for doc in self.materials.search_material_docs(chemsys_formula=chemsys_formula))
+        return sorted(
+            doc.task_id
+            for doc in self.materials.search_material_docs(
+                chemsys_formula=chemsys_formula
+            )
+        )
 
     def get_structures(self, chemsys_formula_id, energy_above_hull_cutoff=0):
         """
