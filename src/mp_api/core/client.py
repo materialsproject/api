@@ -417,7 +417,8 @@ class BaseRester:
         count = 1
 
         # progress bar
-        t = tqdm(desc="Retrieving documents", total=results["meta"]["total"])
+        query_to_print = {k: v for k, v in query_params.items() if k not in ("limit", "skip")}
+        t = tqdm(desc=f"Retrieving documents with query {query_to_print}", total=results["meta"]["total"])
         t.update(len(all_results))
 
         while True:
