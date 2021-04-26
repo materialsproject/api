@@ -12,6 +12,7 @@ class MaterialsRester(BaseRester):
 
     suffix = "materials"
     document_model = MaterialsCoreDoc
+    supports_versions = True
 
     def get_structure_by_material_id(
         self, material_id: str, version: Optional[str] = None
