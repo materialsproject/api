@@ -263,7 +263,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
             PaginationQuery(),
             SparseFieldsQuery(
                 MaterialsDoc,
-                default_fields=["task_id", "formula_pretty", "last_updated"],
+                default_fields=["material_id", "formula_pretty", "last_updated"],
             ),
         ],
         tags=["Materials"],
