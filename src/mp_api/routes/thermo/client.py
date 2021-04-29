@@ -1,5 +1,5 @@
 from mp_api.core.client import BaseRester
-from mp_api.routes.thermo.models import ThermoDoc
+from emmet.core.thermo import ThermoDoc
 
 
 class ThermoRester(BaseRester):
