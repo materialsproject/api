@@ -1,9 +1,8 @@
 from fastapi import HTTPException
 from mp_api.core.resource import GetResource
 from mp_api.routes.materials.models.core import Structure
-from mp_api.routes.materials.models.doc import MaterialsCoreDoc as MaterialsDoc
 
-# from emmet.core.material import MaterialsDoc
+from emmet.core.material import MaterialsDoc
 
 
 from mp_api.core.query_operator import (
