@@ -1,5 +1,5 @@
 from mp_api.core.resource import GetResource
-from mp_api.routes.electrodes.models import InsertionElectrodeDoc
+from emmet.core.electrode import InsertionElectrodeDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.routes.electrodes.query_operators import (

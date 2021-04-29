@@ -1,4 +1,3 @@
-from typing import List
 from datetime import datetime
 from monty.json import MontyDecoder
 
