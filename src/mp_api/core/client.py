@@ -47,7 +47,7 @@ class BaseRester:
         version=None,
         include_user_agent=True,
         session=None,
-        debug=False
+        debug=False,
     ):
         """
         Args:
@@ -247,7 +247,7 @@ class BaseRester:
         monty_decode: bool = True,
         suburl: Optional[str] = None,
         use_document_model: Optional[bool] = True,
-        version: Optional[str] = None
+        version: Optional[str] = None,
     ):
         """
         Query the endpoint for a Resource containing a list of documents
@@ -337,7 +337,7 @@ class BaseRester:
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         suburl: Optional[str] = None,
-        version: Optional[str] = None
+        version: Optional[str] = None,
     ):
         """
         Query the endpoint for a list of documents.
@@ -354,7 +354,11 @@ class BaseRester:
             A list of documents
         """
         return self._query_resource(
-            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl, version=version
+            criteria=criteria,
+            fields=fields,
+            monty_decode=monty_decode,
+            suburl=suburl,
+            version=version,
         ).get("data")
 
     def get_document_by_id(
@@ -412,12 +416,14 @@ class BaseRester:
         else:
             return results[0]
 
-    def search(self,
-               version: Optional[str] = None,
-               num_chunks: Optional[int] = None,
-               chunk_size: int = 1000,
-               fields: Optional[List[str]] = None,
-               **kwargs):
+    def search(
+        self,
+        version: Optional[str] = None,
+        num_chunks: Optional[int] = None,
+        chunk_size: int = 1000,
+        fields: Optional[List[str]] = None,
+        **kwargs,
+    ):
         """
         A generic search method to retrieve documents matching specific parameters.
 
@@ -436,11 +442,21 @@ class BaseRester:
         # documented kwargs.
 
         if not fields:
-            warnings.warn(f"No data fields requested. Choose from: {self.available_fields}")
+            warnings.warn(
+                f"No data fields requested. Choose from: {self.available_fields}"
+            )
 
-        return self._get_all_documents(kwargs, fields=fields, version=version, chunk_size=chunk_size, num_chunks=num_chunks)
+        return self._get_all_documents(
+            kwargs,
+            fields=fields,
+            version=version,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
+        )
 
-    def _get_all_documents(self, query_params, fields=None, version=None, chunk_size=1000, num_chunks=None):
+    def _get_all_documents(
+        self, query_params, fields=None, version=None, chunk_size=1000, num_chunks=None
+    ):
         """
         Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
@@ -459,7 +475,10 @@ class BaseRester:
         count = 1
 
         # progress bar
-        t = tqdm(desc=f"Retrieving {self.document_model.__name__} documents", total=results["meta"]["total"])
+        t = tqdm(
+            desc=f"Retrieving {self.document_model.__name__} documents",
+            total=results["meta"]["total"],
+        )
         t.update(len(all_results))
 
         while True:
@@ -468,7 +487,9 @@ class BaseRester:
 
             t.update(len(results["data"]))
 
-            if not any(results["data"]) or (num_chunks is not None and count == num_chunks):
+            if not any(results["data"]) or (
+                num_chunks is not None and count == num_chunks
+            ):
                 break
 
             count += 1
@@ -504,7 +525,7 @@ class BaseRester:
     def available_fields(self) -> List[str]:
         if self.document_model is None:
             return ["Unknown fields."]
-        return list(self.document_model.schema()['properties'].keys())  # type: ignore
+        return list(self.document_model.schema()["properties"].keys())  # type: ignore
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.endpoint}>"

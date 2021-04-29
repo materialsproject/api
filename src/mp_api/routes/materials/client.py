@@ -7,6 +7,7 @@ from mp_api.routes.materials.models.doc import CrystalSystem, MaterialsCoreDoc
 
 from mp_api.core.client import BaseRester, MPRestError
 
+
 class MaterialsRester(BaseRester):
 
     suffix = "materials"
@@ -112,7 +113,13 @@ class MaterialsRester(BaseRester):
 
         query_params.update({"limit": chunk_size, "skip": 0})
 
-        return self._get_all_documents(query_params, fields=fields, version=version, chunk_size=chunk_size, num_chunks=num_chunks)
+        return self._get_all_documents(
+            query_params,
+            fields=fields,
+            version=version,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
+        )
 
     def get_database_versions(self):
         """

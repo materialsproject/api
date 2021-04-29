@@ -1,7 +1,8 @@
 from fastapi import HTTPException
 from mp_api.core.resource import GetResource
 from mp_api.routes.materials.models.core import Structure
-from mp_api.routes.materials.models.doc import MaterialsCoreDoc
+
+from emmet.core.material import MaterialsDoc
 
 
 from mp_api.core.query_operator import (
@@ -249,7 +250,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
 
     resource = GetResource(
         materials_store,
-        MaterialsCoreDoc,
+        MaterialsDoc,
         query_operators=[
             VersionQuery(),
             FormulaQuery(),
@@ -261,8 +262,8 @@ def materials_resource(materials_store, formula_autocomplete_store):
             SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(
-                MaterialsCoreDoc,
-                default_fields=["task_id", "formula_pretty", "last_updated"],
+                MaterialsDoc,
+                default_fields=["material_id", "formula_pretty", "last_updated"],
             ),
         ],
         tags=["Materials"],
