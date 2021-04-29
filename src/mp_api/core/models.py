@@ -1,11 +1,10 @@
-from copy import deepcopy
 from datetime import datetime
 from typing import Generic, List, Optional, TypeVar, Type
 from monty.json import MSONable
 from pydantic.utils import lenient_issubclass
 from pydantic.schema import get_flat_models_from_model
 from mp_api import __version__
-from pydantic import BaseModel, Field, validator, create_model
+from pydantic import BaseModel, Field, validator
 from pydantic.generics import GenericModel
 
 
