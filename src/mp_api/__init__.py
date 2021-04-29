@@ -2,6 +2,7 @@
 """ Primary MAPI module """
 from pkg_resources import get_distribution, DistributionNotFound
 from monty.serialization import loadfn
+from mp_api.matproj import MPRester
 
 try:
     __version__ = get_distribution(__name__).version
@@ -26,6 +27,6 @@ try:
 except Exception as e:
     # Something went wrong with loading default app
     if settings.debug:
-        print("Failed loadning App")
+        print("Failed loading App")
         print(e)
         app = None
