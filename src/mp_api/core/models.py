@@ -82,7 +82,7 @@ class Response(GenericModel, Generic[DataT]):
 
 
 def api_sanitize(
-    pydantic_model: Type[BaseModel],
+    pydantic_model: BaseModel,
     fields_to_leave: Optional[List[str]] = None,
     allow_dict_msonable=False,
 ):
@@ -90,7 +90,9 @@ def api_sanitize(
     Function to clean up pydantic models for the API by:
         1.) Making fields optional
         2.) Allowing dictionaries in-place of the objects for MSONable quantities
+
     WARNING: This works in place, so it mutates the model and all sub-models
+
     Args:
         fields_to_leave: list of strings for model fields as "model__name__.field"
     """
@@ -107,7 +109,7 @@ def api_sanitize(
 
     for model in models:
         model_fields_to_leave = {f[1] for f in fields_tuples if model.__name__ == f[0]}
-        for name, field in model.__fields__.items():  # type: ignore
+        for name, field in model.__fields__.items():
             field_type = field.type_
 
             if name not in model_fields_to_leave:
