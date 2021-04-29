@@ -82,7 +82,7 @@ class Response(GenericModel, Generic[DataT]):
 
 
 def api_sanitize(
-    pydantic_model: BaseModel,
+    pydantic_model: Type[BaseModel],
     fields_to_leave: Optional[List[str]] = None,
     allow_dict_msonable=False,
 ):
@@ -109,7 +109,7 @@ def api_sanitize(
 
     for model in models:
         model_fields_to_leave = {f[1] for f in fields_tuples if model.__name__ == f[0]}
-        for name, field in model.__fields__.items():
+        for name, field in model.__fields__.items():  # type: ignore
             field_type = field.type_
 
             if name not in model_fields_to_leave:
