@@ -44,9 +44,10 @@ class BaseRester:
         self,
         api_key=DEFAULT_API_KEY,
         endpoint=DEFAULT_ENDPOINT,
-        debug=True,
         version=None,
         include_user_agent=True,
+        session=None,
+        debug=False
     ):
         """
         Args:
@@ -67,30 +68,41 @@ class BaseRester:
                 making the API request. This helps MP support pymatgen users, and
                 is similar to what most web browsers send with each page request.
                 Set to False to disable the user agent.
+            session: requests Session object with which to connect to the API, for
+                advanced usage only.
+            debug: if True, print the URL for every request
         """
 
         self.api_key = api_key
         self.endpoint = endpoint
-        self.debug = debug
         self.version = version
+        self.debug = debug
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        self.session = requests.Session()
-        self.session.trust_env = False
-        self.session.headers = {"x-api-key": self.api_key}
+        if session:
+            self.session = session
+        else:
+            self.session = self._create_session(api_key, include_user_agent)
+
+    @staticmethod
+    def _create_session(api_key, include_user_agent):
+        session = requests.Session()
+        session.trust_env = False
+        session.headers = {"x-api-key": api_key}
         if include_user_agent:
             pymatgen_info = "pymatgen/" + pmg_version
             python_info = "Python/{}.{}.{}".format(
                 sys.version_info.major, sys.version_info.minor, sys.version_info.micro
             )
             platform_info = "{}/{}".format(platform.system(), platform.release())
-            self.session.headers["user-agent"] = "{} ({} {})".format(
+            session.headers["user-agent"] = "{} ({} {})".format(
                 pymatgen_info, python_info, platform_info
             )
+        return session
 
     def __enter__(self):
         """
@@ -265,6 +277,8 @@ class BaseRester:
             criteria = {}
 
         if fields:
+            if isinstance(fields, str):
+                fields = [fields]
             criteria["fields"] = ",".join(fields)
 
         if version and (not self.supports_versions):
@@ -398,7 +412,35 @@ class BaseRester:
         else:
             return results[0]
 
-    def _get_all_documents(self, query_params, fields=None, version=None, chunk_size=100, num_chunks=None):
+    def search(self,
+               version: Optional[str] = None,
+               num_chunks: Optional[int] = None,
+               chunk_size: int = 1000,
+               fields: Optional[List[str]] = None,
+               **kwargs):
+        """
+        A generic search method to retrieve documents matching specific parameters.
+
+        Arguments:
+            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int): Number of data entries per chunk.
+            fields (List[str]): List of fields to project. When searching, it is better to only ask for
+                the specific fields of interest to reduce the time taken to retrieve the documents.
+            kwargs: Supported search terms, e.g. nelements_max=3 for the "materials" search API.
+                Consult the specific API route for valid search terms.
+
+        Returns:
+            A list of documents.
+        """
+        # This method should be customized for each end point to give more user friendly,
+        # documented kwargs.
+
+        if not fields:
+            warnings.warn(f"No data fields requested. Choose from: {self.available_fields}")
+
+        return self._get_all_documents(kwargs, fields=fields, version=version, chunk_size=chunk_size, num_chunks=num_chunks)
+
+    def _get_all_documents(self, query_params, fields=None, version=None, chunk_size=1000, num_chunks=None):
         """
         Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
@@ -417,8 +459,7 @@ class BaseRester:
         count = 1
 
         # progress bar
-        query_to_print = {k: v for k, v in query_params.items() if k not in ("limit", "skip")}
-        t = tqdm(desc=f"Retrieving documents with query {query_to_print}", total=results["meta"]["total"])
+        t = tqdm(desc=f"Retrieving {self.document_model.__name__} documents", total=results["meta"]["total"])
         t.update(len(all_results))
 
         while True:
