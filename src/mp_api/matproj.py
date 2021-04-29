@@ -1,36 +1,10 @@
 from os import environ
-from urllib.parse import urljoin
 
-from monty.dev import deprecated
 from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 
 from mp_api.core.client import BaseRester
-from mp_api.bandstructure.client import BSRester
-from mp_api.dos.client import DOSRester
-from mp_api.eos.client import EOSRester
-from mp_api.materials.client import MaterialsRester
-from mp_api.similarity.client import SimilarityRester
-from mp_api.tasks.client import TaskRester
-from mp_api.xas.client import XASRester
-from mp_api.fermi.client import FermiRester
-from mp_api.gb.client import GBRester
-from mp_api.substrates.client import SubstratesRester
-from mp_api.surface_properties.client import SurfacePropertiesRester
-from mp_api.wulff.client import WulffRester
-from mp_api.phonon.client import PhononRester, PhononImgRester
-from mp_api.elasticity.client import ElasticityRester
-from mp_api.thermo.client import ThermoRester
-from mp_api.dielectric.client import DielectricRester
-from mp_api.dois.client import DOIRester
-from mp_api.piezo.client import PiezoRester
-from mp_api.magnetism.client import MagnetismRester
-from mp_api.search.client import SearchRester
-from mp_api.robocrys.client import RobocrysRester
-from mp_api.molecules.client import MoleculesRester
-from mp_api.synthesis.client import SynthesisRester
-from mp_api.electrodes.client import ElectrodeRester
-from mp_api.charge_density.client import ChargeDensityRester
+from mp_api.routes import *
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -39,7 +13,6 @@ _DEPRECATION_WARNING = (
 )
 
 
-# TODO: think about how to migrate from PMG_MAPI_KEY
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
@@ -61,8 +34,8 @@ class MPRester:
         Args:
             api_key (str): A String API key for accessing the MaterialsProject
                 REST interface. Please obtain your API key at
-                https://www.materialsproject.org/dashboard. If this is None,
-                the code will check if there is a "PMG_MAPI_KEY" setting.
+                https://next-gen.materialsproject.org/api. If this is None,
+                the code will check if there is a "MP_API_KEY" setting.
                 If so, it will use that environment variable. This makes
                 easier for heavy users to simply add this environment variable to
                 their setups and MPRester can then be called without any arguments.
@@ -88,17 +61,26 @@ class MPRester:
         self.api_key = api_key
         self.endpoint = endpoint
         self.version = version
+        self.session = BaseRester._create_session(
+            api_key=api_key, include_user_agent=include_user_agent
+        )
+
+        self._all_resters = []
 
         for cls in BaseRester.__subclasses__():
+
+            rester = cls(
+                api_key=api_key,
+                endpoint=endpoint,
+                version=version,
+                include_user_agent=include_user_agent,
+                session=self.session,
+            )
+
+            self._all_resters.append(rester)
+
             setattr(
-                self,
-                cls.suffix,
-                cls(
-                    api_key=api_key,
-                    endpoint=endpoint,
-                    version=version,
-                    include_user_agent=include_user_agent,
-                ),
+                self, cls.suffix, rester,
             )
 
     def __enter__(self):
@@ -111,22 +93,7 @@ class MPRester:
         """
         Support for "with" context.
         """
-        # TODO: share sessions between different Resters
-        for rester in (
-            self.materials,
-            self.xas,
-            self.similarity,
-            self.eos,
-            self.tasks,
-            self.bandstructure,
-            self.dos,
-            self.fermi,
-            self.gb,
-            self.substrates,
-            self.surface_properties,
-            self.wulff,
-        ):
-            rester.session.close()
+        self.session.close()
 
     ###########################################################################
     # The following methods are retained for backwards compatibility, but will
