@@ -44,6 +44,8 @@ insertion_electrodes_store_json = os.environ.get(
 molecules_store_json = os.environ.get("MOLECULES_STORE", "molecules_store.json")
 search_store_json = os.environ.get("SEARCH_STORE", "search_store.json")
 
+es_store_json = os.environ.get("ES_STORE", "es_store.json")
+
 bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
 dos_store_json = os.environ.get("DOS_STORE", "dos_store.json")
 
@@ -227,6 +229,13 @@ if db_uri:
         collection_name="search",
     )
 
+    es_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="material_id",
+        collection_name="electronic_structure",
+    )
+
     bs_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -314,6 +323,8 @@ else:
     insertion_electrodes_store = loadfn(insertion_electrodes_store_json)
     molecules_store = loadfn(molecules_store_json)
     search_store = loadfn(search_store_json)
+
+    es_store = loadfn(es_store_json)
 
     bs_store = loadfn(bs_store_json)
     dos_store = loadfn(dos_store_json)
@@ -458,15 +469,10 @@ from mp_api.routes.search.resources import search_resource
 
 resources.update({"search": search_resource(search_store)})
 
-# Band Structure
-from mp_api.routes.bandstructure.resources import bs_resource
+# Electronic Structure
+from mp_api.routes.electronic_structure.resources import es_resource
 
-resources.update({"bs": bs_resource(bs_store, s3_bs)})
-
-# DOS
-from mp_api.routes.dos.resources import dos_resource
-
-resources.update({"dos": dos_resource(dos_store, s3_dos)})
+resources.update({"electronic_structure": es_resource(es_store)})
 
 # MPComplete
 from mp_api.routes.mpcomplete.resources import mpcomplete_resource
