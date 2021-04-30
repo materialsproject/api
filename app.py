@@ -1,12 +1,15 @@
 import os
 from monty.serialization import loadfn
 from mp_api.core.api import MAPI
+from mp_api.core.settings import MAPISettings
 
 resources = {}
 
+default_settings = MAPISettings()
+
 db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
-db_version = os.environ.get("DB_VERSION")
-debug = os.environ.get("API_DEBUG", False)
+db_version = os.environ.get("DB_VERSION", default_settings.db_version)
+debug = os.environ.get("API_DEBUG", default_settings.debug)
 
 # Uncomment to use JSON store for development
 # core_store = JSONStore("./test_files/materials_Li_Fe_V.json")
