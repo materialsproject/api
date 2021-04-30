@@ -5,4 +5,4 @@ maggma==0.26.0
 requests==2.25.1
 git+git://github.com/mkhorton/monty@patch-4#egg=monty
 #monty>=2021.3.3
-git+git://github.com/materialsproject/emmet.git/#subdirectory=emmet-core
+git+git://github.com/munrojm/emmet.git/#subdirectory=emmet-core
