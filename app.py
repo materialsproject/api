@@ -71,7 +71,7 @@ if db_uri:
     materials_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
+        key="material_id",
         collection_name=f"materials.core_{db_version}",
     )
 
@@ -480,7 +480,10 @@ from mp_api.routes.mpcomplete.resources import mpcomplete_resource
 resources.update({"mpcomplete": mpcomplete_resource(mpcomplete_store)})
 
 # Consumers
-from mp_api.routes._consumer.resources import set_settings_resource, get_settings_resource
+from mp_api.routes._consumer.resources import (
+    set_settings_resource,
+    get_settings_resource,
+)
 
 resources.update({"user_settings": get_settings_resource(consumer_settings_store)})
 resources.update({"user_settings/set": set_settings_resource(consumer_settings_store)})

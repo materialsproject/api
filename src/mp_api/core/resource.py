@@ -9,7 +9,7 @@ from inspect import signature
 
 from maggma.core import Store
 
-from mp_api.core.models import Response
+from mp_api.core.models import Response, api_sanitize
 from mp_api.core.utils import (
     STORE_PARAMS,
     merge_queries,
@@ -61,9 +61,9 @@ class Resource(MSONable, ABC):
             assert issubclass(
                 class_model, BaseModel
             ), "The resource model has to be a PyDantic Model"
-            self.model = class_model
+            self.model = api_sanitize(class_model, allow_dict_msonable=True)
         elif isinstance(model, type) and issubclass(model, (BaseModel, MSONable)):
-            self.model = model
+            self.model = api_sanitize(model, allow_dict_msonable=True)
         else:
             raise ValueError("The resource model has to be a PyDantic Model")
 

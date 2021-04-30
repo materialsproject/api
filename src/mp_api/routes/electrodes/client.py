@@ -1,5 +1,5 @@
 from mp_api.core.client import BaseRester
-from mp_api.routes.electrodes.models import InsertionElectrodeDoc
+from emmet.core.electrode import InsertionElectrodeDoc
 
 
 class ElectrodeRester(BaseRester):

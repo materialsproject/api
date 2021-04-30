@@ -1,5 +1,5 @@
 from mp_api.core.resource import GetResource
-from mp_api.routes.thermo.models import ThermoDoc
+from emmet.core.thermo import ThermoDoc
 
 from mp_api.core.query_operator import (
     PaginationQuery,

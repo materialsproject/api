@@ -118,7 +118,7 @@ class MPRester:
             Structure object.
         """
         # TODO: decide about `final` and `conventional_unit_cell`
-        return self.materials.get_structure_by_material_id(material_id=material_id)
+        return self.materials.get_structure_by_material_id(material_id=material_id)  # type: ignore
 
     # @deprecated(self.materials.get_database_version, _DEPRECATION_WARNING)
     def get_database_version(self):
