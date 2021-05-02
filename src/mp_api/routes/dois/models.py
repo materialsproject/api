@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class DOIDoc(BaseModel):
     """
-    Model for a document containing doi and reference data
+    DOIs to reference specific materials on Materials Project.
     """
 
     doi: str = Field(

@@ -18,7 +18,7 @@ class GBTypeEnum(Enum):
 
 class GrainBoundaryDoc(BaseModel):
     """
-    Model for a document containing grain boundary data
+    Grain boundary energies, work of separation...
     """
 
     task_id: str = Field(

@@ -4,7 +4,7 @@ from typing import List, Dict
 
 class SynthesisDoc(BaseModel):
     """
-    Model for a document containing synthesis description data
+    Literature-mined excerpts of synthesis methods.
     """
 
     doi: str = Field(

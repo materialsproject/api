@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, validator
 
 class DielectricDoc(BaseModel):
     """
-    Model for a document containing dielectric data
+    Dielectric tensor and associated information.
     """
 
     dielectric: Dielectric = Field(

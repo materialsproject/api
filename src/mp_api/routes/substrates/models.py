@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class SubstratesDoc(BaseModel):
     """
-    Model for a document containing substrate data
+    Possible growth substrates for a given material.
     """
 
     sub_form: str = Field(

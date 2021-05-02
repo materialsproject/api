@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, validator
 
 class FermiDoc(BaseModel):
     """
-    Model for a document containing fermi surface data
+    Fermi surfaces.
     """
 
     fermi_surfaces: List[dict] = Field(

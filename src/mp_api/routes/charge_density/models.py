@@ -4,6 +4,10 @@ from monty.json import MontyDecoder
 
 
 class ChgcarDataDoc(BaseModel):
+    """
+    Electron charge density for selected materials.
+    """
+
     fs_id: str = Field(
         None, description="Unique object ID for the charge density data."
     )

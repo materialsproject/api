@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class EOSDoc(BaseModel):
     """
-    Model for a document containing equations of state data
+    Fitted equations of state and energies and volumes used for fits.
     """
 
     energies: List[float] = Field(

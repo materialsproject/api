@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, validator
 
 class PiezoData(BaseModel):
     """
-    Model for piezoelectric data in piezoelectric document
+    Piezoelectric tensor and associated information.
     """
 
     total: List[List[float]] = Field(

@@ -48,7 +48,7 @@ class PhononBS(BaseModel):
 
 class PhononBSDoc(BaseModel):
     """
-    Model for a document containing phonon band structure data
+    Phonon band structures.
     """
 
     task_id: str = Field(

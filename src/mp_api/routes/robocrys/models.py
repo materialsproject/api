@@ -48,7 +48,7 @@ class CondensedStructureData(BaseModel):
 
 class RobocrysDoc(BaseModel):
     """
-    Model for a document containing robocrystallographer data
+    Structural features, mineral prototypes, dimensionality, ...
     """
 
     description: str = Field(

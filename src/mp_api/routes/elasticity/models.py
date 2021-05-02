@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 class ElasticityData(BaseModel):
     """
-    Model for elasticity data within an elasticity doc
+    Elastic tensors and associated information.
     """
 
     k_voigt: float = Field(

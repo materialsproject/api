@@ -4,7 +4,7 @@ from pymatgen.core.structure import Molecule
 
 class MoleculesDoc(BaseModel):
     """
-    Model for a document containing molecule data
+    Molecules relevant to battery electrolytes.
     """
 
     nelements: int = Field(

@@ -62,7 +62,7 @@ class MagnetismData(BaseModel):
 
 class MagnetismDoc(BaseModel):
     """
-    Model for a magnetism doc
+    Magnetic ordering, total magnetizaiton, ...
     """
 
     task_id: str = Field(

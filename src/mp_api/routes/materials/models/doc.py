@@ -44,9 +44,7 @@ class SymmetryData(BaseModel):
 
 class MaterialsCoreDoc(BaseModel):
     """
-    Definition for a core Materials Document
-    Properties can inherit from MaterialProperty to define basic search metadata
-    that links the property to this Material Document
+    Basic information about a material such as its crystal structure and associated calculations.
     """
 
     structure: Structure = Field(

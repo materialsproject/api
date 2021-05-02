@@ -89,7 +89,8 @@ class GBSearchData(BaseModel):
 
 class SearchDoc(BaseModel):
     """
-    Model for a document containing combined search data
+    Summary information about materials and their properties, useful for materials
+    screening studies and searching.
     """
 
     # Materials

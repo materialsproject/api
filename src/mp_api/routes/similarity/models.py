@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class SimilarityEntry(BaseModel):
     """
-    Model for an entry in a structure similarity doc
+    Find similar materials to a specified material based on crystal geometry.
     """
 
     task_id: str = Field(

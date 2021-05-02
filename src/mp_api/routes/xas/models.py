@@ -52,6 +52,10 @@ class XASSpectrum(BaseModel):
 
 
 class XASDoc(MaterialProperty):
+    """
+    X-ray absorption spectra, absorption edge, absorbing element, ...
+    """
+
     spectrum: Optional[XASSpectrum] = None
 
     edge: Edge = Field(
