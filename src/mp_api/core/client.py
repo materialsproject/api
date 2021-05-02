@@ -421,6 +421,7 @@ class BaseRester:
         version: Optional[str] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
         **kwargs,
     ):
@@ -430,8 +431,13 @@ class BaseRester:
         Arguments:
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Set to False to only return specific fields of interest. This will
+                significantly speed up data retrieval for large queries and help us by reducing
+                load on the Materials Project servers. Set to True by default to reduce confusion,
+                unless "fields" are set, in which case all_fields will be set to False.
             fields (List[str]): List of fields to project. When searching, it is better to only ask for
-                the specific fields of interest to reduce the time taken to retrieve the documents.
+                the specific fields of interest to reduce the time taken to retrieve the documents. See
+                 the available_fields property to see a list of fields to choose from.
             kwargs: Supported search terms, e.g. nelements_max=3 for the "materials" search API.
                 Consult the specific API route for valid search terms.
 
@@ -441,13 +447,9 @@ class BaseRester:
         # This method should be customized for each end point to give more user friendly,
         # documented kwargs.
 
-        if not fields:
-            warnings.warn(
-                f"No data fields requested. Choose from: {self.available_fields}"
-            )
-
         return self._get_all_documents(
             kwargs,
+            all_fields=all_fields,
             fields=fields,
             version=version,
             chunk_size=chunk_size,
@@ -455,7 +457,7 @@ class BaseRester:
         )
 
     def _get_all_documents(
-        self, query_params, fields=None, version=None, chunk_size=1000, num_chunks=None
+        self, query_params, all_fields=True, fields=None, version=None, chunk_size=1000, num_chunks=None
     ):
         """
         Iterates over pages until all documents are retrieved. Displays
@@ -463,6 +465,11 @@ class BaseRester:
         implementation for the search_* methods on various endpoints. See
         materials endpoint for an example of this in use.
         """
+
+        if all_fields and not fields:
+            query_params["all_fields"] = True
+
+        query_params["limit"] = chunk_size
 
         results = self._query_resource(query_params, fields=fields, version=version)
 
@@ -475,11 +482,20 @@ class BaseRester:
         count = 1
 
         # progress bar
+        total_docs = results["meta"]["total"]
         t = tqdm(
             desc=f"Retrieving {self.document_model.__name__} documents",
-            total=results["meta"]["total"],
+            total=total_docs,
         )
         t.update(len(all_results))
+
+        # warn to select specific fields only for many results
+        if (not fields) and (total_docs/chunk_size > 10):
+            warnings.warn(
+                f"Use the 'fields' argument to select only fields of interest to speed "
+                f"up data retrieval for large queries. "
+                f"Choose from: {self.available_fields}"
+            )
 
         while True:
             query_params["skip"] = count * chunk_size
