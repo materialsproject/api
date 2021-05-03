@@ -145,7 +145,7 @@ class MinMaxQuery(QueryOperator):
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indexes.append((key, False))
+                indexes.append((key, False))
         return indexes
 
 
