@@ -239,25 +239,11 @@ if db_uri:
         collection_name="electronic_structure",
     )
 
-    bs_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="bandstructure",
-    )
-
     s3_bs_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
         key="task_id",
         collection_name="s3_bandstructure_index",
-    )
-
-    dos_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="dos",
     )
 
     s3_dos_index = MongoURIStore(
@@ -329,8 +315,6 @@ else:
 
     es_store = loadfn(es_store_json)
 
-    bs_store = loadfn(bs_store_json)
-    dos_store = loadfn(dos_store_json)
     s3_bs_index = loadfn(s3_bs_index_json)
     s3_dos_index = loadfn(s3_dos_index_json)
     s3_bs = loadfn(s3_bs_json)
@@ -473,9 +457,15 @@ from mp_api.routes.search.resources import search_resource
 resources.update({"search": search_resource(search_store)})
 
 # Electronic Structure
-from mp_api.routes.electronic_structure.resources import es_resource
+from mp_api.routes.electronic_structure.resources import (
+    es_resource,
+    bs_resource,
+    dos_resource,
+)
 
 resources.update({"electronic_structure": es_resource(es_store)})
+resources.update({"bandstructure": bs_resource(es_store)})
+resources.update({"dos": dos_resource(es_store)})
 
 # MPComplete
 from mp_api.routes.mpcomplete.resources import mpcomplete_resource
