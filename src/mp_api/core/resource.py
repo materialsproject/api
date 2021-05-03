@@ -392,8 +392,6 @@ class GetResource(Resource):
             if model_name == "TaskDoc":
                 query["criteria"].update({"sbxn": "core"})
 
-            print(query)
-
             data = list(self.store.query(**query))  # type: ignore
             operator_metas = [
                 operator.meta(self.store, query.get("criteria", {}))
