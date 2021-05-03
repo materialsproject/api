@@ -65,6 +65,12 @@ class ESSummaryDataQuery(QueryOperator):
 
         return {"criteria": crit}
 
+    def ensure_indexes(self):
+
+        keys = ["band_gap", "efermi", "magnetic_ordering", "is_gap_direct", "is_metal"]
+
+        return [(key, False) for key in keys]
+
 
 class BSDataQuery(QueryOperator):
     """
@@ -130,6 +136,16 @@ class BSDataQuery(QueryOperator):
                 crit[f"bandstructure.{path_type.value}.is_metal"] = is_metal
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+
+        keys = ["bandstructure"]
+
+        for bs_type in BSPathType:
+            for field in ["band_gap", "efermi"]:
+                keys.append(f"bandstructure.{bs_type.value}.{field}")
+
+        return [(key, False) for key in keys]
 
 
 class DOSDataQuery(QueryOperator):
@@ -225,3 +241,12 @@ class DOSDataQuery(QueryOperator):
             crit.update({"dos.magnetic_ordering": magnetic_ordering.value})
 
         return {"criteria": crit}
+
+    def ensure_indexes(self):
+
+        keys = ["dos", "dos.magnetic_ordering"]
+
+        for proj_type in DOSProjectionType:
+            keys.append(f"dos.{proj_type.value}.$**")
+
+        return [(key, False) for key in keys]
