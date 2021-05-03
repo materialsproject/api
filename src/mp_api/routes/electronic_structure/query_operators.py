@@ -174,7 +174,7 @@ class DOSDataQuery(QueryOperator):
             if spin is None:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Must specify a spin channel for querying dos summary data.",
+                    detail="Must specify a spin channel for querying dos summary data.",
                 )
             else:
 
@@ -193,7 +193,7 @@ class DOSDataQuery(QueryOperator):
                         if orbital is None:
                             raise HTTPException(
                                 status_code=400,
-                                detail=f"Must specify an orbital type for querying orbital projection data.",
+                                detail="Must specify an orbital type for querying orbital projection data.",
                             )
 
                         key_prefix = f"orbital.{str(orbital.name)}.{str(spin.value)}"
@@ -203,7 +203,7 @@ class DOSDataQuery(QueryOperator):
                         if element is None:
                             raise HTTPException(
                                 status_code=400,
-                                detail=f"Must specify an element type for querying element projection data.",
+                                detail="Must specify an element type for querying element projection data.",
                             )
 
                         if orbital is not None:

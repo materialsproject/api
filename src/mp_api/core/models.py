@@ -76,4 +76,3 @@ class Response(GenericModel, Generic[DataT]):
             if "total" not in v and values.get("data", None) is not None:
                 v["total"] = len(values["data"])
         return v
-
