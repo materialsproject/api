@@ -1,5 +1,3 @@
-from mp_api.routes.bandstructure.client import BSRester
-from mp_api.routes.dos.client import DOSRester
 from mp_api.routes.eos.client import EOSRester
 from mp_api.routes.materials.client import MaterialsRester
 from mp_api.routes.similarity.client import SimilarityRester
