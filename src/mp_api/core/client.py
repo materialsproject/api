@@ -20,6 +20,8 @@ from requests.exceptions import RequestException
 from pydantic import BaseModel
 from tqdm import tqdm
 
+from mp_api.core.utils import api_sanitize
+
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
 except ImportError:
@@ -87,6 +89,12 @@ class BaseRester:
             self.session = session
         else:
             self.session = self._create_session(api_key, include_user_agent)
+
+        self.document_model = (
+            api_sanitize(self.document_model)
+            if self.document_model is not None
+            else None
+        )
 
     @staticmethod
     def _create_session(api_key, include_user_agent):
@@ -457,7 +465,13 @@ class BaseRester:
         )
 
     def _get_all_documents(
-        self, query_params, all_fields=True, fields=None, version=None, chunk_size=1000, num_chunks=None
+        self,
+        query_params,
+        all_fields=True,
+        fields=None,
+        version=None,
+        chunk_size=1000,
+        num_chunks=None,
     ):
         """
         Iterates over pages until all documents are retrieved. Displays
@@ -490,7 +504,7 @@ class BaseRester:
         t.update(len(all_results))
 
         # warn to select specific fields only for many results
-        if (not fields) and (total_docs/chunk_size > 10):
+        if (not fields) and (total_docs / chunk_size > 10):
             warnings.warn(
                 f"Use the 'fields' argument to select only fields of interest to speed "
                 f"up data retrieval for large queries. "

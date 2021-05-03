@@ -1,9 +1,10 @@
 import warnings
 from typing import List, Optional, Tuple
-from pymatgen.core import Structure as PMGStructure
+from pymatgen.core.structure import Structure
 
-from mp_api.routes.materials.models import Structure
-from mp_api.routes.materials.models.doc import CrystalSystem, MaterialsCoreDoc
+# from mp_api.routes.materials.models import Structure
+from emmet.core.material import MaterialsDoc
+from emmet.core.symmetry import CrystalSystem
 
 from mp_api.core.client import BaseRester, MPRestError
 
@@ -11,7 +12,7 @@ from mp_api.core.client import BaseRester, MPRestError
 class MaterialsRester(BaseRester):
 
     suffix = "materials"
-    document_model = MaterialsCoreDoc
+    document_model = MaterialsDoc
     supports_versions = True
 
     def get_structure_by_material_id(
@@ -153,7 +154,7 @@ class MaterialsRester(BaseRester):
 
         if isinstance(filename_or_structure, str):
             s = Structure.from_file(filename_or_structure)
-        elif isinstance(filename_or_structure, PMGStructure):
+        elif isinstance(filename_or_structure, Structure):
             s = filename_or_structure
         else:
             raise MPRestError("Provide filename or Structure object.")

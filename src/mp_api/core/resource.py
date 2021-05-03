@@ -9,12 +9,13 @@ from inspect import signature
 
 from maggma.core import Store
 
-from mp_api.core.models import Response, api_sanitize
+from mp_api.core.models import Response
 from mp_api.core.utils import (
     STORE_PARAMS,
     merge_queries,
     attach_signature,
     dynamic_import,
+    api_sanitize,
 )
 
 from mp_api.core.settings import MAPISettings
@@ -390,6 +391,8 @@ class GetResource(Resource):
 
             if model_name == "TaskDoc":
                 query["criteria"].update({"sbxn": "core"})
+
+            print(query)
 
             data = list(self.store.query(**query))  # type: ignore
             operator_metas = [
