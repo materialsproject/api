@@ -1,6 +1,6 @@
 pydantic==1.8.1
 pymatgen>=2022.0.5
-typing-extensions==3.7.4.3
+typing-extensions==3.10.0.0
 maggma==0.26.0
 requests==2.25.1
 git+git://github.com/mkhorton/monty@patch-4#egg=monty
