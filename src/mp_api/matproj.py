@@ -137,18 +137,29 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_materials_id_from_task_id(self, task_id):
+    def get_materials_id_from_task_id(self, task_id, version=None):
         """
-        Returns a new MP materials id from a task id (which can be
-        equivalent to an old materials id)
+        Returns the current material_id from a given task_id. The
+        materials_id should rarely change, and is usually chosen from
+        among the smallest numerical id from the group of task_ids for
+        that material. However, in some circumstances it might change,
+        and this method is useful for finding the new material_id.
 
         Args:
             task_id (str): A task id.
+            version (str): Specific database version to query.
 
         Returns:
             materials_id (str)
         """
-        raise NotImplementedError
+        docs = self.materials.search(task_ids=[task_id], fields=["material_id"], version=version)
+        if len(docs) == 1:
+            return docs[0].material_id
+        elif len(docs) > 1:
+            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
+        else:
+            warnings.warn(f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing.")
+            return None
 
     def get_materials_ids(self, chemsys_formula):
         """
