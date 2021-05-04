@@ -7,7 +7,7 @@ from mp_api.routes.xas.models import Edge, XASType, XASDoc
 class XASRester(BaseRester):
 
     suffix = "xas"
-    # document_model = XASDoc
+    document_model = XASDoc
 
     def get_available_elements(
         self,
