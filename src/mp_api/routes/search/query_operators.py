@@ -43,6 +43,26 @@ class HasPropsQuery(QueryOperator):
         return {"criteria": crit}
 
 
+class MaterialIDsSearchQuery(QueryOperator):
+    """
+    Method to generate a query on search docs using multiple material_id values
+    """
+
+    def query(
+        self,
+        material_ids: Optional[str] = Query(
+            None, description="Comma-separated list of material_ids to query on"
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if material_ids:
+            crit.update({"material_id": {"$in": material_ids.split(",")}})
+
+        return {"criteria": crit}
+
+
 class SearchIsStableQuery(QueryOperator):
     """
     Method to generate a query on whether a material is stable

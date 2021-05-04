@@ -14,9 +14,9 @@ from mp_api.routes.materials.query_operators import (
     SymmetryQuery,
     DeprecationQuery,
 )
-from mp_api.routes.tasks.query_operators import MultipleTaskIDsQuery
 from mp_api.routes.search.models import SearchDoc, SearchStats
 from mp_api.routes.search.query_operators import (
+    MaterialIDsSearchQuery,
     HasPropsQuery,
     SearchIsStableQuery,
     SearchElasticityQuery,
@@ -128,7 +128,7 @@ def search_resource(search_store):
         search_store,
         SearchDoc,
         query_operators=[
-            MultipleTaskIDsQuery(),
+            MaterialIDsSearchQuery(),
             FormulaQuery(),
             ElementsQuery(),
             MinMaxQuery(),
@@ -145,7 +145,7 @@ def search_resource(search_store):
             DeprecationQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(SearchDoc, default_fields=["task_id"]),
+            SparseFieldsQuery(SearchDoc, default_fields=["material_id"]),
         ],
         custom_endpoint_funcs=[generate_stats_prep],
         tags=["Search"],
