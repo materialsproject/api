@@ -6,8 +6,8 @@ from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
 
 from pymatgen.core.periodic_table import Element
+from pymatgen.core.structure import Structure
 
-from mp_api.routes.materials.models.core import Structure
 from mp_api.routes.materials.models.doc import MaterialProperty
 
 
