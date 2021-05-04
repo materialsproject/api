@@ -18,13 +18,14 @@ class XASQuery(QueryOperator):
         query = {
             "edge": edge.value if edge else None,
             "absorbing_element": str(absorbing_element) if absorbing_element else None,
+            "spectrum_type": str(XASType.value),
         }
         query = {k: v for k, v in query.items() if v}
 
         return {"criteria": query} if len(query) > 0 else {}
 
     def ensure_indexes(self):
-        keys = ["edge", "absorbing_element"]
+        keys = ["edge", "absorbing_element", "spectrum_type"]
         return [(key, False) for key in keys]
 
 
