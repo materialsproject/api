@@ -1,4 +1,5 @@
 from os import environ
+import warnings
 
 from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
@@ -152,13 +153,19 @@ class MPRester:
         Returns:
             materials_id (str)
         """
-        docs = self.materials.search(task_ids=[task_id], fields=["material_id"], version=version)
+        docs = self.materials.search(
+            task_ids=[task_id], fields=["material_id"], version=version
+        )
         if len(docs) == 1:
             return docs[0].material_id
         elif len(docs) > 1:
-            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
+            raise ValueError(
+                f"Multiple documents return for {task_id}, this should not happen, please report it!"
+            )
         else:
-            warnings.warn(f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing.")
+            warnings.warn(
+                f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
+            )
             return None
 
     def get_materials_ids(self, chemsys_formula):
