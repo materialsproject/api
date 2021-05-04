@@ -18,7 +18,7 @@ class XASQuery(QueryOperator):
         query = {
             "edge": edge.value if edge else None,
             "absorbing_element": str(absorbing_element) if absorbing_element else None,
-            "spectrum_type": str(XASType.value),
+            "spectrum_type": str(spectrum_type.value),
         }
         query = {k: v for k, v in query.items() if v}
 
