@@ -98,5 +98,5 @@ class MagneticQuery(QueryOperator):
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-            indexes.append(("magnetism." + key, False))
+                indexes.append(("magnetism." + key, False))
         return indexes
