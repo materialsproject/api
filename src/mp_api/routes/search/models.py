@@ -1,8 +1,14 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Union
 from pymatgen.core.periodic_table import Element
 from pymatgen.core.structure import Structure
+from pymatgen.analysis.magnetism.analyzer import Ordering
 
-from mp_api.routes.materials.models.doc import SymmetryData, Composition
+from emmet.core.mpid import MPID
+from emmet.core.electronic_structure import BandstructureData, DosData
+from emmet.core.thermo import DecompositionProduct
+from emmet.core.symmetry import SymmetryData
+
+from mp_api.routes.materials.models.doc import Composition
 from mp_api.routes.xas.models import Edge, XASType
 from mp_api.routes.grain_boundary.models import GBTypeEnum
 
@@ -95,7 +101,7 @@ class SearchDoc(BaseModel):
 
     # Materials
 
-    task_id: str = Field(
+    material_id: Union[MPID, int] = Field(
         None,
         description="The Materials Project ID of the material. This comes in the form: mp-******",
     )
@@ -150,32 +156,37 @@ class SearchDoc(BaseModel):
 
     # Thermo
 
-    energy: float = Field(
-        None, description="Total DFT energy in eV.",
+    uncorrected_energy_per_atom: float = Field(
+        None, description="The total DFT energy of this material per atom in eV/atom"
     )
 
     energy_per_atom: float = Field(
-        None, description="Total DFT energy in eV/atom.",
+        None,
+        description="The total corrected DFT energy of this material per atom in eV/atom",
     )
 
     formation_energy_per_atom: float = Field(
-        None, description="Formation energy in eV/atom.",
+        None, description="The formation energy per atom in eV/atom"
     )
 
-    e_above_hull: float = Field(
-        None, description="Energy above the hull in eV/atom.",
-    )
-
-    eq_reaction_e: float = Field(
-        None, description="Equilibrium reaction energy in eV/atom.",
-    )
-
-    corrected_energy: float = Field(
-        None, description="Corrected DFT total energy in eV"
+    energy_above_hull: float = Field(
+        None, description="The energy above the hull in eV/Atom"
     )
 
     is_stable: bool = Field(
-        None, description="Whether the material is stable.",
+        False,
+        description="Flag for whether this material is on the hull and therefore stable",
+    )
+
+    equillibrium_reaction_energy_per_atom: float = Field(
+        None,
+        description="The reaction energy of a stable entry from the neighboring equilibrium stable materials in eV."
+        " Also known as the inverse distance to hull.",
+    )
+
+    decomposes_to: List[DecompositionProduct] = Field(
+        None,
+        description="List of decomposition data for this material. Only valid for metastable or unstable material.",
     )
 
     # XAS
@@ -190,31 +201,45 @@ class SearchDoc(BaseModel):
         None, description="List of grain boundary documents.",
     )
 
-    # Band structure
+    # Electronic Structure
 
-    sc_energy: float = Field(
-        None, description="Setyawan-Curtarolo band gap energy in eV.",
+    band_gap: float = Field(
+        None, description="Band gap energy in eV.",
     )
 
-    sc_direct: float = Field(
-        None, description="Whether the Setyawan-Curtarolo band gap is direct.",
+    cbm: Union[float, Dict] = Field(
+        None, description="Conduction band minimum data.",
     )
 
-    hin_energy: float = Field(
-        None, description="Hinuma et al. band gap energy in eV.",
+    vbm: Union[float, Dict] = Field(
+        None, description="Valence band maximum data.",
     )
 
-    hin_direct: float = Field(
-        None, description="Whether the Hinuma et al. band gap is direct.",
+    efermi: float = Field(
+        None, description="Fermi energy eV.",
     )
 
-    lm_energy: float = Field(
-        None, description="Latimer-Munro band gap energy in eV.",
+    is_gap_direct: bool = Field(
+        None, description="Whether the band gap is direct.",
     )
 
-    lm_direct: float = Field(
-        None, description="Whether the Latimer-Munro band gap is direct.",
+    is_metal: bool = Field(
+        None, description="Whether the material is a metal.",
     )
+
+    magnetic_ordering: Union[str, Ordering] = Field(
+        None, description="Magnetic ordering of the calculation.",
+    )
+
+    es_source_calc_id: Union[MPID, int] = Field(
+        None, description="The source calculation ID for the electronic structure data."
+    )
+
+    bandstructure: BandstructureData = Field(
+        None, description="Band structure data for the material."
+    )
+
+    dos: DosData = Field(None, description="Density of states data for the material.")
 
     # DOS
 

@@ -17,7 +17,6 @@ from mp_api.routes.materials.query_operators import (
 from mp_api.routes.tasks.query_operators import MultipleTaskIDsQuery
 from mp_api.routes.search.models import SearchDoc, SearchStats
 from mp_api.routes.search.query_operators import (
-    SearchBandGapQuery,
     HasPropsQuery,
     ThermoEnergySearchQuery,
     SearchIsStableQuery,
@@ -27,6 +26,7 @@ from mp_api.routes.search.query_operators import (
     SearchIsTheoreticalQuery,
 )
 from mp_api.routes.surface_properties.query_operators import SurfaceMinMaxQuery
+from mp_api.routes.electronic_structure.query_operators import ESSummaryDataQuery
 
 
 def search_resource(search_store):
@@ -136,7 +136,7 @@ def search_resource(search_store):
             ThermoEnergySearchQuery(),
             SearchIsStableQuery(),
             SearchIsTheoreticalQuery(),
-            SearchBandGapQuery(),
+            ESSummaryDataQuery(),
             SearchElasticityQuery(),
             SearchDielectricPiezoQuery(),
             SurfaceMinMaxQuery(),

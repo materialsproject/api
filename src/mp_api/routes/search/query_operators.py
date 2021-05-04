@@ -14,6 +14,7 @@ class HasPropsEnum(Enum):
     dielectric = "dielectric"
     elasticity = "elasticity"
     surface_properties = "surface_properties"
+    insertion_electrode = "insertion_electrode"
     bandstructure = "bandstructure"
     dos = "dos"
     xas = "xas"
@@ -40,92 +41,6 @@ class HasPropsQuery(QueryOperator):
             crit = {"has_props": {"$all": has_props.split(",")}}
 
         return {"criteria": crit}
-
-
-class SearchBandGapQuery(QueryOperator):
-    """
-    Method to generate a query for ranges of band gap data in search docs
-    """
-
-    def query(
-        self,
-        sc_band_gap_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Setyawan-Curtarolo band gap in eV.",
-        ),
-        sc_band_gap_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Setyawan-Curtarolo band gap in eV.",
-        ),
-        sc_direct: Optional[bool] = Query(
-            None, description="Whether the Setyawan-Curtarolo band gap is direct.",
-        ),
-        hin_band_gap_max: Optional[float] = Query(
-            None, description="Maximum value for the Hinuma et al. band gap in eV.",
-        ),
-        hin_band_gap_min: Optional[float] = Query(
-            None, description="Minimum value for the Hinuma et al. band gap in eV.",
-        ),
-        hin_direct: Optional[bool] = Query(
-            None, description="Whether the Hinuma et al. band gap is direct.",
-        ),
-        lm_band_gap_max: Optional[float] = Query(
-            None, description="Maximum value for the Latimer-Munro band gap in eV.",
-        ),
-        lm_band_gap_min: Optional[float] = Query(
-            None, description="Minimum value for the Latimer-Munro band gap in eV.",
-        ),
-        lm_direct: Optional[bool] = Query(
-            None, description="Whether the Latimer-Munro band gap is direct.",
-        ),
-        dos_band_gap_up_max: Optional[float] = Query(
-            None, description="Maximum value for the DOS spin-up band gap in eV.",
-        ),
-        dos_band_gap_up_min: Optional[float] = Query(
-            None, description="Minimum value for the DOS spin-up band gap in eV.",
-        ),
-        dos_band_gap_down_max: Optional[float] = Query(
-            None, description="Maximum value for the DOS spin-down band gap in eV.",
-        ),
-        dos_band_gap_down_min: Optional[float] = Query(
-            None, description="Minimum value for the DOS spin-down band gap in eV.",
-        ),
-    ) -> STORE_PARAMS:
-
-        crit = defaultdict(dict)  # type: dict
-
-        d = {
-            "sc_energy": [sc_band_gap_min, sc_band_gap_max],
-            "hin_energy": [hin_band_gap_min, hin_band_gap_max],
-            "lm_energy": [lm_band_gap_min, lm_band_gap_max],
-            "dos_energy_up": [dos_band_gap_up_min, dos_band_gap_up_max],
-            "dos_energy_down": [dos_band_gap_down_min, dos_band_gap_down_max],
-        }
-
-        for entry in d:
-            if d[entry][0] is not None:
-                crit[entry]["$gte"] = d[entry][0]
-
-            if d[entry][1] is not None:
-                crit[entry]["$lte"] = d[entry][1]
-
-        if sc_direct is not None:
-            crit["sc_direct"] = sc_direct
-
-        if hin_direct is not None:
-            crit["hin_direct"] = hin_direct
-
-        if lm_direct is not None:
-            crit["lm_direct"] = lm_direct
-
-        return {"criteria": crit}
-
-    def ensure_indexes(self):
-        keys = ["{}_energy".format(path_type) for path_type in ["sc", "hin", "lm"]]
-        keys += ["dos_energy_up", "dos_energy_down"]
-        keys += ["{}_direct".format(path_type) for path_type in ["sc", "hin", "lm"]]
-
-        return [(key, False) for key in keys]
 
 
 class ThermoEnergySearchQuery(QueryOperator):
