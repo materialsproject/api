@@ -41,6 +41,7 @@ class BaseRester:
     suffix: Optional[str] = None
     document_model: Optional[BaseModel] = None
     supports_versions: bool = False
+    primary_key: str = "material_id"
 
     def __init__(
         self,
@@ -407,12 +408,32 @@ class BaseRester:
         if isinstance(fields, str):
             fields = (fields,)
 
-        results = self.query(
-            criteria=criteria,
-            fields=fields,
-            monty_decode=monty_decode,
-            suburl=document_id,
-        )
+        try:
+            results = self.query(
+                criteria=criteria,
+                fields=fields,
+                monty_decode=monty_decode,
+                suburl=document_id,
+            )
+        except MPRestError:
+
+            if self.primary_key == "material_id":
+                # see if the material_id has changed, perhaps a task_id was supplied
+                # this should likely be re-thought
+                from mp_api.matproj import MPRester
+                with MPRester() as mpr:
+                    new_document_id = mpr.get_materials_id_from_task_id(document_id)
+                warnings.warn(f"Document primary key has changed from {document_id} to {new_document_id}, "
+                              f"returning data for {document_id} in {self.suffix} route.    ")
+                document_id = new_document_id
+
+            results = self.query(
+                criteria=criteria,
+                fields=fields,
+                monty_decode=monty_decode,
+                suburl=document_id,
+            )
+
 
         if not results:
             warnings.warn(f"No result for record {document_id}.")
