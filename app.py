@@ -228,7 +228,7 @@ if db_uri:
     search_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
+        key="material_id",
         collection_name="search",
     )
 
