@@ -242,20 +242,32 @@ if db_uri:
     s3_bs_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
+        key="fs_id",
         collection_name="s3_bandstructure_index",
     )
 
     s3_dos_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
+        key="fs_id",
         collection_name="s3_dos_index",
     )
 
-    s3_bs = S3Store(index=s3_bs_index, bucket="mp-bandstructures", compress=True)
+    s3_bs = S3Store(
+        index=s3_bs_index,
+        bucket="mp-bandstructures",
+        compress=True,
+        key="fs_id",
+        searchable_fields=["task_id", "fs_id"],
+    )
 
-    s3_dos = S3Store(index=s3_dos_index, bucket="mp-dos", compress=True)
+    s3_dos = S3Store(
+        index=s3_dos_index,
+        bucket="mp-dos",
+        compress=True,
+        key="fs_id",
+        searchable_fields=["task_id", "fs_id"],
+    )
 
     s3_chgcar_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
@@ -464,8 +476,8 @@ from mp_api.routes.electronic_structure.resources import (
 )
 
 resources.update({"electronic_structure": es_resource(es_store)})
-resources.update({"bandstructure": bs_resource(es_store)})
-resources.update({"dos": dos_resource(es_store)})
+resources.update({"bandstructure": bs_resource(es_store, s3_bs)})
+resources.update({"dos": dos_resource(es_store, s3_dos)})
 
 # MPComplete
 from mp_api.routes.mpcomplete.resources import mpcomplete_resource
