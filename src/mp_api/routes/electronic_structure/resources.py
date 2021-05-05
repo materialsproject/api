@@ -88,7 +88,7 @@ def bs_resource(es_store, s3_store):
             return {"data": [bs_object_doc]}
 
         self.router.get(
-            f"/object/",
+            "/object/",
             response_description=f"Get an {model_name} by {key_name}",
             response_model=Response[model],
             response_model_exclude_unset=True,
@@ -162,7 +162,7 @@ def dos_resource(es_store, s3_store):
             return response
 
         self.router.get(
-            f"/object/",
+            "/object/",
             response_description=f"Get an {model_name} by {key_name}",
             response_model=Response[model],
             response_model_exclude_unset=True,
