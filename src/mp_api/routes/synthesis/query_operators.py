@@ -8,6 +8,30 @@ from pymatgen.core import Composition
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 
 
+class SynthesisTypeQuery(QueryOperator):
+    """
+    Method to query the database for a specific synthesis type.
+    """
+
+    def query(
+            self,
+            synthesis_type: Optional[List[str]] = Query(
+                None, description="Type of synthesis to include.",
+                regex="solid-state|sol-gel"
+            ),
+    ) -> STORE_PARAMS:
+        crit = defaultdict(dict)  # type: dict
+        if synthesis_type:
+            crit["synthesis_type"] = {
+                '$in': synthesis_type
+            }
+
+        return {"criteria": crit}
+
+    def ensure_indexes(self):
+        return [("synthesis_type", False)]
+
+
 class SynthesisTargetFormulaQuery(QueryOperator):
     """
     Method to generate a query for synthesis data using a target material chemical formula
@@ -55,7 +79,8 @@ class SynthesisPrecursorFormulaQuery(QueryOperator):
 
 class TextSearchQuery(QueryOperator):
     """
-    Method to hide paragraph characters beyond 100 to make results compliant with publisher agreements.
+    Method to search paragraph string for specific keywords.
+    It also hides paragraph characters beyond 100 to make results compliant with publisher agreements.
     """
 
     def query(
@@ -98,3 +123,27 @@ class TextSearchQuery(QueryOperator):
             self.hide_chars(doc)
 
         return docs
+
+
+class ExperimentOperationsQuery(QueryOperator):
+    """
+    Method to query for syntheses with specific operations.
+    """
+
+    def query(
+            self,
+            operations: Optional[List[str]] = Query(
+                None, description="List of operations that syntheses must have.",
+                regex="StartingSynthesis|MixingOperation|ShapingOperation|DryingOperation|HeatingOperation|QuenchingOperation",
+            ),
+    ) -> STORE_PARAMS:
+        crit = defaultdict(dict)  # type: dict
+        if operations:
+            crit["operations.type"] = {
+                '$all': operations
+            }
+
+        return {"criteria": crit}
+
+    def ensure_indexes(self):
+        return [("operations.type", False)]

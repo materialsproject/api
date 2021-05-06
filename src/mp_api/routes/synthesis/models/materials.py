@@ -19,7 +19,22 @@ class Component(BaseModel):
     )
     elements: Dict[str, str] = Field(
         ...,
-        description="Amount of each chemical elements in this component"
+        description="Amount of each chemical elements in this component."
+    )
+
+
+class Values(BaseModel):
+    values: List[float] = Field(
+        None,
+        description="List of values."
+    )
+    min_value: float = Field(
+        None,
+        description="Minimal value."
+    )
+    max_value: float = Field(
+        None,
+        description="Maximal value."
     )
 
 
@@ -53,11 +68,11 @@ class ExtractedMaterial(BaseModel):
         ...,
         description="List of components in this material."
     )
-    amounts_vars: Dict[str, List[str]] = Field(
+    amounts_vars: Dict[str, Values] = Field(
         {},
         description="Amount variables (formula subscripts)."
     )
-    elements_vars: Dict[str, List[str]] = Field(
+    elements_vars: Dict[str, Values] = Field(
         {},
         description="Chemical element variables"
     )
