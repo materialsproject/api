@@ -20,6 +20,8 @@ from requests.exceptions import RequestException
 from pydantic import BaseModel
 from tqdm import tqdm
 
+from mp_api.core.utils import api_sanitize
+
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
 except ImportError:
@@ -39,14 +41,16 @@ class BaseRester:
     suffix: Optional[str] = None
     document_model: Optional[BaseModel] = None
     supports_versions: bool = False
+    primary_key: str = "material_id"
 
     def __init__(
         self,
         api_key=DEFAULT_API_KEY,
         endpoint=DEFAULT_ENDPOINT,
-        debug=True,
         version=None,
         include_user_agent=True,
+        session=None,
+        debug=False,
     ):
         """
         Args:
@@ -67,30 +71,47 @@ class BaseRester:
                 making the API request. This helps MP support pymatgen users, and
                 is similar to what most web browsers send with each page request.
                 Set to False to disable the user agent.
+            session: requests Session object with which to connect to the API, for
+                advanced usage only.
+            debug: if True, print the URL for every request
         """
 
         self.api_key = api_key
         self.endpoint = endpoint
-        self.debug = debug
         self.version = version
+        self.debug = debug
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        self.session = requests.Session()
-        self.session.trust_env = False
-        self.session.headers = {"x-api-key": self.api_key}
+        if session:
+            self.session = session
+        else:
+            self.session = self._create_session(api_key, include_user_agent)
+
+        self.document_model = (
+            api_sanitize(self.document_model)
+            if self.document_model is not None
+            else None
+        )
+
+    @staticmethod
+    def _create_session(api_key, include_user_agent):
+        session = requests.Session()
+        session.trust_env = False
+        session.headers = {"x-api-key": api_key}
         if include_user_agent:
             pymatgen_info = "pymatgen/" + pmg_version
             python_info = "Python/{}.{}.{}".format(
                 sys.version_info.major, sys.version_info.minor, sys.version_info.micro
             )
             platform_info = "{}/{}".format(platform.system(), platform.release())
-            self.session.headers["user-agent"] = "{} ({} {})".format(
+            session.headers["user-agent"] = "{} ({} {})".format(
                 pymatgen_info, python_info, platform_info
             )
+        return session
 
     def __enter__(self):
         """
@@ -235,7 +256,7 @@ class BaseRester:
         monty_decode: bool = True,
         suburl: Optional[str] = None,
         use_document_model: Optional[bool] = True,
-        version: Optional[str] = None
+        version: Optional[str] = None,
     ):
         """
         Query the endpoint for a Resource containing a list of documents
@@ -265,6 +286,8 @@ class BaseRester:
             criteria = {}
 
         if fields:
+            if isinstance(fields, str):
+                fields = [fields]
             criteria["fields"] = ",".join(fields)
 
         if version and (not self.supports_versions):
@@ -323,7 +346,7 @@ class BaseRester:
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         suburl: Optional[str] = None,
-        version: Optional[str] = None
+        version: Optional[str] = None,
     ):
         """
         Query the endpoint for a list of documents.
@@ -340,7 +363,11 @@ class BaseRester:
             A list of documents
         """
         return self._query_resource(
-            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl, version=version
+            criteria=criteria,
+            fields=fields,
+            monty_decode=monty_decode,
+            suburl=suburl,
+            version=version,
         ).get("data")
 
     def get_document_by_id(
@@ -381,12 +408,34 @@ class BaseRester:
         if isinstance(fields, str):
             fields = (fields,)
 
-        results = self.query(
-            criteria=criteria,
-            fields=fields,
-            monty_decode=monty_decode,
-            suburl=document_id,
-        )
+        try:
+            results = self.query(
+                criteria=criteria,
+                fields=fields,
+                monty_decode=monty_decode,
+                suburl=document_id,
+            )
+        except MPRestError:
+
+            if self.primary_key == "material_id":
+                # see if the material_id has changed, perhaps a task_id was supplied
+                # this should likely be re-thought
+                from mp_api.matproj import MPRester
+
+                with MPRester() as mpr:
+                    new_document_id = mpr.get_materials_id_from_task_id(document_id)
+                warnings.warn(
+                    f"Document primary key has changed from {document_id} to {new_document_id}, "
+                    f"returning data for {document_id} in {self.suffix} route.    "
+                )
+                document_id = new_document_id
+
+            results = self.query(
+                criteria=criteria,
+                fields=fields,
+                monty_decode=monty_decode,
+                suburl=document_id,
+            )
 
         if not results:
             warnings.warn(f"No result for record {document_id}.")
@@ -398,13 +447,66 @@ class BaseRester:
         else:
             return results[0]
 
-    def _get_all_documents(self, query_params, fields=None, version=None, chunk_size=100, num_chunks=None):
+    def search(
+        self,
+        version: Optional[str] = None,
+        num_chunks: Optional[int] = None,
+        chunk_size: int = 1000,
+        all_fields: bool = True,
+        fields: Optional[List[str]] = None,
+        **kwargs,
+    ):
+        """
+        A generic search method to retrieve documents matching specific parameters.
+
+        Arguments:
+            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Set to False to only return specific fields of interest. This will
+                significantly speed up data retrieval for large queries and help us by reducing
+                load on the Materials Project servers. Set to True by default to reduce confusion,
+                unless "fields" are set, in which case all_fields will be set to False.
+            fields (List[str]): List of fields to project. When searching, it is better to only ask for
+                the specific fields of interest to reduce the time taken to retrieve the documents. See
+                 the available_fields property to see a list of fields to choose from.
+            kwargs: Supported search terms, e.g. nelements_max=3 for the "materials" search API.
+                Consult the specific API route for valid search terms.
+
+        Returns:
+            A list of documents.
+        """
+        # This method should be customized for each end point to give more user friendly,
+        # documented kwargs.
+
+        return self._get_all_documents(
+            kwargs,
+            all_fields=all_fields,
+            fields=fields,
+            version=version,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
+        )
+
+    def _get_all_documents(
+        self,
+        query_params,
+        all_fields=True,
+        fields=None,
+        version=None,
+        chunk_size=1000,
+        num_chunks=None,
+    ):
         """
         Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
         implementation for the search_* methods on various endpoints. See
         materials endpoint for an example of this in use.
         """
+
+        if all_fields and not fields:
+            query_params["all_fields"] = True
+
+        query_params["limit"] = chunk_size
 
         results = self._query_resource(query_params, fields=fields, version=version)
 
@@ -417,9 +519,20 @@ class BaseRester:
         count = 1
 
         # progress bar
-        query_to_print = {k: v for k, v in query_params.items() if k not in ("limit", "skip")}
-        t = tqdm(desc=f"Retrieving documents with query {query_to_print}", total=results["meta"]["total"])
+        total_docs = results["meta"]["total"]
+        t = tqdm(
+            desc=f"Retrieving {self.document_model.__name__} documents",
+            total=total_docs,
+        )
         t.update(len(all_results))
+
+        # warn to select specific fields only for many results
+        if (not fields) and (total_docs / chunk_size > 10):
+            warnings.warn(
+                f"Use the 'fields' argument to select only fields of interest to speed "
+                f"up data retrieval for large queries. "
+                f"Choose from: {self.available_fields}"
+            )
 
         while True:
             query_params["skip"] = count * chunk_size
@@ -427,7 +540,9 @@ class BaseRester:
 
             t.update(len(results["data"]))
 
-            if not any(results["data"]) or (num_chunks is not None and count == num_chunks):
+            if not any(results["data"]) or (
+                num_chunks is not None and count == num_chunks
+            ):
                 break
 
             count += 1
@@ -463,7 +578,7 @@ class BaseRester:
     def available_fields(self) -> List[str]:
         if self.document_model is None:
             return ["Unknown fields."]
-        return list(self.document_model.schema()['properties'].keys())  # type: ignore
+        return list(self.document_model.schema()["properties"].keys())  # type: ignore
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.endpoint}>"

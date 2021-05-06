@@ -28,6 +28,8 @@ setup(
         "pymatgen>=2020.9.14",
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
+        "monty",
+        "emmet-core"
     ],
     extras_require={
         "server": [

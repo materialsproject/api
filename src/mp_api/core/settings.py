@@ -13,5 +13,7 @@ class MAPISettings(BaseSettings):
 
     debug: bool = Field(False, description="Turns on debug mode for MAPI")
 
+    db_version: str = Field("2021_04_26", description="Database version")
+
     class Config:
         env_prefix = "mapi_"

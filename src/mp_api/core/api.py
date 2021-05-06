@@ -6,6 +6,7 @@ from typing import Dict, Union
 from datetime import datetime
 from monty.json import MSONable
 from mp_api.core.resource import ConsumerPostResource, GetResource
+from mp_api.core.settings import MAPISettings
 from pymatgen.core import __version__ as pmg_version  # type: ignore
 from fastapi.openapi.utils import get_openapi
 
@@ -38,9 +39,11 @@ class MAPI(MSONable):
         """
 
         # TODO this should run on `not self.debug`!
-        on_startup = [
-            resource.setup_indexes for resource in self.resources.values()
-        ] if self.debug else []
+        on_startup = (
+            [resource.setup_indexes for resource in self.resources.values()]
+            if self.debug
+            else []
+        )
         app = FastAPI(title=self.title, version=self.version, on_startup=on_startup)
         if len(self.resources) == 0:
             raise RuntimeError("ERROR: There are no resources provided")
@@ -56,7 +59,9 @@ class MAPI(MSONable):
                 "status": "OK",
                 "time": datetime.utcnow(),
                 "api": self.version,
-                "database": os.environ.get("DB_VERSION").replace("_", "."),
+                "database": os.environ.get(
+                    "DB_VERSION", MAPISettings().db_version
+                ).replace("_", "."),
                 "pymatgen": pmg_version,
             }
 

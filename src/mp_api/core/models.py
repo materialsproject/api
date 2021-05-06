@@ -1,7 +1,7 @@
 from datetime import datetime
+from typing import Generic, List, Optional, TypeVar
 from mp_api import __version__
 from pydantic import BaseModel, Field, validator
-from typing import Generic, TypeVar, Optional, List
 from pydantic.generics import GenericModel
 
 

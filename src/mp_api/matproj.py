@@ -1,33 +1,11 @@
 from os import environ
-from urllib.parse import urljoin
+import warnings
 
 from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 
-from mp_api.bandstructure.client import BSRester
-from mp_api.dos.client import DOSRester
-from mp_api.eos.client import EOSRester
-from mp_api.materials.client import MaterialsRester
-from mp_api.similarity.client import SimilarityRester
-from mp_api.tasks.client import TaskRester
-from mp_api.xas.client import XASRester
-from mp_api.fermi.client import FermiRester
-from mp_api.gb.client import GBRester
-from mp_api.substrates.client import SubstratesRester
-from mp_api.surface_properties.client import SurfacePropertiesRester
-from mp_api.wulff.client import WulffRester
-from mp_api.phonon.client import PhononRester, PhononImgRester
-from mp_api.elasticity.client import ElasticityRester
-from mp_api.thermo.client import ThermoRester
-from mp_api.dielectric.client import DielectricRester
-from mp_api.dois.client import DOIRester
-from mp_api.piezo.client import PiezoRester
-from mp_api.magnetism.client import MagnetismRester
-from mp_api.search.client import SearchRester
-from mp_api.robocrys.client import RobocrysRester
-from mp_api.molecules.client import MoleculesRester
-from mp_api.synthesis.client import SynthesisRester
-from mp_api.electrodes.client import ElectrodeRester
+from mp_api.core.client import BaseRester
+from mp_api.routes import *
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -36,7 +14,6 @@ _DEPRECATION_WARNING = (
 )
 
 
-# TODO: think about how to migrate from PMG_MAPI_KEY
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
@@ -58,8 +35,8 @@ class MPRester:
         Args:
             api_key (str): A String API key for accessing the MaterialsProject
                 REST interface. Please obtain your API key at
-                https://www.materialsproject.org/dashboard. If this is None,
-                the code will check if there is a "PMG_MAPI_KEY" setting.
+                https://next-gen.materialsproject.org/api. If this is None,
+                the code will check if there is a "MP_API_KEY" setting.
                 If so, it will use that environment variable. This makes
                 easier for heavy users to simply add this environment variable to
                 their setups and MPRester can then be called without any arguments.
@@ -85,85 +62,27 @@ class MPRester:
         self.api_key = api_key
         self.endpoint = endpoint
         self.version = version
-
-        self.materials = MaterialsRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.xas = XASRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.similarity = SimilarityRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.eos = EOSRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.tasks = TaskRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.bandstructure = BSRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.dos = DOSRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.fermi = FermiRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.gb = GBRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.substrates = SubstratesRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.surface_properties = SurfacePropertiesRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.wulff = WulffRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.phonon = PhononRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.elasticity = ElasticityRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.thermo = ThermoRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.dielectric = DielectricRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.doi = DOIRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.piezo = PiezoRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.magnetism = MagnetismRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
+        self.session = BaseRester._create_session(
+            api_key=api_key, include_user_agent=include_user_agent
         )
 
-        # TODO: remove this from public client?
-        self.phonon_img = PhononImgRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
+        self._all_resters = []
 
-        self.search = SearchRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.robocrys = RobocrysRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.molecules = MoleculesRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.synth = SynthesisRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
-        self.electrodes = ElectrodeRester(
-            api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent
-        )
+        for cls in BaseRester.__subclasses__():
+
+            rester = cls(
+                api_key=api_key,
+                endpoint=endpoint,
+                version=version,
+                include_user_agent=include_user_agent,
+                session=self.session,
+            )
+
+            self._all_resters.append(rester)
+
+            setattr(
+                self, cls.suffix, rester,
+            )
 
     def __enter__(self):
         """
@@ -175,34 +94,13 @@ class MPRester:
         """
         Support for "with" context.
         """
-        # TODO: share sessions between different Resters
-        for rester in (
-            self.materials,
-            self.xas,
-            self.similarity,
-            self.eos,
-            self.tasks,
-            self.bandstructure,
-            self.dos,
-            self.fermi,
-            self.gb,
-            self.substrates,
-            self.surface_properties,
-            self.wulff,
-        ):
-            rester.session.close()
-
-    def has(self, mpid):
-        # TODO: remove, here until search end-point has a client
-        return self.materials.session.get(
-            urljoin(self.endpoint, f"search/{mpid}/?fields=has_props")
-        ).json()["data"][0]["has_props"]
+        self.session.close()
 
     ###########################################################################
     # The following methods are retained for backwards compatibility, but will
     # eventually be retired.
 
-    # @deprecated(MPRester.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
+    # @deprecated(self.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
     def get_structure_by_material_id(
         self, material_id, final=True, conventional_unit_cell=False
     ) -> Structure:
@@ -221,10 +119,7 @@ class MPRester:
             Structure object.
         """
         # TODO: decide about `final` and `conventional_unit_cell`
-        return self.materials.get_structure_by_material_id(material_id=material_id)
-
-    ###########################################################################
-    # The following methods have not been implemented yet.
+        return self.materials.get_structure_by_material_id(material_id=material_id)  # type: ignore
 
     # @deprecated(self.materials.get_database_version, _DEPRECATION_WARNING)
     def get_database_version(self):
@@ -243,56 +138,35 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_materials_id_from_task_id(self, task_id):
+    def get_materials_id_from_task_id(self, task_id, version=None):
         """
-        Returns a new MP materials id from a task id (which can be
-        equivalent to an old materials id)
+        Returns the current material_id from a given task_id. The
+        materials_id should rarely change, and is usually chosen from
+        among the smallest numerical id from the group of task_ids for
+        that material. However, in some circumstances it might change,
+        and this method is useful for finding the new material_id.
 
         Args:
             task_id (str): A task id.
+            version (str): Specific database version to query.
 
         Returns:
             materials_id (str)
         """
-        raise NotImplementedError
-
-    def get_materials_id_references(self, material_id):
-        """
-        Returns all references for a materials id.
-
-        Args:
-            material_id (str): A material id.
-
-        Returns:
-            BibTeX (str)
-        """
-        raise NotImplementedError
-
-    def get_data(self, chemsys_formula_id, data_type="vasp", prop=""):
-        """
-        Flexible method to get any data using the Materials Project REST
-        interface. Generally used by other methods for more specific queries.
-
-        Format of REST return is *always* a list of dict (regardless of the
-        number of pieces of data returned. The general format is as follows:
-
-        [{"material_id": material_id, "property_name" : value}, ...]
-
-        This is generally a call to
-        https://www.materialsproject.org/rest/v2/materials/vasp/<prop>.
-        See https://github.com/materialsproject/mapidoc for details.
-
-        Args:
-            chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
-            data_type (str): Type of data to return. Currently can either be
-                "vasp" or "exp".
-            prop (str): Property to be obtained. Should be one of the
-                MPRester.supported_task_properties. Leave as empty string for a
-                general list of useful properties.
-        """
-        # TODO: this will likely not stay in current form, e.g. exp key?
-        raise NotImplementedError
+        docs = self.materials.search(
+            task_ids=[task_id], fields=["material_id"], version=version
+        )
+        if len(docs) == 1:
+            return docs[0].material_id
+        elif len(docs) > 1:
+            raise ValueError(
+                f"Multiple documents return for {task_id}, this should not happen, please report it!"
+            )
+        else:
+            warnings.warn(
+                f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
+            )
+            return None
 
     def get_materials_ids(self, chemsys_formula):
         """
@@ -305,61 +179,14 @@ class MPRester:
         Returns:
             ([str]) List of all materials ids.
         """
-        raise NotImplementedError
+        return sorted(
+            doc.task_id
+            for doc in self.materials.search_material_docs(
+                chemsys_formula=chemsys_formula
+            )
+        )
 
-    def get_doc(self, materials_id):
-        """
-        Get the entire data document for one materials id. Use this judiciously.
-
-        REST Endpoint: https://www.materialsproject.org/materials/<mp-id>/doc.
-
-        Args:
-            materials_id (str): E.g., mp-1143 for Al2O3
-
-        Returns:
-            Dict of json document of all data that is displayed on a materials
-            details page.
-        """
-        raise NotImplementedError
-
-    def get_xas_data(self, material_id, absorbing_element):
-        """
-        Get X-ray absorption spectroscopy data for absorbing element in the
-        structure corresponding to a material_id. Only X-ray Absorption Near Edge
-        Structure (XANES) for K-edge is supported.
-
-        REST Endpoint:
-        https://www.materialsproject.org/materials/<mp-id>/xas/<absorbing_element>.
-
-        Args:
-            material_id (str): E.g., mp-1143 for Al2O3
-            absorbing_element (str): The absorbing element in the corresponding
-                structure. E.g., Al in Al2O3
-        """
-        raise NotImplementedError
-
-    def get_task_data(self, chemsys_formula_id, prop=""):
-        """
-        Flexible method to get any data using the Materials Project REST
-        interface. Generally used by other methods for more specific queries.
-        Unlike the :func:`get_data`_, this method queries the task collection
-        for specific run information.
-
-        Format of REST return is *always* a list of dict (regardless of the
-        number of pieces of data returned. The general format is as follows:
-
-        [{"material_id": material_id, "property_name" : value}, ...]
-
-        Args:
-            chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
-            prop (str): Property to be obtained. Should be one of the
-                MPRester.supported_properties. Leave as empty string for a
-                general list of useful properties.
-        """
-        raise NotImplementedError
-
-    def get_structures(self, chemsys_formula_id, final=True):
+    def get_structures(self, chemsys_formula_id, energy_above_hull_cutoff=0):
         """
         Get a list of Structures corresponding to a chemical system, formula,
         or materials_id.
@@ -367,8 +194,6 @@ class MPRester:
         Args:
             chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
                 or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
-            final (bool): Whether to get the final structure, or the initial
-                (pre-relaxation) structure. Defaults to True.
 
         Returns:
             List of Structure objects.

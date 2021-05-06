@@ -15,7 +15,11 @@ from mp_api.core.utils import (
     merge_queries,
     attach_signature,
     dynamic_import,
+    api_sanitize,
 )
+
+from mp_api.core.settings import MAPISettings
+
 from mp_api.core.query_operator import (
     QueryOperator,
     PaginationQuery,
@@ -61,9 +65,9 @@ class Resource(MSONable, ABC):
             assert issubclass(
                 class_model, BaseModel
             ), "The resource model has to be a PyDantic Model"
-            self.model = class_model
+            self.model = api_sanitize(class_model, allow_dict_msonable=True)
         elif isinstance(model, type) and issubclass(model, (BaseModel, MSONable)):
-            self.model = model
+            self.model = api_sanitize(model, allow_dict_msonable=True)
         else:
             raise ValueError("The resource model has to be a PyDantic Model")
 
@@ -307,7 +311,7 @@ class GetResource(Resource):
                 if version is not None:
                     version = version.replace(".", "_")
                 else:
-                    version = os.environ.get("DB_VERSION")
+                    version = os.environ.get("DB_VERSION", MAPISettings().db_version)
 
                 prefix = self.store.collection_name.split("_")[0]
                 self.store.collection_name = f"{prefix}_{version}"
@@ -316,9 +320,7 @@ class GetResource(Resource):
 
                 crit = {self.store.key: key}
 
-                if model_name == "MaterialsCoreDoc":
-                    crit.update({"_sbxn": "core"})
-                elif model_name == "TaskDoc":
+                if model_name == "TaskDoc":
                     crit.update({"sbxn": "core"})
 
                 item = [
@@ -380,16 +382,14 @@ class GetResource(Resource):
                     query["criteria"].pop("version")
 
                 else:
-                    version = os.environ.get("DB_VERSION")
+                    version = os.environ.get("DB_VERSION", MAPISettings().db_version)
 
                 prefix = self.store.collection_name.split("_")[0]
                 self.store.collection_name = f"{prefix}_{version}"
 
             self.store.connect(force_reset=True)
 
-            if model_name == "MaterialsCoreDoc":
-                query["criteria"].update({"_sbxn": "core"})
-            elif model_name == "TaskDoc":
+            if model_name == "TaskDoc":
                 query["criteria"].update({"sbxn": "core"})
 
             data = list(self.store.query(**query))  # type: ignore
