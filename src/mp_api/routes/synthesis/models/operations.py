@@ -31,7 +31,7 @@ class Conditions(BaseModel):
         None,
         description="Heating times."
     )
-    heating_atmosphere: Optional[str] = Field(
+    heating_atmosphere: Optional[List[str]] = Field(
         None,
         description="List of heating atmospheres."
     )

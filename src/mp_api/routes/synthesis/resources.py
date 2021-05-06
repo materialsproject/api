@@ -1,10 +1,10 @@
-from mp_api.core.resource import GetResource
-from mp_api.routes.synthesis.models import SynthesisDoc
-
-from mp_api.routes.synthesis.query_operators import SynthFormulaQuery
-from mp_api.core.query_operator import SortQuery, PaginationQuery, SparseFieldsQuery
-
 from fastapi import Query
+
+from mp_api.core.query_operator import SortQuery, PaginationQuery, SparseFieldsQuery
+from mp_api.core.resource import GetResource
+from mp_api.routes.synthesis.models import SynthesisRecipe
+from mp_api.routes.synthesis.query_operators import SynthesisTargetFormulaQuery, SynthesisPrecursorFormulaQuery, \
+    TextSearchQuery
 
 
 def synth_resource(synth_store):
@@ -71,12 +71,17 @@ def synth_resource(synth_store):
 
     resource = GetResource(
         synth_store,
-        SynthesisDoc,
+        SynthesisRecipe,
         query_operators=[
-            SynthFormulaQuery(),
+            SynthesisTargetFormulaQuery(),
+            SynthesisPrecursorFormulaQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(SynthesisDoc, default_fields=["formula", "doi"]),
+            SparseFieldsQuery(SynthesisRecipe, default_fields=[
+                "doi", "reaction_string", "paragraph_string",
+                "targets_formula", "precursors_formula"
+            ]),
+            TextSearchQuery(),
         ],
         tags=["Synthesis"],
         custom_endpoint_funcs=[custom_synth_prep],

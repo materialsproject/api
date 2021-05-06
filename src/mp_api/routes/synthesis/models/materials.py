@@ -1,7 +1,6 @@
 from typing import List, Dict, Optional
 
 from pydantic import BaseModel, Field
-from pymatgen.core import Composition
 
 __all__ = [
     'Component',

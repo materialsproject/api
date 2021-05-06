@@ -3,9 +3,9 @@ from typing import List
 from pydantic import BaseModel, Field
 from pymatgen.core import Composition
 
-from mp_api.synthesis.models.materials import ExtractedMaterial
-from mp_api.synthesis.models.operations import Operation
-from mp_api.synthesis.models.reaction import ReactionFormula
+from mp_api.routes.synthesis.models.materials import ExtractedMaterial
+from mp_api.routes.synthesis.models.operations import Operation
+from mp_api.routes.synthesis.models.reaction import ReactionFormula
 
 
 class SynthesisRecipe(BaseModel):
@@ -41,9 +41,21 @@ class SynthesisRecipe(BaseModel):
         ...,
         description="The target material."
     )
-    targets_string: List[Composition] = Field(
+    targets_formula: List[Composition] = Field(
         ...,
         description="List of synthesized target material compositions."
+    )
+    precursors_formula: List[Composition] = Field(
+        ...,
+        description="List of precursor material compositions."
+    )
+    targets_formula_s: List[str] = Field(
+        ...,
+        description="List of synthesized target material compositions, as strings."
+    )
+    precursors_formula_s: List[str] = Field(
+        ...,
+        description="List of precursor material compositions, as strings."
     )
 
     precursors: List[ExtractedMaterial] = Field(
