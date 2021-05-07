@@ -12,7 +12,7 @@ from mp_api.core.client import BaseRester, MPRestError
 class MaterialsRester(BaseRester):
 
     suffix = "materials"
-    document_model = MaterialsDoc
+    document_model = MaterialsDoc  # type: ignore
     supports_versions = True
 
     def get_structure_by_material_id(
