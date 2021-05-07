@@ -1,11 +1,8 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
-from urllib.parse import quote_from_bytes
 
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
 from mp_api.routes.dielectric.models import DielectricDoc
-
-import warnings
 
 
 class DielectricRester(BaseRester):
