@@ -8,7 +8,7 @@ from mp_api.core.client import BaseRester
 class TaskRester(BaseRester):
 
     suffix = "tasks"
-    document_model = TaskDoc
+    document_model = TaskDoc  # type: ignore
     primary_key = "task_id"
 
     def get_trajectory(self, task_id):
