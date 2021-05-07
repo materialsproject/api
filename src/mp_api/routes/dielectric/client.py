@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
+from urllib.parse import quote_from_bytes
 
 from mp_api.core.client import BaseRester, MPRestError
 from mp_api.routes.dielectric.models import DielectricDoc
@@ -12,24 +13,6 @@ class DielectricRester(BaseRester):
     suffix = "dielectric"
     document_model = DielectricDoc  # type: ignore
 
-    def get_dielectric_from_material_id(self, material_id: str):
-        """
-        Get dielectric data for a given Materials Project ID.
-
-        Arguments:
-            material_id (str): Materials project ID
-
-        Returns:
-            results (Dict): Dictionary containing dielectric data.
-        """
-
-        result = self._make_request("{}/?all_fields=true".format(material_id))
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No document found")
-
     def search_dielectric_docs(
         self,
         e_total: Optional[Tuple[float, float]] = None,
@@ -37,7 +20,8 @@ class DielectricRester(BaseRester):
         e_static: Optional[Tuple[float, float]] = None,
         n: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
+        all_fields=True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -50,19 +34,15 @@ class DielectricRester(BaseRester):
             n (Tuple[float,float]): Minimum and maximum refractive index to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in EOSDoc to return data for.
-                Default is material_id only.
+                Default is material_id and last_updated if all_fields is False.
 
         Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs only.
+            ([DielectricDoc]) List of dielectric documents.
         """
 
         query_params = defaultdict(dict)  # type: dict
-
-        if chunk_size <= 0 or chunk_size > 100:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
 
         if e_total:
             query_params.update({"e_total_min": e_total[0], "e_total_max": e_total[1]})
@@ -78,23 +58,17 @@ class DielectricRester(BaseRester):
         if n:
             query_params.update({"n_min": n[0], "n_max": n[1]})
 
-        if fields:
-            query_params.update({"fields": ",".join(fields)})
-
         query_params = {
             entry: query_params[entry]
             for entry in query_params
             if query_params[entry] is not None
         }
 
-        query_params.update({"limit": chunk_size, "skip": 0})
-        count = 0
-        while True:
-            query_params["skip"] = count * chunk_size
-            results = self.query(query_params).get("data", [])
-
-            if not any(results) or (num_chunks is not None and count == num_chunks):
-                break
-
-            count += 1
-            yield results
+        return super().search(
+            version=self.version,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
+        )
