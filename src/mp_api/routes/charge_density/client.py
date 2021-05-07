@@ -47,13 +47,14 @@ class ChargeDensityRester(BaseRester):
 
     def get_calculation_ids_from_material_id(self, material_id: str):
         """
-        Get charge density calculation ids associated with a given Materials Project ID.
+        Get charge density calculation ids associated with a given Materials Project ID
+        that have charge density data.
 
         Arguments:
             material_id (str): Materials Project ID
 
         Returns:
-            calculation_ids (List[str]): List of calculation ids.
+            calculation_ids (List[str]): List of calculation ids that have charge density data.
         """
 
         materials_rester = MaterialsRester(
@@ -69,4 +70,15 @@ class ChargeDensityRester(BaseRester):
             if "Static" in calculation_type:
                 calculation_ids.append(calculation_id)
 
-        return calculation_ids
+        chgcar_calculation_ids = []
+        for calculation_id in calculation_ids:
+            try:
+                result = self.get_document_by_id(
+                    document_id=calculation_id, fields=["task_id"]
+                )
+            except MPRestError:
+                continue
+
+            chgcar_calculation_ids.append(result["task_id"])
+
+        return chgcar_calculation_ids
