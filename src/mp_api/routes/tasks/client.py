@@ -9,6 +9,7 @@ class TaskRester(BaseRester):
 
     suffix = "tasks"
     document_model = TaskDoc
+    primary_key = "task_id"
 
     def get_trajectory(self, task_id):
         """
