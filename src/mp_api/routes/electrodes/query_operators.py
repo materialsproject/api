@@ -46,11 +46,11 @@ class VoltageStepQuery(QueryOperator):
         self,
         delta_volume_max: Optional[float] = Query(
             None,
-            description="Maximum value for the max Volume change in percent for a particular voltage step.",
+            description="Maximum value for the max volume change in percent for a particular voltage step.",
         ),
         delta_volume_min: Optional[float] = Query(
             None,
-            description="Minimum value for the max Volume change in percent for a particular voltage step.",
+            description="Minimum value for the max volume change in percent for a particular voltage step.",
         ),
         average_voltage_max: Optional[float] = Query(
             None,
