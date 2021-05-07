@@ -253,9 +253,7 @@ class GetResource(Resource):
 
                 crit = {self.store.key: key}
 
-                if model_name == "MaterialsCoreDoc":
-                    crit.update({"_sbxn": "core"})
-                elif model_name == "TaskDoc":
+                if model_name == "TaskDoc":
                     crit.update({"sbxn": "core"})
 
                 item = [
