@@ -57,9 +57,9 @@ class ChargeDensityRester(BaseRester):
             calculation_ids (List[str]): List of calculation ids that have charge density data.
         """
 
-        materials_rester = MaterialsRester(
+        materials_rester = MaterialsRester(  # type: ignore
             endpoint=self.base_endpoint, api_key=self.api_key
-        )  # type: ignore
+        )
 
         calculation_types = materials_rester.get_document_by_id(
             document_id=material_id, fields=["calc_types"]
