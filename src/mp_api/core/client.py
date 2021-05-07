@@ -77,6 +77,7 @@ class BaseRester:
         """
 
         self.api_key = api_key
+        self.base_endpoint = endpoint
         self.endpoint = endpoint
         self.version = version
         self.debug = debug
@@ -422,7 +423,11 @@ class BaseRester:
                 # this should likely be re-thought
                 from mp_api.matproj import MPRester
 
-                with MPRester() as mpr:
+                with MPRester(
+                    api_key=self.api_key,
+                    endpoint=self.base_endpoint,
+                    version=self.version,
+                ) as mpr:
                     new_document_id = mpr.get_materials_id_from_task_id(document_id)
                 warnings.warn(
                     f"Document primary key has changed from {document_id} to {new_document_id}, "
