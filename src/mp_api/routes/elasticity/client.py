@@ -24,7 +24,7 @@ class ElasticityRester(BaseRester):
         poisson_ratio: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
-        all_fields=True,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -52,9 +52,8 @@ class ElasticityRester(BaseRester):
             fields (List[str]): List of fields in EOSDoc to return data for.
                 Default is material_id only.
 
-        Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs only.
+        Returns:
+            ([ElasticityDoc]) List of elasticity documents.
         """
 
         query_params = defaultdict(dict)  # type: dict

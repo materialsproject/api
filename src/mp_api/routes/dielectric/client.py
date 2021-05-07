@@ -18,7 +18,7 @@ class DielectricRester(BaseRester):
         n: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
-        all_fields=True,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -35,7 +35,7 @@ class DielectricRester(BaseRester):
             fields (List[str]): List of fields in EOSDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
-        Yields:
+        Returns:
             ([DielectricDoc]) List of dielectric documents.
         """
 
