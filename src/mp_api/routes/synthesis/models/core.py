@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List
 
 from pydantic import BaseModel, Field
@@ -6,6 +7,11 @@ from pymatgen.core import Composition
 from mp_api.routes.synthesis.models.materials import ExtractedMaterial
 from mp_api.routes.synthesis.models.operations import Operation
 from mp_api.routes.synthesis.models.reaction import ReactionFormula
+
+
+class SynthesisTypeEnum(str, Enum):
+    solid_state = "solid-state"
+    sol_gel = "sol-gel"
 
 
 class SynthesisRecipe(BaseModel):
@@ -22,7 +28,7 @@ class SynthesisRecipe(BaseModel):
         "",
         description="The paragraph from which this recipe is extracted."
     )
-    synthesis_type: str = Field(
+    synthesis_type: SynthesisTypeEnum = Field(
         ...,
         description="Type of the synthesis recipe."
     )

@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -45,8 +46,17 @@ class Conditions(BaseModel):
     )
 
 
+class OperationTypeEnum(str, Enum):
+    starting = "StartingSynthesis"
+    mixing = "MixingOperation"
+    shaping = "ShapingOperation"
+    drying = "DryingOperation"
+    heating = "HeatingOperation"
+    quenching = "QuenchingOperation"
+
+
 class Operation(BaseModel):
-    type: str = Field(
+    type: OperationTypeEnum = Field(
         ...,
         description="Type of the operation as classified by the pipeline."
     )

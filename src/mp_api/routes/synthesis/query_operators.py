@@ -6,6 +6,15 @@ from fastapi import Query
 from pymatgen.core import Composition
 
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from mp_api.routes.synthesis.models import SynthesisTypeEnum, OperationTypeEnum
+
+__all__ = [
+    'SynthesisTypeQuery',
+    'SynthesisTargetFormulaQuery',
+    'SynthesisPrecursorFormulaQuery',
+    'TextSearchQuery',
+    'ExperimentOperationsQuery',
+]
 
 
 class SynthesisTypeQuery(QueryOperator):
@@ -15,9 +24,8 @@ class SynthesisTypeQuery(QueryOperator):
 
     def query(
             self,
-            synthesis_type: Optional[List[str]] = Query(
+            synthesis_type: Optional[List[SynthesisTypeEnum]] = Query(
                 None, description="Type of synthesis to include.",
-                regex="solid-state|sol-gel"
             ),
     ) -> STORE_PARAMS:
         crit = defaultdict(dict)  # type: dict
@@ -132,9 +140,8 @@ class ExperimentOperationsQuery(QueryOperator):
 
     def query(
             self,
-            operations: Optional[List[str]] = Query(
+            operations: Optional[List[OperationTypeEnum]] = Query(
                 None, description="List of operations that syntheses must have.",
-                regex="StartingSynthesis|MixingOperation|ShapingOperation|DryingOperation|HeatingOperation|QuenchingOperation",
             ),
     ) -> STORE_PARAMS:
         crit = defaultdict(dict)  # type: dict

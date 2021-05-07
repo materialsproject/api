@@ -1,16 +1,18 @@
 from mp_api.routes.synthesis.models.core import (
     SynthesisRecipe,
+    SynthesisTypeEnum,
 )
 from mp_api.routes.synthesis.models.materials import (
     Component,
-    ExtractedMaterial
+    ExtractedMaterial,
 )
 from mp_api.routes.synthesis.models.operations import (
     Value,
     Conditions,
-    Operation
+    Operation,
+    OperationTypeEnum,
 )
 from mp_api.routes.synthesis.models.reaction import (
     FormulaPart,
-    ReactionFormula
+    ReactionFormula,
 )
