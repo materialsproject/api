@@ -1,5 +1,5 @@
-fastapi==0.63.0
+fastapi==0.64.0
 maggma==0.26.0
 uvicorn==0.13.4
 gunicorn[gevent]>=20.0.1
-boto3==1.17.62
+boto3==1.17.69
