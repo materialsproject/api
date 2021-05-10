@@ -21,3 +21,8 @@ from mp_api.routes.molecules.client import MoleculesRester
 from mp_api.routes.synthesis.client import SynthesisRester
 from mp_api.routes.electrodes.client import ElectrodeRester
 from mp_api.routes.charge_density.client import ChargeDensityRester
+from mp_api.routes.electronic_structure.client import (
+    ElectronicStructureRester,
+    BandStructureRester,
+    DosRester,
+)

@@ -19,7 +19,7 @@ from mp_api.routes.electronic_structure.query_operators import (
     BSDataQuery,
     DOSDataQuery,
 )
-from mp_api.routes.electronic_structure.models.doc import BSObjectDoc
+from mp_api.routes.electronic_structure.models.doc import BSObjectDoc, DOSObjectDoc
 
 
 def es_resource(es_store):
@@ -119,7 +119,7 @@ def dos_resource(es_store, s3_store):
     def custom_dos_endpoint_prep(self):
 
         self.s3 = s3_store
-        model = api_sanitize(BSObjectDoc, allow_dict_msonable=True)
+        model = api_sanitize(DOSObjectDoc, allow_dict_msonable=True)
         model_name = model.__name__
         key_name = "task_id"
 
@@ -157,9 +157,7 @@ def dos_resource(es_store, s3_store):
                     detail=f"Density of states with task_id = {task_id} not found",
                 )
 
-            response = dos_object_doc
-
-            return response
+            return {"data": [dos_object_doc]}
 
         self.router.get(
             "/object/",
