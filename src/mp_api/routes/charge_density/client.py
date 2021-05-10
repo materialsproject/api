@@ -1,3 +1,4 @@
+from platform import version
 from mp_api.core.client import BaseRester, MPRestError
 from mp_api.routes.tasks.client import TaskRester
 from mp_api.routes.materials.client import MaterialsRester
@@ -58,7 +59,7 @@ class ChargeDensityRester(BaseRester):
         """
 
         materials_rester = MaterialsRester(  # type: ignore
-            endpoint=self.base_endpoint, api_key=self.api_key
+            version=self.version, endpoint=self.base_endpoint, api_key=self.api_key,
         )
 
         calculation_types = materials_rester.get_document_by_id(
