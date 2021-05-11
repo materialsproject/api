@@ -4,7 +4,7 @@ from mp_api.routes.similarity.client import SimilarityRester
 from mp_api.routes.tasks.client import TaskRester
 from mp_api.routes.xas.client import XASRester
 from mp_api.routes.fermi.client import FermiRester
-from mp_api.routes.grain_boundary.client import GBRester
+from mp_api.routes.grain_boundary.client import GrainBoundaryRester
 from mp_api.routes.substrates.client import SubstratesRester
 from mp_api.routes.surface_properties.client import SurfacePropertiesRester
 from mp_api.routes.wulff.client import WulffRester
