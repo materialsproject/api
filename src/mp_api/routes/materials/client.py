@@ -46,6 +46,7 @@ class MaterialsRester(BaseRester):
         deprecated: Optional[bool] = False,
         num_chunks: Optional[int] = None,
         chunk_size: int = 100,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -67,6 +68,7 @@ class MaterialsRester(BaseRester):
             deprecated (bool): Whether the material is tagged as deprecated.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty.
 
@@ -103,23 +105,19 @@ class MaterialsRester(BaseRester):
         if density:
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
-        if fields:
-            query_params.update({"fields": ",".join(fields)})
-
         query_params = {
             entry: query_params[entry]
             for entry in query_params
             if query_params[entry] is not None
         }
 
-        query_params.update({"limit": chunk_size, "skip": 0})
-
-        return self._get_all_documents(
-            query_params,
-            fields=fields,
-            version=version,
-            chunk_size=chunk_size,
+        return super().search(
+            version=self.version,
             num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )
 
     def get_database_versions(self):
