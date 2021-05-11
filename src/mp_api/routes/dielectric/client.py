@@ -22,7 +22,7 @@ class DielectricRester(BaseRester):
         fields: Optional[List[str]] = None,
     ):
         """
-        Query equations of state docs using a variety of search criteria.
+        Query dielectric docs using a variety of search criteria.
 
         Arguments:
             e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.

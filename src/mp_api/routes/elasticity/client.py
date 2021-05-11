@@ -28,7 +28,7 @@ class ElasticityRester(BaseRester):
         fields: Optional[List[str]] = None,
     ):
         """
-        Query equations of state docs using a variety of search criteria.
+        Query elasticity docs using a variety of search criteria.
 
         Arguments:
             k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
