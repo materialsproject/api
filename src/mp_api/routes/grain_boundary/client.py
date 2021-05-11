@@ -7,14 +7,14 @@ from mp_api.core.client import BaseRester
 from mp_api.routes.grain_boundary.models import GBTypeEnum, GrainBoundaryDoc
 
 
-class GBRester(BaseRester):
+class GrainBoundaryRester(BaseRester):
 
     suffix = "grain_boundary"
     document_model = GrainBoundaryDoc  # type: ignore
 
-    def search_gb_docs(
+    def search_grain_boundary_docs(
         self,
-        task_ids: Optional[List[str]] = None,
+        material_ids: Optional[List[str]] = None,
         gb_energy: Optional[Tuple[float, float]] = None,
         separation_energy: Optional[Tuple[float, float]] = None,
         rotation_angle: Optional[Tuple[float, float]] = None,
@@ -22,7 +22,8 @@ class GBRester(BaseRester):
         type: Optional[GBTypeEnum] = None,
         chemsys: Optional[str] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -38,6 +39,7 @@ class GBRester(BaseRester):
             chemsys (str): Dash-delimited string of elements in the material.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in GrainBoundaryDoc to return data for.
                 Default is material_id only.
 
@@ -48,12 +50,8 @@ class GBRester(BaseRester):
 
         query_params = defaultdict(dict)  # type: dict
 
-        if chunk_size <= 0 or chunk_size > 100:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
-
-        if task_ids:
-            query_params.update({"task_ids": ",".join(task_ids)})
+        if material_ids:
+            query_params.update({"task_ids": ",".join(material_ids)})
 
         if gb_energy:
             query_params.update(
@@ -85,23 +83,18 @@ class GBRester(BaseRester):
         if chemsys:
             query_params.update({"chemsys": chemsys})
 
-        if fields:
-            query_params.update({"fields": ",".join(fields)})
-
         query_params = {
             entry: query_params[entry]
             for entry in query_params
             if query_params[entry] is not None
         }
 
-        query_params.update({"limit": chunk_size, "skip": 0})
-        count = 0
-        while True:
-            query_params["skip"] = count * chunk_size
-            results = self.query(query_params).get("data", [])
+        return super().search(
+            version=self.version,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
+        )
 
-            if not any(results) or (num_chunks is not None and count == num_chunks):
-                break
-
-            count += 1
-            yield results
