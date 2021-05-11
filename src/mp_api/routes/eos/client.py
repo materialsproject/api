@@ -1,10 +1,8 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
 
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
 from mp_api.routes.eos.models import EOSDoc
-
-import warnings
 
 
 class EOSRester(BaseRester):
@@ -12,30 +10,13 @@ class EOSRester(BaseRester):
     suffix = "eos"
     document_model = EOSDoc  # type: ignore
 
-    def get_eos_from_material_id(self, material_id: str):
-        """
-        Get equations of state data for a given Materials Project ID.
-
-        Arguments:
-            material_id (str): Materials project ID
-
-        Returns:
-            results (Dict): Dictionary containing equations of state data.
-        """
-
-        result = self._make_request("{}/?all_fields=true".format(material_id))
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No document found")
-
     def search_eos_docs(
         self,
         volume: Optional[Tuple[float, float]] = None,
         energy: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -46,6 +27,7 @@ class EOSRester(BaseRester):
             energy (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in EOSDoc to return data for.
                 Default is material_id only.
 
@@ -56,18 +38,11 @@ class EOSRester(BaseRester):
 
         query_params = defaultdict(dict)  # type: dict
 
-        if chunk_size <= 0 or chunk_size > 100:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
-
         if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
 
         if energy:
             query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
-
-        if fields:
-            query_params.update({"fields": ",".join(fields)})
 
         query_params = {
             entry: query_params[entry]
@@ -75,14 +50,11 @@ class EOSRester(BaseRester):
             if query_params[entry] is not None
         }
 
-        query_params.update({"limit": chunk_size, "skip": 0})
-        count = 0
-        while True:
-            query_params["skip"] = count * chunk_size
-            results = self.query(query_params).get("data", [])
-
-            if not any(results) or (num_chunks is not None and count == num_chunks):
-                break
-
-            count += 1
-            yield results
+        return super().search(
+            version=self.version,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
+        )
