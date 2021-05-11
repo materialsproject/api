@@ -2,32 +2,14 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 import warnings
 
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
 from mp_api.routes.surface_properties.models import SurfacePropDoc
 
 
 class SurfacePropertiesRester(BaseRester):
 
     suffix = "surface_properties"
-    document_model = SurfacePropDoc
-
-    def get_surface_properties_from_material_id(self, material_id: str):
-        """
-        Get surface properties data for a given Materials Project ID.
-
-        Arguments:
-            material_id (str): Materials project ID
-
-        Returns:
-            results (Dict): Dictionary containing surface properties data.
-        """
-
-        result = self._make_request("{}/?all_fields=true".format(material_id))
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No document found")
+    document_model = SurfacePropDoc  # type: ignore
 
     def search_surface_properties_docs(
         self,
@@ -37,7 +19,8 @@ class SurfacePropertiesRester(BaseRester):
         shape_factor: Optional[Tuple[float, float]] = None,
         has_reconstructed: Optional[bool] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -53,19 +36,15 @@ class SurfacePropertiesRester(BaseRester):
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in EOSDoc to return data for.
                 Default is material_id only.
 
-        Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs only.
+        Returns:
+            ([SurfacePropDoc]) List of surface properties documents
         """
 
         query_params = defaultdict(dict)  # type: dict
-
-        if chunk_size <= 0 or chunk_size > 100:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
 
         if weighted_surface_energy:
             query_params.update(
@@ -102,23 +81,17 @@ class SurfacePropertiesRester(BaseRester):
         if has_reconstructed:
             query_params.update({"has_reconstructed": has_reconstructed})
 
-        if fields:
-            query_params.update({"fields": ",".join(fields)})
-
         query_params = {
             entry: query_params[entry]
             for entry in query_params
             if query_params[entry] is not None
         }
 
-        query_params.update({"limit": chunk_size, "skip": 0})
-        count = 0
-        while True:
-            query_params["skip"] = count * chunk_size
-            results = self.query(query_params).get("data", [])
-
-            if not any(results) or (num_chunks is not None and count == num_chunks):
-                break
-
-            count += 1
-            yield results
+        return super().search(
+            version=self.version,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
+        )
