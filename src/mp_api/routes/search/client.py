@@ -5,4 +5,4 @@ from mp_api.routes.search.models import SearchDoc
 class SearchRester(BaseRester):
 
     suffix = "search"
-    document_model = SearchDoc
+    document_model = SearchDoc  # type: ignore

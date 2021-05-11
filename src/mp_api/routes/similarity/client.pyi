@@ -1,8 +1,8 @@
 from typing import List, Optional
-from mp_api.routes.robocrys.models import RobocrysDoc
+from mp_api.routes.similarity.models import SimilarityDoc
 
 
-class RobocrysRester:
+class SimilarityRester:
 
     def get_document_by_id(
             self,
@@ -10,5 +10,5 @@ class RobocrysRester:
             fields: Optional[List[str]] = None,
             monty_decode: bool = True,
             version: Optional[str] = None,
-    ) -> RobocrysDoc:
+    ) -> SimilarityDoc:
         ...
