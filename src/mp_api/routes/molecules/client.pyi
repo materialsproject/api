@@ -2,7 +2,7 @@ from typing import List, Optional
 from mp_api.routes.molecules.models import MoleculesDoc
 
 
-class MoleculeRester:
+class MoleculesRester:
 
     def get_document_by_id(
         self,
