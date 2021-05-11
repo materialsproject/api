@@ -20,10 +20,10 @@ class RobocrysRester(BaseRester):
 
         keyword_string = ",".join(keywords)
 
-        results = self._query_resource(
+        robocrys_docs = self._query_resource(
             criteria={"keywords": keyword_string},
             suburl="text_search",
             use_document_model=True,
         )
 
-        return results
+        return robocrys_docs
