@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union, Literal
 from fastapi import Query, HTTPException
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.electronic_structure.core import Spin, OrbitalType
@@ -158,8 +158,9 @@ class DOSDataQuery(QueryOperator):
         projection_type: Optional[DOSProjectionType] = Query(
             None, description="Projection type for the density of states data.",
         ),
-        spin: Optional[Spin] = Query(
-            None, description="Spin channel for density of states data.",
+        spin: Optional[Union[Literal["1", "-1"], Spin]] = Query(
+            None,
+            description="Spin channel for density of states data. '1' corresponds to spin up.",
         ),
         element: Optional[Element] = Query(
             None, description="Element type for projected density of states data.",
@@ -185,6 +186,9 @@ class DOSDataQuery(QueryOperator):
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
+
+        if isinstance(spin, str):
+            spin = Spin(int(spin))
 
         if projection_type is not None:
             if spin is None:
