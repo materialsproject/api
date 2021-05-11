@@ -31,9 +31,8 @@ class EOSRester(BaseRester):
             fields (List[str]): List of fields in EOSDoc to return data for.
                 Default is material_id only.
 
-        Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs only.
+        Returns:
+            ([EOSDoc]) List of eos documents
         """
 
         query_params = defaultdict(dict)  # type: dict

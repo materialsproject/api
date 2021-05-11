@@ -43,9 +43,8 @@ class GrainBoundaryRester(BaseRester):
             fields (List[str]): List of fields in GrainBoundaryDoc to return data for.
                 Default is material_id only.
 
-        Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs and last updated data.
+       Returns:
+            ([GrainBoundaryDoc]) List of grain boundary documents
         """
 
         query_params = defaultdict(dict)  # type: dict
