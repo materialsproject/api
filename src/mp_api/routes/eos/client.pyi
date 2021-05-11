@@ -2,7 +2,7 @@ from typing import List, Optional
 from mp_api.routes.eos.models import EOSDoc
 
 
-class ElectronicStructureRester:
+class EOSRester:
 
     def get_document_by_id(
         self,
