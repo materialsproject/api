@@ -1,5 +1,6 @@
 from typing import List, Optional
-from mp_api.routes.thermo.models import ThermoDoc
+from emmet.core.thermo import ThermoDoc
+
 
 class ThermoRester:
 
