@@ -41,7 +41,7 @@ class SubstratesRester(BaseRester):
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in SubstratesDoc to return data for.
-                Default is the film_id and substrate_id only.
+                Default is the film_id and substrate_id only if all_fields is False.
 
         Returns:
             ([SubstratesDoc]) List of substrate documents

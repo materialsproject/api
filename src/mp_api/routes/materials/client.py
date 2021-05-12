@@ -70,7 +70,7 @@ class MaterialsRester(BaseRester):
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
-                Default is material_id, last_updated, and formula_pretty.
+                Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
             ([MaterialsDoc]) List of material documents

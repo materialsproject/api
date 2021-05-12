@@ -50,11 +50,11 @@ class TaskRester(BaseRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
-                Default is material_id, last_updated, and formula_pretty.
+            fields (List[str]): List of fields in TaskDoc to return data for.
+                Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
-            ([TaskpDoc]) List of task documents
+            ([TaskDoc]) List of task documents
         """
 
         query_params = {}  # type: dict

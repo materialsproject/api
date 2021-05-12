@@ -41,7 +41,7 @@ class GrainBoundaryRester(BaseRester):
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in GrainBoundaryDoc to return data for.
-                Default is material_id only.
+                Default is material_id and last_updated if all_fields is False.
 
        Returns:
             ([GrainBoundaryDoc]) List of grain boundary documents

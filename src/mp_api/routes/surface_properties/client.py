@@ -37,8 +37,8 @@ class SurfacePropertiesRester(BaseRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in EOSDoc to return data for.
-                Default is material_id only.
+            fields (List[str]): List of fields in SurfacePropDoc to return data for.
+                Default is material_id only if all_fields is False.
 
         Returns:
             ([SurfacePropDoc]) List of surface properties documents

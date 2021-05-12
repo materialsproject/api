@@ -50,10 +50,10 @@ class ThermoRester(BaseRester):
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in ThermoDoc to return data for.
-                Default is material_id, last_updated, and formula_pretty.
+                Default is material_id and last_updated if all_fields is False.
 
         Returns:
-            ([TermoDoc]) List of thermo documents
+            ([ThermoDoc]) List of thermo documents
         """
 
         query_params = defaultdict(dict)  # type: dict
