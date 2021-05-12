@@ -69,7 +69,7 @@ class ThermoRester(BaseRester):
 
         if elements:
             query_params.update(
-                {"elements": ",".join([element.value for element in elements])}
+                {"elements": ",".join([str(element) for element in elements])}
             )
 
         if nelements:
