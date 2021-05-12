@@ -10,6 +10,7 @@ class XASRester(BaseRester):
     document_model = XASDoc  # type: ignore
 
     def get_available_elements(
+        # TODO implement actual check
         self,
         edge: Optional[Edge] = None,
         spectrum_type: Optional[XASType] = None,
@@ -36,7 +37,8 @@ class XASRester(BaseRester):
         formula: Optional[str] = None,
         task_ids: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         query_params = {
@@ -51,22 +53,17 @@ class XASRester(BaseRester):
         if required_elements:
             query_params["elements"] = ",".join([str(el) for el in required_elements])
 
-        if fields is not None:
-            query_params["fields"] = ",".join(fields)
-
-        query_params.update({"limit": chunk_size, "skip": 0})
-        count = 0
-        while True:
-            query_params["skip"] = count * chunk_size
-            results = self._query_resource(query_params).get("data", [])
-
-            if not any(results) or (num_chunks is not None and count == num_chunks):
-                break
-
-            count += 1
-            yield results
+        return super().search(
+            version=self.version,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params,
+        )
 
     def count_xas_docs(
+        # TODO: switch to using core count method
         self,
         edge: Optional[Edge] = None,
         absorbing_element: Optional[Element] = None,
