@@ -5,8 +5,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc git g++ cma
 ENV PATH /root/.local/bin:$PATH
 WORKDIR /app
 ENV PIP_FLAGS "--user --no-cache-dir --compile"
-COPY requirements.txt .
-RUN pip install $PIP_FLAGS -r requirements.txt
+COPY requirements.txt requirements-server.txt ./
+RUN pip install $PIP_FLAGS -r requirements.txt && \
+    pip install $PIP_FLAGS -r requirements-server.txt
+
 COPY . .
 ENV SETUPTOOLS_SCM_PRETEND_VERSION dev
 RUN pip install $PIP_FLAGS -e .[server]
