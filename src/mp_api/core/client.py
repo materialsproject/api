@@ -431,7 +431,7 @@ class BaseRester:
                     new_document_id = mpr.get_materials_id_from_task_id(document_id)
                 warnings.warn(
                     f"Document primary key has changed from {document_id} to {new_document_id}, "
-                    f"returning data for {document_id} in {self.suffix} route.    "
+                    f"returning data for {new_document_id} in {self.suffix} route.    "
                 )
                 document_id = new_document_id
 
