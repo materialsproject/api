@@ -1,13 +1,14 @@
+from typing import List
+
 from mp_api.core.client import BaseRester
 from mp_api.routes.synthesis.models import SynthesisDoc
-
 
 class SynthesisRester(BaseRester):
 
     suffix = "synthesis"
     document_model = SynthesisDoc  # type: ignore
 
-    def search_synthesis_text(self, keywords: list[str]):
+    def search_synthesis_text(self, keywords: List[str]):
         """
         Search synthesis recipe text.
 

@@ -1,13 +1,14 @@
+from typing import List
+
 from mp_api.core.client import BaseRester
 from mp_api.routes.robocrys.models import RobocrysDoc
-
 
 class RobocrysRester(BaseRester):
 
     suffix = "robocrys"
     document_model = RobocrysDoc  # type: ignore
 
-    def search_robocrys_text(self, keywords: list[str]):
+    def search_robocrys_text(self, keywords: List[str]):
         """
         Search text generated from Robocrystallographer.
 
