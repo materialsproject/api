@@ -4,4 +4,4 @@ typing-extensions==3.10.0.0
 maggma==0.27.0
 requests==2.25.1
 monty==2021.5.9
-emmet-core==0.2.0
+emmet-core @ git+https://github.com/munrojm/emmet#subdirectory=emmet-core
