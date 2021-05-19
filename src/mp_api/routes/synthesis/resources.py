@@ -21,6 +21,9 @@ def synth_resource(synth_store):
             ),
         ):
 
+            if not keywords.strip():
+                return {"data": []}
+
             pipeline = [
                 {
                     "$search": {
