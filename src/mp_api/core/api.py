@@ -46,13 +46,14 @@ class MAPI(MSONable):
             else []
         )
         app = FastAPI(title=self.title, version=self.version, on_startup=on_startup)
-
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["GET"],
-            allow_headers=["*"],
-        )
+        
+        if self.debug:
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_methods=["GET"],
+                allow_headers=["*"],
+            )
 
         if len(self.resources) == 0:
             raise RuntimeError("ERROR: There are no resources provided")
