@@ -10,6 +10,7 @@ class ThermoRester(BaseRester):
     suffix = "thermo"
     document_model = ThermoDoc  # type: ignore
     supports_versions = True
+    primary_key = "material_id"
 
     def search_thermo_docs(
         self,
@@ -68,14 +69,10 @@ class ThermoRester(BaseRester):
             query_params.update({"task_ids": ",".join(material_ids)})
 
         if elements:
-            query_params.update(
-                {"elements": ",".join([str(element) for element in elements])}
-            )
+            query_params.update({"elements": ",".join([str(element) for element in elements])})
 
         if nelements:
-            query_params.update(
-                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
-            )
+            query_params.update({"nelements_min": nelements[0], "nelements_max": nelements[1]})
 
         if is_stable is not None:
             query_params.update({"is_stable": is_stable})
@@ -91,17 +88,10 @@ class ThermoRester(BaseRester):
         for param, value in locals().items():
             if "energy" in param and value:
                 query_params.update(
-                    {
-                        "{}_min".format(name_dict[param]): value[0],
-                        "{}_max".format(name_dict[param]): value[1],
-                    }
+                    {"{}_min".format(name_dict[param]): value[0], "{}_max".format(name_dict[param]): value[1],}
                 )
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

@@ -9,6 +9,7 @@ class DielectricRester(BaseRester):
 
     suffix = "dielectric"
     document_model = DielectricDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_dielectric_docs(
         self,
@@ -48,18 +49,12 @@ class DielectricRester(BaseRester):
             query_params.update({"e_ionic_min": e_ionic[0], "e_ionic_max": e_ionic[1]})
 
         if e_static:
-            query_params.update(
-                {"e_static_min": e_static[0], "e_static_max": e_static[1]}
-            )
+            query_params.update({"e_static_min": e_static[0], "e_static_max": e_static[1]})
 
         if n:
             query_params.update({"n_min": n[0], "n_max": n[1]})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

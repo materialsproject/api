@@ -9,6 +9,7 @@ class EOSRester(BaseRester):
 
     suffix = "eos"
     document_model = EOSDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_eos_docs(
         self,
@@ -43,11 +44,7 @@ class EOSRester(BaseRester):
         if energy:
             query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

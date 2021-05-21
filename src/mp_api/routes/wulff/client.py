@@ -6,3 +6,4 @@ class WulffRester(BaseRester):
 
     suffix = "wulff"
     document_model = WulffDoc  # type: ignore
+    primary_key = "task_id"

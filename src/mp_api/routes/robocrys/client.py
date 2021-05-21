@@ -3,10 +3,12 @@ from typing import List
 from mp_api.core.client import BaseRester
 from mp_api.routes.robocrys.models import RobocrysDoc
 
+
 class RobocrysRester(BaseRester):
 
     suffix = "robocrys"
     document_model = RobocrysDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_robocrys_text(self, keywords: List[str]):
         """
@@ -22,9 +24,7 @@ class RobocrysRester(BaseRester):
         keyword_string = ",".join(keywords)
 
         robocrys_docs = self._query_resource(
-            criteria={"keywords": keyword_string},
-            suburl="text_search",
-            use_document_model=True,
+            criteria={"keywords": keyword_string}, suburl="text_search", use_document_model=True,
         )
 
         return robocrys_docs

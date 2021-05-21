@@ -12,6 +12,7 @@ class MoleculesRester(BaseRester):
 
     suffix = "molecules"
     document_model = MoleculesDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_molecules_docs(
         self,
@@ -60,9 +61,7 @@ class MoleculesRester(BaseRester):
             query_params.update({"smiles": smiles})
 
         if nelements:
-            query_params.update(
-                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
-            )
+            query_params.update({"nelements_min": nelements[0], "nelements_max": nelements[1]})
 
         if EA:
             query_params.update({"EA_min": EA[0], "EA_max": EA[1]})
@@ -73,11 +72,7 @@ class MoleculesRester(BaseRester):
         if charge:
             query_params.update({"charge_min": charge[0], "charge_max": charge[1]})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

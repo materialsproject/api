@@ -7,6 +7,7 @@ from mp_api.routes.materials.client import MaterialsRester
 class ChargeDensityRester(BaseRester):
 
     suffix = "charge_density"
+    primary_key = "task_id"
 
     def get_charge_density_from_calculation_id(self, task_id: str):
         """
@@ -40,8 +41,7 @@ class ChargeDensityRester(BaseRester):
         task_rester = TaskRester(endpoint=self.base_endpoint, api_key=self.api_key)  # type: ignore
 
         result = task_rester.get_document_by_id(
-            document_id=task_id,
-            fields=["orig_inputs.incar", "orig_inputs.poscar", "orig_inputs.kpoints"],
+            document_id=task_id, fields=["orig_inputs.incar", "orig_inputs.poscar", "orig_inputs.kpoints"],
         ).orig_inputs
 
         return result
@@ -74,9 +74,7 @@ class ChargeDensityRester(BaseRester):
         chgcar_calculation_ids = []
         for calculation_id in calculation_ids:
             try:
-                result = self.get_document_by_id(
-                    document_id=calculation_id, fields=["task_id"]
-                )
+                result = self.get_document_by_id(document_id=calculation_id, fields=["task_id"])
             except MPRestError:
                 continue
 

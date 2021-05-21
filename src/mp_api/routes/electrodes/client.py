@@ -9,6 +9,7 @@ class ElectrodeRester(BaseRester):
 
     suffix = "insertion_electrodes"
     document_model = InsertionElectrodeDoc  # type: ignore
+    primary_key = "battery_id"
 
     def search_electrode_docs(
         self,
@@ -72,21 +73,12 @@ class ElectrodeRester(BaseRester):
             query_params.update({"working_ion": str(working_ion)})
 
         for param, value in locals().items():
-            if (
-                param not in ["__class__", "self", "working_ion", "query_params"]
-                and value
-            ):
+            if param not in ["__class__", "self", "working_ion", "query_params"] and value:
                 if isinstance(value, tuple):
-                    query_params.update(
-                        {f"{param}_min": value[0], f"{param}_max": value[1]}
-                    )
+                    query_params.update({f"{param}_min": value[0], f"{param}_max": value[1]})
                 else:
                     query_params.update({param: value})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(version=self.version, **query_params)

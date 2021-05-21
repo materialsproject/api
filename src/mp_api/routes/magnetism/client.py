@@ -13,15 +13,14 @@ class MagnetismRester(BaseRester):
 
     suffix = "magnetism"
     document_model = MagnetismDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_magnetism_docs(
         self,
         ordering: Optional[MagneticOrderingEnum] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_formula_units: Optional[
-            Tuple[float, float]
-        ] = None,
+        total_magnetization_normalized_formula_units: Optional[Tuple[float, float]] = None,
         num_magnetic_sites: Optional[Tuple[float, float]] = None,
         num_unique_magnetic_sites: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
@@ -56,42 +55,28 @@ class MagnetismRester(BaseRester):
 
         if total_magnetization:
             query_params.update(
-                {
-                    "total_magnetization_min": total_magnetization[0],
-                    "total_magnetization_max": total_magnetization[1],
-                }
+                {"total_magnetization_min": total_magnetization[0], "total_magnetization_max": total_magnetization[1],}
             )
 
         if total_magnetization_normalized_vol:
             query_params.update(
                 {
-                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[
-                        0
-                    ],
-                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[
-                        1
-                    ],
+                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[0],
+                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[1],
                 }
             )
 
         if total_magnetization_normalized_formula_units:
             query_params.update(
                 {
-                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[
-                        0
-                    ],
-                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[
-                        1
-                    ],
+                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[0],
+                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[1],
                 }
             )
 
         if num_magnetic_sites:
             query_params.update(
-                {
-                    "num_magnetic_sites_min": num_magnetic_sites[0],
-                    "num_magnetic_sites_max": num_magnetic_sites[1],
-                }
+                {"num_magnetic_sites_min": num_magnetic_sites[0], "num_magnetic_sites_max": num_magnetic_sites[1],}
             )
 
         if num_unique_magnetic_sites:
@@ -105,11 +90,7 @@ class MagnetismRester(BaseRester):
         if ordering:
             query_params.update({"ordering": ordering.value})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

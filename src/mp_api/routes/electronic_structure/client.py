@@ -12,6 +12,7 @@ class ElectronicStructureRester(BaseRester):
 
     suffix = "electronic_structure"
     document_model = ElectronicStructureDoc  # type: ignore
+    primary_key = "material_id"
 
     def search_electronic_structure_docs(
         self,
@@ -47,9 +48,7 @@ class ElectronicStructureRester(BaseRester):
         query_params = defaultdict(dict)  # type: dict
 
         if band_gap:
-            query_params.update(
-                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
-            )
+            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -63,11 +62,7 @@ class ElectronicStructureRester(BaseRester):
         if is_metal is not None:
             query_params.update({"is_metal": is_metal})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,
@@ -122,9 +117,7 @@ class BandStructureRester(BaseRester):
         query_params["path_type"] = path_type.value
 
         if band_gap:
-            query_params.update(
-                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
-            )
+            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -138,11 +131,7 @@ class BandStructureRester(BaseRester):
         if is_metal is not None:
             query_params.update({"is_metal": is_metal})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,
@@ -164,9 +153,7 @@ class BandStructureRester(BaseRester):
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
 
-        result = self._query_resource(
-            criteria={"task_id": task_id}, suburl="object", use_document_model=False
-        )
+        result = self._query_resource(criteria={"task_id": task_id}, suburl="object", use_document_model=False)
 
         if result.get("data", None) is not None:
             return result["data"]
@@ -187,22 +174,14 @@ class BandStructureRester(BaseRester):
             bandstructure (BandStructureSymmLine): BandStructureSymmLine object
         """
 
-        es_rester = ElectronicStructureRester(
-            version=self.version, endpoint=self.base_endpoint, api_key=self.api_key
-        )
+        es_rester = ElectronicStructureRester(version=self.version, endpoint=self.base_endpoint, api_key=self.api_key)
 
-        bs_data = es_rester.get_document_by_id(
-            document_id=material_id, fields=["bandstructure"]
-        ).bandstructure.dict()
+        bs_data = es_rester.get_document_by_id(document_id=material_id, fields=["bandstructure"]).bandstructure.dict()
 
         if bs_data[path_type.value]:
             bs_calc_id = bs_data[path_type.value]["calc_id"]
         else:
-            raise MPRestError(
-                "No {} band structure data found for {}".format(
-                    path_type.value, material_id
-                )
-            )
+            raise MPRestError("No {} band structure data found for {}".format(path_type.value, material_id))
 
         bs_obj = self.get_bandstructure_from_calculation_id(bs_calc_id)
 
@@ -268,9 +247,7 @@ class DosRester(BaseRester):
             query_params["orbital"] = orbital.value
 
         if band_gap:
-            query_params.update(
-                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
-            )
+            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -284,11 +261,7 @@ class DosRester(BaseRester):
         if is_metal is not None:
             query_params.update({"is_metal": is_metal})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,
@@ -310,9 +283,7 @@ class DosRester(BaseRester):
             bandstructure (CompleteDos): CompleteDos object
         """
 
-        result = self._query_resource(
-            criteria={"task_id": task_id}, suburl="object", use_document_model=False
-        )
+        result = self._query_resource(criteria={"task_id": task_id}, suburl="object", use_document_model=False)
 
         if result.get("data", None) is not None:
             return result["data"]
@@ -330,20 +301,14 @@ class DosRester(BaseRester):
             dos (CompleteDos): CompleteDos object
         """
 
-        es_rester = ElectronicStructureRester(
-            version=self.version, endpoint=self.base_endpoint, api_key=self.api_key
-        )
+        es_rester = ElectronicStructureRester(version=self.version, endpoint=self.base_endpoint, api_key=self.api_key)
 
-        dos_data = es_rester.get_document_by_id(
-            document_id=material_id, fields=["dos"]
-        ).dict()
+        dos_data = es_rester.get_document_by_id(document_id=material_id, fields=["dos"]).dict()
 
         if dos_data["dos"]:
             dos_calc_id = dos_data["dos"]["total"]["1"]["calc_id"]
         else:
-            raise MPRestError(
-                "No density of states data found for {}".format(material_id)
-            )
+            raise MPRestError("No density of states data found for {}".format(material_id))
 
         dos_obj = self.get_dos_from_calculation_id(dos_calc_id)
 

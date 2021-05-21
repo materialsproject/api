@@ -11,6 +11,7 @@ class PiezoRester(BaseRester):
 
     suffix = "piezoelectric"
     document_model = PiezoDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_piezoelectric_docs(
         self,
@@ -44,17 +45,10 @@ class PiezoRester(BaseRester):
 
         if piezoelectric_modulus:
             query_params.update(
-                {
-                    "piezo_modulus_min": piezoelectric_modulus[0],
-                    "piezo_modulus_max": piezoelectric_modulus[1],
-                }
+                {"piezo_modulus_min": piezoelectric_modulus[0], "piezo_modulus_max": piezoelectric_modulus[1],}
             )
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

@@ -6,3 +6,4 @@ class DOIRester(BaseRester):
 
     suffix = "doi"
     document_model = DOIDoc  # type: ignore
+    primary_key = "task_id"

@@ -14,10 +14,9 @@ class MaterialsRester(BaseRester):
     suffix = "materials"
     document_model = MaterialsDoc  # type: ignore
     supports_versions = True
+    primary_key = "material_id"
 
-    def get_structure_by_material_id(
-        self, material_id: str, version: Optional[str] = None
-    ) -> Structure:
+    def get_structure_by_material_id(self, material_id: str, version: Optional[str] = None) -> Structure:
         """
         Get a structure for a given Materials Project ID.
 
@@ -104,11 +103,7 @@ class MaterialsRester(BaseRester):
         if density:
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,
@@ -157,8 +152,5 @@ class MaterialsRester(BaseRester):
             raise MPRestError("Provide filename or Structure object.")
 
         return self._post_resource(
-            data=s.as_dict(),
-            params=params,
-            suburl="find_structure",
-            use_document_model=False,
+            data=s.as_dict(), params=params, suburl="find_structure", use_document_model=False,
         ).get("data")

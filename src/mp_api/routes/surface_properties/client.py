@@ -10,6 +10,7 @@ class SurfacePropertiesRester(BaseRester):
 
     suffix = "surface_properties"
     document_model = SurfacePropDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_surface_properties_docs(
         self,
@@ -72,20 +73,13 @@ class SurfacePropertiesRester(BaseRester):
 
         if shape_factor:
             query_params.update(
-                {
-                    "shape_factor_min": shape_factor[0],
-                    "shape_factor_max": shape_factor[1],
-                }
+                {"shape_factor_min": shape_factor[0], "shape_factor_max": shape_factor[1],}
             )
 
         if has_reconstructed:
             query_params.update({"has_reconstructed": has_reconstructed})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

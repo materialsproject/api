@@ -11,6 +11,7 @@ class GrainBoundaryRester(BaseRester):
 
     suffix = "grain_boundary"
     document_model = GrainBoundaryDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_grain_boundary_docs(
         self,
@@ -53,24 +54,16 @@ class GrainBoundaryRester(BaseRester):
             query_params.update({"task_ids": ",".join(material_ids)})
 
         if gb_energy:
-            query_params.update(
-                {"gb_energy_min": gb_energy[0], "gb_energy_max": gb_energy[1]}
-            )
+            query_params.update({"gb_energy_min": gb_energy[0], "gb_energy_max": gb_energy[1]})
 
         if separation_energy:
             query_params.update(
-                {
-                    "w_sep_energy_min": separation_energy[0],
-                    "w_sep_energy_max": separation_energy[1],
-                }
+                {"w_sep_energy_min": separation_energy[0], "w_sep_energy_max": separation_energy[1],}
             )
 
         if rotation_angle:
             query_params.update(
-                {
-                    "rotation_angle_min": rotation_angle[0],
-                    "rotation_angle_max": rotation_angle[1],
-                }
+                {"rotation_angle_min": rotation_angle[0], "rotation_angle_max": rotation_angle[1],}
             )
 
         if sigma:
@@ -82,11 +75,7 @@ class GrainBoundaryRester(BaseRester):
         if chemsys:
             query_params.update({"chemsys": chemsys})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

@@ -11,6 +11,7 @@ class ElasticityRester(BaseRester):
 
     suffix = "elasticity"
     document_model = ElasticityDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_elasticity_docs(
         self,
@@ -79,22 +80,13 @@ class ElasticityRester(BaseRester):
 
         if elastic_anisotropy:
             query_params.update(
-                {
-                    "elastic_anisotropy_min": elastic_anisotropy[0],
-                    "elastic_anisotropy_max": elastic_anisotropy[1],
-                }
+                {"elastic_anisotropy_min": elastic_anisotropy[0], "elastic_anisotropy_max": elastic_anisotropy[1],}
             )
 
         if poisson_ratio:
-            query_params.update(
-                {"poisson_min": poisson_ratio[0], "poisson_max": poisson_ratio[1]}
-            )
+            query_params.update({"poisson_min": poisson_ratio[0], "poisson_max": poisson_ratio[1]})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
             version=self.version,

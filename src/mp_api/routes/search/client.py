@@ -6,3 +6,5 @@ class SearchRester(BaseRester):
 
     suffix = "search"
     document_model = SearchDoc  # type: ignore
+    primary_key = "material_id"
+
