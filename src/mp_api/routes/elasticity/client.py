@@ -80,7 +80,7 @@ class ElasticityRester(BaseRester):
 
         if elastic_anisotropy:
             query_params.update(
-                {"elastic_anisotropy_min": elastic_anisotropy[0], "elastic_anisotropy_max": elastic_anisotropy[1],}
+                {"elastic_anisotropy_min": elastic_anisotropy[0], "elastic_anisotropy_max": elastic_anisotropy[1]}
             )
 
         if poisson_ratio:

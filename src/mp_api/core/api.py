@@ -40,19 +40,11 @@ class MAPI(MSONable):
         """
 
         # TODO this should run on `not self.debug`!
-        on_startup = (
-            [resource.setup_indexes for resource in self.resources.values()]
-            if self.debug
-            else []
-        )
+        on_startup = [resource.setup_indexes for resource in self.resources.values()] if self.debug else []
         app = FastAPI(title=self.title, version=self.version, on_startup=on_startup)
-        
         if self.debug:
             app.add_middleware(
-                CORSMiddleware,
-                allow_origins=["*"],
-                allow_methods=["GET"],
-                allow_headers=["*"],
+                CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"],
             )
 
         if len(self.resources) == 0:
@@ -69,9 +61,7 @@ class MAPI(MSONable):
                 "status": "OK",
                 "time": datetime.utcnow(),
                 "api": self.version,
-                "database": os.environ.get(
-                    "DB_VERSION", MAPISettings().db_version
-                ).replace("_", "."),
+                "database": os.environ.get("DB_VERSION", MAPISettings().db_version).replace("_", "."),
                 "pymatgen": pmg_version,
             }
 
@@ -81,9 +71,7 @@ class MAPI(MSONable):
             return RedirectResponse(url=app.docs_url, status_code=301)
 
         def custom_openapi():
-            openapi_schema = get_openapi(
-                title=self.title, version=self.version, routes=app.routes
-            )
+            openapi_schema = get_openapi(title=self.title, version=self.version, routes=app.routes)
 
             openapi_schema["components"]["securitySchemes"] = {
                 "ApiKeyAuth": {

@@ -217,7 +217,7 @@ class DosRester(BaseRester):
 
         Arguments:
             projection_type (DOSProjectionType): Projection type of dos data. Default is the total dos.
-            spin (Spin): Spin channel of dos data. If non spin-polarized data is stored in Spin.up 
+            spin (Spin): Spin channel of dos data. If non spin-polarized data is stored in Spin.up
             element (Element): Element for element-projected dos data.
             orbital (OrbitalType): Orbital for orbital-projected dos data.
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.

@@ -45,7 +45,7 @@ class PiezoRester(BaseRester):
 
         if piezoelectric_modulus:
             query_params.update(
-                {"piezo_modulus_min": piezoelectric_modulus[0], "piezo_modulus_max": piezoelectric_modulus[1],}
+                {"piezo_modulus_min": piezoelectric_modulus[0], "piezo_modulus_max": piezoelectric_modulus[1]}
             )
 
         query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}

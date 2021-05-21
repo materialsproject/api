@@ -72,9 +72,7 @@ class SurfacePropertiesRester(BaseRester):
             )
 
         if shape_factor:
-            query_params.update(
-                {"shape_factor_min": shape_factor[0], "shape_factor_max": shape_factor[1],}
-            )
+            query_params.update({"shape_factor_min": shape_factor[0], "shape_factor_max": shape_factor[1]})
 
         if has_reconstructed:
             query_params.update({"has_reconstructed": has_reconstructed})

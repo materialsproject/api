@@ -11,4 +11,3 @@ class FermiRester(BaseRester):
     suffix = "fermi"
     document_model = FermiDoc  # type: ignore
     primary_key = "task_id"
-

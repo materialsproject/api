@@ -57,14 +57,10 @@ class GrainBoundaryRester(BaseRester):
             query_params.update({"gb_energy_min": gb_energy[0], "gb_energy_max": gb_energy[1]})
 
         if separation_energy:
-            query_params.update(
-                {"w_sep_energy_min": separation_energy[0], "w_sep_energy_max": separation_energy[1],}
-            )
+            query_params.update({"w_sep_energy_min": separation_energy[0], "w_sep_energy_max": separation_energy[1]})
 
         if rotation_angle:
-            query_params.update(
-                {"rotation_angle_min": rotation_angle[0], "rotation_angle_max": rotation_angle[1],}
-            )
+            query_params.update({"rotation_angle_min": rotation_angle[0], "rotation_angle_max": rotation_angle[1]})
 
         if sigma:
             query_params.update({"sigma": sigma})
@@ -85,4 +81,3 @@ class GrainBoundaryRester(BaseRester):
             fields=fields,
             **query_params
         )
-

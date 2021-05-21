@@ -55,7 +55,7 @@ class MagnetismRester(BaseRester):
 
         if total_magnetization:
             query_params.update(
-                {"total_magnetization_min": total_magnetization[0], "total_magnetization_max": total_magnetization[1],}
+                {"total_magnetization_min": total_magnetization[0], "total_magnetization_max": total_magnetization[1]}
             )
 
         if total_magnetization_normalized_vol:
@@ -76,7 +76,7 @@ class MagnetismRester(BaseRester):
 
         if num_magnetic_sites:
             query_params.update(
-                {"num_magnetic_sites_min": num_magnetic_sites[0], "num_magnetic_sites_max": num_magnetic_sites[1],}
+                {"num_magnetic_sites_min": num_magnetic_sites[0], "num_magnetic_sites_max": num_magnetic_sites[1]}
             )
 
         if num_unique_magnetic_sites:
