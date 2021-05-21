@@ -13,7 +13,7 @@ key_only_resters = [
 
 
 @pytest.mark.parametrize("rester", MPRester()._all_resters)
-def test_search_clients(rester):
+def test_query_methods(rester):
     if rester.endpoint.split("/")[-2] not in key_only_resters:
         doc = rester.query({"limit": 1}, fields=[rester.primary_key])[0]
         assert isinstance(doc, rester.document_model)
