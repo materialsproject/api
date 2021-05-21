@@ -82,7 +82,7 @@ class BSDataQuery(QueryOperator):
         if path_type is not None:
 
             d = {
-                f"bandstructure.{path_type.value}.band_gap": [band_gap_min, band_gap_max,],
+                f"bandstructure.{path_type.value}.band_gap": [band_gap_min, band_gap_max],
                 f"bandstructure.{path_type.value}.efermi": [efermi_min, efermi_max],
             }
 
