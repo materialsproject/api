@@ -7,3 +7,4 @@ pycodestyle==2.7.0
 flake8==3.9.2
 mypy==0.812
 mypy-extensions==0.4.3
+typing-extensions==3.10.0.0
