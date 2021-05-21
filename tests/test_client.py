@@ -1,11 +1,19 @@
+import pytest
 from mp_api.matproj import MPRester
 
-from pymatgen.entries import Entry
+key_only_resters = [
+    "phonon",
+    "phonon_img",
+    "similarity",
+    "doi",
+    "wulff",
+    "charge_density",
+    "robocrys",
+]
 
 
-def test_thermo_get_entries():
-
-    with MPRester() as mpr:
-        thermo_doc = mpr.thermo.get_document_by_id("mp-804")
-
-    assert isinstance(thermo_doc.thermo.entry, Entry)
+@pytest.mark.parametrize("rester", MPRester()._all_resters)
+def test_search_clients(rester):
+    if rester.endpoint.split("/")[-2] not in key_only_resters:
+        doc = rester.query({"limit": 1}, fields=[rester.primary_key])[0]
+        assert isinstance(doc, rester.document_model)
