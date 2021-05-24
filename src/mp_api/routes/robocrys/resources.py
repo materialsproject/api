@@ -1,5 +1,5 @@
 from fastapi import Query
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.robocrys.models import RobocrysDoc
 
 
@@ -7,14 +7,10 @@ def robo_resource(robo_store):
     def custom_robo_prep(self):
         async def query_robo_text(
             keywords: str = Query(
-                ...,
-                description="Comma delimited string keywords to search robocrystallographer description text with",
+                ..., description="Comma delimited string keywords to search robocrystallographer description text with",
             ),
             skip: int = Query(0, description="Number of entries to skip in the search"),
-            limit: int = Query(
-                100,
-                description="Max number of entries to return in a single query. Limited to 100",
-            ),
+            limit: int = Query(100, description="Max number of entries to return in a single query. Limited to 100",),
         ):
 
             pipeline = [
@@ -59,7 +55,7 @@ def robo_resource(robo_store):
             tags=self.tags,
         )(query_robo_text)
 
-    resource = GetResource(
+    resource = ReadOnlyResource(
         robo_store,
         RobocrysDoc,
         tags=["Robocrystallographer"],

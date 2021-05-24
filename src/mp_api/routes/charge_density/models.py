@@ -1,6 +1,5 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from datetime import datetime
-from monty.json import MontyDecoder
 from pymatgen.io.vasp import Chgcar
 
 
@@ -9,13 +8,10 @@ class ChgcarDataDoc(BaseModel):
     Electron charge density for selected materials.
     """
 
-    fs_id: str = Field(
-        None, description="Unique object ID for the charge density data."
-    )
+    fs_id: str = Field(None, description="Unique object ID for the charge density data.")
 
     last_updated: datetime = Field(
-        None,
-        description="Timestamp for the most recent update to the charge density data.",
+        None, description="Timestamp for the most recent update to the charge density data.",
     )
 
     task_id: str = Field(

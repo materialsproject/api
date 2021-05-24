@@ -1,4 +1,4 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.synthesis.models import SynthesisDoc
 
 from mp_api.routes.synthesis.query_operators import SynthFormulaQuery
@@ -11,14 +11,10 @@ def synth_resource(synth_store):
     def custom_synth_prep(self):
         async def query_synth_text(
             keywords: str = Query(
-                ...,
-                description="Comma delimited string keywords to search synthesis description text with",
+                ..., description="Comma delimited string keywords to search synthesis description text with",
             ),
             skip: int = Query(0, description="Number of entries to skip in the search"),
-            limit: int = Query(
-                100,
-                description="Max number of entries to return in a single query. Limited to 100",
-            ),
+            limit: int = Query(100, description="Max number of entries to return in a single query. Limited to 100",),
         ):
 
             if not keywords.strip():
@@ -35,10 +31,7 @@ def synth_resource(synth_store):
                             "path": "text",
                             "allowAnalyzedField": True,
                         },
-                        "highlight": {
-                            "path": "text",
-                            "maxNumPassages": 1
-                        }
+                        "highlight": {"path": "text", "maxNumPassages": 1},
                     }
                 },
                 {
@@ -48,7 +41,7 @@ def synth_resource(synth_store):
                         "formula": 1,
                         "text": 1,
                         "search_score": {"$meta": "searchScore"},
-                        "highlights": {"$meta": "searchHighlights"}
+                        "highlights": {"$meta": "searchHighlights"},
                     }
                 },
                 {"$sort": {"search_score": -1}},
@@ -72,7 +65,7 @@ def synth_resource(synth_store):
             tags=self.tags,
         )(query_synth_text)
 
-    resource = GetResource(
+    resource = ReadOnlyResource(
         synth_store,
         SynthesisDoc,
         query_operators=[

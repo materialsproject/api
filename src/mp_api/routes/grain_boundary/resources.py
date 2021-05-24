@@ -1,4 +1,4 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.grain_boundary.models import GrainBoundaryDoc
 
 from mp_api.routes.grain_boundary.query_operators import GBEnergyQuery, GBStructureQuery, GBTaskIDQuery
@@ -6,7 +6,7 @@ from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQ
 
 
 def gb_resource(gb_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         gb_store,
         GrainBoundaryDoc,
         query_operators=[
