@@ -13,6 +13,8 @@ from mp_api.routes.thermo.query_operators import (
     IsStableQuery,
 )
 
+from mp_api.core.settings import MAPISettings
+
 from mp_api.routes.materials.query_operators import MultiMaterialIDQuery
 
 
@@ -21,7 +23,7 @@ def thermo_resource(thermo_store):
         thermo_store,
         ThermoDoc,
         query_operators=[
-            VersionQuery(),
+            VersionQuery(default_version=MAPISettings().db_version),
             MultiMaterialIDQuery(),
             ThermoChemicalQuery(),
             IsStableQuery(),
