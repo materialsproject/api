@@ -62,9 +62,7 @@ class Resource(MSONable, ABC):
             module_path = ".".join(model.split(".")[:-1])
             class_name = model.split(".")[-1]
             class_model = dynamic_import(module_path, class_name)
-            assert issubclass(
-                class_model, BaseModel
-            ), "The resource model has to be a PyDantic Model"
+            assert issubclass(class_model, BaseModel), "The resource model has to be a PyDantic Model"
             self.model = api_sanitize(class_model, allow_dict_msonable=True)
         elif isinstance(model, type) and issubclass(model, (BaseModel, MSONable)):
             self.model = api_sanitize(model, allow_dict_msonable=True)
@@ -175,11 +173,7 @@ class GetResource(Resource):
         self.enable_default_search = enable_default_search
 
         super().__init__(
-            store,
-            model=model,
-            tags=tags,
-            query_operators=query_operators,
-            include_in_schema=include_in_schema,
+            store, model=model, tags=tags, query_operators=query_operators, include_in_schema=include_in_schema,
         )
 
         self.query_operators = (
@@ -187,16 +181,11 @@ class GetResource(Resource):
             if query_operators is not None
             else [
                 PaginationQuery(),
-                SparseFieldsQuery(
-                    self.model,
-                    default_fields=[self.store.key, self.store.last_updated_field],
-                ),
+                SparseFieldsQuery(self.model, default_fields=[self.store.key, self.store.last_updated_field],),
             ]
         )  # type: list
 
-        if any(
-            isinstance(qop_entry, VersionQuery) for qop_entry in self.query_operators
-        ):
+        if any(isinstance(qop_entry, VersionQuery) for qop_entry in self.query_operators):
             self.versioned = True
 
         self.prepare_endpoint()
@@ -222,9 +211,7 @@ class GetResource(Resource):
         model_name = self.model.__name__
 
         if self.key_fields is None:
-            field_input = SparseFieldsQuery(
-                self.model, [self.store.key, self.store.last_updated_field]
-            ).query
+            field_input = SparseFieldsQuery(self.model, [self.store.key, self.store.last_updated_field]).query
         else:
 
             def field_input():
@@ -233,11 +220,7 @@ class GetResource(Resource):
         if not self.versioned:
 
             async def get_by_key(
-                key: str = Path(
-                    ...,
-                    alias=key_name,
-                    title=f"The {key_name} of the {model_name} to get",
-                ),
+                key: str = Path(..., alias=key_name, title=f"The {key_name} of the {model_name} to get",),
                 fields: STORE_PARAMS = Depends(field_input),
             ):
                 f"""
@@ -256,14 +239,11 @@ class GetResource(Resource):
                 if model_name == "TaskDoc":
                     crit.update({"sbxn": "core"})
 
-                item = [
-                    self.store.query_one(criteria=crit, properties=fields["properties"])
-                ]
+                item = [self.store.query_one(criteria=crit, properties=fields["properties"])]
 
                 if item == [None]:
                     raise HTTPException(
-                        status_code=404,
-                        detail=f"Item with {self.store.key} = {key} not found",
+                        status_code=404, detail=f"Item with {self.store.key} = {key} not found",
                     )
 
                 for operator in self.query_operators:
@@ -285,16 +265,9 @@ class GetResource(Resource):
         else:
 
             async def get_by_key_versioned(
-                key: str = Path(
-                    ...,
-                    alias=key_name,
-                    title=f"The {key_name} of the {model_name} to get",
-                ),
+                key: str = Path(..., alias=key_name, title=f"The {key_name} of the {model_name} to get",),
                 fields: STORE_PARAMS = Depends(field_input),
-                version: str = Query(
-                    None,
-                    description="Database version to query on formatted as YYYY.MM.DD",
-                ),
+                version: str = Query(None, description="Database version to query on formatted as YYYY.MM.DD",),
             ):
                 f"""
                 Get's a document by the primary key in the store
@@ -311,7 +284,7 @@ class GetResource(Resource):
                 else:
                     version = os.environ.get("DB_VERSION", MAPISettings().db_version)
 
-                prefix = self.store.collection_name.split("_")[0]
+                prefix = "_".join(self.store.collection_name.split("_")[0:-3])
                 self.store.collection_name = f"{prefix}_{version}"
 
                 self.store.connect(force_reset=True)
@@ -321,14 +294,11 @@ class GetResource(Resource):
                 if model_name == "TaskDoc":
                     crit.update({"sbxn": "core"})
 
-                item = [
-                    self.store.query_one(criteria=crit, properties=fields["properties"])
-                ]
+                item = [self.store.query_one(criteria=crit, properties=fields["properties"])]
 
                 if item == [None]:
                     raise HTTPException(
-                        status_code=404,
-                        detail=f"Item with {self.store.key} = {key} not found",
+                        status_code=404, detail=f"Item with {self.store.key} = {key} not found",
                     )
 
                 for operator in self.query_operators:
@@ -358,20 +328,14 @@ class GetResource(Resource):
             query: STORE_PARAMS = merge_queries(list(queries.values()))
 
             query_params = [
-                entry
-                for _, i in enumerate(self.query_operators)
-                for entry in signature(i.query).parameters
+                entry for _, i in enumerate(self.query_operators) for entry in signature(i.query).parameters
             ]
 
-            overlap = [
-                key for key in request.query_params.keys() if key not in query_params
-            ]
+            overlap = [key for key in request.query_params.keys() if key not in query_params]
             if any(overlap):
                 raise HTTPException(
                     status_code=404,
-                    detail="Request contains query parameters which cannot be used: {}".format(
-                        ", ".join(overlap)
-                    ),
+                    detail="Request contains query parameters which cannot be used: {}".format(", ".join(overlap)),
                 )
 
             if self.versioned:
@@ -391,10 +355,7 @@ class GetResource(Resource):
                 query["criteria"].update({"sbxn": "core"})
 
             data = list(self.store.query(**query))  # type: ignore
-            operator_metas = [
-                operator.meta(self.store, query.get("criteria", {}))
-                for operator in self.query_operators
-            ]
+            operator_metas = [operator.meta(self.store, query.get("criteria", {})) for operator in self.query_operators]
             meta = {k: v for m in operator_metas for k, v in m.items()}
 
             for operator in self.query_operators:
@@ -409,10 +370,7 @@ class GetResource(Resource):
         attach_signature(
             search,
             annotations=ann,
-            defaults={
-                f"dep{i}": Depends(dep.query)
-                for i, dep in enumerate(self.query_operators)
-            },
+            defaults={f"dep{i}": Depends(dep.query) for i, dep in enumerate(self.query_operators)},
         )
 
         self.router.get(
@@ -452,15 +410,11 @@ class ConsumerPostResource(Resource):
                 for entry in signature(i.query).parameters
             ]
 
-            overlap = [
-                key for key in request.query_params.keys() if key not in query_params
-            ]
+            overlap = [key for key in request.query_params.keys() if key not in query_params]
             if any(overlap):
                 raise HTTPException(
                     status_code=404,
-                    detail="Request contains query parameters which cannot be used: {}".format(
-                        ", ".join(overlap)
-                    ),
+                    detail="Request contains query parameters which cannot be used: {}".format(", ".join(overlap)),
                 )
 
             self.store.connect(force_reset=True)
@@ -490,10 +444,7 @@ class ConsumerPostResource(Resource):
         attach_signature(
             search,
             annotations=ann,
-            defaults={
-                f"dep{i}": Depends(dep.query)
-                for i, dep in enumerate(self.query_operators)
-            },
+            defaults={f"dep{i}": Depends(dep.query) for i, dep in enumerate(self.query_operators)},
         )
 
         self.router.post(

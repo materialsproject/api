@@ -53,9 +53,7 @@ class QueryOperator(MSONable):
 class PaginationQuery(QueryOperator):
     """Query opertators to provides Pagination in the Materials API"""
 
-    def __init__(
-        self, default_skip: int = 0, default_limit: int = 10, max_limit: int = 10000
-    ):
+    def __init__(self, default_skip: int = 0, default_limit: int = 10, max_limit: int = 10000):
         """
         Args:
             default_skip: the default number of documents to skip
@@ -67,13 +65,10 @@ class PaginationQuery(QueryOperator):
         self.max_limit = max_limit
 
         def query(
-            skip: int = Query(
-                default_skip, description="Number of entries to skip in the search"
-            ),
+            skip: int = Query(default_skip, description="Number of entries to skip in the search"),
             limit: int = Query(
                 default_limit,
-                description="Max number of entries to return in a single query."
-                f" Limited to {max_limit}",
+                description="Max number of entries to return in a single query." f" Limited to {max_limit}",
             ),
         ) -> STORE_PARAMS:
             """
@@ -115,14 +110,11 @@ class SparseFieldsQuery(QueryOperator):
         model_name = self.model.__name__  # type: ignore
         model_fields = list(self.model.__fields__.keys())
 
-        self.default_fields = (
-            model_fields if default_fields is None else list(default_fields)
-        )
+        self.default_fields = model_fields if default_fields is None else list(default_fields)
 
         def query(
             fields: str = Query(
-                None,
-                description=f"Fields to project from {str(model_name)} as a list of comma seperated strings",
+                None, description=f"Fields to project from {str(model_name)} as a list of comma seperated strings",
             ),
             all_fields: bool = Query(False, description="Include all fields."),
         ) -> STORE_PARAMS:
@@ -130,9 +122,7 @@ class SparseFieldsQuery(QueryOperator):
             Pagination parameters for the API Endpoint
             """
 
-            properties = (
-                fields.split(",") if isinstance(fields, str) else self.default_fields
-            )
+            properties = fields.split(",") if isinstance(fields, str) else self.default_fields
             if all_fields:
                 properties = model_fields
 
@@ -168,9 +158,7 @@ class SparseFieldsQuery(QueryOperator):
             class_name = model.split(".")[-1]
             model = dynamic_import(module_path, class_name)
 
-        assert issubclass(
-            model, BaseModel
-        ), "The resource model has to be a PyDantic Model"
+        assert issubclass(model, BaseModel), "The resource model has to be a PyDantic Model"
         d["model"] = model
 
         return cls(**d)
@@ -182,10 +170,7 @@ class VersionQuery(QueryOperator):
     """
 
     def query(
-        self,
-        version: Optional[str] = Query(
-            None, description="Database version to query on formatted as YYYY.MM.DD",
-        ),
+        self, version: Optional[str] = Query(None, description="Database version to query on formatted as YYYY.MM.DD",),
     ) -> STORE_PARAMS:
 
         crit = {}
@@ -204,9 +189,7 @@ class SortQuery(QueryOperator):
     def query(
         self,
         field: Optional[str] = Query(None, description="Field to sort with"),
-        ascending: Optional[bool] = Query(
-            None, description="Whether the sorting should be ascending",
-        ),
+        ascending: Optional[bool] = Query(None, description="Whether the sorting should be ascending",),
     ) -> STORE_PARAMS:
 
         sort = {}
@@ -216,8 +199,7 @@ class SortQuery(QueryOperator):
 
         elif field or ascending is not None:
             raise HTTPException(
-                status_code=404,
-                detail="Must specify both a field and order for sorting.",
+                status_code=404, detail="Must specify both a field and order for sorting.",
             )
 
         return {"sort": sort}
