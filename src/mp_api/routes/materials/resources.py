@@ -1,16 +1,14 @@
 from fastapi import HTTPException
-from mp_api.core.resource import GetResource
-from mp_api.routes.materials.models.core import Structure
+
+from maggma.api.resource.read_resource import ReadOnlyResource
+
 
 from emmet.core.material import MaterialsDoc
 
+from maggma.api.query_operator import PaginationQuery, SparseFieldsQuery, SortQuery, VersionQuery
 
-from mp_api.core.query_operator import (
-    PaginationQuery,
-    SparseFieldsQuery,
-    VersionQuery,
-    SortQuery,
-)
+from mp_api.core.settings import MAPISettings
+
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
@@ -21,7 +19,7 @@ from mp_api.routes.materials.query_operators import (
 )
 
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-from pymatgen.core import Structure as PS
+from pymatgen.core import Structure
 from pymatgen.core import Composition
 from pymongo import MongoClient  # type: ignore
 from itertools import permutations
@@ -52,12 +50,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
 
             col_names = db.list_collection_names()
 
-            d = [
-                name.replace("_", ".")[15:]
-                for name in col_names
-                if "materials" in name
-                if name != "materials.core"
-            ]
+            d = [name.replace("_", ".")[15:] for name in col_names if "materials" in name if name != "materials.core"]
 
             response = {"data": d}
 
@@ -74,23 +67,16 @@ def materials_resource(materials_store, formula_autocomplete_store):
         model_name = self.model.__name__
 
         async def find_structure(
-            structure: Structure = Body(
-                ..., title="Pymatgen structure object to query with",
-            ),
-            ltol: float = Query(
-                0.2, title="Fractional length tolerance. Default is 0.2.",
-            ),
+            structure: Structure = Body(..., title="Pymatgen structure object to query with",),
+            ltol: float = Query(0.2, title="Fractional length tolerance. Default is 0.2.",),
             stol: float = Query(
                 0.3,
                 title="Site tolerance. Defined as the fraction of the average free \
                     length per atom := ( V / Nsites ) ** (1/3). Default is 0.3.",
             ),
-            angle_tol: float = Query(
-                5, title="Angle tolerance in degrees. Default is 5 degrees.",
-            ),
+            angle_tol: float = Query(5, title="Angle tolerance in degrees. Default is 5 degrees.",),
             limit: int = Query(
-                1,
-                title="Maximum number of matches to show. Defaults to 1, only showing the best match.",
+                1, title="Maximum number of matches to show. Defaults to 1, only showing the best match.",
             ),
         ):
             """
@@ -101,11 +87,10 @@ def materials_resource(materials_store, formula_autocomplete_store):
             """
 
             try:
-                s = PS.from_dict(structure.dict())
+                s = Structure.from_dict(structure.dict())
             except Exception:
                 raise HTTPException(
-                    status_code=404,
-                    detail="Body cannot be converted to a pymatgen structure object.",
+                    status_code=404, detail="Body cannot be converted to a pymatgen structure object.",
                 )
 
             m = StructureMatcher(
@@ -124,11 +109,9 @@ def materials_resource(materials_store, formula_autocomplete_store):
 
             matches = []
 
-            for r in self.store.query(
-                criteria=crit, properties=["structure", "task_id"]
-            ):
+            for r in self.store.query(criteria=crit, properties=["structure", "task_id"]):
 
-                s2 = PS.from_dict(r["structure"])
+                s2 = Structure.from_dict(r["structure"])
                 matched = m.fit(s, s2)
 
                 if matched:
@@ -144,11 +127,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
 
             response = {
                 "data": sorted(
-                    matches[:limit],
-                    key=lambda x: (
-                        x["normalized_rms_displacement"],
-                        x["max_distance_paired_sites"],
-                    ),
+                    matches[:limit], key=lambda x: (x["normalized_rms_displacement"], x["max_distance_paired_sites"],),
                 )
             }
 
@@ -163,12 +142,8 @@ def materials_resource(materials_store, formula_autocomplete_store):
 
     def custom_autocomplete_prep(self):
         async def formula_autocomplete(
-            text: str = Query(
-                ..., description="Text to run against formula autocomplete",
-            ),
-            limit: int = Query(
-                10, description="Maximum number of matches to show. Defaults to 10",
-            ),
+            text: str = Query(..., description="Text to run against formula autocomplete",),
+            limit: int = Query(10, description="Maximum number of matches to show. Defaults to 10",),
         ):
             store = formula_autocomplete_store
 
@@ -216,12 +191,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
                             "length": {"$strLenCP": "$formula_pretty"},
                         }
                     },
-                    {
-                        "$match": {
-                            "length": {"$gte": len(final_terms[0])},
-                            "elements": {"$all": eles},
-                        }
-                    },
+                    {"$match": {"length": {"$gte": len(final_terms[0])}, "elements": {"$all": eles}}},
                     {"$limit": limit},
                     {"$sort": {"length": 1}},
                     {"$project": {"elements": 0, "length": 0}},
@@ -235,8 +205,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
 
             except Exception:
                 raise HTTPException(
-                    status_code=404,
-                    detail="Cannot autocomplete with provided formula.",
+                    status_code=404, detail="Cannot autocomplete with provided formula.",
                 )
 
             return response
@@ -248,11 +217,11 @@ def materials_resource(materials_store, formula_autocomplete_store):
             tags=self.tags,
         )(formula_autocomplete)
 
-    resource = GetResource(
+    resource = ReadOnlyResource(
         materials_store,
         MaterialsDoc,
         query_operators=[
-            VersionQuery(),
+            VersionQuery(default_version=MAPISettings().db_version),
             FormulaQuery(),
             ElementsQuery(),
             MultiTaskIDQuery(),
@@ -261,17 +230,10 @@ def materials_resource(materials_store, formula_autocomplete_store):
             MinMaxQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(
-                MaterialsDoc,
-                default_fields=["material_id", "formula_pretty", "last_updated"],
-            ),
+            SparseFieldsQuery(MaterialsDoc, default_fields=["material_id", "formula_pretty", "last_updated"],),
         ],
         tags=["Materials"],
-        custom_endpoint_funcs=[
-            custom_version_prep,
-            custom_findstructure_prep,
-            custom_autocomplete_prep,
-        ],
+        custom_endpoint_funcs=[custom_version_prep, custom_findstructure_prep, custom_autocomplete_prep],
     )
 
     return resource

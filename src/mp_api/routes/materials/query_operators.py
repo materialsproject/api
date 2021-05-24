@@ -1,10 +1,12 @@
-from typing import Optional
-from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
-from mp_api.routes.materials.utils import formula_to_criteria
-from mp_api.routes.materials.models.core import CrystalSystem
-from pymatgen.core.periodic_table import Element
 from collections import defaultdict
+from typing import Optional
+
+from emmet.core.symmetry import CrystalSystem
+from fastapi import Query
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
+from mp_api.routes.materials.utils import formula_to_criteria
+from pymatgen.core.periodic_table import Element
 
 
 class FormulaQuery(QueryOperator):
@@ -15,8 +17,7 @@ class FormulaQuery(QueryOperator):
     def query(
         self,
         formula: Optional[str] = Query(
-            None,
-            description="Query by formula including anonymized formula or by including wild cards",
+            None, description="Query by formula including anonymized formula or by including wild cards",
         ),
     ) -> STORE_PARAMS:
 
@@ -40,12 +41,10 @@ class ElementsQuery(QueryOperator):
     def query(
         self,
         elements: Optional[str] = Query(
-            None,
-            description="Query by elements in the material composition as a comma-separated list",
+            None, description="Query by elements in the material composition as a comma-separated list",
         ),
         exclude_elements: Optional[str] = Query(
-            None,
-            description="Query by excluded elements in the material composition as a comma-separated list",
+            None, description="Query by excluded elements in the material composition as a comma-separated list",
         ),
     ) -> STORE_PARAMS:
 
@@ -74,10 +73,7 @@ class DeprecationQuery(QueryOperator):
     """
 
     def query(
-        self,
-        deprecated: Optional[bool] = Query(
-            None, description="Whether the material is marked as deprecated",
-        ),
+        self, deprecated: Optional[bool] = Query(None, description="Whether the material is marked as deprecated",),
     ) -> STORE_PARAMS:
 
         crit = {}
@@ -95,30 +91,14 @@ class MinMaxQuery(QueryOperator):
 
     def query(
         self,
-        nsites_max: Optional[int] = Query(
-            None, description="Maximum value for the number of sites",
-        ),
-        nsites_min: Optional[int] = Query(
-            None, description="Minimum value for the number of sites",
-        ),
-        nelements_max: Optional[float] = Query(
-            None, description="Maximum value for the number of elements.",
-        ),
-        nelements_min: Optional[float] = Query(
-            None, description="Minimum value for the number of elements.",
-        ),
-        volume_max: Optional[float] = Query(
-            None, description="Maximum value for the cell volume",
-        ),
-        volume_min: Optional[float] = Query(
-            None, description="Minimum value for the cell volume",
-        ),
-        density_max: Optional[float] = Query(
-            None, description="Maximum value for the density",
-        ),
-        density_min: Optional[float] = Query(
-            None, description="Minimum value for the density",
-        ),
+        nsites_max: Optional[int] = Query(None, description="Maximum value for the number of sites",),
+        nsites_min: Optional[int] = Query(None, description="Minimum value for the number of sites",),
+        nelements_max: Optional[float] = Query(None, description="Maximum value for the number of elements.",),
+        nelements_min: Optional[float] = Query(None, description="Minimum value for the number of elements.",),
+        volume_max: Optional[float] = Query(None, description="Maximum value for the cell volume",),
+        volume_min: Optional[float] = Query(None, description="Minimum value for the cell volume",),
+        density_max: Optional[float] = Query(None, description="Maximum value for the density",),
+        density_min: Optional[float] = Query(None, description="Minimum value for the density",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
@@ -156,15 +136,9 @@ class SymmetryQuery(QueryOperator):
 
     def query(
         self,
-        crystal_system: Optional[CrystalSystem] = Query(
-            None, description="Crystal system of the material",
-        ),
-        spacegroup_number: Optional[int] = Query(
-            None, description="Space group number of the material",
-        ),
-        spacegroup_symbol: Optional[str] = Query(
-            None, description="Space group symbol of the material",
-        ),
+        crystal_system: Optional[CrystalSystem] = Query(None, description="Crystal system of the material",),
+        spacegroup_number: Optional[int] = Query(None, description="Space group number of the material",),
+        spacegroup_symbol: Optional[str] = Query(None, description="Space group symbol of the material",),
     ) -> STORE_PARAMS:
 
         crit = {}  # type: dict
@@ -191,10 +165,7 @@ class MultiTaskIDQuery(QueryOperator):
     """
 
     def query(
-        self,
-        task_ids: Optional[str] = Query(
-            None, description="Comma-separated list of task_ids to query on"
-        ),
+        self, task_ids: Optional[str] = Query(None, description="Comma-separated list of task_ids to query on"),
     ) -> STORE_PARAMS:
 
         crit = {}
@@ -215,9 +186,7 @@ class MultiMaterialIDQuery(QueryOperator):
 
     def query(
         self,
-        material_ids: Optional[str] = Query(
-            None, description="Comma-separated list of material_id values to query on"
-        ),
+        material_ids: Optional[str] = Query(None, description="Comma-separated list of material_id values to query on"),
     ) -> STORE_PARAMS:
 
         crit = {}

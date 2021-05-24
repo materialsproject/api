@@ -1,8 +1,6 @@
-import warnings
 from typing import List, Optional, Tuple
 from pymatgen.core.structure import Structure
 
-# from mp_api.routes.materials.models import Structure
 from emmet.core.material import MaterialsDoc
 from emmet.core.symmetry import CrystalSystem
 
