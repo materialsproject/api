@@ -1,7 +1,7 @@
 from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.dois.models import DOIDoc
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from maggma.api.query_operator import PaginationQuery, SparseFieldsQuery
 
 
 def dois_resource(dois_store):

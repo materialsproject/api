@@ -2,7 +2,8 @@ from typing import Optional
 from collections import defaultdict
 from fastapi import Query
 from pymatgen.core import Element
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 
 class ThermoChemicalQuery(QueryOperator):
@@ -12,16 +13,11 @@ class ThermoChemicalQuery(QueryOperator):
 
     def query(
         self,
-        chemsys: Optional[str] = Query(
-            None, description="Dash-delimited list of elements in the material.",
-        ),
+        chemsys: Optional[str] = Query(None, description="Dash-delimited list of elements in the material.",),
         elements: Optional[str] = Query(
-            None,
-            description="Elements in the material composition as a comma-separated list",
+            None, description="Elements in the material composition as a comma-separated list",
         ),
-        nelements: Optional[int] = Query(
-            None, description="Number of elements in the material",
-        ),
+        nelements: Optional[int] = Query(None, description="Number of elements in the material",),
     ):
 
         crit = {}  # type: dict
@@ -52,10 +48,7 @@ class IsStableQuery(QueryOperator):
     """
 
     def query(
-        self,
-        is_stable: Optional[bool] = Query(
-            None, description="Whether the material is stable."
-        ),
+        self, is_stable: Optional[bool] = Query(None, description="Whether the material is stable."),
     ):
 
         crit = {}
@@ -78,12 +71,10 @@ class ThermoEnergyQuery(QueryOperator):
     def query(
         self,
         energy_per_atom_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the corrected total energy in eV/atom.",
+            None, description="Maximum value for the corrected total energy in eV/atom.",
         ),
         energy_per_atom_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the corrected total energy in eV/atom.",
+            None, description="Minimum value for the corrected total energy in eV/atom.",
         ),
         formation_energy_per_atom_max: Optional[float] = Query(
             None, description="Maximum value for the formation energy in eV/atom.",
@@ -98,12 +89,10 @@ class ThermoEnergyQuery(QueryOperator):
             None, description="Minimum value for the energy above the hull in eV/atom.",
         ),
         equillibrium_reaction_energy_per_atom_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the equilibrium reaction energy in eV/atom.",
+            None, description="Maximum value for the equilibrium reaction energy in eV/atom.",
         ),
         equillibrium_reaction_energy_per_atom_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the equilibrium reaction energy in eV/atom.",
+            None, description="Minimum value for the equilibrium reaction energy in eV/atom.",
         ),
         uncorrected_energy_per_atom_max: Optional[float] = Query(
             None, description="Maximum value for the uncorrected total energy in eV.",
@@ -117,19 +106,13 @@ class ThermoEnergyQuery(QueryOperator):
 
         d = {
             "energy_per_atom": [energy_per_atom_min, energy_per_atom_max],
-            "formation_energy_per_atom": [
-                formation_energy_per_atom_min,
-                formation_energy_per_atom_max,
-            ],
+            "formation_energy_per_atom": [formation_energy_per_atom_min, formation_energy_per_atom_max,],
             "energy_above_hull": [energy_above_hull_min, energy_above_hull_max],
             "equillibrium_reaction_energy_per_atom": [
                 equillibrium_reaction_energy_per_atom_min,
                 equillibrium_reaction_energy_per_atom_max,
             ],
-            "uncorrected_energy": [
-                uncorrected_energy_per_atom_min,
-                uncorrected_energy_per_atom_max,
-            ],
+            "uncorrected_energy": [uncorrected_energy_per_atom_min, uncorrected_energy_per_atom_max,],
         }
 
         for entry in d:

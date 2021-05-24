@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.phonon.models import PhononBSDoc, PhononImgDoc
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from maggma.api.query_operator import PaginationQuery, SparseFieldsQuery
 
 
 def phonon_bs_resource(phonon_bs_store):

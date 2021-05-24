@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
 
@@ -12,22 +13,14 @@ class SubstrateStructureQuery(QueryOperator):
 
     def query(
         self,
-        film_id: Optional[str] = Query(
-            None, description="Materials Project ID of the film material.",
-        ),
-        substrate_id: Optional[str] = Query(
-            None, description="Materials Project ID of the substrate material.",
-        ),
-        substrate_formula: Optional[str] = Query(
-            None, description="Reduced formula of the substrate material.",
-        ),
+        film_id: Optional[str] = Query(None, description="Materials Project ID of the film material.",),
+        substrate_id: Optional[str] = Query(None, description="Materials Project ID of the substrate material.",),
+        substrate_formula: Optional[str] = Query(None, description="Reduced formula of the substrate material.",),
         film_orientation: Optional[str] = Query(
-            None,
-            description="Comma separated integers defining the film surface orientation.",
+            None, description="Comma separated integers defining the film surface orientation.",
         ),
         substrate_orientation: Optional[str] = Query(
-            None,
-            description="Comma separated integers defining the substrate surface orientation.",
+            None, description="Comma separated integers defining the substrate surface orientation.",
         ),
     ) -> STORE_PARAMS:
 
@@ -64,19 +57,13 @@ class EnergyAreaQuery(QueryOperator):
     def query(
         self,
         area_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the minimum coincident interface area in Å².",
+            None, description="Maximum value for the minimum coincident interface area in Å².",
         ),
         area_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the minimum coincident interface area in Å².",
+            None, description="Minimum value for the minimum coincident interface area in Å².",
         ),
-        energy_max: Optional[float] = Query(
-            None, description="Maximum value for the energy in meV.",
-        ),
-        energy_min: Optional[float] = Query(
-            None, description="Minimum value for the energy in meV.",
-        ),
+        energy_max: Optional[float] = Query(None, description="Maximum value for the energy in meV.",),
+        energy_min: Optional[float] = Query(None, description="Minimum value for the energy in meV.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict

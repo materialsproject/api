@@ -4,7 +4,8 @@ from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.electronic_structure.core import Spin, OrbitalType
 from pymatgen.core.periodic_table import Element
 
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 from mp_api.routes.electronic_structure.models.core import BSPathType, DOSProjectionType
 
 from collections import defaultdict

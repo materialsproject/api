@@ -2,7 +2,7 @@ from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.synthesis.models import SynthesisDoc
 
 from mp_api.routes.synthesis.query_operators import SynthFormulaQuery
-from mp_api.core.query_operator import SortQuery, PaginationQuery, SparseFieldsQuery
+from maggma.api.query_operator import SortQuery, PaginationQuery, SparseFieldsQuery
 
 from fastapi import Query
 

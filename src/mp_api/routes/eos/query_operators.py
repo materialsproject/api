@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
 
@@ -12,18 +13,10 @@ class EnergyVolumeQuery(QueryOperator):
 
     def query(
         self,
-        volume_max: Optional[float] = Query(
-            None, description="Maximum value for the cell volume in A³/atom.",
-        ),
-        volume_min: Optional[float] = Query(
-            None, description="Minimum value for the cell volume in A³/atom.",
-        ),
-        energy_max: Optional[float] = Query(
-            None, description="Maximum value for the energy in eV/atom.",
-        ),
-        energy_min: Optional[float] = Query(
-            None, description="Minimum value for the energy in eV/atom.",
-        ),
+        volume_max: Optional[float] = Query(None, description="Maximum value for the cell volume in A³/atom.",),
+        volume_min: Optional[float] = Query(None, description="Minimum value for the cell volume in A³/atom.",),
+        energy_max: Optional[float] = Query(None, description="Maximum value for the energy in eV/atom.",),
+        energy_min: Optional[float] = Query(None, description="Minimum value for the energy in eV/atom.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict

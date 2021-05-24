@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 from mp_api.routes.materials.utils import formula_to_criteria
 from pymatgen.core.periodic_table import Element
 
@@ -15,8 +16,7 @@ class ElectrodeFormulaQuery(QueryOperator):
     def query(
         self,
         formula: Optional[str] = Query(
-            None,
-            description="Query by formula including anonymized formula or by including wild cards",
+            None, description="Query by formula including anonymized formula or by including wild cards",
         ),
     ) -> STORE_PARAMS:
 
@@ -45,36 +45,28 @@ class VoltageStepQuery(QueryOperator):
     def query(
         self,
         delta_volume_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the max volume change in percent for a particular voltage step.",
+            None, description="Maximum value for the max volume change in percent for a particular voltage step.",
         ),
         delta_volume_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the max volume change in percent for a particular voltage step.",
+            None, description="Minimum value for the max volume change in percent for a particular voltage step.",
         ),
         average_voltage_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the average voltage for a particular voltage step in V.",
+            None, description="Maximum value for the average voltage for a particular voltage step in V.",
         ),
         average_voltage_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the average voltage for a particular voltage step in V.",
+            None, description="Minimum value for the average voltage for a particular voltage step in V.",
         ),
         max_voltage_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the maximum voltage for a particular voltage step in V.",
+            None, description="Maximum value for the maximum voltage for a particular voltage step in V.",
         ),
         max_voltage_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the maximum voltage for a particular voltage step in V.",
+            None, description="Minimum value for the maximum voltage for a particular voltage step in V.",
         ),
         min_voltage_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the minimum voltage for a particular voltage step in V.",
+            None, description="Maximum value for the minimum voltage for a particular voltage step in V.",
         ),
         min_voltage_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the minimum voltage for a particular voltage step in V.",
+            None, description="Minimum value for the minimum voltage for a particular voltage step in V.",
         ),
         capacity_grav_max: Optional[float] = Query(
             None, description="Maximum value for the gravimetric capacity in maH/g.",
@@ -89,36 +81,28 @@ class VoltageStepQuery(QueryOperator):
             None, description="Minimum value for the volumetric capacity in maH/cc.",
         ),
         energy_grav_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the gravimetric energy (specific energy) in Wh/kg.",
+            None, description="Maximum value for the gravimetric energy (specific energy) in Wh/kg.",
         ),
         energy_grav_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the gravimetric energy (specific energy) in Wh/kg.",
+            None, description="Minimum value for the gravimetric energy (specific energy) in Wh/kg.",
         ),
         energy_vol_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the volumetric energy (energy_density) in Wh/l.",
+            None, description="Maximum value for the volumetric energy (energy_density) in Wh/l.",
         ),
         energy_vol_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the volumetric energy (energy_density) in Wh/l.",
+            None, description="Minimum value for the volumetric energy (energy_density) in Wh/l.",
         ),
         fracA_charge_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the atomic fraction of the working ion in the charged state.",
+            None, description="Maximum value for the atomic fraction of the working ion in the charged state.",
         ),
         fracA_charge_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the atomic fraction of the working ion in the charged state.",
+            None, description="Minimum value for the atomic fraction of the working ion in the charged state.",
         ),
         fracA_discharge_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the atomic fraction of the working ion in the discharged state.",
+            None, description="Maximum value for the atomic fraction of the working ion in the discharged state.",
         ),
         fracA_discharge_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the atomic fraction of the working ion in the discharged state.",
+            None, description="Minimum value for the atomic fraction of the working ion in the discharged state.",
         ),
     ) -> STORE_PARAMS:
 
@@ -165,20 +149,16 @@ class InsertionVoltageStepQuery(QueryOperator):
     def query(
         self,
         stability_charge_max: Optional[float] = Query(
-            None,
-            description="The maximum value of the energy above hull of the charged material.",
+            None, description="The maximum value of the energy above hull of the charged material.",
         ),
         stability_charge_min: Optional[float] = Query(
-            None,
-            description="The minimum value of the energy above hull of the charged material.",
+            None, description="The minimum value of the energy above hull of the charged material.",
         ),
         stability_discharge_max: Optional[float] = Query(
-            None,
-            description="The maximum value of the energy above hull of the discharged material.",
+            None, description="The maximum value of the energy above hull of the discharged material.",
         ),
         stability_discharge_min: Optional[float] = Query(
-            None,
-            description="The minimum value of the energy above hull of the discharged material.",
+            None, description="The minimum value of the energy above hull of the discharged material.",
         ),
     ) -> STORE_PARAMS:
 
@@ -216,9 +196,7 @@ class InsertionElectrodeQuery(QueryOperator):
 
     def query(
         self,
-        working_ion: Optional[Element] = Query(
-            None, title="Element of the working ion"
-        ),
+        working_ion: Optional[Element] = Query(None, title="Element of the working ion"),
         num_steps_max: Optional[float] = Query(
             None,
             description="The maximum value of the The number of distinct voltage steps from fully charge to \
@@ -230,12 +208,10 @@ class InsertionElectrodeQuery(QueryOperator):
                 discharge based on the stable intermediate states.",
         ),
         max_voltage_step_max: Optional[float] = Query(
-            None,
-            description="The maximum value of the maximum absolute difference in adjacent voltage steps.",
+            None, description="The maximum value of the maximum absolute difference in adjacent voltage steps.",
         ),
         max_voltage_step_min: Optional[float] = Query(
-            None,
-            description="The minimum value of maximum absolute difference in adjacent voltage steps.",
+            None, description="The minimum value of maximum absolute difference in adjacent voltage steps.",
         ),
     ) -> STORE_PARAMS:
 

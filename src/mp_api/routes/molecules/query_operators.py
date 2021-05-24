@@ -2,7 +2,8 @@ from typing import Optional
 from fastapi import Query
 from pymatgen.core.periodic_table import Element
 from pymatgen.core import Composition
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
 
@@ -15,8 +16,7 @@ class MoleculeElementsQuery(QueryOperator):
     def query(
         self,
         elements: Optional[str] = Query(
-            None,
-            description="Query by elements in the material composition as a comma-separated list",
+            None, description="Query by elements in the material composition as a comma-separated list",
         ),
     ) -> STORE_PARAMS:
 
@@ -39,33 +39,15 @@ class MoleculeBaseQuery(QueryOperator):
 
     def query(
         self,
-        nelements_max: Optional[float] = Query(
-            None, description="Maximum value for the number of elements.",
-        ),
-        nelements_min: Optional[float] = Query(
-            None, description="Minimum value for the number of elements.",
-        ),
-        EA_max: Optional[float] = Query(
-            None, description="Maximum value for the electron affinity in eV.",
-        ),
-        EA_min: Optional[float] = Query(
-            None, description="Minimum value for the electron affinity in eV.",
-        ),
-        IE_max: Optional[float] = Query(
-            None, description="Maximum value for the ionization energy in eV.",
-        ),
-        IE_min: Optional[float] = Query(
-            None, description="Minimum value for the ionization energy in eV.",
-        ),
-        charge_max: Optional[int] = Query(
-            None, description="Maximum value for the charge in +e.",
-        ),
-        charge_min: Optional[int] = Query(
-            None, description="Minimum value for the charge in +e.",
-        ),
-        pointgroup: Optional[str] = Query(
-            None, description="Point of the molecule in Schoenflies notation.",
-        ),
+        nelements_max: Optional[float] = Query(None, description="Maximum value for the number of elements.",),
+        nelements_min: Optional[float] = Query(None, description="Minimum value for the number of elements.",),
+        EA_max: Optional[float] = Query(None, description="Maximum value for the electron affinity in eV.",),
+        EA_min: Optional[float] = Query(None, description="Minimum value for the electron affinity in eV.",),
+        IE_max: Optional[float] = Query(None, description="Maximum value for the ionization energy in eV.",),
+        IE_min: Optional[float] = Query(None, description="Minimum value for the ionization energy in eV.",),
+        charge_max: Optional[int] = Query(None, description="Maximum value for the charge in +e.",),
+        charge_min: Optional[int] = Query(None, description="Minimum value for the charge in +e.",),
+        pointgroup: Optional[str] = Query(None, description="Point of the molecule in Schoenflies notation.",),
         smiles: Optional[str] = Query(
             None,
             description="The simplified molecular input line-entry system (SMILES) \
@@ -113,10 +95,7 @@ class MoleculeFormulaQuery(QueryOperator):
     """
 
     def query(
-        self,
-        formula: Optional[str] = Query(
-            None, description="Chemical formula of the molecule.",
-        ),
+        self, formula: Optional[str] = Query(None, description="Chemical formula of the molecule.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict

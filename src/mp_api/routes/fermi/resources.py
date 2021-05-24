@@ -1,7 +1,7 @@
 from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.fermi.models import FermiDoc
 
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from maggma.api.query_operator import PaginationQuery, SparseFieldsQuery
 
 
 def fermi_resource(fermi_store):
