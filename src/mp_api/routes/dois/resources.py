@@ -1,17 +1,14 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.dois.models import DOIDoc
 
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
 
 
 def dois_resource(dois_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         dois_store,
         DOIDoc,
-        query_operators=[
-            PaginationQuery(),
-            SparseFieldsQuery(DOIDoc, default_fields=["task_id", "doi"]),
-        ],
+        query_operators=[PaginationQuery(), SparseFieldsQuery(DOIDoc, default_fields=["task_id", "doi"]),],
         tags=["DOIs"],
         enable_default_search=False,
     )

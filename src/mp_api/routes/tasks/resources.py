@@ -1,4 +1,4 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.tasks.models import DeprecationDoc, TaskDoc, TrajectoryDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
@@ -14,7 +14,7 @@ from mp_api.routes.materials.query_operators import (
 
 
 def task_resource(task_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         task_store,
         TaskDoc,
         query_operators=[
@@ -23,9 +23,7 @@ def task_resource(task_store):
             MultipleTaskIDsQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(
-                TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],
-            ),
+            SparseFieldsQuery(TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],),
         ],
         tags=["Tasks"],
     )
@@ -34,7 +32,7 @@ def task_resource(task_store):
 
 
 def task_deprecation_resource(materials_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         materials_store,
         DeprecationDoc,
         query_operators=[DeprecationQuery(), PaginationQuery()],
@@ -47,7 +45,7 @@ def task_deprecation_resource(materials_store):
 
 
 def trajectory_resource(task_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         task_store,
         TrajectoryDoc,
         query_operators=[TrajectoryQuery(), PaginationQuery()],

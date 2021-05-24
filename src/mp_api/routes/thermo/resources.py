@@ -1,4 +1,4 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from emmet.core.thermo import ThermoDoc
 
 from mp_api.core.query_operator import (
@@ -17,7 +17,7 @@ from mp_api.routes.materials.query_operators import MultiMaterialIDQuery
 
 
 def thermo_resource(thermo_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         thermo_store,
         ThermoDoc,
         query_operators=[
@@ -28,9 +28,7 @@ def thermo_resource(thermo_store):
             ThermoEnergyQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(
-                ThermoDoc, default_fields=["material_id", "last_updated"]
-            ),
+            SparseFieldsQuery(ThermoDoc, default_fields=["material_id", "last_updated"]),
         ],
         tags=["Thermo"],
     )

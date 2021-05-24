@@ -1,4 +1,4 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.piezo.models import PiezoDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
@@ -6,7 +6,7 @@ from mp_api.routes.piezo.query_operators import PiezoelectricQuery
 
 
 def piezo_resource(piezo_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         piezo_store,
         PiezoDoc,
         query_operators=[

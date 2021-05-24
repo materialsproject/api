@@ -1,4 +1,5 @@
-from mp_api.core.resource import ConsumerPostResource, GetResource
+from mp_api.core.resource import ConsumerPostResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes._consumer.models import UserSettingsDoc
 from mp_api.routes._consumer.query_operator import UserSettingsPostQuery, UserSettingsGetQuery
 
@@ -16,7 +17,7 @@ def set_settings_resource(consumer_settings_store):
 
 
 def get_settings_resource(consumer_settings_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         consumer_settings_store,
         UserSettingsDoc,
         query_operators=[UserSettingsGetQuery()],

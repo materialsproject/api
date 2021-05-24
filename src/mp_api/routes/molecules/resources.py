@@ -1,4 +1,4 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.molecules.models import MoleculesDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
@@ -11,7 +11,7 @@ from mp_api.routes.tasks.query_operators import MultipleTaskIDsQuery
 
 
 def molecules_resource(molecules_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         molecules_store,
         MoleculesDoc,
         query_operators=[

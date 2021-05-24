@@ -6,7 +6,7 @@ from fastapi import Query
 from scipy.stats import gaussian_kde
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
@@ -34,9 +34,7 @@ def search_resource(search_store):
         model_name = self.model.__name__
 
         # we can only generate statistics for fields that return numbers
-        valid_numeric_fields = tuple(
-            sorted(k for k, v in SearchDoc().__fields__.items() if v.type_ == float)
-        )
+        valid_numeric_fields = tuple(sorted(k for k, v in SearchDoc().__fields__.items() if v.type_ == float))
 
         async def generate_stats(
             field: Literal[valid_numeric_fields] = Query(
@@ -44,9 +42,7 @@ def search_resource(search_store):
                 title=f"SearchDoc field to query on, must be a numerical field, "
                 f"choose from: {', '.join(valid_numeric_fields)}",
             ),
-            num_samples: Optional[int] = Query(
-                None, title="If specified, will only sample this number of documents.",
-            ),
+            num_samples: Optional[int] = Query(None, title="If specified, will only sample this number of documents.",),
             min_val: Optional[float] = Query(
                 None,
                 title="If specified, will only consider documents with field values "
@@ -57,9 +53,7 @@ def search_resource(search_store):
                 title="If specified, will only consider documents with field values "
                 "less than or equal to this minimum value.",
             ),
-            num_points: int = Query(
-                100, title="The number of values in the returned distribution."
-            ),
+            num_points: int = Query(100, title="The number of values in the returned distribution."),
         ):
             """
             Generate statistics for a given numerical field specified in SearchDoc.
@@ -84,10 +78,7 @@ def search_resource(search_store):
 
             pipeline.append({"$project": {field: 1}})
 
-            values = [
-                d[field]
-                for d in self.store._collection.aggregate(pipeline, allowDiskUse=True)
-            ]
+            values = [d[field] for d in self.store._collection.aggregate(pipeline, allowDiskUse=True)]
             if not min_val:
                 min_val = min(values)
             if not max_val:
@@ -124,7 +115,7 @@ def search_resource(search_store):
             tags=self.tags,
         )(generate_stats)
 
-    resource = GetResource(
+    resource = ReadOnlyResource(
         search_store,
         SearchDoc,
         query_operators=[
