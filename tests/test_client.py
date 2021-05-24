@@ -1,5 +1,5 @@
 import pytest
-from mp_api.core.client import MPRestError
+import os
 from mp_api.matproj import MPRester
 
 key_only_resters = {
@@ -33,3 +33,7 @@ def test_generic_get_methods(rester):
     elif name not in special_resters:
         doc = rester.get_document_by_id(key_only_resters[name], fields=[rester.primary_key])
         assert isinstance(doc, rester.document_model)
+
+
+if os.environ.get("MP_API_KEY", None) is None:
+    pytest.mark.skip(test_generic_get_methods)
