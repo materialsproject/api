@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
 
@@ -30,25 +31,15 @@ class SurfaceMinMaxQuery(QueryOperator):
         surface_anisotropy_min: Optional[float] = Query(
             None, description="Minimum value for the surface energy anisotropy.",
         ),
-        shape_factor_max: Optional[float] = Query(
-            None, description="Maximum value for the shape factor.",
-        ),
-        shape_factor_min: Optional[float] = Query(
-            None, description="Minimum value for the shape factor.",
-        ),
+        shape_factor_max: Optional[float] = Query(None, description="Maximum value for the shape factor.",),
+        shape_factor_min: Optional[float] = Query(None, description="Minimum value for the shape factor.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
 
         d = {
-            "weighted_surface_energy": [
-                weighted_surface_energy_min,
-                weighted_surface_energy_max,
-            ],
-            "weighted_work_function": [
-                weighted_work_function_min,
-                weighted_work_function_max,
-            ],
+            "weighted_surface_energy": [weighted_surface_energy_min, weighted_surface_energy_max,],
+            "weighted_work_function": [weighted_work_function_min, weighted_work_function_max,],
             "surface_anisotropy": [surface_anisotropy_min, surface_anisotropy_max],
             "shape_factor": [shape_factor_min, shape_factor_max],
         }
@@ -80,9 +71,7 @@ class ReconstructedQuery(QueryOperator):
 
     def query(
         self,
-        has_reconstructed: Optional[bool] = Query(
-            None, description="Whether the entry has a reconstructed surface.",
-        ),
+        has_reconstructed: Optional[bool] = Query(None, description="Whether the entry has a reconstructed surface.",),
     ) -> STORE_PARAMS:
 
         crit = {}

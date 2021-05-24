@@ -20,7 +20,7 @@ from mp_api.core.utils import (
 
 from mp_api.core.settings import MAPISettings
 
-from mp_api.core.query_operator import (
+from maggma.api.query_operator import (
     QueryOperator,
     PaginationQuery,
     SparseFieldsQuery,

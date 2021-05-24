@@ -2,7 +2,7 @@ from fastapi.param_functions import Path
 from maggma.api.resource import ReadOnlyResource
 from mp_api.core.models import Response
 from mp_api.routes.charge_density.models import ChgcarDataDoc
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery, SortQuery
+from maggma.api.query_operator import PaginationQuery, SparseFieldsQuery, SortQuery
 from mp_api.core.utils import STORE_PARAMS
 from fastapi import HTTPException, Depends
 

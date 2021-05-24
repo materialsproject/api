@@ -1,7 +1,7 @@
 from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.molecules.models import MoleculesDoc
 
-from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
+from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.routes.molecules.query_operators import (
     MoleculeBaseQuery,
     MoleculeElementsQuery,

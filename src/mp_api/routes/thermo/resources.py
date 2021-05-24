@@ -1,7 +1,7 @@
 from maggma.api.resource import ReadOnlyResource
 from emmet.core.thermo import ThermoDoc
 
-from mp_api.core.query_operator import (
+from maggma.api.query_operator import (
     PaginationQuery,
     SortQuery,
     SparseFieldsQuery,

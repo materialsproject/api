@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
 
@@ -12,30 +13,14 @@ class DielectricQuery(QueryOperator):
 
     def query(
         self,
-        e_total_max: Optional[float] = Query(
-            None, description="Maximum value for the total dielectric constant.",
-        ),
-        e_total_min: Optional[float] = Query(
-            None, description="Minimum value for the total dielectric constant.",
-        ),
-        e_ionic_max: Optional[float] = Query(
-            None, description="Maximum value for the ionic dielectric constant.",
-        ),
-        e_ionic_min: Optional[float] = Query(
-            None, description="Minimum value for the ionic dielectric constant.",
-        ),
-        e_static_max: Optional[float] = Query(
-            None, description="Maximum value for the static dielectric constant.",
-        ),
-        e_static_min: Optional[float] = Query(
-            None, description="Minimum value for the static dielectric constant.",
-        ),
-        n_max: Optional[float] = Query(
-            None, description="Maximum value for the refractive index.",
-        ),
-        n_min: Optional[float] = Query(
-            None, description="Minimum value for the refractive index.",
-        ),
+        e_total_max: Optional[float] = Query(None, description="Maximum value for the total dielectric constant.",),
+        e_total_min: Optional[float] = Query(None, description="Minimum value for the total dielectric constant.",),
+        e_ionic_max: Optional[float] = Query(None, description="Maximum value for the ionic dielectric constant.",),
+        e_ionic_min: Optional[float] = Query(None, description="Minimum value for the ionic dielectric constant.",),
+        e_static_max: Optional[float] = Query(None, description="Maximum value for the static dielectric constant.",),
+        e_static_min: Optional[float] = Query(None, description="Minimum value for the static dielectric constant.",),
+        n_max: Optional[float] = Query(None, description="Maximum value for the refractive index.",),
+        n_min: Optional[float] = Query(None, description="Minimum value for the refractive index.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict

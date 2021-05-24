@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
 
@@ -21,8 +22,7 @@ class GBEnergyQuery(QueryOperator):
             None, description="Minimum value for the grain boundary energy in J/m^2.",
         ),
         w_sep_energy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the work of separation energy in J/m^2.",
+            None, description="Maximum value for the work of separation energy in J/m^2.",
         ),
         w_sep_energy_min: Optional[float] = Query(
             None, description="Minimum value for work of separation energy in J/m^2.",
@@ -65,9 +65,7 @@ class GBStructureQuery(QueryOperator):
         ),
         sigma: Optional[float] = Query(None, description="Value of sigma.",),
         type: Optional[GBTypeEnum] = Query(None, description="Grain boundary type.",),
-        chemsys: Optional[str] = Query(
-            None, description="Dash-delimited string of elements in the material.",
-        ),
+        chemsys: Optional[str] = Query(None, description="Dash-delimited string of elements in the material.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
@@ -108,8 +106,7 @@ class GBTaskIDQuery(QueryOperator):
     def query(
         self,
         task_ids: Optional[str] = Query(
-            None,
-            description="Comma-separated list of Materials Project IDs to query on.",
+            None, description="Comma-separated list of Materials Project IDs to query on.",
         ),
     ) -> STORE_PARAMS:
 

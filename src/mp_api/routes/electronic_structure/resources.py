@@ -6,7 +6,7 @@ from fastapi.param_functions import Path, Query
 
 from mp_api.core.utils import api_sanitize
 from mp_api.core.models import Response
-from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
+from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,

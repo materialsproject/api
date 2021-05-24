@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 from pymatgen.core import Composition
 
 from collections import defaultdict
@@ -12,10 +13,7 @@ class SynthFormulaQuery(QueryOperator):
     """
 
     def query(
-        self,
-        formula: Optional[str] = Query(
-            None, description="Chemical formula of the material.",
-        ),
+        self, formula: Optional[str] = Query(None, description="Chemical formula of the material.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict

@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
 
@@ -13,28 +14,22 @@ class BulkModulusQuery(QueryOperator):
     def query(
         self,
         k_voigt_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt average of the bulk modulus in GPa.",
+            None, description="Maximum value for the Voigt average of the bulk modulus in GPa.",
         ),
         k_voigt_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt average of the bulk modulus in GPa.",
+            None, description="Minimum value for the Voigt average of the bulk modulus in GPa.",
         ),
         k_reuss_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Reuss average of the bulk modulus in GPa.",
+            None, description="Maximum value for the Reuss average of the bulk modulus in GPa.",
         ),
         k_reuss_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Reuss average of the bulk modulus in GPa.",
+            None, description="Minimum value for the Reuss average of the bulk modulus in GPa.",
         ),
         k_vrh_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
+            None, description="Maximum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
         ),
         k_vrh_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
+            None, description="Minimum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
         ),
     ) -> STORE_PARAMS:
 
@@ -64,28 +59,22 @@ class ShearModulusQuery(QueryOperator):
     def query(
         self,
         g_voigt_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt average of the shear modulus in GPa.",
+            None, description="Maximum value for the Voigt average of the shear modulus in GPa.",
         ),
         g_voigt_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt average of the shear modulus in GPa.",
+            None, description="Minimum value for the Voigt average of the shear modulus in GPa.",
         ),
         g_reuss_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Reuss average of the shear modulus in GPa.",
+            None, description="Maximum value for the Reuss average of the shear modulus in GPa.",
         ),
         g_reuss_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Reuss average of the shear modulus in GPa.",
+            None, description="Minimum value for the Reuss average of the shear modulus in GPa.",
         ),
         g_vrh_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
+            None, description="Maximum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
         ),
         g_vrh_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
+            None, description="Minimum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
         ),
     ) -> STORE_PARAMS:
 
@@ -115,31 +104,16 @@ class PoissonQuery(QueryOperator):
 
     def query(
         self,
-        elastic_anisotropy_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the elastic anisotropy.",
-        ),
-        elastic_anisotropy_min: Optional[float] = Query(
-            None,
-            description="Maximum value for the elastic anisotropy.",
-        ),
-        poisson_max: Optional[float] = Query(
-            None,
-            description="Maximum value for Poisson's ratio.",
-        ),
-        poisson_min: Optional[float] = Query(
-            None,
-            description="Minimum value for Poisson's ratio.",
-        ),
+        elastic_anisotropy_max: Optional[float] = Query(None, description="Maximum value for the elastic anisotropy.",),
+        elastic_anisotropy_min: Optional[float] = Query(None, description="Maximum value for the elastic anisotropy.",),
+        poisson_max: Optional[float] = Query(None, description="Maximum value for Poisson's ratio.",),
+        poisson_min: Optional[float] = Query(None, description="Minimum value for Poisson's ratio.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
 
         d = {
-            "elasticity.universal_anisotropy": [
-                elastic_anisotropy_min,
-                elastic_anisotropy_max,
-            ],
+            "elasticity.universal_anisotropy": [elastic_anisotropy_min, elastic_anisotropy_max,],
             "elasticity.homogeneous_poisson": [poisson_min, poisson_max],
         }
 
@@ -159,11 +133,7 @@ class ChemsysQuery(QueryOperator):
     """
 
     def query(
-        self,
-        chemsys: Optional[str] = Query(
-            None,
-            description="Dash-delimited list of elements in the material.",
-        ),
+        self, chemsys: Optional[str] = Query(None, description="Dash-delimited list of elements in the material.",),
     ):
 
         crit = {}  # type: dict

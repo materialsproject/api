@@ -1,6 +1,6 @@
 from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.similarity.models import SimilarityDoc
-from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery
+from maggma.api.query_operator import PaginationQuery, SparseFieldsQuery
 
 
 def similarity_resource(similarity_store):

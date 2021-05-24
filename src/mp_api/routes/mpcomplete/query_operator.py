@@ -1,7 +1,7 @@
 from fastapi import Query, Body
 from pymatgen.core.structure import Structure
-from mp_api.core.utils import STORE_PARAMS
-from mp_api.core.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
+from maggma.api.query_operator import QueryOperator
 from uuid import uuid4
 
 

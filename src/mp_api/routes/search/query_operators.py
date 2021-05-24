@@ -2,7 +2,8 @@ from enum import Enum
 from typing import Optional
 from fastapi import Query
 
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 from mp_api.routes.magnetism.models import MagneticOrderingEnum
 
 from collections import defaultdict
@@ -30,8 +31,7 @@ class HasPropsQuery(QueryOperator):
     def query(
         self,
         has_props: Optional[str] = Query(
-            None,
-            description="Comma-delimited list of possible properties given by HasPropsEnum to search for.",
+            None, description="Comma-delimited list of possible properties given by HasPropsEnum to search for.",
         ),
     ) -> STORE_PARAMS:
 
@@ -49,10 +49,7 @@ class MaterialIDsSearchQuery(QueryOperator):
     """
 
     def query(
-        self,
-        material_ids: Optional[str] = Query(
-            None, description="Comma-separated list of material_ids to query on"
-        ),
+        self, material_ids: Optional[str] = Query(None, description="Comma-separated list of material_ids to query on"),
     ) -> STORE_PARAMS:
 
         crit = {}
@@ -69,10 +66,7 @@ class SearchIsStableQuery(QueryOperator):
     """
 
     def query(
-        self,
-        is_stable: Optional[bool] = Query(
-            None, description="Whether the material is stable."
-        ),
+        self, is_stable: Optional[bool] = Query(None, description="Whether the material is stable."),
     ):
 
         crit = {}
@@ -94,65 +88,45 @@ class SearchElasticityQuery(QueryOperator):
     def query(
         self,
         k_voigt_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt average of the bulk modulus in GPa.",
+            None, description="Maximum value for the Voigt average of the bulk modulus in GPa.",
         ),
         k_voigt_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt average of the bulk modulus in GPa.",
+            None, description="Minimum value for the Voigt average of the bulk modulus in GPa.",
         ),
         k_reuss_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Reuss average of the bulk modulus in GPa.",
+            None, description="Maximum value for the Reuss average of the bulk modulus in GPa.",
         ),
         k_reuss_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Reuss average of the bulk modulus in GPa.",
+            None, description="Minimum value for the Reuss average of the bulk modulus in GPa.",
         ),
         k_vrh_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
+            None, description="Maximum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
         ),
         k_vrh_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
+            None, description="Minimum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
         ),
         g_voigt_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt average of the shear modulus in GPa.",
+            None, description="Maximum value for the Voigt average of the shear modulus in GPa.",
         ),
         g_voigt_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt average of the shear modulus in GPa.",
+            None, description="Minimum value for the Voigt average of the shear modulus in GPa.",
         ),
         g_reuss_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Reuss average of the shear modulus in GPa.",
+            None, description="Maximum value for the Reuss average of the shear modulus in GPa.",
         ),
         g_reuss_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Reuss average of the shear modulus in GPa.",
+            None, description="Minimum value for the Reuss average of the shear modulus in GPa.",
         ),
         g_vrh_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
+            None, description="Maximum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
         ),
         g_vrh_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
+            None, description="Minimum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
         ),
-        elastic_anisotropy_max: Optional[float] = Query(
-            None, description="Maximum value for the elastic anisotropy.",
-        ),
-        elastic_anisotropy_min: Optional[float] = Query(
-            None, description="Maximum value for the elastic anisotropy.",
-        ),
-        poisson_max: Optional[float] = Query(
-            None, description="Maximum value for Poisson's ratio.",
-        ),
-        poisson_min: Optional[float] = Query(
-            None, description="Minimum value for Poisson's ratio.",
-        ),
+        elastic_anisotropy_max: Optional[float] = Query(None, description="Maximum value for the elastic anisotropy.",),
+        elastic_anisotropy_min: Optional[float] = Query(None, description="Maximum value for the elastic anisotropy.",),
+        poisson_max: Optional[float] = Query(None, description="Maximum value for Poisson's ratio.",),
+        poisson_min: Optional[float] = Query(None, description="Minimum value for Poisson's ratio.",),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
@@ -178,11 +152,7 @@ class SearchElasticityQuery(QueryOperator):
         return {"criteria": crit}
 
     def ensure_indexes(self):
-        keys = [
-            key
-            for key in self._keys_from_query()
-            if "anisotropy" not in key and "poisson" not in key
-        ]
+        keys = [key for key in self._keys_from_query() if "anisotropy" not in key and "poisson" not in key]
 
         indexes = []
         for key in keys:
@@ -201,9 +171,7 @@ class SearchMagneticQuery(QueryOperator):
 
     def query(
         self,
-        ordering: Optional[MagneticOrderingEnum] = Query(
-            None, description="Magnetic ordering of the material."
-        ),
+        ordering: Optional[MagneticOrderingEnum] = Query(None, description="Magnetic ordering of the material."),
         total_magnetization_max: Optional[float] = Query(
             None, description="Maximum value for the total magnetization.",
         ),
@@ -211,20 +179,16 @@ class SearchMagneticQuery(QueryOperator):
             None, description="Minimum value for the total magnetization.",
         ),
         total_magnetization_normalized_vol_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total magnetization normalized with volume.",
+            None, description="Maximum value for the total magnetization normalized with volume.",
         ),
         total_magnetization_normalized_vol_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total magnetization normalized with volume.",
+            None, description="Minimum value for the total magnetization normalized with volume.",
         ),
         total_magnetization_normalized_formula_units_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total magnetization normalized with formula units.",
+            None, description="Maximum value for the total magnetization normalized with formula units.",
         ),
         total_magnetization_normalized_formula_units_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total magnetization normalized with formula units.",
+            None, description="Minimum value for the total magnetization normalized with formula units.",
         ),
     ) -> STORE_PARAMS:
 
@@ -270,30 +234,14 @@ class SearchDielectricPiezoQuery(QueryOperator):
 
     def query(
         self,
-        e_total_max: Optional[float] = Query(
-            None, description="Maximum value for the total dielectric constant.",
-        ),
-        e_total_min: Optional[float] = Query(
-            None, description="Minimum value for the total dielectric constant.",
-        ),
-        e_ionic_max: Optional[float] = Query(
-            None, description="Maximum value for the ionic dielectric constant.",
-        ),
-        e_ionic_min: Optional[float] = Query(
-            None, description="Minimum value for the ionic dielectric constant.",
-        ),
-        e_static_max: Optional[float] = Query(
-            None, description="Maximum value for the static dielectric constant.",
-        ),
-        e_static_min: Optional[float] = Query(
-            None, description="Minimum value for the static dielectric constant.",
-        ),
-        n_max: Optional[float] = Query(
-            None, description="Maximum value for the refractive index.",
-        ),
-        n_min: Optional[float] = Query(
-            None, description="Minimum value for the refractive index.",
-        ),
+        e_total_max: Optional[float] = Query(None, description="Maximum value for the total dielectric constant.",),
+        e_total_min: Optional[float] = Query(None, description="Minimum value for the total dielectric constant.",),
+        e_ionic_max: Optional[float] = Query(None, description="Maximum value for the ionic dielectric constant.",),
+        e_ionic_min: Optional[float] = Query(None, description="Minimum value for the ionic dielectric constant.",),
+        e_static_max: Optional[float] = Query(None, description="Maximum value for the static dielectric constant.",),
+        e_static_min: Optional[float] = Query(None, description="Minimum value for the static dielectric constant.",),
+        n_max: Optional[float] = Query(None, description="Maximum value for the refractive index.",),
+        n_min: Optional[float] = Query(None, description="Minimum value for the refractive index.",),
         piezo_modulus_max: Optional[float] = Query(
             None, description="Maximum value for the piezoelectric modulus in C/m².",
         ),
@@ -332,10 +280,7 @@ class SearchIsTheoreticalQuery(QueryOperator):
     """
 
     def query(
-        self,
-        theoretical: Optional[bool] = Query(
-            None, description="Whether the material is theoretical."
-        ),
+        self, theoretical: Optional[bool] = Query(None, description="Whether the material is theoretical."),
     ):
 
         crit = {}
