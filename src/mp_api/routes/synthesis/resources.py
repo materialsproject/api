@@ -28,17 +28,13 @@ def synth_resource(synth_store):
                 {
                     "$search": {
                         "index": "synth_descriptions",
-                        "regex": {
-                            # TODO: should handle multiple-word queries explicitly, for now will split by
-                            # space and query as multiple words
-                            "query": [word + ".*" for word in keywords.replace(" ", ",").split(",") if word],
+                        "text": {
+                            "query": [
+                                word.strip() for word in keywords.split(",") if word
+                            ],
                             "path": "text",
-                            "allowAnalyzedField": True,
                         },
-                        "highlight": {
-                            "path": "text",
-                            "maxNumPassages": 1
-                        }
+                        "highlight": {"path": "text", "maxNumPassages": 1},
                     }
                 },
                 {
@@ -48,7 +44,7 @@ def synth_resource(synth_store):
                         "formula": 1,
                         "text": 1,
                         "search_score": {"$meta": "searchScore"},
-                        "highlights": {"$meta": "searchHighlights"}
+                        "highlights": {"$meta": "searchHighlights"},
                     }
                 },
                 {"$sort": {"search_score": -1}},
