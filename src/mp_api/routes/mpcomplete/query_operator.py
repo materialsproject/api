@@ -13,21 +13,16 @@ class MPCompletePostQuery(QueryOperator):
         structure: Structure = Body(..., title="Structure submission"),
         public_name: str = Query(..., title="Public name"),
         public_email: str = Query(..., title="Public email"),
-        comment: str = Query(..., title="Submission comment"),
     ) -> STORE_PARAMS:
 
         self.structure = structure
         self.public_name = public_name
         self.public_email = public_email
-        self.comment = comment
-        self.snl_id = str(uuid4())
 
         crit = {
-            "snl_id": self.snl_id,
             "structure": structure,
             "public_email": public_email,
             "public_name": public_name,
-            "comment": comment,
         }
 
         return {"criteria": crit}
@@ -36,12 +31,33 @@ class MPCompletePostQuery(QueryOperator):
 
         d = [
             {
-                "snl_id": self.snl_id,
                 "structure": self.structure,
                 "public_email": self.public_email,
                 "public_name": self.public_name,
-                "comment": self.comment,
             }
         ]
 
         return d
+
+
+class MPCompleteGetQuery(QueryOperator):
+    """Query operators for querying on MPComplete data"""
+
+    def query(
+        self,
+        public_name: str = Query(None, title="Public name"),
+        public_email: str = Query(None, title="Public email"),
+    ) -> STORE_PARAMS:
+
+        self.public_name = public_name
+        self.public_email = public_email
+
+        crit = {}
+
+        if public_name is not None:
+            crit.update({"public_name": public_name})
+
+        if public_email is not None:
+            crit.update({"public_name": public_email})
+
+        return {"criteria": crit}

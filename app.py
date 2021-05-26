@@ -288,7 +288,7 @@ if db_uri:
     mpcomplete_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_consumers",
-        key="snl_id",
+        key="submission_id",
         collection_name="mpcomplete",
     )
 

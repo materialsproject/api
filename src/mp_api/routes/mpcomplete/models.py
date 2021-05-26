@@ -1,15 +1,12 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 from pymatgen.core.structure import Structure
+from maggma.api.models import UserSubmissionDataModel
 
 
-class MPCompleteDoc(BaseModel):
+class MPCompleteDoc(UserSubmissionDataModel):
     """
     Defines data for MPComplete structure submissions
     """
-
-    snl_id: str = Field(
-        None, title="SNL ID", description="ID for the submission.",
-    )
 
     structure: Structure = Field(
         None,
@@ -23,8 +20,4 @@ class MPCompleteDoc(BaseModel):
 
     public_email: str = Field(
         None, title="Public email", description="Public email of submitter.",
-    )
-
-    comment: str = Field(
-        None, title="Submission comment", description="User comment for submission.",
     )
