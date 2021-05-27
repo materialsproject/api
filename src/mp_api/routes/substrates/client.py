@@ -9,7 +9,8 @@ from mp_api.routes.substrates.models import SubstratesDoc
 class SubstratesRester(BaseRester):
 
     suffix = "substrates"
-    document_model = SubstratesDoc
+    document_model = SubstratesDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_substrates_docs(
         self,
@@ -21,7 +22,8 @@ class SubstratesRester(BaseRester):
         area: Optional[Tuple[float, float]] = None,
         energy: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -38,19 +40,15 @@ class SubstratesRester(BaseRester):
             energy (Tuple[float,float]): Minimum and maximum energy in meV to consider for the elastic energy range.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in SubstratesDoc to return data for.
-                Default is the film_id and substrate_id only.
+                Default is the film_id and substrate_id only if all_fields is False.
 
-        Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs for the film and substrate only.
+        Returns:
+            ([SubstratesDoc]) List of substrate documents
         """
 
         query_params = defaultdict(dict)  # type: dict
-
-        if chunk_size <= 0 or chunk_size > 100:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
 
         if film_id:
             query_params.update({"film_id": film_id})
@@ -62,18 +60,10 @@ class SubstratesRester(BaseRester):
             query_params.update({"substrate_formula": substrate_formula})
 
         if film_orientation:
-            query_params.update(
-                {"film_orientation": ",".join([str(i) for i in film_orientation])}
-            )
+            query_params.update({"film_orientation": ",".join([str(i) for i in film_orientation])})
 
         if substrate_orientation:
-            query_params.update(
-                {
-                    "substrate_orientation": ",".join(
-                        [str(i) for i in substrate_orientation]
-                    )
-                }
-            )
+            query_params.update({"substrate_orientation": ",".join([str(i) for i in substrate_orientation])})
 
         if area:
             query_params.update({"area_min": area[0], "area_max": area[1]})
@@ -81,23 +71,13 @@ class SubstratesRester(BaseRester):
         if energy:
             query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
 
-        if fields:
-            query_params.update({"fields": ",".join(fields)})
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
-
-        query_params.update({"limit": chunk_size, "skip": 0})
-        count = 0
-        while True:
-            query_params["skip"] = count * chunk_size
-            results = self.query(query_params).get("data", [])
-
-            if not any(results) or (num_chunks is not None and count == num_chunks):
-                break
-
-            count += 1
-            yield results
+        return super().search(
+            version=self.version,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
+        )

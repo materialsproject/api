@@ -1,4 +1,6 @@
 from pydantic import BaseSettings, Field
+from mp_api import __file__ as root_dir
+import os
 
 
 class MAPISettings(BaseSettings):
@@ -7,11 +9,14 @@ class MAPISettings(BaseSettings):
     python module
     """
 
-    app_path: str = Field(
-        "~/mapi.json", description="Path for the default MAPI JSON definition"
-    )
+    app_path: str = Field("~/mapi.json", description="Path for the default MAPI JSON definition")
 
     debug: bool = Field(False, description="Turns on debug mode for MAPI")
+
+    test_files: str = Field(
+        os.path.join(os.path.dirname(os.path.abspath(root_dir)), "../../test_files"),
+        description="Directory with test files",
+    )
 
     db_version: str = Field("2021_04_26", description="Database version")
 

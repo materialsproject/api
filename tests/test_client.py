@@ -1,11 +1,39 @@
+import pytest
+import os
 from mp_api.matproj import MPRester
 
-from pymatgen.entries import Entry
+key_only_resters = {
+    "phonon": "mp-11703",
+    "phonon_img": "mp-11703",
+    "similarity": "mp-149",
+    "doi": "mp-149",
+    "wulff": "mp-149",
+    "charge_density": "mp-1936745",
+    "robocrys": "mp-149",
+}
+
+search_only_resters = ["grain_boundary", "bandstructure", "dos", "substrates", "synthesis"]
+
+special_resters = ["phonon_img", "charge_density"]
+
+mpr = MPRester()
 
 
-def test_thermo_get_entries():
+@pytest.mark.parametrize("rester", mpr._all_resters)
+def test_generic_get_methods(rester):
+    name = rester.endpoint.split("/")[-2]
+    if name not in key_only_resters:
+        doc = rester.query({"limit": 1}, fields=[rester.primary_key])[0]
+        assert isinstance(doc, rester.document_model)
 
-    with MPRester() as mpr:
-        thermo_doc = mpr.thermo.get_document_by_id("mp-804")
+        if name not in search_only_resters:
+            doc = rester.get_document_by_id(doc.dict()[rester.primary_key], fields=[rester.primary_key])
+            assert isinstance(doc, rester.document_model)
 
-    assert isinstance(thermo_doc.thermo.entry, Entry)
+    elif name not in special_resters:
+        doc = rester.get_document_by_id(key_only_resters[name], fields=[rester.primary_key])
+        assert isinstance(doc, rester.document_model)
+
+
+if os.environ.get("MP_API_KEY", None) is None:
+    pytest.mark.skip(test_generic_get_methods)

@@ -1,8 +1,8 @@
 from typing import List, Optional
-from emmet.core.thermo import ThermoDoc
+from mp_api.routes.wulff.models import WulffDoc
 
 
-class ThermoRester:
+class WulffRester:
 
     def get_document_by_id(
             self,
@@ -10,5 +10,5 @@ class ThermoRester:
             fields: Optional[List[str]] = None,
             monty_decode: bool = True,
             version: Optional[str] = None,
-    ) -> ThermoDoc:
+    ) -> WulffDoc:
         ...

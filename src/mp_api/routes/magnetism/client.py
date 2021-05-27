@@ -12,20 +12,20 @@ from mp_api.routes.magnetism.models import (
 class MagnetismRester(BaseRester):
 
     suffix = "magnetism"
-    document_model = MagnetismDoc
+    document_model = MagnetismDoc  # type: ignore
+    primary_key = "task_id"
 
     def search_magnetism_docs(
         self,
         ordering: Optional[MagneticOrderingEnum] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_formula_units: Optional[
-            Tuple[float, float]
-        ] = None,
+        total_magnetization_normalized_formula_units: Optional[Tuple[float, float]] = None,
         num_magnetic_sites: Optional[Tuple[float, float]] = None,
         num_unique_magnetic_sites: Optional[Tuple[float, float]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -43,58 +43,40 @@ class MagnetismRester(BaseRester):
                 to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in MagnetismDoc to return data for.
-                Default is material_id only.
+                Default is material_id and last_updated if all_fields is False.
 
-        Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs only.
+        Returns:
+            ([MagnetismDoc]) List of magnetism documents
         """
 
         query_params = defaultdict(dict)  # type: dict
 
-        if chunk_size <= 0 or chunk_size > 100:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
-
         if total_magnetization:
             query_params.update(
-                {
-                    "total_magnetization_min": total_magnetization[0],
-                    "total_magnetization_max": total_magnetization[1],
-                }
+                {"total_magnetization_min": total_magnetization[0], "total_magnetization_max": total_magnetization[1]}
             )
 
         if total_magnetization_normalized_vol:
             query_params.update(
                 {
-                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[
-                        0
-                    ],
-                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[
-                        1
-                    ],
+                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[0],
+                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[1],
                 }
             )
 
         if total_magnetization_normalized_formula_units:
             query_params.update(
                 {
-                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[
-                        0
-                    ],
-                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[
-                        1
-                    ],
+                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[0],
+                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[1],
                 }
             )
 
         if num_magnetic_sites:
             query_params.update(
-                {
-                    "num_magnetic_sites_min": num_magnetic_sites[0],
-                    "num_magnetic_sites_max": num_magnetic_sites[1],
-                }
+                {"num_magnetic_sites_min": num_magnetic_sites[0], "num_magnetic_sites_max": num_magnetic_sites[1]}
             )
 
         if num_unique_magnetic_sites:
@@ -108,24 +90,13 @@ class MagnetismRester(BaseRester):
         if ordering:
             query_params.update({"ordering": ordering.value})
 
-        if fields:
-            query_params.update({"fields": ",".join(fields)})
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
-
-        query_params.update({"limit": chunk_size, "skip": 0})
-        count = 0
-        while True:
-            query_params["skip"] = count * chunk_size
-            results = self.query(query_params).get("data", [])
-
-            if not any(results) or (num_chunks is not None and count == num_chunks):
-                break
-
-            count += 1
-            for result in results:
-                yield result
+        return super().search(
+            version=self.version,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
+        )

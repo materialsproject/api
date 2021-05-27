@@ -62,9 +62,7 @@ class MPRester:
         self.api_key = api_key
         self.endpoint = endpoint
         self.version = version
-        self.session = BaseRester._create_session(
-            api_key=api_key, include_user_agent=include_user_agent
-        )
+        self.session = BaseRester._create_session(api_key=api_key, include_user_agent=include_user_agent)
 
         self._all_resters = []
 
@@ -101,9 +99,7 @@ class MPRester:
     # eventually be retired.
 
     # @deprecated(self.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
-    def get_structure_by_material_id(
-        self, material_id, final=True, conventional_unit_cell=False
-    ) -> Structure:
+    def get_structure_by_material_id(self, material_id, final=True, conventional_unit_cell=False) -> Structure:
         """
         Get a Structure corresponding to a material_id.
 
@@ -153,15 +149,11 @@ class MPRester:
         Returns:
             materials_id (str)
         """
-        docs = self.materials.search(
-            task_ids=[task_id], fields=["material_id"], version=version
-        )
+        docs = self.materials.search(task_ids=[task_id], fields=["material_id"], version=version)
         if len(docs) == 1:
             return docs[0].material_id
         elif len(docs) > 1:
-            raise ValueError(
-                f"Multiple documents return for {task_id}, this should not happen, please report it!"
-            )
+            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
         else:
             warnings.warn(
                 f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
@@ -179,12 +171,7 @@ class MPRester:
         Returns:
             ([str]) List of all materials ids.
         """
-        return sorted(
-            doc.task_id
-            for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula
-            )
-        )
+        return sorted(doc.task_id for doc in self.materials.search_material_docs(chemsys_formula=chemsys_formula))
 
     def get_structures(self, chemsys_formula_id, energy_above_hull_cutoff=0):
         """
@@ -256,9 +243,7 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_pourbaix_entries(
-        self, chemsys, solid_compat=MaterialsProjectCompatibility()
-    ):
+    def get_pourbaix_entries(self, chemsys, solid_compat=MaterialsProjectCompatibility()):
         """
         A helper function to get all entries necessary to generate
         a pourbaix diagram from the rest interface.
@@ -272,12 +257,7 @@ class MPRester:
         raise NotImplementedError
 
     def get_entry_by_material_id(
-        self,
-        material_id,
-        compatible_only=True,
-        inc_structure=None,
-        property_data=None,
-        conventional_unit_cell=False,
+        self, material_id, compatible_only=True, inc_structure=None, property_data=None, conventional_unit_cell=False,
     ):
         """
         Get a ComputedEntry corresponding to a material_id.
@@ -361,12 +341,7 @@ class MPRester:
         raise NotImplementedError
 
     def get_entries_in_chemsys(
-        self,
-        elements,
-        compatible_only=True,
-        inc_structure=None,
-        property_data=None,
-        conventional_unit_cell=False,
+        self, elements, compatible_only=True, inc_structure=None, property_data=None, conventional_unit_cell=False,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -431,12 +406,7 @@ class MPRester:
         raise NotImplementedError
 
     def query(
-        self,
-        criteria,
-        properties,
-        chunk_size=500,
-        max_tries_per_chunk=5,
-        mp_decode=True,
+        self, criteria, properties, chunk_size=500, max_tries_per_chunk=5, mp_decode=True,
     ):
         r"""
 
@@ -798,12 +768,7 @@ class MPRester:
         raise NotImplementedError
 
     def get_interface_reactions(
-        self,
-        reactant1,
-        reactant2,
-        open_el=None,
-        relative_mu=None,
-        use_hull_energy=False,
+        self, reactant1, reactant2, open_el=None, relative_mu=None, use_hull_energy=False,
     ):
         """
         Gets critical reactions between two reactants.

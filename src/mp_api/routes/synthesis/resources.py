@@ -25,11 +25,11 @@ synth_indexes = [
 
 class ResultModel(SynthesisRecipe):
     search_score: Optional[float] = Field(
-        ...,
+        None,
         description="Search score.",
     )
     highlights: Optional[List[Any]] = Field(
-        ...,
+        None,
         description="Search highlights.",
     )
 

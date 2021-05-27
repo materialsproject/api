@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from monty.json import MontyDecoder
+from pymatgen.io.vasp import Chgcar
 
 
 class ChgcarDataDoc(BaseModel):
@@ -23,9 +24,4 @@ class ChgcarDataDoc(BaseModel):
             This comes in the form: mp-******",
     )
 
-    data: dict = Field(None, description="Pymatgen CHGCAR object.")
-
-    # Make sure that the datetime field is properly formatted
-    @validator("last_updated", pre=True)
-    def last_updated_dict_ok(cls, v):
-        return MontyDecoder().process_decoded(v)
+    data: Chgcar = Field(None, description="Pymatgen CHGCAR object.")

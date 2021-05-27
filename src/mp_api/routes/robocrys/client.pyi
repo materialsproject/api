@@ -3,7 +3,12 @@ from mp_api.routes.robocrys.models import RobocrysDoc
 
 
 class RobocrysRester:
-    def query_by_task_id(
-        self, task_id, fields: Optional[List[str]] = None, monty_decode: bool = True
+
+    def get_document_by_id(
+            self,
+            document_id: str,
+            fields: Optional[List[str]] = None,
+            monty_decode: bool = True,
+            version: Optional[str] = None,
     ) -> RobocrysDoc:
         ...

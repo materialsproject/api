@@ -1,5 +1,6 @@
 from fastapi.param_functions import Path
 from mp_api.core.resource import GetResource
+from mp_api.core.models import Response
 from mp_api.routes.charge_density.models import ChgcarDataDoc
 from mp_api.core.query_operator import PaginationQuery, SparseFieldsQuery, SortQuery
 from mp_api.core.utils import STORE_PARAMS
@@ -47,15 +48,13 @@ def charge_density_resource(s3_store):
                     status_code=404,
                     detail=f"Item with {key_name} = {material_id} not found",
                 )
-
-            response = item
-
-            return response
+            else:
+                return {"data": [item]}
 
         self.router.get(
             f"/{{{key_name}}}/",
             response_description=f"Get an {model_name} by {key_name}",
-            response_model=model,
+            response_model=Response[model],
             response_model_exclude_unset=True,
             tags=self.tags,
         )(get_chgcar_data)

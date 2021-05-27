@@ -1,12 +1,14 @@
-FROM materialsproject/devops:python-3.94.2 as base
+FROM materialsproject/devops:python-3.95.1 as base
 
 FROM base as builder
 RUN apt-get update && apt-get install -y --no-install-recommends gcc git g++ cmake make libsnappy-dev && apt-get clean
 ENV PATH /root/.local/bin:$PATH
 WORKDIR /app
 ENV PIP_FLAGS "--user --no-cache-dir --compile"
-COPY requirements.txt .
-RUN pip install $PIP_FLAGS -r requirements.txt
+COPY requirements.txt requirements-server.txt ./
+RUN pip install $PIP_FLAGS -r requirements.txt && \
+    pip install $PIP_FLAGS -r requirements-server.txt
+
 COPY . .
 ENV SETUPTOOLS_SCM_PRETEND_VERSION dev
 RUN pip install $PIP_FLAGS -e .[server]

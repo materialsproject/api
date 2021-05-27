@@ -8,7 +8,8 @@ from mp_api.core.client import BaseRester
 class TaskRester(BaseRester):
 
     suffix = "tasks"
-    document_model = TaskDoc
+    document_model = TaskDoc  # type: ignore
+    primary_key = "task_id"
 
     def get_trajectory(self, task_id):
         """
@@ -35,7 +36,8 @@ class TaskRester(BaseRester):
         self,
         chemsys_formula: Optional[str] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
+        all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
         """
@@ -47,35 +49,24 @@ class TaskRester(BaseRester):
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
-            fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
-                Default is material_id, last_updated, and formula_pretty.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
+            fields (List[str]): List of fields in TaskDoc to return data for.
+                Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
-        Yields:
-            ([dict]) List of dictionaries containing data for entries defined in 'fields'.
-                Defaults to Materials Project IDs reduced chemical formulas, and last updated tags.
+        Returns:
+            ([TaskDoc]) List of task documents
         """
 
         query_params = {}  # type: dict
 
-        if chunk_size <= 0:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
-
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
 
-        if fields:
-            query_params.update({"fields": ",".join(fields)})
-
-        query_params.update({"limit": chunk_size, "skip": 0})
-        count = 0
-        while True:
-            query_params["skip"] = count * chunk_size
-            results = self._query_resource(query_params).get("data", [])
-
-            if not any(results) or (num_chunks is not None and count == num_chunks):
-                break
-
-            count += 1
-            for result in results:
-                yield result
+        return super().search(
+            version=self.version,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
+        )

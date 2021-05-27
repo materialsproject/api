@@ -1,8 +1,8 @@
 from typing import List, Optional
-from emmet.core.material import MaterialsDoc
+from mp_api.routes.grain_boundary.models import GrainBoundaryDoc
 
 
-class MaterialsRester:
+class GrainBoundaryRester:
 
     def get_document_by_id(
         self,
@@ -10,4 +10,4 @@ class MaterialsRester:
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         version: Optional[str] = None,
-    ) -> MaterialsDoc: ...
+    ) -> GrainBoundaryDoc: ...

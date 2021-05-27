@@ -48,10 +48,10 @@ class DielectricQuery(QueryOperator):
         }
 
         for entry in d:
-            if d[entry][0]:
+            if d[entry][0] is not None:
                 crit[entry]["$gte"] = d[entry][0]
 
-            if d[entry][1]:
+            if d[entry][1] is not None:
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}

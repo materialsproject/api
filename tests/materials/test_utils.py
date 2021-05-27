@@ -1,4 +1,4 @@
-from mp_api.materials.utils import formula_to_criteria
+from mp_api.routes.materials.utils import formula_to_criteria
 
 
 def test_formula_to_criteria():

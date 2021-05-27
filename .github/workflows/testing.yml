@@ -70,6 +70,8 @@ jobs:
         pip install -r requirements-testing.txt
 
     - name: Test with pytest
+      env: 
+        MP_API_KEY: ${{ secrets.MP_API_KEY }}
       run: |
         pip install -e .
         pytest --cov=mp_api --cov-report=xml
