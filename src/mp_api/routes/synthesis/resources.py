@@ -132,7 +132,7 @@ def synth_resource(synth_store):
                 "paragraph_string": 1,
             }
 
-            pipeline = []
+            pipeline: List[Any] = []
             if keywords:
                 pipeline.append({
                     "$search": {
@@ -197,22 +197,28 @@ def synth_resource(synth_store):
             if crit:
                 pipeline.append({"$match": crit})
 
+            self.store.connect()
+            for index_name, unique in synth_indexes:
+                self.store.ensure_index(index_name, unique)
+
+            total = next(self.store._collection.aggregate(
+                pipeline + [{"$count": "total"}], allowDiskUse=True))["total"]
+
             pipeline.extend([
                 {"$sort": {"search_score": -1}},
                 {"$skip": skip},
                 {"$limit": limit},
             ])
-
-            self.store.connect()
-            for index_name, unique in synth_indexes:
-                self.store.ensure_index(index_name, unique)
-
             data = list(self.store._collection.aggregate(pipeline, allowDiskUse=True))
             for doc in data:
                 mask_highlights(doc)
                 mask_paragraphs(doc)
 
-            response = {"data": data}
+            response = {
+                "data": data,
+                "meta": {
+                    "total": total
+                }}
 
             return response
 
