@@ -70,7 +70,6 @@ def mask_highlights(doc, limit=100):
                         hls[i - 1]["value"] = make_ellipsis(hls[i - 1]["value"], limit=20, remove_trailing=False)
                         hls = hls[i - 1:]
                     break
-            print(hls)
 
             # Remove excessive chars after the hit.
             total_chars = 0
