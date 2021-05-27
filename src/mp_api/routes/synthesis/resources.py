@@ -36,15 +36,15 @@ class ResultModel(SynthesisRecipe):
 
 def make_ellipsis(text, limit=100, remove_trailing=True):
     if len(text) > limit:
-        text = text[:limit]
-
         if remove_trailing:
+            text = text[:limit]
             # Make results nicer by cutting incomplete words of max 15 characters.
             # For example: "This is an incomplete sente" becomes "This is an incomplete "
             trailing = re.search(r"(?<![\w\d])[\w\d]{,15}$", text)
             if trailing is not None:
                 text = text[:trailing.start()] + "..."
         else:
+            text = text[len(text) - limit:]
             heading = re.search(r"^[\w\d]{,15}(?![\w\d])", text)
             if heading is not None:
                 text = "..." + text[heading.end():]
@@ -67,9 +67,10 @@ def mask_highlights(doc, limit=100):
             for i, hl in enumerate(hls):
                 if hl['type'] == 'hit':
                     if i > 0:
+                        hls[i - 1]["value"] = make_ellipsis(hls[i - 1]["value"], limit=20, remove_trailing=False)
                         hls = hls[i - 1:]
-                        hls[0]["value"] = make_ellipsis(hls[0]["value"], limit=20, remove_trailing=False)
                     break
+            print(hls)
 
             # Remove excessive chars after the hit.
             total_chars = 0
