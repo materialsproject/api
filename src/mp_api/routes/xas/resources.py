@@ -1,5 +1,5 @@
 from mp_api.core.resource import GetResource
-from mp_api.routes.xas.models import XASDoc
+from emmet.core.xas import XASDoc
 
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.routes.materials.query_operators import ElementsQuery, FormulaQuery

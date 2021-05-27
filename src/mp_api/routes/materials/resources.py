@@ -1,6 +1,5 @@
 from fastapi import HTTPException
 from mp_api.core.resource import GetResource
-from mp_api.routes.materials.models.core import Structure
 
 from emmet.core.material import MaterialsDoc
 
@@ -21,7 +20,7 @@ from mp_api.routes.materials.query_operators import (
 )
 
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-from pymatgen.core import Structure as PS
+from pymatgen.core import Structure
 from pymatgen.core import Composition
 from pymongo import MongoClient  # type: ignore
 from itertools import permutations
@@ -101,7 +100,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
             """
 
             try:
-                s = PS.from_dict(structure.dict())
+                s = Structure.from_dict(structure.dict())
             except Exception:
                 raise HTTPException(
                     status_code=404,
@@ -128,7 +127,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
                 criteria=crit, properties=["structure", "task_id"]
             ):
 
-                s2 = PS.from_dict(r["structure"])
+                s2 = Structure.from_dict(r["structure"])
                 matched = m.fit(s, s2)
 
                 if matched:

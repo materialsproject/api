@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pymatgen.core.periodic_table import Element
 from mp_api.core.client import BaseRester, MPRestError
-from mp_api.routes.xas.models import Edge, XASType, XASDoc
+from emmet.core.xas import Edge, Type, XASDoc
 
 
 class XASRester(BaseRester):
@@ -14,7 +14,7 @@ class XASRester(BaseRester):
         # TODO implement actual check
         self,
         edge: Optional[Edge] = None,
-        spectrum_type: Optional[XASType] = None,
+        spectrum_type: Optional[Type] = None,
         absorbing_element: Optional[Element] = None,
         required_elements: Optional[List[Element]] = None,
     ):

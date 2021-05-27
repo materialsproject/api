@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
 from mp_api.routes.materials.utils import formula_to_criteria
-from mp_api.routes.materials.models.core import CrystalSystem
+from emmet.core.symmetry import CrystalSystem
 from pymatgen.core.periodic_table import Element
 from collections import defaultdict
 

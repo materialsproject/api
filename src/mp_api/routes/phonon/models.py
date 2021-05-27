@@ -3,8 +3,7 @@ from datetime import datetime
 from monty.json import MontyDecoder
 
 from pydantic import BaseModel, Field, validator
-
-from mp_api.routes.materials.models.core import Structure
+from pymatgen.core import Structure
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 
 

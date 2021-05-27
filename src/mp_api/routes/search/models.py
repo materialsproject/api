@@ -1,18 +1,16 @@
-from typing import List, Optional, Dict, Union
+from typing import Dict, List, Optional, Union
+
+from emmet.core.electronic_structure import BandstructureData, DosData
+from emmet.core.mpid import MPID
+from emmet.core.symmetry import SymmetryData
+from emmet.core.thermo import DecompositionProduct
+from emmet.core.xas import Edge, Type
+from mp_api.routes.grain_boundary.models import GBTypeEnum
+from pydantic import BaseModel, Field
+from pymatgen.analysis.magnetism.analyzer import Ordering
+from pymatgen.core.composition import Composition
 from pymatgen.core.periodic_table import Element
 from pymatgen.core.structure import Structure
-from pymatgen.analysis.magnetism.analyzer import Ordering
-
-from emmet.core.mpid import MPID
-from emmet.core.electronic_structure import BandstructureData, DosData
-from emmet.core.thermo import DecompositionProduct
-from emmet.core.symmetry import SymmetryData
-
-from mp_api.routes.materials.models.doc import Composition
-from mp_api.routes.xas.models import Edge, XASType
-from mp_api.routes.grain_boundary.models import GBTypeEnum
-
-from pydantic import BaseModel, Field
 
 
 class SearchStats(BaseModel):
@@ -68,7 +66,7 @@ class XASSearchData(BaseModel):
     )
     absorbing_element: Element = Field(None, title="Absorbing Element")
 
-    spectrum_type: XASType = Field(None, title="Type of XAS Spectrum")
+    spectrum_type: Type = Field(None, title="Type of XAS Spectrum")
 
 
 class GBSearchData(BaseModel):

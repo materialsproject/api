@@ -1,6 +1,6 @@
 from fastapi import Query
 from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
-from mp_api.routes.xas.models import Edge, XASType
+from emmet.core.xas import Edge, Type
 from pymatgen.core.periodic_table import Element
 from typing import Optional
 
@@ -9,7 +9,7 @@ class XASQuery(QueryOperator):
     def query(
         self,
         edge: Edge = Query(None, title="XAS Edge"),
-        spectrum_type: XASType = Query(None, title="Spectrum Type"),
+        spectrum_type: Type = Query(None, title="Spectrum Type"),
         absorbing_element: Element = Query(None, title="Absorbing Element"),
     ) -> STORE_PARAMS:
         """

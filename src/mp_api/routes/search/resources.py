@@ -1,32 +1,32 @@
 from typing import Optional
-from typing_extensions import Literal
 
 import numpy as np
+from emmet.core.search import SearchDoc
 from fastapi import Query
-from scipy.stats import gaussian_kde
-
 from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.core.resource import GetResource
+from mp_api.routes.electronic_structure.query_operators import ESSummaryDataQuery
 from mp_api.routes.materials.query_operators import (
+    DeprecationQuery,
     ElementsQuery,
     FormulaQuery,
     MinMaxQuery,
     SymmetryQuery,
-    DeprecationQuery,
 )
-from mp_api.routes.search.models import SearchDoc, SearchStats
+from mp_api.routes.search.models import SearchStats
 from mp_api.routes.search.query_operators import (
-    MaterialIDsSearchQuery,
     HasPropsQuery,
-    SearchIsStableQuery,
-    SearchElasticityQuery,
-    SearchMagneticQuery,
+    MaterialIDsSearchQuery,
     SearchDielectricPiezoQuery,
+    SearchElasticityQuery,
+    SearchIsStableQuery,
     SearchIsTheoreticalQuery,
+    SearchMagneticQuery,
 )
 from mp_api.routes.surface_properties.query_operators import SurfaceMinMaxQuery
-from mp_api.routes.electronic_structure.query_operators import ESSummaryDataQuery
 from mp_api.routes.thermo.query_operators import ThermoEnergyQuery
+from scipy.stats import gaussian_kde
+from typing_extensions import Literal
 
 
 def search_resource(search_store):
