@@ -12,7 +12,6 @@ from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQu
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
-    MinMaxQuery,
 )
 
 from mp_api.routes.electronic_structure.query_operators import (

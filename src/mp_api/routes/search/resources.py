@@ -1,5 +1,6 @@
 from typing import Optional
 from typing_extensions import Literal
+from maggma.api.query_operator.dynamic import NumericQuery
 
 import numpy as np
 from fastapi import Query
@@ -10,7 +11,6 @@ from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
-    MinMaxQuery,
     SymmetryQuery,
     DeprecationQuery,
 )
@@ -19,16 +19,8 @@ from mp_api.routes.search.query_operators import (
     MaterialIDsSearchQuery,
     HasPropsQuery,
     SearchIsStableQuery,
-    SearchElasticityQuery,
-    SearchMagneticQuery,
-    SearchDielectricPiezoQuery,
     SearchIsTheoreticalQuery,
 )
-
-# from mp_api.routes.surface_properties.query_operators import SurfaceMinMaxQuery
-from mp_api.routes.electronic_structure.query_operators import ESSummaryDataQuery
-
-# from mp_api.routes.thermo.query_operators import ThermoEnergyQuery
 
 
 def search_resource(search_store):
@@ -41,7 +33,7 @@ def search_resource(search_store):
         )
 
         async def generate_stats(
-            field: Literal[valid_numeric_fields] = Query(
+            field: Literal[valid_numeric_fields] = Query(  # type: ignore
                 valid_numeric_fields[0],
                 title=f"SearchDoc field to query on, must be a numerical field, "
                 f"choose from: {', '.join(valid_numeric_fields)}",
@@ -133,16 +125,10 @@ def search_resource(search_store):
             MaterialIDsSearchQuery(),
             FormulaQuery(),
             ElementsQuery(),
-            MinMaxQuery(),
             SymmetryQuery(),
-            # ThermoEnergyQuery(),
             SearchIsStableQuery(),
             SearchIsTheoreticalQuery(),
-            ESSummaryDataQuery(),
-            SearchElasticityQuery(),
-            SearchDielectricPiezoQuery(),
-            # SurfaceMinMaxQuery(),
-            SearchMagneticQuery(),
+            NumericQuery(model=SearchDoc, excluded_fields=["composition"]),
             HasPropsQuery(),
             DeprecationQuery(),
             SortQuery(),

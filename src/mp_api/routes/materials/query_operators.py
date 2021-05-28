@@ -17,7 +17,8 @@ class FormulaQuery(QueryOperator):
     def query(
         self,
         formula: Optional[str] = Query(
-            None, description="Query by formula including anonymized formula or by including wild cards",
+            None,
+            description="Query by formula including anonymized formula or by including wild cards",
         ),
     ) -> STORE_PARAMS:
 
@@ -41,10 +42,12 @@ class ElementsQuery(QueryOperator):
     def query(
         self,
         elements: Optional[str] = Query(
-            None, description="Query by elements in the material composition as a comma-separated list",
+            None,
+            description="Query by elements in the material composition as a comma-separated list",
         ),
         exclude_elements: Optional[str] = Query(
-            None, description="Query by excluded elements in the material composition as a comma-separated list",
+            None,
+            description="Query by excluded elements in the material composition as a comma-separated list",
         ),
     ) -> STORE_PARAMS:
 
@@ -73,7 +76,10 @@ class DeprecationQuery(QueryOperator):
     """
 
     def query(
-        self, deprecated: Optional[bool] = Query(None, description="Whether the material is marked as deprecated",),
+        self,
+        deprecated: Optional[bool] = Query(
+            None, description="Whether the material is marked as deprecated",
+        ),
     ) -> STORE_PARAMS:
 
         crit = {}
@@ -84,51 +90,6 @@ class DeprecationQuery(QueryOperator):
         return {"criteria": crit}
 
 
-class MinMaxQuery(QueryOperator):
-    """
-    Method to generate a query for quantities with a definable min and max
-    """
-
-    def query(
-        self,
-        nsites_max: Optional[int] = Query(None, description="Maximum value for the number of sites",),
-        nsites_min: Optional[int] = Query(None, description="Minimum value for the number of sites",),
-        nelements_max: Optional[float] = Query(None, description="Maximum value for the number of elements.",),
-        nelements_min: Optional[float] = Query(None, description="Minimum value for the number of elements.",),
-        volume_max: Optional[float] = Query(None, description="Maximum value for the cell volume",),
-        volume_min: Optional[float] = Query(None, description="Minimum value for the cell volume",),
-        density_max: Optional[float] = Query(None, description="Maximum value for the density",),
-        density_min: Optional[float] = Query(None, description="Minimum value for the density",),
-    ) -> STORE_PARAMS:
-
-        crit = defaultdict(dict)  # type: dict
-
-        entries = {
-            "nsites": [nsites_min, nsites_max],
-            "nelements": [nelements_min, nelements_max],
-            "volume": [volume_min, volume_max],
-            "density": [density_min, density_max],
-        }  # type: dict
-
-        for entry in entries:
-            if entries[entry][0]:
-                crit[entry]["$gte"] = entries[entry][0]
-
-            if entries[entry][1]:
-                crit[entry]["$lte"] = entries[entry][1]
-
-        return {"criteria": crit}
-
-    def ensure_indexes(self):
-        keys = self._keys_from_query()
-        indexes = []
-        for key in keys:
-            if "_min" in key:
-                key = key.replace("_min", "")
-                indexes.append((key, False))
-        return indexes
-
-
 class SymmetryQuery(QueryOperator):
     """
     Method to generate a query on symmetry information
@@ -136,9 +97,15 @@ class SymmetryQuery(QueryOperator):
 
     def query(
         self,
-        crystal_system: Optional[CrystalSystem] = Query(None, description="Crystal system of the material",),
-        spacegroup_number: Optional[int] = Query(None, description="Space group number of the material",),
-        spacegroup_symbol: Optional[str] = Query(None, description="Space group symbol of the material",),
+        crystal_system: Optional[CrystalSystem] = Query(
+            None, description="Crystal system of the material",
+        ),
+        spacegroup_number: Optional[int] = Query(
+            None, description="Space group number of the material",
+        ),
+        spacegroup_symbol: Optional[str] = Query(
+            None, description="Space group symbol of the material",
+        ),
     ) -> STORE_PARAMS:
 
         crit = {}  # type: dict
@@ -165,7 +132,10 @@ class MultiTaskIDQuery(QueryOperator):
     """
 
     def query(
-        self, task_ids: Optional[str] = Query(None, description="Comma-separated list of task_ids to query on"),
+        self,
+        task_ids: Optional[str] = Query(
+            None, description="Comma-separated list of task_ids to query on"
+        ),
     ) -> STORE_PARAMS:
 
         crit = {}
@@ -186,7 +156,9 @@ class MultiMaterialIDQuery(QueryOperator):
 
     def query(
         self,
-        material_ids: Optional[str] = Query(None, description="Comma-separated list of material_id values to query on"),
+        material_ids: Optional[str] = Query(
+            None, description="Comma-separated list of material_id values to query on"
+        ),
     ) -> STORE_PARAMS:
 
         crit = {}
