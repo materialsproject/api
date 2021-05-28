@@ -27,7 +27,8 @@ from mp_api.routes.search.query_operators import (
 
 # from mp_api.routes.surface_properties.query_operators import SurfaceMinMaxQuery
 from mp_api.routes.electronic_structure.query_operators import ESSummaryDataQuery
-from mp_api.routes.thermo.query_operators import ThermoEnergyQuery
+
+# from mp_api.routes.thermo.query_operators import ThermoEnergyQuery
 
 
 def search_resource(search_store):
@@ -134,7 +135,7 @@ def search_resource(search_store):
             ElementsQuery(),
             MinMaxQuery(),
             SymmetryQuery(),
-            ThermoEnergyQuery(),
+            # ThermoEnergyQuery(),
             SearchIsStableQuery(),
             SearchIsTheoreticalQuery(),
             ESSummaryDataQuery(),
