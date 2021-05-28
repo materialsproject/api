@@ -1,3 +1,4 @@
+from maggma.api.query_operator.dynamic import NumericQuery
 from maggma.api.resource import ReadOnlyResource
 from emmet.core.electrode import InsertionElectrodeDoc
 
@@ -18,12 +19,12 @@ def insertion_electrodes_resource(insertion_electrodes_store):
         query_operators=[
             ElectrodeFormulaQuery(),
             ElementsQuery(),
-            VoltageStepQuery(),
-            InsertionVoltageStepQuery(),
-            InsertionElectrodeQuery(),
+            NumericQuery(model=InsertionElectrodeDoc),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(InsertionElectrodeDoc, default_fields=["battery_id", "last_updated"],),
+            SparseFieldsQuery(
+                InsertionElectrodeDoc, default_fields=["battery_id", "last_updated"],
+            ),
         ],
         tags=["Electrodes"],
     )
