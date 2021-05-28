@@ -3,12 +3,7 @@ from maggma.api.resource import ReadOnlyResource
 from emmet.core.electrode import InsertionElectrodeDoc
 
 from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
-from mp_api.routes.electrodes.query_operators import (
-    VoltageStepQuery,
-    InsertionVoltageStepQuery,
-    InsertionElectrodeQuery,
-    ElectrodeFormulaQuery,
-)
+from mp_api.routes.electrodes.query_operators import ElectrodeFormulaQuery
 from mp_api.routes.materials.query_operators import ElementsQuery
 
 
