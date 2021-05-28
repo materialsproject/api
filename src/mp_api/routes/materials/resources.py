@@ -20,7 +20,6 @@ from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
     DeprecationQuery,
-    MinMaxQuery,
     SymmetryQuery,
     MultiTaskIDQuery,
 )
