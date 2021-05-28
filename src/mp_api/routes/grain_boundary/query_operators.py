@@ -24,17 +24,6 @@ class GBStructureQuery(QueryOperator):
 
         crit = defaultdict(dict)  # type: dict
 
-        d = {
-            "rotation_angle": [rotation_angle_min, rotation_angle_max],
-        }
-
-        for entry in d:
-            if d[entry][0]:
-                crit[entry] = {"$gte": d[entry][0]}
-
-            if d[entry][1]:
-                crit[entry] = {"$lte": d[entry][1]}
-
         if sigma:
             crit["sigma"] = sigma
 
