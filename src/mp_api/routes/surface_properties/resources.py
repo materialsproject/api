@@ -1,11 +1,9 @@
+from maggma.api.query_operator.dynamic import NumericQuery
 from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.surface_properties.models import SurfacePropDoc
 
 from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
-from mp_api.routes.surface_properties.query_operators import (
-    SurfaceMinMaxQuery,
-    ReconstructedQuery,
-)
+from mp_api.routes.surface_properties.query_operators import ReconstructedQuery
 
 
 def surface_props_resource(surface_prop_store):
@@ -13,7 +11,7 @@ def surface_props_resource(surface_prop_store):
         surface_prop_store,
         SurfacePropDoc,
         query_operators=[
-            SurfaceMinMaxQuery(),
+            NumericQuery(model=SurfacePropDoc),
             ReconstructedQuery(),
             SortQuery(),
             PaginationQuery(),
