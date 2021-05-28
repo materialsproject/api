@@ -1,3 +1,4 @@
+from maggma.api.query_operator.dynamic import NumericQuery
 from maggma.api.resource import ReadOnlyResource
 from emmet.core.electronic_structure import ElectronicStructureDoc
 
@@ -30,10 +31,13 @@ def es_resource(es_store):
             ESSummaryDataQuery(),
             FormulaQuery(),
             ElementsQuery(),
-            MinMaxQuery(),
+            # MinMaxQuery(),
+            NumericQuery(model=ElectronicStructureDoc),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(ElectronicStructureDoc, default_fields=["material_id", "last_updated"]),
+            SparseFieldsQuery(
+                ElectronicStructureDoc, default_fields=["material_id", "last_updated"]
+            ),
         ],
         tags=["Electronic Structure"],
     )
@@ -50,7 +54,9 @@ def bs_resource(es_store, s3_store):
         key_name = "task_id"
 
         async def get_object(
-            task_id: str = Query(..., alias=key_name, title=f"The {key_name} of the {model_name} to get",),
+            task_id: str = Query(
+                ..., alias=key_name, title=f"The {key_name} of the {model_name} to get",
+            ),
         ):
             f"""
             Get's a document by the primary key in the store
@@ -71,12 +77,14 @@ def bs_resource(es_store, s3_store):
 
                 if not bs_object_doc:
                     raise HTTPException(
-                        status_code=404, detail=f"Band structure with task_id = {task_id} not found",
+                        status_code=404,
+                        detail=f"Band structure with task_id = {task_id} not found",
                     )
 
             except ValueError:
                 raise HTTPException(
-                    status_code=404, detail=f"Band structure with task_id = {task_id} not found",
+                    status_code=404,
+                    detail=f"Band structure with task_id = {task_id} not found",
                 )
 
             return {"data": [bs_object_doc]}
@@ -96,7 +104,10 @@ def bs_resource(es_store, s3_store):
             BSDataQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(ElectronicStructureDoc, default_fields=["material_id", "last_updated", "bandstructure"],),
+            SparseFieldsQuery(
+                ElectronicStructureDoc,
+                default_fields=["material_id", "last_updated", "bandstructure"],
+            ),
         ],
         tags=["Electronic Structure"],
         enable_get_by_key=False,
@@ -115,7 +126,9 @@ def dos_resource(es_store, s3_store):
         key_name = "task_id"
 
         async def get_object(
-            task_id: str = Query(..., alias=key_name, title=f"The {key_name} of the {model_name} to get",),
+            task_id: str = Query(
+                ..., alias=key_name, title=f"The {key_name} of the {model_name} to get",
+            ),
         ):
             f"""
             Get's a document by the primary key in the store
@@ -136,12 +149,14 @@ def dos_resource(es_store, s3_store):
 
                 if not dos_object_doc:
                     raise HTTPException(
-                        status_code=404, detail=f"Density of states with task_id = {task_id} not found",
+                        status_code=404,
+                        detail=f"Density of states with task_id = {task_id} not found",
                     )
 
             except ValueError:
                 raise HTTPException(
-                    status_code=404, detail=f"Density of states with task_id = {task_id} not found",
+                    status_code=404,
+                    detail=f"Density of states with task_id = {task_id} not found",
                 )
 
             return {"data": [dos_object_doc]}
@@ -161,7 +176,10 @@ def dos_resource(es_store, s3_store):
             DOSDataQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(ElectronicStructureDoc, default_fields=["material_id", "last_updated", "dos"],),
+            SparseFieldsQuery(
+                ElectronicStructureDoc,
+                default_fields=["material_id", "last_updated", "dos"],
+            ),
         ],
         tags=["Electronic Structure"],
         custom_endpoint_funcs=[custom_dos_endpoint_prep],

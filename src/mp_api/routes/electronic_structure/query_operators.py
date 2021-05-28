@@ -18,28 +18,18 @@ class ESSummaryDataQuery(QueryOperator):
 
     def query(
         self,
-        band_gap_max: Optional[float] = Query(None, description="Maximum value for the band gap energy in eV."),
-        band_gap_min: Optional[float] = Query(None, description="Minimum value for the band gap energy in eV."),
-        efermi_max: Optional[float] = Query(None, description="Maximum value for the fermi energy in eV."),
-        efermi_min: Optional[float] = Query(None, description="Minimum value for the fermi energy in eV."),
-        magnetic_ordering: Optional[Ordering] = Query(None, description="Magnetic ordering associated with the data."),
-        is_gap_direct: Optional[bool] = Query(None, description="Whether a band gap is direct or not."),
-        is_metal: Optional[bool] = Query(None, description="Whether the material is considered a metal."),
+        magnetic_ordering: Optional[Ordering] = Query(
+            None, description="Magnetic ordering associated with the data."
+        ),
+        is_gap_direct: Optional[bool] = Query(
+            None, description="Whether a band gap is direct or not."
+        ),
+        is_metal: Optional[bool] = Query(
+            None, description="Whether the material is considered a metal."
+        ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
-
-        d = {
-            "band_gap": [band_gap_min, band_gap_max],
-            "efermi": [efermi_min, efermi_max],
-        }
-
-        for entry in d:
-            if d[entry][0]:
-                crit[entry]["$gte"] = d[entry][0]
-
-            if d[entry][1]:
-                crit[entry]["$lte"] = d[entry][1]
 
         if magnetic_ordering:
             crit["magnetic_ordering"] = magnetic_ordering.value
@@ -69,13 +59,27 @@ class BSDataQuery(QueryOperator):
         path_type: Optional[BSPathType] = Query(
             None, description="k-path selection convention for the band structure.",
         ),
-        band_gap_max: Optional[float] = Query(None, description="Maximum value for the band gap energy in eV."),
-        band_gap_min: Optional[float] = Query(None, description="Minimum value for the band gap energy in eV."),
-        efermi_max: Optional[float] = Query(None, description="Maximum value for the fermi energy in eV."),
-        efermi_min: Optional[float] = Query(None, description="Minimum value for the fermi energy in eV."),
-        magnetic_ordering: Optional[Ordering] = Query(None, description="Magnetic ordering associated with the data."),
-        is_gap_direct: Optional[bool] = Query(None, description="Whether a band gap is direct or not."),
-        is_metal: Optional[bool] = Query(None, description="Whether the material is considered a metal."),
+        band_gap_max: Optional[float] = Query(
+            None, description="Maximum value for the band gap energy in eV."
+        ),
+        band_gap_min: Optional[float] = Query(
+            None, description="Minimum value for the band gap energy in eV."
+        ),
+        efermi_max: Optional[float] = Query(
+            None, description="Maximum value for the fermi energy in eV."
+        ),
+        efermi_min: Optional[float] = Query(
+            None, description="Minimum value for the fermi energy in eV."
+        ),
+        magnetic_ordering: Optional[Ordering] = Query(
+            None, description="Magnetic ordering associated with the data."
+        ),
+        is_gap_direct: Optional[bool] = Query(
+            None, description="Whether a band gap is direct or not."
+        ),
+        is_metal: Optional[bool] = Query(
+            None, description="Whether the material is considered a metal."
+        ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
@@ -83,7 +87,10 @@ class BSDataQuery(QueryOperator):
         if path_type is not None:
 
             d = {
-                f"bandstructure.{path_type.value}.band_gap": [band_gap_min, band_gap_max],
+                f"bandstructure.{path_type.value}.band_gap": [
+                    band_gap_min,
+                    band_gap_max,
+                ],
                 f"bandstructure.{path_type.value}.efermi": [efermi_min, efermi_max],
             }
 
@@ -95,7 +102,9 @@ class BSDataQuery(QueryOperator):
                     crit[entry]["$lte"] = d[entry][1]
 
             if magnetic_ordering:
-                crit[f"bandstructure.{path_type.value}.magnetic_ordering"] = magnetic_ordering.value
+                crit[
+                    f"bandstructure.{path_type.value}.magnetic_ordering"
+                ] = magnetic_ordering.value
 
             if is_gap_direct is not None:
                 crit[f"bandstructure.{path_type.value}.is_gap_direct"] = is_gap_direct
@@ -127,15 +136,30 @@ class DOSDataQuery(QueryOperator):
             None, description="Projection type for the density of states data.",
         ),
         spin: Optional[Union[Literal["1", "-1"], Spin]] = Query(
-            None, description="Spin channel for density of states data. '1' corresponds to spin up.",
+            None,
+            description="Spin channel for density of states data. '1' corresponds to spin up.",
         ),
-        element: Optional[Element] = Query(None, description="Element type for projected density of states data.",),
-        orbital: Optional[OrbitalType] = Query(None, description="Orbital type for projected density of states data.",),
-        band_gap_max: Optional[float] = Query(None, description="Maximum value for the band gap energy in eV."),
-        band_gap_min: Optional[float] = Query(None, description="Minimum value for the band gap energy in eV."),
-        efermi_max: Optional[float] = Query(None, description="Maximum value for the fermi energy in eV."),
-        efermi_min: Optional[float] = Query(None, description="Minimum value for the fermi energy in eV."),
-        magnetic_ordering: Optional[Ordering] = Query(None, description="Magnetic ordering associated with the data."),
+        element: Optional[Element] = Query(
+            None, description="Element type for projected density of states data.",
+        ),
+        orbital: Optional[OrbitalType] = Query(
+            None, description="Orbital type for projected density of states data.",
+        ),
+        band_gap_max: Optional[float] = Query(
+            None, description="Maximum value for the band gap energy in eV."
+        ),
+        band_gap_min: Optional[float] = Query(
+            None, description="Minimum value for the band gap energy in eV."
+        ),
+        efermi_max: Optional[float] = Query(
+            None, description="Maximum value for the fermi energy in eV."
+        ),
+        efermi_min: Optional[float] = Query(
+            None, description="Minimum value for the fermi energy in eV."
+        ),
+        magnetic_ordering: Optional[Ordering] = Query(
+            None, description="Magnetic ordering associated with the data."
+        ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
@@ -146,7 +170,8 @@ class DOSDataQuery(QueryOperator):
         if projection_type is not None:
             if spin is None:
                 raise HTTPException(
-                    status_code=400, detail="Must specify a spin channel for querying dos summary data.",
+                    status_code=400,
+                    detail="Must specify a spin channel for querying dos summary data.",
                 )
             else:
 
@@ -182,7 +207,9 @@ class DOSDataQuery(QueryOperator):
                             key_prefix = f"element.{str(element.value)}.{str(orbital.name)}.{str(spin.value)}"
 
                         else:
-                            key_prefix = f"element.{str(element.value)}.total.{str(spin.value)}"
+                            key_prefix = (
+                                f"element.{str(element.value)}.total.{str(spin.value)}"
+                            )
 
                     key = f"dos.{key_prefix}.{entry}"
 
