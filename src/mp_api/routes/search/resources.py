@@ -20,6 +20,7 @@ from mp_api.routes.search.query_operators import (
     HasPropsQuery,
     SearchIsStableQuery,
     SearchIsTheoreticalQuery,
+    SearchMagneticQuery,
 )
 
 
@@ -128,6 +129,7 @@ def search_resource(search_store):
             SymmetryQuery(),
             SearchIsStableQuery(),
             SearchIsTheoreticalQuery(),
+            SearchMagneticQuery(),
             NumericQuery(model=SearchDoc, excluded_fields=["composition"]),
             HasPropsQuery(),
             DeprecationQuery(),
