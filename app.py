@@ -339,11 +339,16 @@ else:
     consumer_settings_store = loadfn(consumer_settings_store_json)
 
 # Materials
-from mp_api.routes.materials.resources import materials_resource
+from mp_api.routes.materials.resources import (
+    materials_resource,
+    find_structure_resource,
+)
 
 resources.update(
     {"materials": materials_resource(materials_store, formula_autocomplete_store)}
 )
+
+resources.update({"find_structure": find_structure_resource(materials_store)})
 
 # Tasks
 from mp_api.routes.tasks.resources import task_resource

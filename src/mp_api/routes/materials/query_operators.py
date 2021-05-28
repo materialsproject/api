@@ -1,12 +1,13 @@
-from collections import defaultdict
 from typing import Optional
 
 from emmet.core.symmetry import CrystalSystem
-from fastapi import Query
+from fastapi import Query, Body, HTTPException
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
 from mp_api.routes.materials.utils import formula_to_criteria
 from pymatgen.core.periodic_table import Element
+from pymatgen.core.structure import Structure
+from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
 
 class FormulaQuery(QueryOperator):
@@ -167,3 +168,94 @@ class MultiMaterialIDQuery(QueryOperator):
             crit.update({"material_id": {"$in": material_ids.split(",")}})
 
         return {"criteria": crit}
+
+
+class FindStructureQuery(QueryOperator):
+    """
+    Method to generate a find structur
+    """
+
+    def query(
+        self,
+        structure: Structure = Body(
+            ..., title="Pymatgen structure object to query with",
+        ),
+        ltol: float = Query(0.2, title="Fractional length tolerance. Default is 0.2.",),
+        stol: float = Query(
+            0.3,
+            title="Site tolerance. Defined as the fraction of the average free \
+                    length per atom := ( V / Nsites ) ** (1/3). Default is 0.3.",
+        ),
+        angle_tol: float = Query(
+            5, title="Angle tolerance in degrees. Default is 5 degrees.",
+        ),
+        limit: int = Query(
+            1,
+            title="Maximum number of matches to show. Defaults to 1, only showing the best match.",
+        ),
+    ) -> STORE_PARAMS:
+
+        self.ltol = ltol
+        self.stol = stol
+        self.angle_tol = angle_tol
+        self.limit = limit
+        self.structure = structure
+
+        crit = {}
+
+        try:
+            s = Structure.from_dict(structure)
+        except Exception:
+            raise HTTPException(
+                status_code=404,
+                detail="Body cannot be converted to a pymatgen structure object.",
+            )
+
+        crit.update({"composition_reduced": dict(s.composition.to_reduced_dict)})
+
+        return {"criteria": crit}
+
+    def post_process(self, docs):
+
+        s1 = Structure.from_dict(self.structure)
+
+        m = StructureMatcher(
+            ltol=self.ltol,
+            stol=self.stol,
+            angle_tol=self.angle_tol,
+            primitive_cell=True,
+            scale=True,
+            attempt_supercell=False,
+            comparator=ElementComparator(),
+        )
+
+        matches = []
+
+        for doc in docs:
+
+            s2 = Structure.from_dict(doc["structure"])
+            matched = m.fit(s1, s2)
+
+            if matched:
+                rms = m.get_rms_dist(s1, s2)
+
+                matches.append(
+                    {
+                        "material_id": doc["material_id"],
+                        "normalized_rms_displacement": rms[0],
+                        "max_distance_paired_sites": rms[1],
+                    }
+                )
+
+        response = sorted(
+            matches[: self.limit],
+            key=lambda x: (
+                x["normalized_rms_displacement"],
+                x["max_distance_paired_sites"],
+            ),
+        )
+
+        return response
+
+    def ensure_indexes(self):
+        return [("composition_reduced", False)]

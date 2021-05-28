@@ -1,10 +1,12 @@
+from re import sub
 from fastapi import HTTPException
-from maggma.api.query_operator.dynamic import StringQueryOperator
 
 from maggma.api.resource.read_resource import ReadOnlyResource
+from maggma.api.resource.post_resource import PostOnlyResource
 
 
 from emmet.core.material import MaterialsDoc
+from mp_api.routes.materials.models.doc import FindStructure
 
 from maggma.api.query_operator import (
     PaginationQuery,
@@ -22,10 +24,9 @@ from mp_api.routes.materials.query_operators import (
     DeprecationQuery,
     SymmetryQuery,
     MultiTaskIDQuery,
+    FindStructureQuery,
 )
 
-from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-from pymatgen.core import Structure
 from pymatgen.core import Composition
 from pymongo import MongoClient  # type: ignore
 from itertools import permutations
@@ -73,97 +74,6 @@ def materials_resource(materials_store, formula_autocomplete_store):
             response_description=f"Get versions of {model_name}",
             tags=self.tags,
         )(get_versions)
-
-    def custom_findstructure_prep(self):
-        model_name = self.model.__name__
-
-        async def find_structure(
-            structure: Structure = Body(
-                ..., title="Pymatgen structure object to query with",
-            ),
-            ltol: float = Query(
-                0.2, title="Fractional length tolerance. Default is 0.2.",
-            ),
-            stol: float = Query(
-                0.3,
-                title="Site tolerance. Defined as the fraction of the average free \
-                    length per atom := ( V / Nsites ) ** (1/3). Default is 0.3.",
-            ),
-            angle_tol: float = Query(
-                5, title="Angle tolerance in degrees. Default is 5 degrees.",
-            ),
-            limit: int = Query(
-                1,
-                title="Maximum number of matches to show. Defaults to 1, only showing the best match.",
-            ),
-        ):
-            """
-            Obtains material structures that match a given input structure within some tolerance.
-
-            Returns:
-                A list of Material IDs for materials with matched structures alongside the associated RMS values
-            """
-
-            try:
-                s = Structure.from_dict(structure.dict())
-            except Exception:
-                raise HTTPException(
-                    status_code=404,
-                    detail="Body cannot be converted to a pymatgen structure object.",
-                )
-
-            m = StructureMatcher(
-                ltol=ltol,
-                stol=stol,
-                angle_tol=angle_tol,
-                primitive_cell=True,
-                scale=True,
-                attempt_supercell=False,
-                comparator=ElementComparator(),
-            )
-
-            crit = {"composition_reduced": dict(s.composition.to_reduced_dict)}
-
-            self.store.connect()
-
-            matches = []
-
-            for r in self.store.query(
-                criteria=crit, properties=["structure", "task_id"]
-            ):
-
-                s2 = Structure.from_dict(r["structure"])
-                matched = m.fit(s, s2)
-
-                if matched:
-                    rms = m.get_rms_dist(s, s2)
-
-                    matches.append(
-                        {
-                            "task_id": r["task_id"],
-                            "normalized_rms_displacement": rms[0],
-                            "max_distance_paired_sites": rms[1],
-                        }
-                    )
-
-            response = {
-                "data": sorted(
-                    matches[:limit],
-                    key=lambda x: (
-                        x["normalized_rms_displacement"],
-                        x["max_distance_paired_sites"],
-                    ),
-                )
-            }
-
-            return response
-
-        self.router.post(
-            "/find_structure/",
-            response_model_exclude_unset=True,
-            response_description=f"Get matching structures using data from {model_name}",
-            tags=self.tags,
-        )(find_structure)
 
     def custom_autocomplete_prep(self):
         async def formula_autocomplete(
@@ -271,11 +181,19 @@ def materials_resource(materials_store, formula_autocomplete_store):
             ),
         ],
         tags=["Materials"],
-        custom_endpoint_funcs=[
-            custom_version_prep,
-            custom_findstructure_prep,
-            custom_autocomplete_prep,
-        ],
+        custom_endpoint_funcs=[custom_version_prep, custom_autocomplete_prep,],
+    )
+
+    return resource
+
+
+def find_structure_resource(materials_store):
+    resource = PostOnlyResource(
+        materials_store,
+        FindStructure,
+        key_fields=["structure", "task_id"],
+        query_operators=[FindStructureQuery()],
+        tags=["Materials"],
     )
 
     return resource
