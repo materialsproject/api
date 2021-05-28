@@ -1,3 +1,4 @@
+from maggma.api.query_operator.dynamic import NumericQuery
 from maggma.api.resource import ReadOnlyResource
 from emmet.core.thermo import ThermoDoc
 
@@ -9,7 +10,6 @@ from maggma.api.query_operator import (
 )
 from mp_api.routes.thermo.query_operators import (
     ThermoChemicalQuery,
-    ThermoEnergyQuery,
     IsStableQuery,
 )
 
@@ -27,10 +27,12 @@ def thermo_resource(thermo_store):
             MultiMaterialIDQuery(),
             ThermoChemicalQuery(),
             IsStableQuery(),
-            ThermoEnergyQuery(),
+            NumericQuery(model=ThermoDoc),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(ThermoDoc, default_fields=["material_id", "last_updated"]),
+            SparseFieldsQuery(
+                ThermoDoc, default_fields=["material_id", "last_updated"]
+            ),
         ],
         tags=["Thermo"],
     )
