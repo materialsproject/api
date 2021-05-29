@@ -23,7 +23,9 @@ def task_resource(task_store):
             MultipleTaskIDsQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],),
+            SparseFieldsQuery(
+                TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],
+            ),
         ],
         tags=["Tasks"],
     )
@@ -39,6 +41,7 @@ def task_deprecation_resource(materials_store):
         tags=["Tasks"],
         enable_get_by_key=False,
         enable_default_search=True,
+        path="/deprecation/",
     )
 
     return resource
@@ -51,6 +54,7 @@ def trajectory_resource(task_store):
         query_operators=[TrajectoryQuery(), PaginationQuery()],
         key_fields=["task_id", "calcs_reversed"],
         tags=["Tasks"],
+        path="/trajectory/",
     )
 
     return resource

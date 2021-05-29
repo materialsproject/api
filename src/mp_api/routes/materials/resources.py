@@ -181,7 +181,7 @@ def materials_resource(materials_store, formula_autocomplete_store):
             ),
         ],
         tags=["Materials"],
-        custom_endpoint_funcs=[custom_version_prep, custom_autocomplete_prep,],
+        custom_endpoint_funcs=[custom_version_prep, custom_autocomplete_prep],
     )
 
     return resource
@@ -194,6 +194,7 @@ def find_structure_resource(materials_store):
         key_fields=["structure", "task_id"],
         query_operators=[FindStructureQuery()],
         tags=["Materials"],
+        path="/find_structure/",
     )
 
     return resource
