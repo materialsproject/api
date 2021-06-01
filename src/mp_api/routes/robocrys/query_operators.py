@@ -25,6 +25,11 @@ class RoboTextSearchQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
+        if not keywords.strip():
+            raise HTTPException(
+                status_code=400, detail="Must provide search keywords.",
+            )
+
         pipeline = [
             {
                 "$search": {

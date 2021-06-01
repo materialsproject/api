@@ -51,7 +51,9 @@ class SynthesisTextSearchQuery(QueryOperator):
     ) -> STORE_PARAMS:
 
         if not keywords.strip():
-            return {"pipeline": []}
+            raise HTTPException(
+                status_code=400, detail="Must provide search keywords.",
+            )
 
         pipeline = [
             {

@@ -30,7 +30,6 @@ def es_resource(es_store):
             ESSummaryDataQuery(),
             FormulaQuery(),
             ElementsQuery(),
-            # MinMaxQuery(),
             NumericQuery(model=ElectronicStructureDoc),
             SortQuery(),
             PaginationQuery(),
