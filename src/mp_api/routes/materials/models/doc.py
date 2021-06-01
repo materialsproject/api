@@ -45,7 +45,6 @@ class FindStructure(BaseModel):
     Class defining find structure return data
     """
 
-    # elements list for periodic table lookup
     task_id: MPID = Field(
         None,
         description="The ID of this material, used as a universal reference across property documents."
@@ -57,5 +56,15 @@ class FindStructure(BaseModel):
     )
     max_distance_paired_sites: float = Field(
         None, description="Maximum distance between paired sites",
+    )
+
+
+class FormulaAutocomplete(BaseModel):
+    """
+    Class defining formula autocomplete return data
+    """
+
+    formula_pretty: str = Field(
+        None, description="Human readable chemical formula",
     )
 

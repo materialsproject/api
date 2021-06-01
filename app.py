@@ -344,13 +344,15 @@ else:
 from mp_api.routes.materials.resources import (
     materials_resource,
     find_structure_resource,
+    formula_autocomplete_resource,
 )
 
 resources.update(
     {
         "materials": [
-            materials_resource(materials_store, formula_autocomplete_store),
             find_structure_resource(materials_store),
+            formula_autocomplete_resource(formula_autocomplete_store),
+            materials_resource(materials_store),
         ]
     }
 )
@@ -367,9 +369,9 @@ from mp_api.routes.tasks.resources import (
 resources.update(
     {
         "tasks": [
-            task_resource(task_store),
             trajectory_resource(task_store),
             task_deprecation_resource(materials_store),
+            task_resource(task_store),
         ]
     }
 )
