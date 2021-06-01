@@ -13,7 +13,10 @@ class SynthFormulaQuery(QueryOperator):
     """
 
     def query(
-        self, formula: Optional[str] = Query(None, description="Chemical formula of the material.",),
+        self,
+        formula: Optional[str] = Query(
+            None, description="Chemical formula of the material.",
+        ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
@@ -27,3 +30,56 @@ class SynthFormulaQuery(QueryOperator):
 
     def ensure_indexes(self):
         return [("formula", False)]
+
+
+class SynthesisTextSearchQuery(QueryOperator):
+    """
+    Method to generate a synthesis text search query
+    """
+
+    def query(
+        self,
+        keywords: str = Query(
+            ...,
+            description="Comma delimited string keywords to search synthesis description text with",
+        ),
+        skip: int = Query(0, description="Number of entries to skip in the search"),
+        limit: int = Query(
+            100,
+            description="Max number of entries to return in a single query. Limited to 100",
+        ),
+    ) -> STORE_PARAMS:
+
+        if not keywords.strip():
+            return {"pipeline": []}
+
+        pipeline = [
+            {
+                "$search": {
+                    "index": "synth_descriptions",
+                    "text": {
+                        "query": [word.strip() for word in keywords.split(",") if word],
+                        "path": "text",
+                    },
+                    "highlight": {"path": "text", "maxNumPassages": 1},
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "doi": 1,
+                    "formula": 1,
+                    "text": 1,
+                    "search_score": {"$meta": "searchScore"},
+                    "highlights": {"$meta": "searchHighlights"},
+                }
+            },
+            {"$sort": {"search_score": -1}},
+            {"$skip": skip},
+            {"$limit": limit},
+        ]
+
+        return {"pipeline": pipeline}
+
+    def ensure_indexes(self):
+        return [("text", False)]
