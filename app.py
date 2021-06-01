@@ -453,9 +453,11 @@ from mp_api.routes.wulff.resources import wulff_resource
 resources.update({"wulff": [wulff_resource(wulff_store)]})
 
 # Robocrystallographer
-from mp_api.routes.robocrys.resources import robo_resource
+from mp_api.routes.robocrys.resources import robo_resource, robo_search_resource
 
-resources.update({"robocrys": [robo_resource(robo_store)]})
+resources.update(
+    {"robocrys": [robo_search_resource(robo_store), robo_resource(robo_store)]}
+)
 
 # Synthesis
 from mp_api.routes.synthesis.resources import synth_resource, synth_search_resource
