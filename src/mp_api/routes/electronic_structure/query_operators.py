@@ -3,6 +3,7 @@ from fastapi import Query, HTTPException
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.electronic_structure.core import Spin, OrbitalType
 from pymatgen.core.periodic_table import Element
+from emmet.core.mpid import MPID
 
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
@@ -231,3 +232,20 @@ class DOSDataQuery(QueryOperator):
             keys.append(f"dos.{proj_type.value}.$**")
 
         return [(key, False) for key in keys]
+
+
+class ObjectQuery(QueryOperator):
+    """
+    Method to generate a query on electronic structure object data.
+    """
+
+    def query(
+        self,
+        task_id: MPID = Query(
+            ...,
+            description=f"The calculation (task) ID associated with the data object",
+        ),
+    ) -> STORE_PARAMS:
+
+        return {"criteria": {"task_id": str(task_id)}}
+
