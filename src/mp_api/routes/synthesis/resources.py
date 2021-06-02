@@ -60,7 +60,12 @@ def mask_paragraphs(doc, limit=100):
 
 def mask_highlights(doc, limit=100):
     if isinstance(doc.get("highlights", None), list):
+        total_chars = 0
+        show_hl = []
+
         for h_obj in doc["highlights"]:
+            if total_chars >= limit:
+                break
             hls = h_obj["texts"]
 
             # Identify where the highlighting starts.
@@ -72,7 +77,6 @@ def mask_highlights(doc, limit=100):
                     break
 
             # Remove excessive chars after the hit.
-            total_chars = 0
             for i, hl in enumerate(hls):
                 total_chars += len(hl["value"])
                 if total_chars >= limit:
@@ -81,6 +85,9 @@ def mask_highlights(doc, limit=100):
                     hls = hls[:i + 1]
                     break
             h_obj["texts"] = hls
+            show_hl.append(h_obj)
+
+        doc["highlights"] = show_hl
 
     return doc
 
@@ -149,7 +156,7 @@ def synth_resource(synth_store):
                         },
                         "highlight": {
                             "path": "paragraph_string",
-                            "maxNumPassages": 1
+                            # "maxNumPassages": 1
                         }
                     }
                 })
