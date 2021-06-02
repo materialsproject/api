@@ -28,11 +28,11 @@ class Values(BaseModel):
         None,
         description="List of values."
     )
-    min_value: float = Field(
+    min_value: Optional[float] = Field(
         None,
         description="Minimal value."
     )
-    max_value: float = Field(
+    max_value: Optional[float] = Field(
         None,
         description="Maximal value."
     )
@@ -72,7 +72,7 @@ class ExtractedMaterial(BaseModel):
         {},
         description="Amount variables (formula subscripts)."
     )
-    elements_vars: Dict[str, Values] = Field(
+    elements_vars: Dict[str, List[str]] = Field(
         {},
         description="Chemical element variables"
     )
