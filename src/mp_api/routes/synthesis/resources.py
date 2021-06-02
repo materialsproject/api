@@ -201,18 +201,23 @@ def synth_resource(synth_store):
             for index_name, unique in synth_indexes:
                 self.store.ensure_index(index_name, unique)
 
-            total = next(self.store._collection.aggregate(
-                pipeline + [{"$count": "total"}], allowDiskUse=True))["total"]
+            try:
+                total = next(self.store._collection.aggregate(
+                    pipeline + [{"$count": "total"}], allowDiskUse=True))["total"]
 
-            pipeline.extend([
-                {"$sort": {"search_score": -1}},
-                {"$skip": skip},
-                {"$limit": limit},
-            ])
-            data = list(self.store._collection.aggregate(pipeline, allowDiskUse=True))
-            for doc in data:
-                mask_highlights(doc)
-                mask_paragraphs(doc)
+                pipeline.extend([
+                    {"$sort": {"search_score": -1}},
+                    {"$skip": skip},
+                    {"$limit": limit},
+                ])
+
+                data = list(self.store._collection.aggregate(pipeline, allowDiskUse=True))
+                for doc in data:
+                    mask_highlights(doc)
+                    mask_paragraphs(doc)
+            except StopIteration:
+                total = 0
+                data = []
 
             response = {
                 "data": data,
