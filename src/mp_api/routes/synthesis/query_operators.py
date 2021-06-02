@@ -3,6 +3,7 @@ from fastapi import Query
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
 from pymatgen.core import Composition
+from fastapi import HTTPException
 
 from collections import defaultdict
 

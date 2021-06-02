@@ -1,10 +1,6 @@
-from itertools import permutations
-from fastapi import Body, HTTPException, Query
+from fastapi import HTTPException, Query
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
-from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
-from pymatgen.core.composition import Composition, CompositionError
-from pymatgen.core.structure import Structure
 
 
 class RoboTextSearchQuery(QueryOperator):
