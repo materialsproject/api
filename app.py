@@ -1,8 +1,7 @@
 import os
 from monty.serialization import loadfn
 
-# from mp_api.core.api import MAPI
-from maggma.api.API import API
+from mp_api.core.api import MAPI
 from mp_api.core.settings import MAPISettings
 
 resources = {}
@@ -274,7 +273,7 @@ if db_uri:
     s3_chgcar_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="fs_id",
+        key="task_id",
         collection_name="atomate_chgcar_fs_index",
     )
 
@@ -283,7 +282,7 @@ if db_uri:
         bucket="mp-volumetric",
         sub_dir="atomate_chgcar_fs/",
         compress=True,
-        key="fs_id",
+        key="task_id",
         searchable_fields=["task_id", "fs_id"],
     )
 
@@ -510,8 +509,8 @@ resources.update({"mpcomplete": [mpcomplete_resource(mpcomplete_store)]})
 
 # Consumers
 from mp_api.routes._consumer.resources import (
-    set_settings_resource,
     get_settings_resource,
+    set_settings_resource,
 )
 
 resources.update({"user_settings": [get_settings_resource(consumer_settings_store)]})
@@ -520,5 +519,5 @@ resources.update(
 )
 
 
-api = API(resources=resources, debug=debug)
+api = MAPI(resources=resources, debug=debug)
 app = api.app
