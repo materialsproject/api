@@ -1,3 +1,8 @@
+"""
+This script converts synthesis recipes data fetched directly
+from Ceder Group Synthesis Mining team MongoDB into MP compatible
+formats.
+"""
 import json
 import os
 import re
@@ -8,6 +13,7 @@ from tqdm import tqdm
 
 
 def convert_value(val):
+    """Convert values in operation conditions dictionaries."""
     return {
         'min_value': float(val['min']) if val['min'] is not None else None,
         'max_value': float(val['max']) if val['max'] is not None else None,
@@ -17,6 +23,7 @@ def convert_value(val):
 
 
 def convert_conditions(cond, op_type):
+    """Convert conditions dictionaries."""
     return {
         'heating_temperature': [convert_value(x) for x in cond['temperature']],
         'heating_time': [convert_value(x) for x in cond['time']],
@@ -33,6 +40,7 @@ all_posible_ops = set()
 
 
 def convert_op(op):
+    """Convert operation dictionaries."""
     all_posible_ops.add(op['type'])
     return {
         'type': op['type'],
@@ -42,6 +50,7 @@ def convert_op(op):
 
 
 def convert_mat_value(val):
+    """Convert values specified in materials elements_vars."""
     return {
         'values': [float(x) for x in val['values']],
         'min_value': float(val['min_value']) if val['min_value'] is not None else None,
@@ -50,6 +59,7 @@ def convert_mat_value(val):
 
 
 def convert_material(mat):
+    """Convert materials dictionaries."""
     return {
         'material_string': str(mat['material_string']),
         'material_name': str(mat['material_name']),
@@ -69,6 +79,7 @@ def convert_material(mat):
 
 
 def get_material_formula(mat):
+    """Convert string material formulas into pymatgen Compositions."""
     formula = mat['material_formula']
     formula = re.sub(r'·\d*H2O', '', formula)
     try:
@@ -84,6 +95,7 @@ def get_material_formula(mat):
 
 
 def target_comps(doc):
+    """Find all target material formulas and convert them into Composition."""
     result = []
     for x in doc['targets_string']:
         if not x.strip():
@@ -96,6 +108,7 @@ def target_comps(doc):
 
 
 def precursor_comps(doc):
+    """Find all precursor material formulas and convert them into Composition."""
     result = []
     for x in doc['precursors']:
         try:
@@ -106,6 +119,7 @@ def precursor_comps(doc):
 
 
 def convert_one(doc):
+    """Convert an entire synthesis recipe."""
     return {
         'doi': str(doc['doi']),
         'paragraph_string': ' '.join(doc['ext_paragraph']),
@@ -132,6 +146,10 @@ def convert_one(doc):
 
 
 def main():
+    """
+    Convert the Reactions_Solid_State/Reactions_Sol_Gel collection in
+    Ceder Group database into a json file which can be imported into the MP database.
+    """
     synpro_db = MongoClient(os.environ['SYNPRO_URI']).SynPro
 
     synthesis_recipes = []

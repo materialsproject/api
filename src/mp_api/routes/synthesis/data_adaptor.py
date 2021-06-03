@@ -1,3 +1,9 @@
+"""
+This script converts synthesis recipes data fetched directly
+from the public repo of synthesis recipes
+(https://github.com/CederGroupHub/text-mined-synthesis_public)
+into MP compatible formats.
+"""
 import json
 import sys
 
@@ -6,6 +12,7 @@ from pymatgen.core.composition import CompositionError
 
 
 def string2comp(x):
+    """Convert string material formulas into pymatgen Compositions."""
     # TODO: if a material contains multiple parts, this function
     #  only takes the first part. This is not the optimal solution,
     #  and should be resolved in the future.
@@ -16,6 +23,7 @@ def string2comp(x):
 
 
 def convert_recipe(recipe):
+    """Convert an entire synthesis recipe."""
     targets_string = recipe['targets_string']
     try:
         target_comps = [string2comp(x) for x in targets_string]
@@ -42,6 +50,10 @@ def convert_recipe(recipe):
 
 
 def convert_json_public_repo(src_json, dst_json):
+    """
+    Convert the public synthesis recipes dataset (in a json file)
+    into a format as json file which can be imported into the MP database.
+    """
     with open(src_json) as f:
         data = json.load(f)
         recipes = data['reactions']
