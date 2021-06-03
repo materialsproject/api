@@ -1,9 +1,10 @@
 from pydantic import Field
+from pydantic.main import BaseModel
 from pymatgen.core.structure import Structure
-from maggma.api.models import UserSubmissionDataModel
+from enum import Enum
 
 
-class MPCompleteDoc(UserSubmissionDataModel):
+class MPCompleteDoc(BaseModel):
     """
     Defines data for MPComplete structure submissions
     """
@@ -21,3 +22,15 @@ class MPCompleteDoc(UserSubmissionDataModel):
     public_email: str = Field(
         None, title="Public email", description="Public email of submitter.",
     )
+
+
+class MPCompleteDataStatus(Enum):
+    """
+    Submission status for MPComplete data
+    """
+
+    submitted = "SUBMITTED"
+    pending = "PENDING"
+    running = "RUNNING"
+    error = "ERROR"
+    complete = "COMPLETE"
