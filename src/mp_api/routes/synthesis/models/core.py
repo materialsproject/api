@@ -47,11 +47,11 @@ class SynthesisRecipe(BaseModel):
         ...,
         description="The target material."
     )
-    targets_formula: List[Composition] = Field(
+    targets_formula: List[str] = Field(
         ...,
         description="List of synthesized target material compositions."
     )
-    precursors_formula: List[Composition] = Field(
+    precursors_formula: List[str] = Field(
         ...,
         description="List of precursor material compositions."
     )
