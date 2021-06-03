@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict, Union
 
 from fastapi import Query
 from pydantic import Field
@@ -124,7 +124,7 @@ def synth_resource(synth_store):
                 skip: int = Query(0, description="Number of entries to skip in the search"),
                 limit: int = Query(10, description="Max number of entries to return in a single query. Limited to 10."),
         ):
-            project_dict = {
+            project_dict: Dict[str, Union[Dict, int]] = {
                 "_id": 0,
                 "doi": 1,
                 "synthesis_type": 1,
@@ -168,7 +168,7 @@ def synth_resource(synth_store):
                 "$project": project_dict
             })
 
-            crit = {}
+            crit: Dict[str, Any] = {}
             if synthesis_type:
                 crit["synthesis_type"] = {"$in": synthesis_type}
             if target_formula:
@@ -205,8 +205,8 @@ def synth_resource(synth_store):
                 pipeline.append({"$match": crit})
 
             self.store.connect()
-            for index_name, unique in synth_indexes:
-                self.store.ensure_index(index_name, unique)
+            # for index_name, unique in synth_indexes:
+            #     self.store.ensure_index(index_name, unique)
 
             try:
                 total = next(self.store._collection.aggregate(
