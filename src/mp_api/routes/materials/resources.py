@@ -10,7 +10,6 @@ from maggma.api.query_operator import (
     PaginationQuery,
     SparseFieldsQuery,
     SortQuery,
-    VersionQuery,
     NumericQuery,
 )
 
@@ -100,7 +99,6 @@ def materials_resource(materials_store):
         materials_store,
         MaterialsDoc,
         query_operators=[
-            VersionQuery(default_version=MAPISettings().db_version),
             FormulaQuery(),
             ElementsQuery(),
             MultiTaskIDQuery(),

@@ -6,7 +6,6 @@ from maggma.api.query_operator import (
     PaginationQuery,
     SortQuery,
     SparseFieldsQuery,
-    VersionQuery,
 )
 from mp_api.routes.thermo.query_operators import (
     ThermoChemicalQuery,
@@ -23,7 +22,6 @@ def thermo_resource(thermo_store):
         thermo_store,
         ThermoDoc,
         query_operators=[
-            VersionQuery(default_version=MAPISettings().db_version),
             MultiMaterialIDQuery(),
             ThermoChemicalQuery(),
             IsStableQuery(),

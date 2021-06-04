@@ -15,7 +15,7 @@ class MAPI(API):
         self,
         resources: Dict[str, List[Resource]],
         title="Materials Project API",
-        version="v3.0",
+        version="v3.0-dev",
         debug=False,
         additional_meta={"pymatgen": pmg_version},
     ):
