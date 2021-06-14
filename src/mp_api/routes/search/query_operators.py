@@ -1,9 +1,14 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, Literal
 from fastapi import Query
 
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 from mp_api.routes.magnetism.models import MagneticOrderingEnum
+from mp_api.routes.search.models import SearchStats
+
+from scipy.stats import gaussian_kde
+import numpy as np
 
 from collections import defaultdict
 
@@ -86,114 +91,6 @@ class SearchIsStableQuery(QueryOperator):
         return [("is_stable", False)]
 
 
-class SearchElasticityQuery(QueryOperator):
-    """
-    Method to generate a query for ranges of elasticity data in search docs
-    """
-
-    def query(
-        self,
-        k_voigt_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt average of the bulk modulus in GPa.",
-        ),
-        k_voigt_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt average of the bulk modulus in GPa.",
-        ),
-        k_reuss_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Reuss average of the bulk modulus in GPa.",
-        ),
-        k_reuss_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Reuss average of the bulk modulus in GPa.",
-        ),
-        k_vrh_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
-        ),
-        k_vrh_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt-Reuss-Hill average of the bulk modulus in GPa.",
-        ),
-        g_voigt_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt average of the shear modulus in GPa.",
-        ),
-        g_voigt_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt average of the shear modulus in GPa.",
-        ),
-        g_reuss_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Reuss average of the shear modulus in GPa.",
-        ),
-        g_reuss_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Reuss average of the shear modulus in GPa.",
-        ),
-        g_vrh_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
-        ),
-        g_vrh_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the Voigt-Reuss-Hill average of the shear modulus in GPa.",
-        ),
-        elastic_anisotropy_max: Optional[float] = Query(
-            None, description="Maximum value for the elastic anisotropy.",
-        ),
-        elastic_anisotropy_min: Optional[float] = Query(
-            None, description="Maximum value for the elastic anisotropy.",
-        ),
-        poisson_max: Optional[float] = Query(
-            None, description="Maximum value for Poisson's ratio.",
-        ),
-        poisson_min: Optional[float] = Query(
-            None, description="Minimum value for Poisson's ratio.",
-        ),
-    ) -> STORE_PARAMS:
-
-        crit = defaultdict(dict)  # type: dict
-
-        d = {
-            "k_voigt": [k_voigt_min, k_voigt_max],
-            "k_reuss": [k_reuss_min, k_reuss_max],
-            "k_vrh": [k_vrh_min, k_vrh_max],
-            "g_voigt": [g_voigt_min, g_voigt_max],
-            "g_reuss": [g_reuss_min, g_reuss_max],
-            "g_vrh": [g_vrh_min, g_vrh_max],
-            "universal_anisotropy": [elastic_anisotropy_min, elastic_anisotropy_max],
-            "homogeneous_poisson": [poisson_min, poisson_max],
-        }
-
-        for entry in d:
-            if d[entry][0]:
-                crit[entry]["$gte"] = d[entry][0]
-
-            if d[entry][1]:
-                crit[entry]["$lte"] = d[entry][1]
-
-        return {"criteria": crit}
-
-    def ensure_indexes(self):
-        keys = [
-            key
-            for key in self._keys_from_query()
-            if "anisotropy" not in key and "poisson" not in key
-        ]
-
-        indexes = []
-        for key in keys:
-            if "_min" in key:
-                key = key.replace("_min", "")
-                indexes.append((key, False))
-        indexes.append(("universal_anisotropy", False))
-        indexes.append(("homogeneous_poisson", False))
-        return indexes
-
-
 class SearchMagneticQuery(QueryOperator):
     """
     Method to generate a query for magnetic data in search docs.
@@ -204,50 +101,9 @@ class SearchMagneticQuery(QueryOperator):
         ordering: Optional[MagneticOrderingEnum] = Query(
             None, description="Magnetic ordering of the material."
         ),
-        total_magnetization_max: Optional[float] = Query(
-            None, description="Maximum value for the total magnetization.",
-        ),
-        total_magnetization_min: Optional[float] = Query(
-            None, description="Minimum value for the total magnetization.",
-        ),
-        total_magnetization_normalized_vol_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total magnetization normalized with volume.",
-        ),
-        total_magnetization_normalized_vol_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total magnetization normalized with volume.",
-        ),
-        total_magnetization_normalized_formula_units_max: Optional[float] = Query(
-            None,
-            description="Maximum value for the total magnetization normalized with formula units.",
-        ),
-        total_magnetization_normalized_formula_units_min: Optional[float] = Query(
-            None,
-            description="Minimum value for the total magnetization normalized with formula units.",
-        ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
-
-        d = {
-            "total_magnetization": [total_magnetization_min, total_magnetization_max],
-            "total_magnetization_normalized_vol": [
-                total_magnetization_normalized_vol_min,
-                total_magnetization_normalized_vol_max,
-            ],
-            "total_magnetization_normalized_formula_units": [
-                total_magnetization_normalized_formula_units_min,
-                total_magnetization_normalized_formula_units_max,
-            ],
-        }  # type: dict
-
-        for entry in d:
-            if d[entry][0]:
-                crit[entry]["$gte"] = d[entry][0]
-
-            if d[entry][1]:
-                crit[entry]["$lte"] = d[entry][1]
 
         if ordering:
             crit["ordering"] = ordering.value
@@ -255,75 +111,7 @@ class SearchMagneticQuery(QueryOperator):
         return {"criteria": crit}
 
     def ensure_indexes(self):
-        keys = [
-            "total_magnetization",
-            "total_magnetization_normalized_vol",
-            "total_magnetization_normalized_formula_units",
-        ]
-        return [(key, False) for key in keys]
-
-
-class SearchDielectricPiezoQuery(QueryOperator):
-    """
-    Method to generate a query for ranges of dielectric and piezo data in search docs
-    """
-
-    def query(
-        self,
-        e_total_max: Optional[float] = Query(
-            None, description="Maximum value for the total dielectric constant.",
-        ),
-        e_total_min: Optional[float] = Query(
-            None, description="Minimum value for the total dielectric constant.",
-        ),
-        e_ionic_max: Optional[float] = Query(
-            None, description="Maximum value for the ionic dielectric constant.",
-        ),
-        e_ionic_min: Optional[float] = Query(
-            None, description="Minimum value for the ionic dielectric constant.",
-        ),
-        e_static_max: Optional[float] = Query(
-            None, description="Maximum value for the static dielectric constant.",
-        ),
-        e_static_min: Optional[float] = Query(
-            None, description="Minimum value for the static dielectric constant.",
-        ),
-        n_max: Optional[float] = Query(
-            None, description="Maximum value for the refractive index.",
-        ),
-        n_min: Optional[float] = Query(
-            None, description="Minimum value for the refractive index.",
-        ),
-        piezo_modulus_max: Optional[float] = Query(
-            None, description="Maximum value for the piezoelectric modulus in C/m².",
-        ),
-        piezo_modulus_min: Optional[float] = Query(
-            None, description="Minimum value for the piezoelectric modulus in C/m².",
-        ),
-    ) -> STORE_PARAMS:
-
-        crit = defaultdict(dict)  # type: dict
-
-        d = {
-            "e_total": [e_total_min, e_total_max],
-            "e_ionic": [e_ionic_min, e_ionic_max],
-            "e_static": [e_static_min, e_static_max],
-            "n": [n_min, n_max],
-            "e_ij_max": [piezo_modulus_min, piezo_modulus_max],
-        }
-
-        for entry in d:
-            if d[entry][0]:
-                crit[entry]["$gte"] = d[entry][0]
-
-            if d[entry][1]:
-                crit[entry]["$lte"] = d[entry][1]
-
-        return {"criteria": crit}
-
-    def ensure_indexes(self):
-        keys = ["e_total", "e_ionic", "e_static", "n", "e_ij_max"]
-        return [(key, False) for key in keys]
+        return [("ordering", False)]
 
 
 class SearchIsTheoreticalQuery(QueryOperator):
@@ -347,6 +135,106 @@ class SearchIsTheoreticalQuery(QueryOperator):
 
     def ensure_indexes(self):
         return [("theoretical", False)]
+
+
+class SearchStatsQuery(QueryOperator):
+    """
+    Method to generate a query on search stats data
+    """
+
+    def __init__(self, search_doc):
+        valid_numeric_fields = tuple(
+            sorted(k for k, v in search_doc.__fields__.items() if v.type_ == float)
+        )
+
+        def query(
+            field: Literal[valid_numeric_fields] = Query(  # type: ignore
+                valid_numeric_fields[0],
+                title=f"SearchDoc field to query on, must be a numerical field, "
+                f"choose from: {', '.join(valid_numeric_fields)}",
+            ),
+            num_samples: Optional[int] = Query(
+                None, title="If specified, will only sample this number of documents.",
+            ),
+            min_val: Optional[float] = Query(
+                None,
+                title="If specified, will only consider documents with field values "
+                "greater than or equal to this minimum value.",
+            ),
+            max_val: Optional[float] = Query(
+                None,
+                title="If specified, will only consider documents with field values "
+                "less than or equal to this minimum value.",
+            ),
+            num_points: int = Query(
+                100, title="The number of values in the returned distribution."
+            ),
+        ) -> STORE_PARAMS:
+
+            self.num_points = num_points
+            self.min_val = min_val
+            self.max_val = max_val
+
+            if min_val or max_val:
+                pipeline = [{"$match": {field: {}}}]  # type: list
+                if min_val:
+                    pipeline[0]["$match"][field]["$gte"] = min_val
+                if max_val:
+                    pipeline[0]["$match"][field]["$lte"] = max_val
+            else:
+                pipeline = []
+
+            if num_samples:
+                pipeline.append({"$sample": {"size": num_samples}})
+
+            pipeline.append({"$project": {field: 1, "_id": 0}})
+
+            return {"pipeline": pipeline}
+
+        self.query = query
+
+    def query(self):
+        " Stub query function for abstract class "
+        pass
+
+    def post_process(self, docs):
+
+        if docs:
+            field = list(docs[0].keys())[0]
+
+            num_points = self.num_points
+            min_val = self.min_val
+            max_val = self.max_val
+            num_samples = len(docs)
+
+            values = [d[field] for d in docs]
+            if not min_val:
+                min_val = min(values)
+            if not max_val:
+                max_val = max(values)
+
+            kernel = gaussian_kde(values)
+
+            distribution = list(
+                kernel(
+                    np.arange(min_val, max_val, step=(max_val - min_val) / num_points,)  # type: ignore
+                )
+            )
+
+            median = float(np.median(values))
+            mean = float(np.mean(values))
+
+            response = SearchStats(
+                field=field,
+                num_samples=num_samples,
+                min=min_val,
+                max=max_val,
+                distribution=distribution,
+                median=median,
+                mean=mean,
+            )
+
+        return [response]
 
 
 # TODO:

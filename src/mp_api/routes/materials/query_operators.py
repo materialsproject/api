@@ -1,10 +1,15 @@
+from itertools import permutations
 from typing import Optional
-from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
-from mp_api.routes.materials.utils import formula_to_criteria
+
 from emmet.core.symmetry import CrystalSystem
+from fastapi import Body, HTTPException, Query
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
+from mp_api.routes.materials.utils import formula_to_criteria
+from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
+from pymatgen.core.composition import Composition, CompositionError
 from pymatgen.core.periodic_table import Element
-from collections import defaultdict
+from pymatgen.core.structure import Structure
 
 
 class FormulaQuery(QueryOperator):
@@ -88,67 +93,6 @@ class DeprecationQuery(QueryOperator):
         return {"criteria": crit}
 
 
-class MinMaxQuery(QueryOperator):
-    """
-    Method to generate a query for quantities with a definable min and max
-    """
-
-    def query(
-        self,
-        nsites_max: Optional[int] = Query(
-            None, description="Maximum value for the number of sites",
-        ),
-        nsites_min: Optional[int] = Query(
-            None, description="Minimum value for the number of sites",
-        ),
-        nelements_max: Optional[float] = Query(
-            None, description="Maximum value for the number of elements.",
-        ),
-        nelements_min: Optional[float] = Query(
-            None, description="Minimum value for the number of elements.",
-        ),
-        volume_max: Optional[float] = Query(
-            None, description="Maximum value for the cell volume",
-        ),
-        volume_min: Optional[float] = Query(
-            None, description="Minimum value for the cell volume",
-        ),
-        density_max: Optional[float] = Query(
-            None, description="Maximum value for the density",
-        ),
-        density_min: Optional[float] = Query(
-            None, description="Minimum value for the density",
-        ),
-    ) -> STORE_PARAMS:
-
-        crit = defaultdict(dict)  # type: dict
-
-        entries = {
-            "nsites": [nsites_min, nsites_max],
-            "nelements": [nelements_min, nelements_max],
-            "volume": [volume_min, volume_max],
-            "density": [density_min, density_max],
-        }  # type: dict
-
-        for entry in entries:
-            if entries[entry][0]:
-                crit[entry]["$gte"] = entries[entry][0]
-
-            if entries[entry][1]:
-                crit[entry]["$lte"] = entries[entry][1]
-
-        return {"criteria": crit}
-
-    def ensure_indexes(self):
-        keys = self._keys_from_query()
-        indexes = []
-        for key in keys:
-            if "_min" in key:
-                key = key.replace("_min", "")
-                indexes.append((key, False))
-        return indexes
-
-
 class SymmetryQuery(QueryOperator):
     """
     Method to generate a query on symmetry information
@@ -226,3 +170,177 @@ class MultiMaterialIDQuery(QueryOperator):
             crit.update({"material_id": {"$in": material_ids.split(",")}})
 
         return {"criteria": crit}
+
+
+class FindStructureQuery(QueryOperator):
+    """
+    Method to generate a find structure query
+    """
+
+    def query(
+        self,
+        structure: Structure = Body(
+            ..., description="Pymatgen structure object to query with",
+        ),
+        ltol: float = Query(
+            0.2, description="Fractional length tolerance. Default is 0.2.",
+        ),
+        stol: float = Query(
+            0.3,
+            description="Site tolerance. Defined as the fraction of the average free \
+                    length per atom := ( V / Nsites ) ** (1/3). Default is 0.3.",
+        ),
+        angle_tol: float = Query(
+            5, description="Angle tolerance in degrees. Default is 5 degrees.",
+        ),
+        limit: int = Query(
+            1,
+            description="Maximum number of matches to show. Defaults to 1, only showing the best match.",
+        ),
+    ) -> STORE_PARAMS:
+
+        self.ltol = ltol
+        self.stol = stol
+        self.angle_tol = angle_tol
+        self.limit = limit
+        self.structure = structure
+
+        crit = {}
+
+        try:
+            s = Structure.from_dict(structure)
+        except Exception:
+            raise HTTPException(
+                status_code=404,
+                detail="Body cannot be converted to a pymatgen structure object.",
+            )
+
+        crit.update({"composition_reduced": dict(s.composition.to_reduced_dict)})
+
+        return {"criteria": crit}
+
+    def post_process(self, docs):
+
+        s1 = Structure.from_dict(self.structure)
+
+        m = StructureMatcher(
+            ltol=self.ltol,
+            stol=self.stol,
+            angle_tol=self.angle_tol,
+            primitive_cell=True,
+            scale=True,
+            attempt_supercell=False,
+            comparator=ElementComparator(),
+        )
+
+        matches = []
+
+        for doc in docs:
+
+            s2 = Structure.from_dict(doc["structure"])
+            matched = m.fit(s1, s2)
+
+            if matched:
+                rms = m.get_rms_dist(s1, s2)
+
+                matches.append(
+                    {
+                        "material_id": doc["material_id"],
+                        "normalized_rms_displacement": rms[0],
+                        "max_distance_paired_sites": rms[1],
+                    }
+                )
+
+        response = sorted(
+            matches[: self.limit],
+            key=lambda x: (
+                x["normalized_rms_displacement"],
+                x["max_distance_paired_sites"],
+            ),
+        )
+
+        return response
+
+    def ensure_indexes(self):
+        return [("composition_reduced", False)]
+
+
+class FormulaAutoCompleteQuery(QueryOperator):
+    """
+    Method to generate a formula autocomplete query
+    """
+
+    def query(
+        self,
+        formula: str = Query(..., description="Human readable chemical formula.",),
+        limit: int = Query(
+            10, description="Maximum number of matches to show. Defaults to 10.",
+        ),
+    ) -> STORE_PARAMS:
+
+        self.formula = formula
+        self.limit = limit
+
+        try:
+            comp = Composition(formula)
+        except CompositionError:
+            raise HTTPException(
+                status_code=400, detail="Invalid formula provided.",
+            )
+
+        ind_str = []
+        eles = []
+
+        if len(comp) == 1:
+            d = comp.get_integer_formula_and_factor()
+
+            s = d[0] + str(int(d[1])) if d[1] != 1 else d[0]
+
+            ind_str.append(s)
+            eles.append(d[0])
+        else:
+
+            comp_red = comp.reduced_composition.items()
+
+            for (i, j) in comp_red:
+
+                if j != 1:
+                    ind_str.append(i.name + str(int(j)))
+                else:
+                    ind_str.append(i.name)
+
+                eles.append(i.name)
+
+        final_terms = ["".join(entry) for entry in permutations(ind_str)]
+
+        pipeline = [
+            {
+                "$search": {
+                    "index": "formula_autocomplete",
+                    "text": {"path": "formula_pretty", "query": final_terms},
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "formula_pretty": 1,
+                    "elements": 1,
+                    "length": {"$strLenCP": "$formula_pretty"},
+                }
+            },
+            {
+                "$match": {
+                    "length": {"$gte": len(final_terms[0])},
+                    "elements": {"$all": eles},
+                }
+            },
+            {"$limit": limit},
+            {"$sort": {"length": 1}},
+            {"$project": {"elements": 0, "length": 0}},
+        ]
+
+        return {"pipeline": pipeline}
+
+    def ensure_indexes(self):
+        return [("formula_pretty", False)]
+

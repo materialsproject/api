@@ -1,4 +1,5 @@
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 from mp_api.routes.tasks.utils import calcs_reversed_to_trajectory
 from fastapi import Query
 from typing import Optional
@@ -70,7 +71,7 @@ class DeprecationQuery(QueryOperator):
     def query(
         self,
         task_ids: str = Query(
-            None, description="Comma-separated list of task_ids to query on"
+            ..., description="Comma-separated list of task_ids to query on"
         ),
     ) -> STORE_PARAMS:
 

@@ -1,7 +1,7 @@
 from typing import Dict
 from fastapi import Query, Body
-from mp_api.core.utils import STORE_PARAMS
-from mp_api.core.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
+from maggma.api.query_operator import QueryOperator
 
 
 class UserSettingsPostQuery(QueryOperator):

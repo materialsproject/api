@@ -1,5 +1,6 @@
 import os
 from monty.serialization import loadfn
+
 from mp_api.core.api import MAPI
 from mp_api.core.settings import MAPISettings
 
@@ -242,7 +243,7 @@ if db_uri:
     s3_bs_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="fs_id",
+        key="task_id",
         collection_name="s3_bandstructure_index",
     )
 
@@ -257,7 +258,7 @@ if db_uri:
         index=s3_bs_index,
         bucket="mp-bandstructures",
         compress=True,
-        key="fs_id",
+        key="task_id",
         searchable_fields=["task_id", "fs_id"],
     )
 
@@ -272,7 +273,7 @@ if db_uri:
     s3_chgcar_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="fs_id",
+        key="task_id",
         collection_name="atomate_chgcar_fs_index",
     )
 
@@ -281,14 +282,14 @@ if db_uri:
         bucket="mp-volumetric",
         sub_dir="atomate_chgcar_fs/",
         compress=True,
-        key="fs_id",
+        key="task_id",
         searchable_fields=["task_id", "fs_id"],
     )
 
     mpcomplete_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_consumers",
-        key="snl_id",
+        key="submission_id",
         collection_name="mpcomplete",
     )
 
@@ -339,159 +340,195 @@ else:
     consumer_settings_store = loadfn(consumer_settings_store_json)
 
 # Materials
-from mp_api.routes.materials.resources import materials_resource
-
-resources.update(
-    {"materials": materials_resource(materials_store, formula_autocomplete_store)}
+from mp_api.routes.materials.resources import (
+    materials_resource,
+    find_structure_resource,
+    formula_autocomplete_resource,
 )
 
+resources.update(
+    {
+        "materials": [
+            find_structure_resource(materials_store),
+            formula_autocomplete_resource(formula_autocomplete_store),
+            materials_resource(materials_store),
+        ]
+    }
+)
+
+# resources.update({"find_structure": find_structure_resource(materials_store)})
+
 # Tasks
-from mp_api.routes.tasks.resources import task_resource
+from mp_api.routes.tasks.resources import (
+    task_resource,
+    trajectory_resource,
+    task_deprecation_resource,
+)
 
-resources.update({"tasks": task_resource(task_store)})
-
-# Task Deprecation
-from mp_api.routes.tasks.resources import task_deprecation_resource
-
-resources.update({"deprecation": task_deprecation_resource(materials_store)})
-
-# Trajectory
-from mp_api.routes.tasks.resources import trajectory_resource
-
-resources.update({"trajectory": trajectory_resource(task_store)})
+resources.update(
+    {
+        "tasks": [
+            trajectory_resource(task_store),
+            task_deprecation_resource(materials_store),
+            task_resource(task_store),
+        ]
+    }
+)
 
 # Thermo
 from mp_api.routes.thermo.resources import thermo_resource
 
-resources.update({"thermo": thermo_resource(thermo_store)})
+resources.update({"thermo": [thermo_resource(thermo_store)]})
 
 # Dielectric
 from mp_api.routes.dielectric.resources import dielectric_resource
 
-resources.update({"dielectric": dielectric_resource(dielectric_piezo_store)})
+resources.update({"dielectric": [dielectric_resource(dielectric_piezo_store)]})
 
 # Magnetism
 from mp_api.routes.magnetism.resources import magnetism_resource
 
-resources.update({"magnetism": magnetism_resource(magnetism_store)})
+resources.update({"magnetism": [magnetism_resource(magnetism_store)]})
 
 # Piezoelectric
 from mp_api.routes.piezo.resources import piezo_resource
 
-resources.update({"piezoelectric": piezo_resource(dielectric_piezo_store)})
+resources.update({"piezoelectric": [piezo_resource(dielectric_piezo_store)]})
 
 # Phonon
 from mp_api.routes.phonon.resources import phonon_bs_resource, phonon_img_resource
 
-resources.update({"phonon": phonon_bs_resource(phonon_bs_store)})
-resources.update({"phonon_img": phonon_img_resource(phonon_img_store)})
+resources.update(
+    {
+        "phonon": [
+            phonon_img_resource(phonon_img_store),
+            phonon_bs_resource(phonon_bs_store),
+        ]
+    }
+)
 
 # EOS
 from mp_api.routes.eos.resources import eos_resource
 
-resources.update({"eos": eos_resource(eos_store)})
+resources.update({"eos": [eos_resource(eos_store)]})
 
 # Similarity
 from mp_api.routes.similarity.resources import similarity_resource
 
-resources.update({"similarity": similarity_resource(similarity_store)})
+resources.update({"similarity": [similarity_resource(similarity_store)]})
 
 # XAS
 from mp_api.routes.xas.resources import xas_resource
 
-resources.update({"xas": xas_resource(xas_store)})
+resources.update({"xas": [xas_resource(xas_store)]})
 
 # Grain Boundaries
 from mp_api.routes.grain_boundary.resources import gb_resource
 
-resources.update({"grain_boundary": gb_resource(gb_store)})
+resources.update({"grain_boundary": [gb_resource(gb_store)]})
 
 # Fermi Surface
 from mp_api.routes.fermi.resources import fermi_resource
 
-resources.update({"fermi": fermi_resource(fermi_store)})
+resources.update({"fermi": [fermi_resource(fermi_store)]})
 
 # Elasticity
 from mp_api.routes.elasticity.resources import elasticity_resource
 
-resources.update({"elasticity": elasticity_resource(elasticity_store)})
+resources.update({"elasticity": [elasticity_resource(elasticity_store)]})
 
 # DOIs
 from mp_api.routes.dois.resources import dois_resource
 
-resources.update({"doi": dois_resource(doi_store)})
+resources.update({"doi": [dois_resource(doi_store)]})
 
 # Substrates
 from mp_api.routes.substrates.resources import substrates_resource
 
-resources.update({"substrates": substrates_resource(substrates_store)})
+resources.update({"substrates": [substrates_resource(substrates_store)]})
 
 # Surface Properties
 from mp_api.routes.surface_properties.resources import surface_props_resource
 
-resources.update({"surface_properties": surface_props_resource(surface_props_store)})
+resources.update({"surface_properties": [surface_props_resource(surface_props_store)]})
 
 # Wulff
 from mp_api.routes.wulff.resources import wulff_resource
 
-resources.update({"wulff": wulff_resource(wulff_store)})
+resources.update({"wulff": [wulff_resource(wulff_store)]})
 
 # Robocrystallographer
-from mp_api.routes.robocrys.resources import robo_resource
+from mp_api.routes.robocrys.resources import robo_resource, robo_search_resource
 
-resources.update({"robocrys": robo_resource(robo_store)})
+resources.update(
+    {"robocrys": [robo_search_resource(robo_store), robo_resource(robo_store)]}
+)
 
 # Synthesis
-from mp_api.routes.synthesis.resources import synth_resource
+from mp_api.routes.synthesis.resources import synth_resource, synth_search_resource
 
-resources.update({"synthesis": synth_resource(synth_store)})
+resources.update(
+    {"synthesis": [synth_resource(synth_store), synth_search_resource(synth_store)]}
+)
 
 # Electrodes
 from mp_api.routes.electrodes.resources import insertion_electrodes_resource
 
 resources.update(
-    {"insertion_electrodes": insertion_electrodes_resource(insertion_electrodes_store)}
+    {
+        "insertion_electrodes": [
+            insertion_electrodes_resource(insertion_electrodes_store)
+        ]
+    }
 )
 
 # Molecules
 from mp_api.routes.molecules.resources import molecules_resource
 
-resources.update({"molecules": molecules_resource(molecules_store)})
+resources.update({"molecules": [molecules_resource(molecules_store)]})
 
 # Charge Density
 from mp_api.routes.charge_density.resources import charge_density_resource
 
-resources.update({"charge_density": charge_density_resource(s3_chgcar)})
+resources.update({"charge_density": [charge_density_resource(s3_chgcar)]})
 
 # Search
-from mp_api.routes.search.resources import search_resource
+from mp_api.routes.search.resources import search_resource, search_stats_resource
 
-resources.update({"search": search_resource(search_store)})
+resources.update(
+    {"search": [search_stats_resource(search_store), search_resource(search_store)]}
+)
 
 # Electronic Structure
 from mp_api.routes.electronic_structure.resources import (
+    dos_obj_resource,
     es_resource,
     bs_resource,
+    bs_obj_resource,
     dos_resource,
+    dos_obj_resource,
 )
 
-resources.update({"electronic_structure": es_resource(es_store)})
-resources.update({"bandstructure": bs_resource(es_store, s3_bs)})
-resources.update({"dos": dos_resource(es_store, s3_dos)})
-
+resources.update(
+    {
+        "electronic_structure": [
+            bs_resource(es_store),
+            dos_resource(es_store),
+            es_resource(es_store),
+            bs_obj_resource(s3_bs),
+            dos_obj_resource(s3_dos),
+        ]
+    }
+)
 # MPComplete
 from mp_api.routes.mpcomplete.resources import mpcomplete_resource
 
-resources.update({"mpcomplete": mpcomplete_resource(mpcomplete_store)})
+resources.update({"mpcomplete": [mpcomplete_resource(mpcomplete_store)]})
 
 # Consumers
-from mp_api.routes._consumer.resources import (
-    set_settings_resource,
-    get_settings_resource,
-)
+from mp_api.routes._consumer.resources import settings_resource
 
-resources.update({"user_settings": get_settings_resource(consumer_settings_store)})
-resources.update({"user_settings/set": set_settings_resource(consumer_settings_store)})
+resources.update({"user_settings": [settings_resource(consumer_settings_store)]})
 
 
 api = MAPI(resources=resources, debug=debug)

@@ -20,7 +20,7 @@ from requests.exceptions import RequestException
 from pydantic import BaseModel
 from tqdm import tqdm
 
-from mp_api.core.utils import api_sanitize
+from maggma.api.utils import api_sanitize
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore

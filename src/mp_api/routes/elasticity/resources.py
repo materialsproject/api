@@ -1,7 +1,7 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.elasticity.models import ElasticityDoc
 
-from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
+from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.routes.elasticity.query_operators import (
     ChemsysQuery,
     BulkModulusQuery,
@@ -11,7 +11,7 @@ from mp_api.routes.elasticity.query_operators import (
 
 
 def elasticity_resource(elasticity_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         elasticity_store,
         ElasticityDoc,
         query_operators=[
@@ -21,9 +21,7 @@ def elasticity_resource(elasticity_store):
             PoissonQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(
-                ElasticityDoc, default_fields=["task_id", "pretty_formula"],
-            ),
+            SparseFieldsQuery(ElasticityDoc, default_fields=["task_id", "pretty_formula"],),
         ],
         tags=["Elasticity"],
     )

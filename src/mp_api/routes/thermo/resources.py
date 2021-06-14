@@ -1,31 +1,31 @@
-from mp_api.core.resource import GetResource
+from maggma.api.query_operator.dynamic import NumericQuery
+from maggma.api.resource import ReadOnlyResource
 from emmet.core.thermo import ThermoDoc
 
-from mp_api.core.query_operator import (
+from maggma.api.query_operator import (
     PaginationQuery,
     SortQuery,
     SparseFieldsQuery,
-    VersionQuery,
 )
 from mp_api.routes.thermo.query_operators import (
     ThermoChemicalQuery,
-    ThermoEnergyQuery,
     IsStableQuery,
 )
+
+from mp_api.core.settings import MAPISettings
 
 from mp_api.routes.materials.query_operators import MultiMaterialIDQuery
 
 
 def thermo_resource(thermo_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         thermo_store,
         ThermoDoc,
         query_operators=[
-            VersionQuery(),
             MultiMaterialIDQuery(),
             ThermoChemicalQuery(),
             IsStableQuery(),
-            ThermoEnergyQuery(),
+            NumericQuery(model=ThermoDoc),
             SortQuery(),
             PaginationQuery(),
             SparseFieldsQuery(

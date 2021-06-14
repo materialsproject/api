@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
 
@@ -12,15 +13,6 @@ class SubstrateStructureQuery(QueryOperator):
 
     def query(
         self,
-        film_id: Optional[str] = Query(
-            None, description="Materials Project ID of the film material.",
-        ),
-        substrate_id: Optional[str] = Query(
-            None, description="Materials Project ID of the substrate material.",
-        ),
-        substrate_formula: Optional[str] = Query(
-            None, description="Reduced formula of the substrate material.",
-        ),
         film_orientation: Optional[str] = Query(
             None,
             description="Comma separated integers defining the film surface orientation.",
@@ -32,15 +24,6 @@ class SubstrateStructureQuery(QueryOperator):
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
-
-        if film_id:
-            crit["film_id"] = film_id
-
-        if substrate_id:
-            crit["sub_id"] = substrate_id
-
-        if substrate_formula:
-            crit["sub_form"] = substrate_formula
 
         if film_orientation:
             crit["film_orient"] = film_orientation.replace(",", " ")

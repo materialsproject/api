@@ -1,15 +1,13 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
+from pydantic.main import BaseModel
 from pymatgen.core.structure import Structure
+from enum import Enum
 
 
 class MPCompleteDoc(BaseModel):
     """
     Defines data for MPComplete structure submissions
     """
-
-    snl_id: str = Field(
-        None, title="SNL ID", description="ID for the submission.",
-    )
 
     structure: Structure = Field(
         None,
@@ -25,6 +23,14 @@ class MPCompleteDoc(BaseModel):
         None, title="Public email", description="Public email of submitter.",
     )
 
-    comment: str = Field(
-        None, title="Submission comment", description="User comment for submission.",
-    )
+
+class MPCompleteDataStatus(Enum):
+    """
+    Submission status for MPComplete data
+    """
+
+    submitted = "SUBMITTED"
+    pending = "PENDING"
+    running = "RUNNING"
+    error = "ERROR"
+    complete = "COMPLETE"

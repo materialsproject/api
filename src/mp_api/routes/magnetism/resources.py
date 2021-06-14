@@ -1,12 +1,12 @@
-from mp_api.core.resource import GetResource
+from maggma.api.resource import ReadOnlyResource
 from mp_api.routes.magnetism.models import MagnetismDoc
 
-from mp_api.core.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
+from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.routes.magnetism.query_operators import MagneticQuery
 
 
 def magnetism_resource(magnetism_store):
-    resource = GetResource(
+    resource = ReadOnlyResource(
         magnetism_store,
         MagnetismDoc,
         query_operators=[

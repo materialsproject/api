@@ -1,5 +1,6 @@
 from fastapi import Query
-from mp_api.core.query_operator import STORE_PARAMS, QueryOperator
+from maggma.api.query_operator import QueryOperator
+from maggma.api.utils import STORE_PARAMS
 from emmet.core.xas import Edge, Type
 from pymatgen.core.periodic_table import Element
 from typing import Optional
@@ -35,10 +36,7 @@ class XASTaskIDQuery(QueryOperator):
     """
 
     def query(
-        self,
-        task_ids: Optional[str] = Query(
-            None, description="Comma-separated list of task_ids to query on"
-        ),
+        self, task_ids: Optional[str] = Query(None, description="Comma-separated list of task_ids to query on"),
     ) -> STORE_PARAMS:
 
         crit = {}

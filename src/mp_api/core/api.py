@@ -1,77 +1,43 @@
-import os
-import uvicorn
-from starlette.responses import RedirectResponse
-from fastapi import FastAPI
-from typing import Dict, Union
-from datetime import datetime
-from monty.json import MSONable
-from mp_api.core.resource import ConsumerPostResource, GetResource
-from mp_api.core.settings import MAPISettings
+from typing import Dict, List
+from maggma.api.resource.core import Resource
 from pymatgen.core import __version__ as pmg_version  # type: ignore
+from mp_api import __version__ as api_version
 from fastapi.openapi.utils import get_openapi
-from fastapi.middleware.cors import CORSMiddleware
+from maggma.api.API import API
 
 
-class MAPI(MSONable):
+class MAPI(API):
     """
     Core Materials API that orchestrates resources together
-
-    TODO:
-        Build cross-resource relationships
-        Global Query Operators?
     """
 
     def __init__(
         self,
-        resources: Dict[str, Union[GetResource, ConsumerPostResource]],
+        resources: Dict[str, List[Resource]],
         title="Materials Project API",
-        version="3.0.0-dev",
+        version="v3.0-dev",
         debug=False,
+        heartbeat_meta={"pymatgen": pmg_version},
     ):
-        self.resources = resources
-        self.title = title
-        self.version = version
-        self.debug = debug
+        super().__init__(
+            resources=resources,
+            title=title,
+            version=version,
+            debug=debug,
+            heartbeat_meta=heartbeat_meta,
+        )
 
     @property
     def app(self):
         """
         App server for the cluster manager
         """
-
-        # TODO this should run on `not self.debug`!
-        on_startup = [resource.setup_indexes for resource in self.resources.values()] if self.debug else []
-        app = FastAPI(title=self.title, version=self.version, on_startup=on_startup)
-        if self.debug:
-            app.add_middleware(
-                CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"],
-            )
-
-        if len(self.resources) == 0:
-            raise RuntimeError("ERROR: There are no resources provided")
-
-        for prefix, endpoint in self.resources.items():
-            app.include_router(endpoint.router, prefix=f"/{prefix}")
-
-        @app.get("/heartbeat", include_in_schema=False)
-        def heartbeat():
-            """ API Heartbeat for Load Balancing """
-
-            return {
-                "status": "OK",
-                "time": datetime.utcnow(),
-                "api": self.version,
-                "database": os.environ.get("DB_VERSION", MAPISettings().db_version).replace("_", "."),
-                "pymatgen": pmg_version,
-            }
-
-        @app.get("/", include_in_schema=False)
-        def redirect_docs():
-            """ Redirects the root end point to the docs """
-            return RedirectResponse(url=app.docs_url, status_code=301)
+        app = super().app
 
         def custom_openapi():
-            openapi_schema = get_openapi(title=self.title, version=self.version, routes=app.routes)
+            openapi_schema = get_openapi(
+                title=self.title, version=self.version, routes=app.routes
+            )
 
             openapi_schema["components"]["securitySchemes"] = {
                 "ApiKeyAuth": {
@@ -94,19 +60,3 @@ class MAPI(MSONable):
         app.openapi = custom_openapi
 
         return app
-
-    def run(self, ip: str = "127.0.0.1", port: int = 8000, log_level: str = "info"):
-        """
-        Runs the Cluster Manager locally
-        Meant for debugging purposes only
-
-        Args:
-            ip: Local IP to listen on
-            port: Local port to listen on
-            log_level: Logging level for the webserver
-
-        Returns:
-            None
-        """
-
-        uvicorn.run(self.app, host=ip, port=port, log_level=log_level, reload=False)
