@@ -465,11 +465,9 @@ resources.update(
 )
 
 # Synthesis
-from mp_api.routes.synthesis.resources import synth_resource, synth_search_resource
+from mp_api.routes.synthesis.resources import synth_resource
 
-resources.update(
-    {"synthesis": [synth_resource(synth_store), synth_search_resource(synth_store)]}
-)
+resources.update({"synthesis": [synth_resource(synth_store)]})
 
 # Electrodes
 from mp_api.routes.electrodes.resources import insertion_electrodes_resource
