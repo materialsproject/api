@@ -34,7 +34,7 @@ setup(
     extras_require={
         "server": [
             "fastapi>=0.46.0",
-            "maggma==0.28.0",
+            "maggma==0.29.0",
             "uvicorn>=0.12.0",
             "gunicorn[gevent]>=20.0.1",
             "boto3>=1.15.0",
