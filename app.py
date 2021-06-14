@@ -398,8 +398,14 @@ resources.update({"piezoelectric": [piezo_resource(dielectric_piezo_store)]})
 # Phonon
 from mp_api.routes.phonon.resources import phonon_bs_resource, phonon_img_resource
 
-resources.update({"phonon": [phonon_bs_resource(phonon_bs_store)]})
-resources.update({"phonon_img": [phonon_img_resource(phonon_img_store)]})
+resources.update(
+    {
+        "phonon": [
+            phonon_img_resource(phonon_img_store),
+            phonon_bs_resource(phonon_bs_store),
+        ]
+    }
+)
 
 # EOS
 from mp_api.routes.eos.resources import eos_resource
@@ -487,9 +493,11 @@ from mp_api.routes.charge_density.resources import charge_density_resource
 resources.update({"charge_density": [charge_density_resource(s3_chgcar)]})
 
 # Search
-from mp_api.routes.search.resources import search_resource
+from mp_api.routes.search.resources import search_resource, search_stats_resource
 
-resources.update({"search": [search_resource(search_store)]})
+resources.update(
+    {"search": [search_stats_resource(search_store), search_resource(search_store)]}
+)
 
 # Electronic Structure
 from mp_api.routes.electronic_structure.resources import (
@@ -518,15 +526,9 @@ from mp_api.routes.mpcomplete.resources import mpcomplete_resource
 resources.update({"mpcomplete": [mpcomplete_resource(mpcomplete_store)]})
 
 # Consumers
-from mp_api.routes._consumer.resources import (
-    get_settings_resource,
-    set_settings_resource,
-)
+from mp_api.routes._consumer.resources import settings_resource
 
-resources.update({"user_settings": [get_settings_resource(consumer_settings_store)]})
-resources.update(
-    {"user_settings/set": [set_settings_resource(consumer_settings_store)]}
-)
+resources.update({"user_settings": [settings_resource(consumer_settings_store)]})
 
 
 api = MAPI(resources=resources, debug=debug)

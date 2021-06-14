@@ -21,7 +21,7 @@ def robo_search_resource(robo_store):
         RobocrysDoc,
         pipeline_query_operator=RoboTextSearchQuery(),
         tags=["Robocrystallographer"],
-        path="/text_search/",
+        sub_path="/text_search/",
     )
 
     return resource

@@ -1,7 +1,7 @@
 pydantic==1.8.2
 pymatgen==2022.0.8
 typing-extensions==3.10.0.0
-maggma==0.27.0
+maggma==0.29.0
 requests==2.25.1
 monty==2021.5.9
-emmet-core @ git+https://github.com/materialsproject/emmet#subdirectory=emmet-core
+emmet-core==0.2.2

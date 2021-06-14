@@ -9,7 +9,9 @@ class MAPISettings(BaseSettings):
     python module
     """
 
-    app_path: str = Field("~/mapi.json", description="Path for the default MAPI JSON definition")
+    app_path: str = Field(
+        "~/mapi.json", description="Path for the default MAPI JSON definition"
+    )
 
     debug: bool = Field(False, description="Turns on debug mode for MAPI")
 

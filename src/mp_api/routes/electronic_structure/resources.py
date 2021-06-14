@@ -53,7 +53,7 @@ def bs_resource(es_store):
         ],
         tags=["Electronic Structure"],
         enable_get_by_key=False,
-        path="/bandstructure/",
+        sub_path="/bandstructure/",
     )
 
     return resource
@@ -70,7 +70,7 @@ def bs_obj_resource(s3_store):
         tags=["Electronic Structure"],
         enable_get_by_key=False,
         enable_default_search=True,
-        path="/bandstructure/object/",
+        sub_path="/bandstructure/object/",
     )
     return resource
 
@@ -90,7 +90,7 @@ def dos_resource(es_store):
         ],
         tags=["Electronic Structure"],
         enable_get_by_key=False,
-        path="/dos/",
+        sub_path="/dos/",
     )
 
     return resource
@@ -107,7 +107,6 @@ def dos_obj_resource(s3_store):
         tags=["Electronic Structure"],
         enable_get_by_key=False,
         enable_default_search=True,
-        path="/dos/object/",
+        sub_path="/dos/object/",
     )
     return resource
-

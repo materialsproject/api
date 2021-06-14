@@ -35,7 +35,7 @@ def find_structure_resource(materials_store):
         key_fields=["structure", "task_id"],
         query_operators=[FindStructureQuery()],
         tags=["Materials"],
-        path="/find_structure/",
+        sub_path="/find_structure/",
     )
 
     return resource
@@ -47,53 +47,13 @@ def formula_autocomplete_resource(formula_autocomplete_store):
         FormulaAutocomplete,
         pipeline_query_operator=FormulaAutoCompleteQuery(),
         tags=["Materials"],
-        path="/formula_autocomplete/",
+        sub_path="/formula_autocomplete/",
     )
 
     return resource
 
 
 def materials_resource(materials_store):
-    def custom_version_prep(self):
-        model_name = self.model.__name__
-
-        async def get_versions():
-            f"""
-            Obtains the database versions for the data in {model_name}
-
-            Returns:
-                A list of database versions one can use to query on
-            """
-
-            try:
-                conn = MongoClient(self.store.host, self.store.port)
-                db = conn[self.store.database]
-                if self.core.username != "":
-                    db.authenticate(self.username, self.password)
-
-            except AttributeError:
-                conn = MongoClient(self.store.uri)
-                db = conn[self.store.database]
-
-            col_names = db.list_collection_names()
-
-            d = [
-                name.replace("_", ".")[15:]
-                for name in col_names
-                if "materials" in name
-                if name != "materials.core"
-            ]
-
-            response = {"data": d}
-
-            return response
-
-        self.router.get(
-            "/versions/",
-            response_model_exclude_unset=True,
-            response_description=f"Get versions of {model_name}",
-            tags=self.tags,
-        )(get_versions)
 
     resource = ReadOnlyResource(
         materials_store,
@@ -113,7 +73,6 @@ def materials_resource(materials_store):
             ),
         ],
         tags=["Materials"],
-        custom_endpoint_funcs=[custom_version_prep],
     )
 
     return resource

@@ -17,14 +17,14 @@ class MAPI(API):
         title="Materials Project API",
         version="v3.0-dev",
         debug=False,
-        additional_meta={"pymatgen": pmg_version},
+        heartbeat_meta={"pymatgen": pmg_version},
     ):
         super().__init__(
             resources=resources,
             title=title,
             version=version,
             debug=debug,
-            additional_meta=additional_meta,
+            heartbeat_meta=heartbeat_meta,
         )
 
     @property

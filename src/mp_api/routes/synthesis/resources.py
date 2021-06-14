@@ -14,7 +14,7 @@ def synth_search_resource(synth_store):
         SynthesisDoc,
         pipeline_query_operator=SynthesisTextSearchQuery(),
         tags=["Synthesis"],
-        path="/text_search/",
+        sub_path="/text_search/",
     )
     return resource
 
@@ -35,4 +35,3 @@ def synth_resource(synth_store):
     )
 
     return resource
-

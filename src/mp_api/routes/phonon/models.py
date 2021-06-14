@@ -94,7 +94,7 @@ class PhononImgDoc(BaseModel):
     def last_updated_dict_ok(cls, v):
         return MontyDecoder().process_decoded(v)
 
-    # Make sure that the datetime field is properly formatted
+    # Make sure that the plot field is properly formatted
     @validator("plot", pre=True)
     def plot_bytes_ok(cls, v):
         return str(v)

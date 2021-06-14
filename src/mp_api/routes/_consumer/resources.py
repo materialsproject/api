@@ -1,31 +1,20 @@
-from mp_api.core.resource import ConsumerPostResource
-from maggma.api.resource import ReadOnlyResource
+from maggma.api.resource import SubmissionResource
+from mp_api.routes._consumer.query_operator import (
+    UserSettingsPostQuery,
+    UserSettingsGetQuery,
+)
 from mp_api.routes._consumer.models import UserSettingsDoc
-from mp_api.routes._consumer.query_operator import UserSettingsPostQuery, UserSettingsGetQuery
 
 
-def set_settings_resource(consumer_settings_store):
-    resource = ConsumerPostResource(
+def settings_resource(consumer_settings_store):
+    resource = SubmissionResource(
         consumer_settings_store,
         UserSettingsDoc,
-        query_operators=[UserSettingsPostQuery()],
-        tags=["Consumer"],
-        include_in_schema=False,
-    )
-
-    return resource
-
-
-def get_settings_resource(consumer_settings_store):
-    resource = ReadOnlyResource(
-        consumer_settings_store,
-        UserSettingsDoc,
-        query_operators=[UserSettingsGetQuery()],
-        tags=["Consumer"],
-        key_fields=["consumer_id", "settings"],
-        enable_get_by_key=True,
+        post_query_operators=[UserSettingsPostQuery()],
+        get_query_operators=[UserSettingsGetQuery()],
         enable_default_search=False,
         include_in_schema=False,
     )
 
     return resource
+
