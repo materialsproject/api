@@ -243,9 +243,8 @@ class ObjectQuery(QueryOperator):
         self,
         task_id: MPID = Query(
             ...,
-            description=f"The calculation (task) ID associated with the data object",
+            description="The calculation (task) ID associated with the data object",
         ),
     ) -> STORE_PARAMS:
 
         return {"criteria": {"task_id": str(task_id)}}
-

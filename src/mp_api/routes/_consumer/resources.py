@@ -17,4 +17,3 @@ def settings_resource(consumer_settings_store):
     )
 
     return resource
-

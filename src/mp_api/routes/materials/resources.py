@@ -76,4 +76,3 @@ def materials_resource(materials_store):
     )
 
     return resource
-

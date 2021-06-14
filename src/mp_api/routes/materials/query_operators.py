@@ -343,4 +343,3 @@ class FormulaAutoCompleteQuery(QueryOperator):
 
     def ensure_indexes(self):
         return [("formula_pretty", False)]
-

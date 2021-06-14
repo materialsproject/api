@@ -7,7 +7,10 @@ def similarity_resource(similarity_store):
     resource = ReadOnlyResource(
         similarity_store,
         SimilarityDoc,
-        query_operators=[PaginationQuery(), SparseFieldsQuery(SimilarityDoc, default_fields=["task_id"]),],
+        query_operators=[
+            PaginationQuery(),
+            SparseFieldsQuery(SimilarityDoc, default_fields=["task_id"]),
+        ],
         tags=["Similarity"],
         enable_default_search=False,
     )

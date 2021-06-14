@@ -8,7 +8,10 @@ def fermi_resource(fermi_store):
     resource = ReadOnlyResource(
         fermi_store,
         FermiDoc,
-        query_operators=[PaginationQuery(), SparseFieldsQuery(FermiDoc, default_fields=["task_id", "last_updated"]),],
+        query_operators=[
+            PaginationQuery(),
+            SparseFieldsQuery(FermiDoc, default_fields=["task_id", "last_updated"]),
+        ],
         tags=["Electronic Structure"],
     )
 

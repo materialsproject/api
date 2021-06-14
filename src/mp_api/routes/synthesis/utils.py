@@ -11,10 +11,10 @@ def make_ellipsis(text, limit=100, remove_trailing=True):
             if trailing is not None:
                 text = text[: trailing.start()] + "..."
         else:
-            text = text[len(text) - limit :]
+            text = text[len(text) - limit:]
             heading = re.search(r"^[\w\d]{,15}(?![\w\d])", text)
             if heading is not None:
-                text = "..." + text[heading.end() :]
+                text = "..." + text[heading.end():]
     return text
 
 
@@ -42,7 +42,7 @@ def mask_highlights(doc, limit=100):
                         hls[i - 1]["value"] = make_ellipsis(
                             hls[i - 1]["value"], limit=20, remove_trailing=False
                         )
-                        hls = hls[i - 1 :]
+                        hls = hls[i - 1:]
                     break
 
             # Remove excessive chars after the hit.

@@ -8,7 +8,10 @@ def wulff_resource(wulff_store):
     resource = ReadOnlyResource(
         wulff_store,
         WulffDoc,
-        query_operators=[PaginationQuery(), SparseFieldsQuery(WulffDoc, default_fields=["task_id"]),],
+        query_operators=[
+            PaginationQuery(),
+            SparseFieldsQuery(WulffDoc, default_fields=["task_id"]),
+        ],
         tags=["Surface Properties"],
         enable_default_search=False,
     )

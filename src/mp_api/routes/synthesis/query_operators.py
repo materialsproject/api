@@ -84,7 +84,7 @@ class SynthesisSearchQuery(QueryOperator):
                         #     "paragraph_string": {"type": "string"}
                         #   }}}
                         "index": "synth_descriptions",
-                        "search": {"query": keywords, "path": "paragraph_string",},
+                        "search": {"query": keywords, "path": "paragraph_string"},
                         "highlight": {
                             "path": "paragraph_string",
                             # "maxNumPassages": 1
@@ -166,4 +166,3 @@ class SynthesisSearchQuery(QueryOperator):
             mask_paragraphs(doc)
 
         return docs
-
