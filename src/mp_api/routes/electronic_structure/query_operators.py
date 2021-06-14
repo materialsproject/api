@@ -1,4 +1,5 @@
-from typing import Optional, Union, Literal  # type: ignore
+from sys import version_info
+from typing import Optional, Union
 from fastapi import Query, HTTPException
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.electronic_structure.core import Spin, OrbitalType
@@ -10,6 +11,11 @@ from maggma.api.utils import STORE_PARAMS
 from mp_api.routes.electronic_structure.models.core import BSPathType, DOSProjectionType
 
 from collections import defaultdict
+
+if version_info >= (3, 8):
+    from typing import Literal  # type: ignore
+else:
+    from typing_extensions import Literal
 
 
 class ESSummaryDataQuery(QueryOperator):

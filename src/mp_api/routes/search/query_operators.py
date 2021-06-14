@@ -1,5 +1,6 @@
+from sys import version_info
 from enum import Enum
-from typing import Optional, Literal
+from typing import Optional
 from fastapi import Query
 
 from maggma.api.query_operator import QueryOperator
@@ -11,6 +12,11 @@ from scipy.stats import gaussian_kde
 import numpy as np
 
 from collections import defaultdict
+
+if version_info >= (3, 8):
+    from typing import Literal  # type: ignore
+else:
+    from typing_extensions import Literal
 
 
 class HasPropsEnum(Enum):
