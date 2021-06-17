@@ -21,6 +21,8 @@ class ElectronicStructureRester(BaseRester):
         magnetic_ordering: Optional[Ordering] = None,
         is_gap_direct: bool = None,
         is_metal: bool = None,
+        sort_field: Optional[str] = None,
+        ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -35,6 +37,8 @@ class ElectronicStructureRester(BaseRester):
             magnetic_ordering (Ordering): Magnetic ordering of the material.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
+            sort_field (str): Field used to sort results.
+            ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -62,15 +66,16 @@ class ElectronicStructureRester(BaseRester):
         if is_metal is not None:
             query_params.update({"is_metal": is_metal})
 
+        if sort_field:
+            query_params.update({"sort_field": sort_field})
+
+        if ascending is not None:
+            query_params.update({"ascending": ascending})
+
         query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
-            version=self.version,
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )
 
 
@@ -87,6 +92,8 @@ class BandStructureRester(BaseRester):
         magnetic_ordering: Optional[Ordering] = None,
         is_gap_direct: bool = None,
         is_metal: bool = None,
+        sort_field: Optional[str] = None,
+        ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -102,6 +109,8 @@ class BandStructureRester(BaseRester):
             magnetic_ordering (Ordering): Magnetic ordering of the material.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
+            sort_field (str): Field used to sort results.
+            ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -131,15 +140,16 @@ class BandStructureRester(BaseRester):
         if is_metal is not None:
             query_params.update({"is_metal": is_metal})
 
+        if sort_field:
+            query_params.update({"sort_field": sort_field})
+
+        if ascending is not None:
+            query_params.update({"ascending": ascending})
+
         query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
-            version=self.version,
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )
 
     def get_bandstructure_from_calculation_id(self, task_id: str):

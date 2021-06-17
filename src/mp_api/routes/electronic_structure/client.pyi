@@ -9,7 +9,6 @@ class ElectronicStructureRester:
         document_id: str,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
-        version: Optional[str] = None,
     ) -> ElectronicStructureDoc: ...
 
 
@@ -20,7 +19,6 @@ class BandStructureRester:
         document_id: str,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
-        version: Optional[str] = None,
     ) -> ElectronicStructureDoc: ...
 
 
@@ -31,5 +29,4 @@ class DosRester:
         document_id: str,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
-        version: Optional[str] = None,
     ) -> ElectronicStructureDoc: ...

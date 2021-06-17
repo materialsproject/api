@@ -1,6 +1,5 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
-import warnings
 
 from pymatgen.core.periodic_table import Element
 
@@ -23,6 +22,8 @@ class MoleculesRester(BaseRester):
         charge: Optional[Tuple[float, float]] = None,
         pointgroup: Optional[str] = None,
         smiles: Optional[str] = None,
+        sort_field: Optional[str] = None,
+        ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -39,6 +40,8 @@ class MoleculesRester(BaseRester):
             charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
             pointgroup (str): Point group of the molecule in Schoenflies notation.
             smiles (str): The simplified molecular input line-entry system (SMILES) representation of the molecule.
+            sort_field (str): Field used to sort results.
+            ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -72,13 +75,14 @@ class MoleculesRester(BaseRester):
         if charge:
             query_params.update({"charge_min": charge[0], "charge_max": charge[1]})
 
+        if sort_field:
+            query_params.update({"sort_field": sort_field})
+
+        if ascending is not None:
+            query_params.update({"ascending": ascending})
+
         query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
-            version=self.version,
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

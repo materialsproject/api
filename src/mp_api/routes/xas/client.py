@@ -31,12 +31,15 @@ class XASRester(BaseRester):
             raise MPRestError("No document found")
 
     def search_xas_docs(
+        # TODO: add proper docstring
         self,
         edge: Optional[Edge] = None,
         absorbing_element: Optional[Element] = None,
         required_elements: Optional[List[Element]] = None,
         formula: Optional[str] = None,
         task_ids: Optional[List[str]] = None,
+        sort_field: Optional[str] = None,
+        ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -54,13 +57,14 @@ class XASRester(BaseRester):
         if required_elements:
             query_params["elements"] = ",".join([str(el) for el in required_elements])
 
+        if sort_field:
+            query_params.update({"sort_field": sort_field})
+
+        if ascending is not None:
+            query_params.update({"ascending": ascending})
+
         return super().search(
-            version=self.version,
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params,
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params,
         )
 
     def count_xas_docs(

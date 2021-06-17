@@ -44,13 +44,7 @@ class BaseRester:
     primary_key: str = "material_id"
 
     def __init__(
-        self,
-        api_key=DEFAULT_API_KEY,
-        endpoint=DEFAULT_ENDPOINT,
-        version=None,
-        include_user_agent=True,
-        session=None,
-        debug=False,
+        self, api_key=DEFAULT_API_KEY, endpoint=DEFAULT_ENDPOINT, include_user_agent=True, session=None, debug=False,
     ):
         """
         Args:
@@ -65,7 +59,6 @@ class BaseRester:
                 interface. Defaults to the standard Materials Project REST
                 address at "https://api.materialsproject.org", but
                 can be changed to other urls implementing a similar interface.
-            version (Optional[str]): Specify the database snapshot to query.
             include_user_agent (bool): If True, will include a user agent with the
                 HTTP request including information on pymatgen and system version
                 making the API request. This helps MP support pymatgen users, and
@@ -79,7 +72,6 @@ class BaseRester:
         self.api_key = api_key
         self.base_endpoint = endpoint
         self.endpoint = endpoint
-        self.version = version
         self.debug = debug
 
         if self.suffix:
@@ -92,11 +84,7 @@ class BaseRester:
         else:
             self.session = self._create_session(api_key, include_user_agent)
 
-        self.document_model = (
-            api_sanitize(self.document_model)
-            if self.document_model is not None
-            else None
-        )
+        self.document_model = api_sanitize(self.document_model) if self.document_model is not None else None
 
     @staticmethod
     def _create_session(api_key, include_user_agent):
@@ -109,9 +97,7 @@ class BaseRester:
                 sys.version_info.major, sys.version_info.minor, sys.version_info.micro
             )
             platform_info = "{}/{}".format(platform.system(), platform.release())
-            session.headers["user-agent"] = "{} ({} {})".format(
-                pymatgen_info, python_info, platform_info
-            )
+            session.headers["user-agent"] = "{} ({} {})".format(pymatgen_info, python_info, platform_info)
         return session
 
     def __enter__(self):
@@ -163,10 +149,7 @@ class BaseRester:
                     message = data
                 else:
                     try:
-                        message = ", ".join(
-                            "{} - {}".format(entry["loc"][1], entry["msg"])
-                            for entry in data
-                        )
+                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
                     except (KeyError, IndexError):
                         message = str(data)
 
@@ -234,10 +217,7 @@ class BaseRester:
                     message = data
                 else:
                     try:
-                        message = ", ".join(
-                            "{} - {}".format(entry["loc"][1], entry["msg"])
-                            for entry in data
-                        )
+                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
                     except (KeyError, IndexError):
                         message = str(data)
 
@@ -257,7 +237,6 @@ class BaseRester:
         monty_decode: bool = True,
         suburl: Optional[str] = None,
         use_document_model: Optional[bool] = True,
-        version: Optional[str] = None,
     ):
         """
         Query the endpoint for a Resource containing a list of documents
@@ -272,8 +251,6 @@ class BaseRester:
             monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
             use_document_model: whether to use the core document model for data reconstruction
-            version:  If supported by the endpoint, specify a specific database version,
-                check the supports_version attribute to see if this endpoint is supported
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -290,11 +267,6 @@ class BaseRester:
             if isinstance(fields, str):
                 fields = [fields]
             criteria["fields"] = ",".join(fields)
-
-        if version and (not self.supports_versions):
-            raise ValueError("This endpoint does not support versions.")
-        elif version:
-            criteria["version"] = version
 
         try:
             url = self.endpoint
@@ -325,10 +297,7 @@ class BaseRester:
                     message = data
                 else:
                     try:
-                        message = ", ".join(
-                            "{} - {}".format(entry["loc"][1], entry["msg"])
-                            for entry in data
-                        )
+                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
                     except (KeyError, IndexError):
                         message = str(data)
 
@@ -347,7 +316,6 @@ class BaseRester:
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
         suburl: Optional[str] = None,
-        version: Optional[str] = None,
     ):
         """
         Query the endpoint for a list of documents.
@@ -357,26 +325,16 @@ class BaseRester:
             fields: list of fields to return
             monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
-            version: If supported by the endpoint, specify a specific database version,
-                check the supports_version attribute to see if this endpoint is supported
 
         Returns:
             A list of documents
         """
-        return self._query_resource(
-            criteria=criteria,
-            fields=fields,
-            monty_decode=monty_decode,
-            suburl=suburl,
-            version=version,
-        ).get("data")
+        return self._query_resource(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl,).get(
+            "data"
+        )
 
     def get_document_by_id(
-        self,
-        document_id: str,
-        fields: Optional[List[str]] = None,
-        monty_decode: bool = True,
-        version: Optional[str] = None,
+        self, document_id: str, fields: Optional[List[str]] = None, monty_decode: bool = True,
     ):
         """
         Query the endpoint for a single document.
@@ -385,37 +343,24 @@ class BaseRester:
             document_id: the unique key for this kind of document, typically a task_id
             fields: list of fields to return, by default will return all fields
             monty_decode: Decode the data using monty into python objects
-            version: For supported endpoints, specify a specific database
-                version
 
         Returns:
             A single document.
         """
 
         if document_id is None:
-            raise ValueError(
-                "Please supply a specific id. You can use the query method to find "
-                "ids of interest."
-            )
+            raise ValueError("Please supply a specific id. You can use the query method to find " "ids of interest.")
 
         if fields is None:
             criteria = {"all_fields": True, "limit": 1}  # type: dict
         else:
             criteria = {"limit": 1}
 
-        if version:
-            criteria["version"] = version
-
         if isinstance(fields, str):
             fields = (fields,)
 
         try:
-            results = self.query(
-                criteria=criteria,
-                fields=fields,
-                monty_decode=monty_decode,
-                suburl=document_id,
-            )
+            results = self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id,)
         except MPRestError:
 
             if self.primary_key == "material_id":
@@ -423,11 +368,7 @@ class BaseRester:
                 # this should likely be re-thought
                 from mp_api.matproj import MPRester
 
-                with MPRester(
-                    api_key=self.api_key,
-                    endpoint=self.base_endpoint,
-                    version=self.version,
-                ) as mpr:
+                with MPRester(api_key=self.api_key, endpoint=self.base_endpoint) as mpr:
                     new_document_id = mpr.get_materials_id_from_task_id(document_id)
                 warnings.warn(
                     f"Document primary key has changed from {document_id} to {new_document_id}, "
@@ -435,26 +376,18 @@ class BaseRester:
                 )
                 document_id = new_document_id
 
-            results = self.query(
-                criteria=criteria,
-                fields=fields,
-                monty_decode=monty_decode,
-                suburl=document_id,
-            )
+            results = self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id,)
 
         if not results:
             warnings.warn(f"No result for record {document_id}.")
             return
         elif len(results) > 1:
-            raise ValueError(
-                f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
-            )
+            raise ValueError(f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug.")
         else:
             return results[0]
 
     def search(
         self,
-        version: Optional[str] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -484,22 +417,11 @@ class BaseRester:
         # documented kwargs.
 
         return self._get_all_documents(
-            kwargs,
-            all_fields=all_fields,
-            fields=fields,
-            version=version,
-            chunk_size=chunk_size,
-            num_chunks=num_chunks,
+            kwargs, all_fields=all_fields, fields=fields, chunk_size=chunk_size, num_chunks=num_chunks,
         )
 
     def _get_all_documents(
-        self,
-        query_params,
-        all_fields=True,
-        fields=None,
-        version=None,
-        chunk_size=1000,
-        num_chunks=None,
+        self, query_params, all_fields=True, fields=None, chunk_size=1000, num_chunks=None,
     ):
         """
         Iterates over pages until all documents are retrieved. Displays
@@ -513,10 +435,10 @@ class BaseRester:
 
         query_params["limit"] = chunk_size
 
-        results = self._query_resource(query_params, fields=fields, version=version)
+        results = self._query_resource(query_params, fields=fields)
 
         # if we have all the results in a single page, return directly
-        if len(results["data"]) == results["meta"]["total"]:
+        if len(results["data"]) == results["meta"]["total_doc"]:
             return results["data"]
 
         # otherwise prepare to iterate over all pages
@@ -524,11 +446,8 @@ class BaseRester:
         count = 1
 
         # progress bar
-        total_docs = results["meta"]["total"]
-        t = tqdm(
-            desc=f"Retrieving {self.document_model.__name__} documents",
-            total=total_docs,
-        )
+        total_docs = results["meta"]["total_doc"]
+        t = tqdm(desc=f"Retrieving {self.document_model.__name__} documents", total=total_docs,)
         t.update(len(all_results))
 
         # warn to select specific fields only for many results
@@ -541,13 +460,11 @@ class BaseRester:
 
         while True:
             query_params["skip"] = count * chunk_size
-            results = self._query_resource(query_params, fields=fields, version=version)
+            results = self._query_resource(query_params, fields=fields)
 
             t.update(len(results["data"]))
 
-            if not any(results["data"]) or (
-                num_chunks is not None and count == num_chunks
-            ):
+            if not any(results["data"]) or (num_chunks is not None and count == num_chunks):
                 break
 
             count += 1
@@ -556,9 +473,7 @@ class BaseRester:
         return all_results
 
     def query_by_task_id(self, *args, **kwargs):
-        print(
-            "query_by_task_id has been renamed to get_document_by_id to be more general"
-        )
+        print("query_by_task_id has been renamed to get_document_by_id to be more general")
         return self.get_document_by_id(*args, **kwargs)
 
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
@@ -569,13 +484,9 @@ class BaseRester:
         """
         try:
             criteria = criteria or {}
-            criteria[
-                "limit"
-            ] = 1  # we just want the meta information, only ask for single document
-            results = self._query_resource(
-                criteria=criteria, monty_decode=False
-            )  # do not waste cycles Monty decoding
-            return results["meta"]["total"]
+            criteria["limit"] = 1  # we just want the meta information, only ask for single document
+            results = self._query_resource(criteria=criteria, monty_decode=False)  # do not waste cycles Monty decoding
+            return results["meta"]["total_doc"]
         except Exception:
             return "unknown"
 

@@ -19,6 +19,8 @@ class SurfacePropertiesRester(BaseRester):
         surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
         shape_factor: Optional[Tuple[float, float]] = None,
         has_reconstructed: Optional[bool] = None,
+        sort_field: Optional[str] = None,
+        ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -35,6 +37,8 @@ class SurfacePropertiesRester(BaseRester):
                 consider.
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
+            sort_field (str): Field used to sort results.
+            ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -77,13 +81,14 @@ class SurfacePropertiesRester(BaseRester):
         if has_reconstructed:
             query_params.update({"has_reconstructed": has_reconstructed})
 
+        if sort_field:
+            query_params.update({"sort_field": sort_field})
+
+        if ascending is not None:
+            query_params.update({"ascending": ascending})
+
         query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
-            version=self.version,
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )
