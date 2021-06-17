@@ -3,6 +3,7 @@ import warnings
 
 from pymatgen.core import Structure
 from pymatgen.entries.compatibility import MaterialsProjectCompatibility
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from mp_api.core.client import BaseRester
 from mp_api.routes import *
@@ -24,12 +25,7 @@ class MPRester:
     """
 
     def __init__(
-        self,
-        api_key=DEFAULT_API_KEY,
-        endpoint=DEFAULT_ENDPOINT,
-        version=None,
-        notify_db_version=True,
-        include_user_agent=True,
+        self, api_key=DEFAULT_API_KEY, endpoint=DEFAULT_ENDPOINT, notify_db_version=True, include_user_agent=True,
     ):
         """
         Args:
@@ -44,7 +40,6 @@ class MPRester:
                 interface. Defaults to the standard Materials Project REST
                 address at "https://api.materialsproject.org", but
                 can be changed to other urls implementing a similar interface.
-            version (Optional[str]): Specify the database snapshot to query.
             notify_db_version (bool): If True, the current MP database version will
                 be retrieved and logged locally in the ~/.pmgrc.yaml. If the database
                 version changes, you will be notified. The current database version is
@@ -61,21 +56,14 @@ class MPRester:
 
         self.api_key = api_key
         self.endpoint = endpoint
-        self.version = version
-        self.session = BaseRester._create_session(
-            api_key=api_key, include_user_agent=include_user_agent
-        )
+        self.session = BaseRester._create_session(api_key=api_key, include_user_agent=include_user_agent)
 
         self._all_resters = []
 
         for cls in BaseRester.__subclasses__():
 
             rester = cls(
-                api_key=api_key,
-                endpoint=endpoint,
-                version=version,
-                include_user_agent=include_user_agent,
-                session=self.session,
+                api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent, session=self.session,
             )
 
             self._all_resters.append(rester)
@@ -100,26 +88,35 @@ class MPRester:
     # The following methods are retained for backwards compatibility, but will
     # eventually be retired.
 
-    # @deprecated(self.materials.get_structure_by_material_id, _DEPRECATION_WARNING)
-    def get_structure_by_material_id(
-        self, material_id, final=True, conventional_unit_cell=False
-    ) -> Structure:
+    def get_structure_by_material_id(self, material_id, final=True, conventional_unit_cell=False) -> Structure:
         """
         Get a Structure corresponding to a material_id.
 
         Args:
             material_id (str): Materials Project material_id (a string,
                 e.g., mp-1234).
-            final (bool): Whether to get the final structure, or the initial
-                (pre-relaxation) structure. Defaults to True.
+            final (bool): Whether to get the final structure, or the list of initial
+                (pre-relaxation) structures. Defaults to True.
             conventional_unit_cell (bool): Whether to get the standard
-                conventional unit cell
+                conventional unit cell for the final or list of initial structures.
 
         Returns:
-            Structure object.
+            Structure object or list of Structure objects.
         """
-        # TODO: decide about `final` and `conventional_unit_cell`
-        return self.materials.get_structure_by_material_id(material_id=material_id)  # type: ignore
+
+        structure_data = self.materials.get_structure_by_material_id(  # type: ignore
+            material_id=material_id, final=final
+        )
+
+        if conventional_unit_cell:
+            if final:
+                structure_data = SpacegroupAnalyzer(structure_data).get_conventional_standard_structure()
+            else:
+                structure_data = [
+                    SpacegroupAnalyzer(structure).get_conventional_standard_structure() for structure in structure_data
+                ]
+
+        return structure_data
 
     # @deprecated(self.materials.get_database_version, _DEPRECATION_WARNING)
     def get_database_version(self):
@@ -138,7 +135,7 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_materials_id_from_task_id(self, task_id, version=None):
+    def get_materials_id_from_task_id(self, task_id):
         """
         Returns the current material_id from a given task_id. The
         materials_id should rarely change, and is usually chosen from
@@ -148,25 +145,32 @@ class MPRester:
 
         Args:
             task_id (str): A task id.
-            version (str): Specific database version to query.
 
         Returns:
-            materials_id (str)
+            materials_id (MPID)
         """
-        docs = self.materials.search(
-            task_ids=[task_id], fields=["material_id"], version=version
-        )
+        docs = self.materials.search(task_ids=[task_id], fields=["material_id"])
         if len(docs) == 1:
             return docs[0].material_id
         elif len(docs) > 1:
-            raise ValueError(
-                f"Multiple documents return for {task_id}, this should not happen, please report it!"
-            )
+            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
         else:
             warnings.warn(
                 f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
             )
             return None
+
+    def get_materials_id_references(self, material_id):
+        """
+        Returns all references for a materials id.
+
+        Args:
+            material_id (str): A material id.
+
+        Returns:
+            BibTeX (str)
+        """
+        raise NotImplementedError
 
     def get_materials_ids(self, chemsys_formula):
         """
@@ -177,28 +181,46 @@ class MPRester:
                 or formula (e.g., Fe2O3).
 
         Returns:
-            ([str]) List of all materials ids.
+            ([MPID]) List of all materials ids.
         """
         return sorted(
-            doc.task_id
+            doc.material_id
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula
+                chemsys_formula=chemsys_formula, all_fields=False, fields=["material_id"]
             )
         )
 
-    def get_structures(self, chemsys_formula_id, energy_above_hull_cutoff=0):
+    def get_structures(self, chemsys_formula, final=True):
         """
         Get a list of Structures corresponding to a chemical system, formula,
         or materials_id.
 
         Args:
             chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
+                or formula (e.g., Fe2O3).
+            final (bool): Whether to get the final structure, or the list of initial
+                (pre-relaxation) structures. Defaults to True.
 
         Returns:
             List of Structure objects.
         """
-        raise NotImplementedError
+
+        if final:
+            return [
+                doc.structure
+                for doc in self.materials.search_material_docs(
+                    chemsys_formula=chemsys_formula, all_fields=False, fields=["structure"]
+                )
+            ]
+        else:
+            structures = []
+
+            for doc in self.materials.search_material_docs(
+                chemsys_formula=chemsys_formula, all_fields=False, fields=["initial_structures"]
+            ):
+                structures.extend(doc.initial_structures)
+
+            return structures
 
     def find_structure(self, filename_or_structure):
         """
@@ -213,52 +235,49 @@ class MPRester:
         Raises:
             MPRestError
         """
-        raise NotImplementedError
+        return self.materials.find_structure(filename_or_structure)
 
     def get_entries(
-        self,
-        chemsys_formula_id_criteria,
-        compatible_only=True,
-        inc_structure=None,
-        property_data=None,
-        conventional_unit_cell=False,
-        sort_by_e_above_hull=False,
+        self, chemsys_formula, sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system, formula, or materials_id or full criteria.
 
         Args:
-            chemsys_formula_id_criteria (str/dict): A chemical system
-                (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id
-                (e.g., mp-1234) or full Mongo-style dict criteria.
-            compatible_only (bool): Whether to return only "compatible"
-                entries. Compatible entries are entries that have been
-                processed using the MaterialsProjectCompatibility class,
-                which performs adjustments to allow mixing of GGA and GGA+U
-                calculations for more accurate phase diagrams and reaction
-                energies.
-            inc_structure (str): If None, entries returned are
-                ComputedEntries. If inc_structure="initial",
-                ComputedStructureEntries with initial structures are returned.
-                Otherwise, ComputedStructureEntries with final structures
-                are returned.
-            property_data (list): Specify additional properties to include in
-                entry.data. If None, no data. Should be a subset of
-                supported_properties.
-            conventional_unit_cell (bool): Whether to get the standard
-                conventional unit cell
+            chemsys_formula (str): A chemical system
+                (e.g., Li-Fe-O), or formula (e.g., Fe2O3).
             sort_by_e_above_hull (bool): Whether to sort the list of entries by
-                e_above_hull (will query e_above_hull as a property_data if True).
+                e_above_hull in ascending order.
 
         Returns:
             List of ComputedEntry or ComputedStructureEntry objects.
         """
-        raise NotImplementedError
 
-    def get_pourbaix_entries(
-        self, chemsys, solid_compat=MaterialsProjectCompatibility()
-    ):
+        entries = []
+
+        if sort_by_e_above_hull:
+
+            for doc in self.thermo.search_thermo_docs(
+                chemsys_formula=chemsys_formula,
+                all_fields=False,
+                fields=["entries"],
+                sort_field="e_above_hull",
+                ascending=True,
+            ):
+                entries.extend(list(doc.entries.values()))
+
+            return entries
+
+        else:
+            for doc in self.thermo.search_thermo_docs(
+                chemsys_formula=chemsys_formula, all_fields=False, fields=["entries"],
+            ):
+                entries.extend(list(doc.entries.values()))
+
+            return entries
+
+    def get_pourbaix_entries(self, chemsys, solid_compat=MaterialsProjectCompatibility()):
         """
         A helper function to get all entries necessary to generate
         a pourbaix diagram from the rest interface.
@@ -271,41 +290,17 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_entry_by_material_id(
-        self,
-        material_id,
-        compatible_only=True,
-        inc_structure=None,
-        property_data=None,
-        conventional_unit_cell=False,
-    ):
+    def get_entry_by_material_id(self, material_id):
         """
-        Get a ComputedEntry corresponding to a material_id.
+        Get all ComputedEntry objects corresponding to a material_id.
 
         Args:
             material_id (str): Materials Project material_id (a string,
                 e.g., mp-1234).
-            compatible_only (bool): Whether to return only "compatible"
-                entries. Compatible entries are entries that have been
-                processed using the MaterialsProjectCompatibility class,
-                which performs adjustments to allow mixing of GGA and GGA+U
-                calculations for more accurate phase diagrams and reaction
-                energies.
-            inc_structure (str): If None, entries returned are
-                ComputedEntries. If inc_structure="final",
-                ComputedStructureEntries with final structures are returned.
-                Otherwise, ComputedStructureEntries with initial structures
-                are returned.
-            property_data (list): Specify additional properties to include in
-                entry.data. If None, no data. Should be a subset of
-                supported_properties.
-            conventional_unit_cell (bool): Whether to get the standard
-                conventional unit cell
-
         Returns:
-            ComputedEntry or ComputedStructureEntry object.
+            List of ComputedEntry or ComputedStructureEntry object.
         """
-        raise NotImplementedError
+        return self.thermo.get_document_by_id(document_id=material_id, fields=["entries"]).entries
 
     def get_bandstructure_by_material_id(self, material_id, line_mode=True):
         """
@@ -360,48 +355,6 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_entries_in_chemsys(
-        self,
-        elements,
-        compatible_only=True,
-        inc_structure=None,
-        property_data=None,
-        conventional_unit_cell=False,
-    ):
-        """
-        Helper method to get a list of ComputedEntries in a chemical system.
-        For example, elements = ["Li", "Fe", "O"] will return a list of all
-        entries in the Li-Fe-O chemical system, i.e., all LixOy,
-        FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for
-        creating phase diagrams of entire chemical systems.
-
-        Args:
-            elements (str or [str]): Chemical system string comprising element
-                symbols separated by dashes, e.g., "Li-Fe-O" or List of element
-                symbols, e.g., ["Li", "Fe", "O"].
-            compatible_only (bool): Whether to return only "compatible"
-                entries. Compatible entries are entries that have been
-                processed using the MaterialsProjectCompatibility class,
-                which performs adjustments to allow mixing of GGA and GGA+U
-                calculations for more accurate phase diagrams and reaction
-                energies.
-            inc_structure (str): If None, entries returned are
-                ComputedEntries. If inc_structure="final",
-                ComputedStructureEntries with final structures are returned.
-                Otherwise, ComputedStructureEntries with initial structures
-                are returned.
-            property_data (list): Specify additional properties to include in
-                entry.data. If None, no data. Should be a subset of
-                supported_properties.
-            conventional_unit_cell (bool): Whether to get the standard
-                conventional unit cell
-
-        Returns:
-            List of ComputedEntries.
-
-        """
-        raise NotImplementedError
-
     def get_exp_thermo_data(self, formula):
         """
         Get a list of ThermoData objects associated with a formula using the
@@ -431,12 +384,7 @@ class MPRester:
         raise NotImplementedError
 
     def query(
-        self,
-        criteria,
-        properties,
-        chunk_size=500,
-        max_tries_per_chunk=5,
-        mp_decode=True,
+        self, criteria, properties, chunk_size=500, max_tries_per_chunk=5, mp_decode=True,
     ):
         r"""
 
@@ -798,12 +746,7 @@ class MPRester:
         raise NotImplementedError
 
     def get_interface_reactions(
-        self,
-        reactant1,
-        reactant2,
-        open_el=None,
-        relative_mu=None,
-        use_hull_energy=False,
+        self, reactant1, reactant2, open_el=None, relative_mu=None, use_hull_energy=False,
     ):
         """
         Gets critical reactions between two reactants.
