@@ -8,5 +8,5 @@ flake8==3.9.2
 mypy==0.902
 mypy-extensions==0.4.3
 typing-extensions==3.10.0.0
-types-requests==0.1.11
+types-requests==0.1.13
 types-pkg_resources==0.1.2
