@@ -20,10 +20,10 @@ class ChargeDensityRester(BaseRester):
             chgcar (dict): Pymatgen CHGCAR object.
         """
 
-        result = self.get_document_by_id(document_id=task_id)
+        result = self.search(task_ids=task_id, fields=["task_id", "data"])
 
-        if result.get("data", None) is not None:
-            return result["data"]
+        if len(result) > 0:
+            return result[0]["data"]
         else:
             raise MPRestError("No charge density found")
 
@@ -41,8 +41,7 @@ class ChargeDensityRester(BaseRester):
         task_rester = TaskRester(endpoint=self.base_endpoint, api_key=self.api_key)  # type: ignore
 
         result = task_rester.get_document_by_id(
-            document_id=task_id,
-            fields=["orig_inputs.incar", "orig_inputs.poscar", "orig_inputs.kpoints"],
+            document_id=task_id, fields=["orig_inputs.incar", "orig_inputs.poscar", "orig_inputs.kpoints"],
         ).orig_inputs
 
         return result
@@ -63,24 +62,17 @@ class ChargeDensityRester(BaseRester):
             endpoint=self.base_endpoint, api_key=self.api_key,
         )
 
-        calculation_types = materials_rester.get_document_by_id(
-            document_id=material_id, fields=["calc_types"]
-        ).calc_types
+        mat_doc = materials_rester.get_document_by_id(document_id=material_id, fields=["calc_types"])
 
         calculation_ids = []
-        for calculation_id, calculation_type in calculation_types.items():
-            if "Static" in calculation_type:
-                calculation_ids.append(calculation_id)
+        if mat_doc is not None:
+            for calculation_id, calculation_type in mat_doc.calc_types.items():
+                if "Static" in calculation_type:
+                    calculation_ids.append(calculation_id)
 
-        chgcar_calculation_ids = []
-        for calculation_id in calculation_ids:
-            try:
-                result = self.get_document_by_id(
-                    document_id=calculation_id, fields=["task_id"]
-                )
-            except MPRestError:
-                continue
+        result = []
 
-            chgcar_calculation_ids.append(result["task_id"])
+        if len(calculation_ids) > 0:
+            result = self.search(task_ids=",".join(calculation_ids), fields=["task_id"])
 
-        return chgcar_calculation_ids
+        return result
