@@ -20,7 +20,7 @@ class ChargeDensityRester(BaseRester):
             chgcar (dict): Pymatgen CHGCAR object.
         """
 
-        result = self.search(task_ids=task_id, fields=["task_id", "data"])
+        result = self.search(task_ids=task_id, fields=["task_id", "data"], chunk_size=1)
 
         if len(result) > 0:
             return result[0]["data"]
@@ -73,6 +73,6 @@ class ChargeDensityRester(BaseRester):
         result = []
 
         if len(calculation_ids) > 0:
-            result = self.search(task_ids=",".join(calculation_ids), fields=["task_id"])
+            result = self.search(task_ids=",".join(calculation_ids), fields=["task_id"], chunk_size=10)
 
         return result

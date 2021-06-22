@@ -10,10 +10,8 @@ def charge_density_resource(s3_store):
         ChgcarDataDoc,
         query_operators=[
             ChgcarTaskIDQuery(),
-            PaginationQuery(),
-            SparseFieldsQuery(
-                ChgcarDataDoc, default_fields=["task_id", "last_updated"],
-            ),
+            PaginationQuery(default_limit=5, max_limit=10),
+            SparseFieldsQuery(ChgcarDataDoc, default_fields=["task_id", "last_updated"],),
         ],
         tags=["Charge Density"],
         enable_default_search=True,
