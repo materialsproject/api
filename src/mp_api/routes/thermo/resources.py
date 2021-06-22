@@ -12,9 +12,7 @@ from mp_api.routes.thermo.query_operators import (
     IsStableQuery,
 )
 
-from mp_api.core.settings import MAPISettings
-
-from mp_api.routes.materials.query_operators import MultiMaterialIDQuery
+from mp_api.routes.materials.query_operators import MultiMaterialIDQuery, FormulaQuery
 
 
 def thermo_resource(thermo_store):
@@ -23,14 +21,12 @@ def thermo_resource(thermo_store):
         ThermoDoc,
         query_operators=[
             MultiMaterialIDQuery(),
-            ThermoChemicalQuery(),
+            FormulaQuery(),
             IsStableQuery(),
             NumericQuery(model=ThermoDoc),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(
-                ThermoDoc, default_fields=["material_id", "last_updated"]
-            ),
+            SparseFieldsQuery(ThermoDoc, default_fields=["material_id", "last_updated"]),
         ],
         tags=["Thermo"],
     )

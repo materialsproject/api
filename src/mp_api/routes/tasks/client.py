@@ -63,7 +63,6 @@ class TaskRester(BaseRester):
             query_params.update({"formula": chemsys_formula})
 
         return super().search(
-            version=self.version,
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

@@ -9,7 +9,6 @@ class PhononRester:
         document_id: str,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
-        version: Optional[str] = None,
     ) -> PhononBSDoc: ...
 
 
@@ -20,5 +19,4 @@ class PhononImgRester:
         document_id: str,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
-        version: Optional[str] = None,
     ) -> PhononImgDoc: ...

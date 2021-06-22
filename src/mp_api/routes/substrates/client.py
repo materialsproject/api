@@ -21,6 +21,8 @@ class SubstratesRester(BaseRester):
         substrate_orientation: Optional[List[int]] = None,
         area: Optional[Tuple[float, float]] = None,
         energy: Optional[Tuple[float, float]] = None,
+        sort_field: Optional[str] = None,
+        ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -38,6 +40,8 @@ class SubstratesRester(BaseRester):
             area (Tuple[float,float]): Minimum and maximum volume in Å² to consider for the minimim coincident
                 interface area range.
             energy (Tuple[float,float]): Minimum and maximum energy in meV to consider for the elastic energy range.
+            sort_field (str): Field used to sort results.
+            ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -71,13 +75,14 @@ class SubstratesRester(BaseRester):
         if energy:
             query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
 
+        if sort_field:
+            query_params.update({"sort_field": sort_field})
+
+        if ascending is not None:
+            query_params.update({"ascending": ascending})
+
         query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
-            version=self.version,
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

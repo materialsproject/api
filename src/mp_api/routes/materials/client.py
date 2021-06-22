@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 from pymatgen.core.structure import Structure
 
 from emmet.core.material import MaterialsDoc
@@ -14,24 +14,27 @@ class MaterialsRester(BaseRester):
     supports_versions = True
     primary_key = "material_id"
 
-    def get_structure_by_material_id(self, material_id: str, version: Optional[str] = None) -> Structure:
+    def get_structure_by_material_id(self, material_id: str, final: bool = True) -> Union[Structure, List[Structure]]:
         """
         Get a structure for a given Materials Project ID.
 
         Arguments:
             material_id (str): Materials project ID
-            version (str): Version of data to query on in the format 'YYYY.MM.DD'.
-                Defaults to None which will return data from the most recent database release.
+            final (bool): Whether to get the final structure, or the list of initial
+                (pre-relaxation) structures. Defaults to True.
 
 
         Returns:
-            structure (Structure): Pymatgen structure object
+            structure (Union[Structure, List[Structure]]): Pymatgen structure object or list of
+                pymatgen structure objects.
         """
-        return self.get_document_by_id(material_id, fields=["structure"]).structure
+        if final:
+            return self.get_document_by_id(material_id, fields=["structure"]).structure
+        else:
+            return self.get_document_by_id(material_id, fields=["initial_structures"]).initial_structures
 
     def search_material_docs(
         self,
-        version: Optional[str] = None,
         chemsys_formula: Optional[str] = None,
         task_ids: Optional[List[str]] = None,
         crystal_system: Optional[CrystalSystem] = None,
@@ -41,8 +44,10 @@ class MaterialsRester(BaseRester):
         volume: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
         deprecated: Optional[bool] = False,
+        sort_field: Optional[str] = None,
+        ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: int = 100,
+        chunk_size: int = 1000,
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
@@ -50,8 +55,6 @@ class MaterialsRester(BaseRester):
         Query core material docs using a variety of search criteria.
 
         Arguments:
-            version (str): Version of data to query on in the format 'YYYY.MM.DD'. Defaults to None which will
-                return data from the most recent database release.
             chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
                 or formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
@@ -63,6 +66,8 @@ class MaterialsRester(BaseRester):
             volume (Tuple[float,float]): Minimum and maximum volume to consider.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
+            sort_field (str): Field used to sort results.
+            ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -74,9 +79,6 @@ class MaterialsRester(BaseRester):
         """
 
         query_params = {"deprecated": deprecated}  # type: dict
-
-        if version:
-            query_params.update({"version": version})
 
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
@@ -101,32 +103,17 @@ class MaterialsRester(BaseRester):
         if density:
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
+        if sort_field:
+            query_params.update({"sort_field": sort_field})
+
+        if ascending is not None:
+            query_params.update({"ascending": ascending})
+
         query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
-            version=self.version,
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )
-
-    def get_database_versions(self):
-        """
-        Get version tags available for the Materials Project core materials data.
-        These can be used to request data from previous releases.
-
-        Returns:
-            versions (List[str]): List of database versions as strings.
-        """
-
-        result = self._make_request("versions")
-
-        if len(result.get("data", [])) > 0:
-            return result
-        else:
-            raise MPRestError("No data found")
 
     def find_structure(self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5):
         """

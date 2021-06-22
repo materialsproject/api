@@ -273,7 +273,7 @@ if db_uri:
     s3_chgcar_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
+        key="fs_id",
         collection_name="atomate_chgcar_fs_index",
     )
 
@@ -282,7 +282,7 @@ if db_uri:
         bucket="mp-volumetric",
         sub_dir="atomate_chgcar_fs/",
         compress=True,
-        key="task_id",
+        key="fs_id",
         searchable_fields=["task_id", "fs_id"],
     )
 

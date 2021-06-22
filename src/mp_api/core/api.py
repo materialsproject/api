@@ -1,7 +1,7 @@
 from typing import Dict, List
 from maggma.api.resource.core import Resource
 from pymatgen.core import __version__ as pmg_version  # type: ignore
-from mp_api import __version__ as api_version
+from mp_api.core.settings import MAPISettings
 from fastapi.openapi.utils import get_openapi
 from maggma.api.API import API
 
@@ -17,14 +17,10 @@ class MAPI(API):
         title="Materials Project API",
         version="v3.0-dev",
         debug=False,
-        heartbeat_meta={"pymatgen": pmg_version},
+        heartbeat_meta={"pymatgen": pmg_version, "db_version": MAPISettings().db_version},
     ):
         super().__init__(
-            resources=resources,
-            title=title,
-            version=version,
-            debug=debug,
-            heartbeat_meta=heartbeat_meta,
+            resources=resources, title=title, version=version, debug=debug, heartbeat_meta=heartbeat_meta,
         )
 
     @property
@@ -35,9 +31,7 @@ class MAPI(API):
         app = super().app
 
         def custom_openapi():
-            openapi_schema = get_openapi(
-                title=self.title, version=self.version, routes=app.routes
-            )
+            openapi_schema = get_openapi(title=self.title, version=self.version, routes=app.routes)
 
             openapi_schema["components"]["securitySchemes"] = {
                 "ApiKeyAuth": {
