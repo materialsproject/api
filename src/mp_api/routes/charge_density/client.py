@@ -41,7 +41,8 @@ class ChargeDensityRester(BaseRester):
         task_rester = TaskRester(endpoint=self.base_endpoint, api_key=self.api_key)  # type: ignore
 
         result = task_rester.get_document_by_id(
-            document_id=task_id, fields=["orig_inputs.incar", "orig_inputs.poscar", "orig_inputs.kpoints"],
+            document_id=task_id,
+            fields=["orig_inputs.incar", "orig_inputs.poscar", "orig_inputs.kpoints"],
         ).orig_inputs
 
         return result
@@ -59,7 +60,7 @@ class ChargeDensityRester(BaseRester):
         """
 
         materials_rester = MaterialsRester(  # type: ignore
-            version=self.version, endpoint=self.base_endpoint, api_key=self.api_key,
+            endpoint=self.base_endpoint, api_key=self.api_key,
         )
 
         calculation_types = materials_rester.get_document_by_id(
@@ -74,7 +75,9 @@ class ChargeDensityRester(BaseRester):
         chgcar_calculation_ids = []
         for calculation_id in calculation_ids:
             try:
-                result = self.get_document_by_id(document_id=calculation_id, fields=["task_id"])
+                result = self.get_document_by_id(
+                    document_id=calculation_id, fields=["task_id"]
+                )
             except MPRestError:
                 continue
 
