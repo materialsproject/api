@@ -359,6 +359,8 @@ class BaseRester:
         if isinstance(fields, str):
             fields = (fields,)
 
+        results = []
+
         try:
             results = self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id,)
         except MPRestError:
@@ -370,13 +372,17 @@ class BaseRester:
 
                 with MPRester(api_key=self.api_key, endpoint=self.base_endpoint) as mpr:
                     new_document_id = mpr.get_materials_id_from_task_id(document_id)
-                warnings.warn(
-                    f"Document primary key has changed from {document_id} to {new_document_id}, "
-                    f"returning data for {new_document_id} in {self.suffix} route.    "
-                )
-                document_id = new_document_id
 
-            results = self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id,)
+                if new_document_id is not None:
+                    warnings.warn(
+                        f"Document primary key has changed from {document_id} to {new_document_id}, "
+                        f"returning data for {new_document_id} in {self.suffix} route.    "
+                    )
+                    document_id = new_document_id
+
+                    results = self.query(
+                        criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id,
+                    )
 
         if not results:
             warnings.warn(f"No result for record {document_id}.")
@@ -420,9 +426,7 @@ class BaseRester:
             kwargs, all_fields=all_fields, fields=fields, chunk_size=chunk_size, num_chunks=num_chunks,
         )
 
-    def _get_all_documents(
-        self, query_params, all_fields=True, fields=None, chunk_size=1000, num_chunks=None,
-    ):
+    def _get_all_documents(self, query_params, all_fields=True, fields=None, chunk_size=1000, num_chunks=None):
         """
         Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
