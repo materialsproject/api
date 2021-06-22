@@ -84,10 +84,6 @@ class MPRester:
         """
         self.session.close()
 
-    ###########################################################################
-    # The following methods are retained for backwards compatibility, but will
-    # eventually be retired.
-
     def get_structure_by_material_id(self, material_id, final=True, conventional_unit_cell=False) -> Structure:
         """
         Get a Structure corresponding to a material_id.
@@ -118,7 +114,6 @@ class MPRester:
 
         return structure_data
 
-    # @deprecated(self.materials.get_database_version, _DEPRECATION_WARNING)
     def get_database_version(self):
         """
         The Materials Project database is periodically updated and has a
@@ -127,13 +122,13 @@ class MPRester:
         change, while calculation data about a specific calculation task
         remains unchanged and available for querying via its task_id.
 
-        The database version is set as a date in the format YYYY-MM-DD,
-        where "-DD" may be optional. An additional numerical suffix
+        The database version is set as a date in the format YYYY_MM_DD,
+        where "_DD" may be optional. An additional numerical suffix
         might be added if multiple releases happen on the same day.
 
         Returns: database version as a string
         """
-        raise NotImplementedError
+        return BaseRester(endpoint=self.endpoint + "/heartbeat")._query_resource()["db_version"]
 
     def get_materials_id_from_task_id(self, task_id):
         """
@@ -305,9 +300,6 @@ class MPRester:
     def get_bandstructure_by_material_id(self, material_id, line_mode=True):
         """
         Get a BandStructure corresponding to a material_id.
-
-        REST Endpoint: https://www.materialsproject.org/rest/v2/materials/<mp-id>/vasp/bandstructure or
-        https://www.materialsproject.org/rest/v2/materials/<mp-id>/vasp/bandstructure_uniform
 
         Args:
             material_id (str): Materials Project material_id.

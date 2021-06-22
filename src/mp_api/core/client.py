@@ -112,56 +112,6 @@ class BaseRester:
         """
         self.session.close()
 
-    def _make_request(self, sub_url, monty_decode: bool = True):
-        """
-        Helper function to make requests
-
-        Arguments:
-            sub_url: the URL to request
-            monty_decode: Decode the data using monty into python objects
-        """
-        print("_make_request is going away", sub_url)
-
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
-
-        url = self.endpoint + sub_url
-
-        if self.debug:
-            print(f"URL: {url}")
-
-        try:
-            response = self.session.get(url, verify=True)
-            if response.status_code == 200:
-                if monty_decode:
-                    data = json.loads(response.text, cls=MontyDecoder)
-                else:
-                    data = json.loads(response.text)
-
-                return data
-
-            else:
-                try:
-                    data = json.loads(response.text)["detail"]
-                except (JSONDecodeError, KeyError):
-                    data = "Response {}".format(response.text)
-                if isinstance(data, str):
-                    message = data
-                else:
-                    try:
-                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
-                    except (KeyError, IndexError):
-                        message = str(data)
-
-                raise MPRestError(
-                    f"REST query returned with error status code {response.status_code} "
-                    f"on URL {response.url} with message:\n{message}"
-                )
-
-        except RequestException as ex:
-
-            raise MPRestError(str(ex))
-
     def _post_resource(
         self,
         body: Dict = None,
