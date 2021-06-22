@@ -69,4 +69,3 @@ class DielectricRester(BaseRester):
         return super().search(
             num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )
-
