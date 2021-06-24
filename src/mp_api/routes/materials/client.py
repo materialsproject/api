@@ -3,6 +3,7 @@ from pymatgen.core.structure import Structure
 
 from emmet.core.material import MaterialsDoc
 from emmet.core.symmetry import CrystalSystem
+from emmet.core.utils import jsanitize
 
 from mp_api.core.client import BaseRester, MPRestError
 
@@ -23,15 +24,16 @@ class MaterialsRester(BaseRester):
             final (bool): Whether to get the final structure, or the list of initial
                 (pre-relaxation) structures. Defaults to True.
 
-
         Returns:
             structure (Union[Structure, List[Structure]]): Pymatgen structure object or list of
                 pymatgen structure objects.
         """
         if final:
-            return self.get_document_by_id(material_id, fields=["structure"]).structure
+            response = self.get_document_by_id(material_id, fields=["structure"])
+            return response.structure if response is not None else response  # type: ignore
         else:
-            return self.get_document_by_id(material_id, fields=["initial_structures"]).initial_structures
+            response = self.get_document_by_id(material_id, fields=["initial_structures"])
+            return response.initial_structures if response is not None else response  # type: ignore
 
     def search_material_docs(
         self,
@@ -115,7 +117,7 @@ class MaterialsRester(BaseRester):
             num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )
 
-    def find_structure(self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5):
+    def find_structure(self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5, limit=1):
         """
         Finds matching structures on the Materials Project site.
         Args:
@@ -127,7 +129,7 @@ class MaterialsRester(BaseRester):
             MPRestError
         """
 
-        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol}
+        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "limit": limit}
 
         if isinstance(filename_or_structure, str):
             s = Structure.from_file(filename_or_structure)
@@ -137,5 +139,5 @@ class MaterialsRester(BaseRester):
             raise MPRestError("Provide filename or Structure object.")
 
         return self._post_resource(
-            data=s.as_dict(), params=params, suburl="find_structure", use_document_model=False,
+            body=s.as_dict(), params=params, suburl="find_structure", use_document_model=False,
         ).get("data")
