@@ -11,6 +11,8 @@ from pymatgen.electronic_structure.bandstructure import (
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
+from pymatgen.entries.computed_entries import ComputedEntry
+from pymatgen.core.periodic_table import Element
 
 
 api_is_up = (
@@ -20,7 +22,7 @@ api_is_up = (
 
 @pytest.fixture()
 def mpr():
-    rester = MPRester()
+    rester = MPRester(endpoint="http://127.0.0.1:8000")
     yield rester
     rester.session.close()
 
@@ -80,13 +82,31 @@ class TestMPRester:
             data = mpr.find_structure(s)
             assert data[0]["material_id"] == "mp-149"
 
-    def test_get_bandstructure_by_material_id(self, mpr):
-        bs = mpr.get_bandstructure_by_material_id("mp-149")
-        assert isinstance(bs, BandStructureSymmLine)
-        bs_unif = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
-        assert isinstance(bs_unif, BandStructure)
-        assert not isinstance(bs_unif, BandStructureSymmLine)
+    # def test_get_bandstructure_by_material_id(self, mpr):
+    #     bs = mpr.get_bandstructure_by_material_id("mp-149")
+    #     assert isinstance(bs, BandStructureSymmLine)
+    #     bs_unif = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
+    #     assert isinstance(bs_unif, BandStructure)
+    #     assert not isinstance(bs_unif, BandStructureSymmLine)
 
-    def test_get_dos_by_id(self, mpr):
-        dos = mpr.get_dos_by_material_id("mp-149")
-        assert isinstance(dos, CompleteDos)
+    # def test_get_dos_by_id(self, mpr):
+    #     dos = mpr.get_dos_by_material_id("mp-149")
+    #     assert isinstance(dos, CompleteDos)
+
+    def test_get_entry_by_material_id(self, mpr):
+        e = mpr.get_entry_by_material_id("mp-19017")
+        assert isinstance(e[0], ComputedEntry)
+        assert e[0].composition.reduced_formula == "LiFePO4"
+
+    def test_get_entried(self, mpr):
+        syms = ["Li", "Fe", "O"]
+        chemsys = "Li-Fe-O"
+        entries = mpr.get_entries(chemsys)
+        sorted_entries = mpr.get_entries(chemsys, sort_by_e_above_hull=True)
+
+        elements = set([Element(sym) for sym in syms])
+        for e in entries:
+            assert isinstance(e, ComputedEntry)
+            assert set(e.composition.elements).issubset(elements)
+
+        assert sorted_entries != entries

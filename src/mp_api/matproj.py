@@ -262,7 +262,7 @@ class MPRester:
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
-        to a chemical system, formula, or materials_id or full criteria.
+        to a chemical system or formula.
 
         Args:
             chemsys_formula (str): A chemical system
@@ -282,7 +282,7 @@ class MPRester:
                 chemsys_formula=chemsys_formula,
                 all_fields=False,
                 fields=["entries"],
-                sort_field="e_above_hull",
+                sort_field="energy_above_hull",
                 ascending=True,
             ):
                 entries.extend(list(doc.entries.values()))
@@ -297,21 +297,6 @@ class MPRester:
 
             return entries
 
-    def get_pourbaix_entries(
-        self, chemsys, solid_compat=MaterialsProjectCompatibility()
-    ):
-        """
-        A helper function to get all entries necessary to generate
-        a pourbaix diagram from the rest interface.
-
-        Args:
-            chemsys ([str]): A list of elements comprising the chemical
-                system, e.g. ['Li', 'Fe']
-            solid_compat: Compatiblity scheme used to pre-process solid DFT energies prior to applying aqueous
-                energy adjustments. Default: MaterialsProjectCompatibility().
-        """
-        raise NotImplementedError
-
     def get_entry_by_material_id(self, material_id):
         """
         Get all ComputedEntry objects corresponding to a material_id.
@@ -322,9 +307,11 @@ class MPRester:
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        return self.thermo.get_document_by_id(
-            document_id=material_id, fields=["entries"]
-        ).entries
+        return list(
+            self.thermo.get_document_by_id(
+                document_id=material_id, fields=["entries"]
+            ).entries.values()
+        )
 
     def get_bandstructure_by_material_id(
         self, material_id, path_type=BSPathType.setyawan_curtarolo, line_mode=True
@@ -397,41 +384,16 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_exp_thermo_data(self, formula):
-        """
-        Get a list of ThermoData objects associated with a formula using the
-        Materials Project REST interface.
-
-        Args:
-            formula (str): A formula to search for.
-
-        Returns:
-            List of ThermoData objects.
-        """
-        # TODO: MPContribs?
-        raise NotImplementedError
-
-    def get_exp_entry(self, formula):
-        """
-        Returns an ExpEntry object, which is the experimental equivalent of a
-        ComputedEntry and can be used for analyses using experimental data.
-
-        Args:
-            formula (str): A formula to search for.
-
-        Returns:
-            An ExpEntry object.
-        """
-        # TODO: MPContribs?
-        raise NotImplementedError
-
     def query(
         self,
         criteria,
         properties,
-        chunk_size=500,
-        max_tries_per_chunk=5,
-        mp_decode=True,
+        sort_field=None,
+        ascending=None,
+        num_chunks=None,
+        chunk_size=1000,
+        all_fields=True,
+        fields=None,
     ):
         r"""
 
@@ -456,31 +418,13 @@ class MPRester:
         up to MAX_TRIES_PER_CHUNK times.
 
         Args:
-            criteria (str/dict): Criteria of the query as a string or
-                mongo-style dict.
-
-                If string, it supports a powerful but simple string criteria.
-                E.g., "Fe2O3" means search for materials with reduced_formula
-                Fe2O3. Wild cards are also supported. E.g., "\\*2O" means get
-                all materials whose formula can be formed as \\*2O, e.g.,
-                Li2O, K2O, etc.
-
-                Other syntax examples:
-                mp-1234: Interpreted as a Materials ID.
-                Fe2O3 or *2O3: Interpreted as reduced formulas.
-                Li-Fe-O or *-Fe-O: Interpreted as chemical systems.
-
-                You can mix and match with spaces, which are interpreted as
-                "OR". E.g. "mp-1234 FeO" means query for all compounds with
-                reduced formula FeO or with materials_id mp-1234.
-
-                Using a full dict syntax, even more powerful queries can be
-                constructed. For example, {"elements":{"$in":["Li",
+            criteria (str/dict): Criteria of the query as a dictionary.
+                For example, {"elements":{"$in":["Li",
                 "Na", "K"], "$all": ["O"]}, "nelements":2} selects all Li, Na
                 and K oxides. {"band_gap": {"$gt": 1}} selects all materials
                 with band gaps greater than 1 eV.
             properties (list): Properties to request for as a list. For
-                example, ["formula", "formation_energy_per_atom"] returns
+                example, ["formula_pretty", "formation_energy_per_atom"] returns
                 the formula and formation energy per atom.
             chunk_size (int): Number of materials for which to fetch data at a
                 time. More data-intensive properties may require smaller chunk
@@ -494,170 +438,10 @@ class MPRester:
 
         Returns:
             List of results. E.g.,
-            [{u'formula': {u'O': 1, u'Li': 2.0}},
-            {u'formula': {u'Na': 2.0, u'O': 2.0}},
-            {u'formula': {u'K': 1, u'O': 3.0}},
+            [{u'composition': {u'O': 1, u'Li': 2.0}},
+            {u'composition': {u'Na': 2.0, u'O': 2.0}},
+            {u'composition': {u'K': 1, u'O': 3.0}},
             ...]
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def submit_structures(
-        self,
-        structures,
-        authors,
-        projects=None,
-        references="",
-        remarks=None,
-        data=None,
-        histories=None,
-        created_at=None,
-    ):
-        """
-        Submits a list of structures to the Materials Project as SNL files.
-        The argument list mirrors the arguments for the StructureNL object,
-        except that a list of structures with the same metadata is used as an
-        input.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            structures: A list of Structure objects
-            authors (list): List of {"name":'', "email":''} dicts,
-                *list* of Strings as 'John Doe <johndoe@gmail.com>',
-                or a single String with commas separating authors
-            projects ([str]): List of Strings ['Project A', 'Project B'].
-                This applies to all structures.
-            references (str): A String in BibTeX format. Again, this applies to
-                all structures.
-            remarks ([str]): List of Strings ['Remark A', 'Remark B']
-            data ([dict]): A list of free form dict. Namespaced at the root
-                level with an underscore, e.g. {"_materialsproject":<custom
-                data>}. The length of data should be the same as the list of
-                structures if not None.
-            histories: List of list of dicts - [[{'name':'', 'url':'',
-                'description':{}}], ...] The length of histories should be the
-                same as the list of structures if not None.
-            created_at (datetime): A datetime object
-
-        Returns:
-            A list of inserted submission ids.
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def submit_snl(self, snl):
-        """
-        Submits a list of StructureNL to the Materials Project site.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            snl (StructureNL/[StructureNL]): A single StructureNL, or a list
-            of StructureNL objects
-
-        Returns:
-            A list of inserted submission ids.
-
-        Raises:
-            MPRestError
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def delete_snl(self, snl_ids):
-        """
-        Delete earlier submitted SNLs.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            snl_ids: List of SNL ids.
-
-        Raises:
-            MPRestError
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def query_snl(self, criteria):
-        """
-        Query for submitted SNLs.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            criteria (dict): Query criteria.
-
-        Returns:
-            A dict, with a list of submitted SNLs in the "response" key.
-
-        Raises:
-            MPRestError
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def submit_vasp_directory(
-        self,
-        rootdir,
-        authors,
-        projects=None,
-        references="",
-        remarks=None,
-        master_data=None,
-        master_history=None,
-        created_at=None,
-        ncpus=None,
-    ):
-        """
-        Assimilates all vasp run directories beneath a particular
-        directory using BorgQueen to obtain structures, and then submits thhem
-        to the Materials Project as SNL files. VASP related meta data like
-        initial structure and final energies are automatically incorporated.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            rootdir (str): Rootdir to start assimilating VASP runs from.
-            authors: *List* of {"name":'', "email":''} dicts,
-                *list* of Strings as 'John Doe <johndoe@gmail.com>',
-                or a single String with commas separating authors. The same
-                list of authors should apply to all runs.
-            projects ([str]): List of Strings ['Project A', 'Project B'].
-                This applies to all structures.
-            references (str): A String in BibTeX format. Again, this applies to
-                all structures.
-            remarks ([str]): List of Strings ['Remark A', 'Remark B']
-            master_data (dict): A free form dict. Namespaced at the root
-                level with an underscore, e.g. {"_materialsproject":<custom
-                data>}. This data is added to all structures detected in the
-                directory, in addition to other vasp data on a per structure
-                basis.
-            master_history: A master history to be added to all entries.
-            created_at (datetime): A datetime object
-            ncpus (int): Number of cpus to use in using BorgQueen to
-                assimilate. Defaults to None, which means serial.
         """
         # TODO: discuss
         raise NotImplementedError
