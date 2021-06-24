@@ -20,6 +20,7 @@ from requests.exceptions import RequestException
 from pydantic import BaseModel
 from tqdm import tqdm
 
+from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
 
 try:
@@ -136,7 +137,7 @@ class BaseRester:
             available.
         """
 
-        payload = json.dumps(body, cls=MontyEncoder)
+        payload = jsanitize(body)
 
         try:
             url = self.endpoint
@@ -144,7 +145,7 @@ class BaseRester:
                 url = urljoin(self.endpoint, suburl)
                 if not url.endswith("/"):
                     url += "/"
-            response = self.session.post(url, data=payload, verify=True, params=params)
+            response = self.session.post(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
 
