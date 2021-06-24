@@ -340,7 +340,7 @@ class MPRester:
 
         Args:
             material_id (str): Materials Project material_id.
-           
+
         Returns:
             A CompleteDos object.
         """
