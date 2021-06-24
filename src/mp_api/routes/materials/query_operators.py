@@ -14,7 +14,7 @@ from pymatgen.core.structure import Structure
 
 class FormulaQuery(QueryOperator):
     """
-    Factory method to generate a dependency for querying by 
+    Factory method to generate a dependency for querying by
         formula or chemical system with wild cards.
     """
 
