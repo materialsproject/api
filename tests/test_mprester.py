@@ -6,13 +6,21 @@ from mp_api.core.settings import MAPISettings
 import requests
 
 from pymatgen.io.cif import CifParser
+from pymatgen.electronic_structure.bandstructure import (
+    BandStructure,
+    BandStructureSymmLine,
+)
+from pymatgen.electronic_structure.dos import CompleteDos
 
-api_is_up = requests.get("https://api.materialsproject.org/heartbeat").status_code == 200
+
+api_is_up = (
+    requests.get("https://api.materialsproject.org/heartbeat").status_code == 200
+)
 
 
 @pytest.fixture()
 def mpr():
-    rester = MPRester(endpoint="http://127.0.0.1:8000")
+    rester = MPRester()
     yield rester
     rester.session.close()
 
@@ -71,3 +79,14 @@ class TestMPRester:
             s = CifParser(file).get_structures()[0]
             data = mpr.find_structure(s)
             assert data[0]["material_id"] == "mp-149"
+
+    def test_get_bandstructure_by_material_id(self, mpr):
+        bs = mpr.get_bandstructure_by_material_id("mp-149")
+        assert isinstance(bs, BandStructureSymmLine)
+        bs_unif = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
+        assert isinstance(bs_unif, BandStructure)
+        assert not isinstance(bs_unif, BandStructureSymmLine)
+
+    def test_get_dos_by_id(self, mpr):
+        dos = mpr.get_dos_by_material_id("mp-149")
+        assert isinstance(dos, CompleteDos)

@@ -15,7 +15,7 @@ from os import environ
 import warnings
 
 import requests
-from monty.json import MontyEncoder, MontyDecoder
+from monty.json import MontyDecoder
 from requests.exceptions import RequestException
 from pydantic import BaseModel
 from tqdm import tqdm
@@ -45,7 +45,12 @@ class BaseRester:
     primary_key: str = "material_id"
 
     def __init__(
-        self, api_key=DEFAULT_API_KEY, endpoint=DEFAULT_ENDPOINT, include_user_agent=True, session=None, debug=False,
+        self,
+        api_key=DEFAULT_API_KEY,
+        endpoint=DEFAULT_ENDPOINT,
+        include_user_agent=True,
+        session=None,
+        debug=False,
     ):
         """
         Args:
@@ -85,7 +90,11 @@ class BaseRester:
         else:
             self.session = self._create_session(api_key, include_user_agent)
 
-        self.document_model = api_sanitize(self.document_model) if self.document_model is not None else None
+        self.document_model = (
+            api_sanitize(self.document_model)
+            if self.document_model is not None
+            else None
+        )
 
     @staticmethod
     def _create_session(api_key, include_user_agent):
@@ -98,7 +107,9 @@ class BaseRester:
                 sys.version_info.major, sys.version_info.minor, sys.version_info.micro
             )
             platform_info = "{}/{}".format(platform.system(), platform.release())
-            session.headers["user-agent"] = "{} ({} {})".format(pymatgen_info, python_info, platform_info)
+            session.headers["user-agent"] = "{} ({} {})".format(
+                pymatgen_info, python_info, platform_info
+            )
         return session
 
     def __enter__(self):
@@ -168,7 +179,10 @@ class BaseRester:
                     message = data
                 else:
                     try:
-                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
+                        message = ", ".join(
+                            "{} - {}".format(entry["loc"][1], entry["msg"])
+                            for entry in data
+                        )
                     except (KeyError, IndexError):
                         message = str(data)
 
@@ -248,7 +262,10 @@ class BaseRester:
                     message = data
                 else:
                     try:
-                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
+                        message = ", ".join(
+                            "{} - {}".format(entry["loc"][1], entry["msg"])
+                            for entry in data
+                        )
                     except (KeyError, IndexError):
                         message = str(data)
 
@@ -280,12 +297,15 @@ class BaseRester:
         Returns:
             A list of documents
         """
-        return self._query_resource(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl,).get(
-            "data"
-        )
+        return self._query_resource(
+            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl,
+        ).get("data")
 
     def get_document_by_id(
-        self, document_id: str, fields: Optional[List[str]] = None, monty_decode: bool = True,
+        self,
+        document_id: str,
+        fields: Optional[List[str]] = None,
+        monty_decode: bool = True,
     ):
         """
         Query the endpoint for a single document.
@@ -300,7 +320,10 @@ class BaseRester:
         """
 
         if document_id is None:
-            raise ValueError("Please supply a specific id. You can use the query method to find " "ids of interest.")
+            raise ValueError(
+                "Please supply a specific id. You can use the query method to find "
+                "ids of interest."
+            )
 
         if fields is None:
             criteria = {"all_fields": True, "limit": 1}  # type: dict
@@ -313,7 +336,12 @@ class BaseRester:
         results = []
 
         try:
-            results = self.query(criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id,)
+            results = self.query(
+                criteria=criteria,
+                fields=fields,
+                monty_decode=monty_decode,
+                suburl=document_id,
+            )
         except MPRestError:
 
             if self.primary_key == "material_id":
@@ -332,14 +360,19 @@ class BaseRester:
                     document_id = new_document_id
 
                     results = self.query(
-                        criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=document_id,
+                        criteria=criteria,
+                        fields=fields,
+                        monty_decode=monty_decode,
+                        suburl=document_id,
                     )
 
         if not results:
             warnings.warn(f"No result for record {document_id}.")
             return
         elif len(results) > 1:
-            raise ValueError(f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug.")
+            raise ValueError(
+                f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
+            )
         else:
             return results[0]
 
@@ -374,10 +407,21 @@ class BaseRester:
         # documented kwargs.
 
         return self._get_all_documents(
-            kwargs, all_fields=all_fields, fields=fields, chunk_size=chunk_size, num_chunks=num_chunks,
+            kwargs,
+            all_fields=all_fields,
+            fields=fields,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
         )
 
-    def _get_all_documents(self, query_params, all_fields=True, fields=None, chunk_size=1000, num_chunks=None):
+    def _get_all_documents(
+        self,
+        query_params,
+        all_fields=True,
+        fields=None,
+        chunk_size=1000,
+        num_chunks=None,
+    ):
         """
         Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
@@ -402,7 +446,10 @@ class BaseRester:
 
         # progress bar
         total_docs = results["meta"]["total_doc"]
-        t = tqdm(desc=f"Retrieving {self.document_model.__name__} documents", total=total_docs,)
+        t = tqdm(
+            desc=f"Retrieving {self.document_model.__name__} documents",
+            total=total_docs,
+        )
         t.update(len(all_results))
 
         # warn to select specific fields only for many results
@@ -419,7 +466,9 @@ class BaseRester:
 
             t.update(len(results["data"]))
 
-            if not any(results["data"]) or (num_chunks is not None and count == num_chunks):
+            if not any(results["data"]) or (
+                num_chunks is not None and count == num_chunks
+            ):
                 break
 
             count += 1
@@ -428,7 +477,9 @@ class BaseRester:
         return all_results
 
     def query_by_task_id(self, *args, **kwargs):
-        print("query_by_task_id has been renamed to get_document_by_id to be more general")
+        print(
+            "query_by_task_id has been renamed to get_document_by_id to be more general"
+        )
         return self.get_document_by_id(*args, **kwargs)
 
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
@@ -439,8 +490,12 @@ class BaseRester:
         """
         try:
             criteria = criteria or {}
-            criteria["limit"] = 1  # we just want the meta information, only ask for single document
-            results = self._query_resource(criteria=criteria, monty_decode=False)  # do not waste cycles Monty decoding
+            criteria[
+                "limit"
+            ] = 1  # we just want the meta information, only ask for single document
+            results = self._query_resource(
+                criteria=criteria, monty_decode=False
+            )  # do not waste cycles Monty decoding
             return results["meta"]["total_doc"]
         except Exception:
             return "unknown"

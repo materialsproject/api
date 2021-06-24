@@ -243,7 +243,7 @@ if db_uri:
     s3_bs_index = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
+        key="fs_id",
         collection_name="s3_bandstructure_index",
     )
 
@@ -258,7 +258,7 @@ if db_uri:
         index=s3_bs_index,
         bucket="mp-bandstructures",
         compress=True,
-        key="task_id",
+        key="fs_id",
         searchable_fields=["task_id", "fs_id"],
     )
 

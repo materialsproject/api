@@ -52,7 +52,9 @@ class ElectronicStructureRester(BaseRester):
         query_params = defaultdict(dict)  # type: dict
 
         if band_gap:
-            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
+            query_params.update(
+                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
+            )
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -72,10 +74,18 @@ class ElectronicStructureRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )
 
 
@@ -126,7 +136,9 @@ class BandStructureRester(BaseRester):
         query_params["path_type"] = path_type.value
 
         if band_gap:
-            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
+            query_params.update(
+                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
+            )
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -146,10 +158,18 @@ class BandStructureRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )
 
     def get_bandstructure_from_calculation_id(self, task_id: str):
@@ -163,7 +183,11 @@ class BandStructureRester(BaseRester):
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
 
-        result = self._query_resource(criteria={"task_id": task_id}, suburl="object", use_document_model=False)
+        result = self._query_resource(
+            criteria={"task_id": task_id, "all_fields": True},
+            suburl="object",
+            use_document_model=False,
+        )
 
         if result.get("data", None) is not None:
             return result["data"]
@@ -171,7 +195,10 @@ class BandStructureRester(BaseRester):
             raise MPRestError("No object found")
 
     def get_bandstructure_from_material_id(
-        self, material_id: str, path_type: BSPathType = BSPathType.setyawan_curtarolo,
+        self,
+        material_id: str,
+        path_type: BSPathType = BSPathType.setyawan_curtarolo,
+        line_mode=True,
     ):
         """
         Get the band structure pymatgen object associated with a Materials Project ID.
@@ -179,19 +206,40 @@ class BandStructureRester(BaseRester):
         Arguments:
             materials_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
+            line_mode (bool): Whether to return data for a line-mode calculation
 
         Returns:
-            bandstructure (BandStructureSymmLine): BandStructureSymmLine object
+            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
 
-        es_rester = ElectronicStructureRester(endpoint=self.base_endpoint, api_key=self.api_key)
+        es_rester = ElectronicStructureRester(
+            endpoint=self.base_endpoint, api_key=self.api_key
+        )
 
-        bs_data = es_rester.get_document_by_id(document_id=material_id, fields=["bandstructure"]).bandstructure.dict()
+        if line_mode:
+            bs_data = es_rester.get_document_by_id(
+                document_id=material_id, fields=["bandstructure"]
+            ).bandstructure.dict()
 
-        if bs_data[path_type.value]:
-            bs_calc_id = bs_data[path_type.value]["task_id"]
+            if bs_data.get(path_type.value, None):
+                bs_calc_id = bs_data[path_type.value]["task_id"]
+            else:
+                raise MPRestError(
+                    "No {} band structure data found for {}".format(
+                        path_type.value, material_id
+                    )
+                )
         else:
-            raise MPRestError("No {} band structure data found for {}".format(path_type.value, material_id))
+            bs_data = es_rester.get_document_by_id(
+                document_id=material_id, fields=["dos"]
+            ).dos.dict()
+
+            if bs_data.get("total", None):
+                bs_calc_id = bs_data["total"]["1"]["task_id"]
+            else:
+                raise MPRestError(
+                    "No uniform band structure data found for {}".format(material_id)
+                )
 
         bs_obj = self.get_bandstructure_from_calculation_id(bs_calc_id)
 
@@ -257,7 +305,9 @@ class DosRester(BaseRester):
             query_params["orbital"] = orbital.value
 
         if band_gap:
-            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
+            query_params.update(
+                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
+            )
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -271,10 +321,18 @@ class DosRester(BaseRester):
         if is_metal is not None:
             query_params.update({"is_metal": is_metal})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )
 
     def get_dos_from_calculation_id(self, task_id: str):
@@ -288,7 +346,11 @@ class DosRester(BaseRester):
             bandstructure (CompleteDos): CompleteDos object
         """
 
-        result = self._query_resource(criteria={"task_id": task_id}, suburl="object", use_document_model=False)
+        result = self._query_resource(
+            criteria={"task_id": task_id, "all_fields": True},
+            suburl="object",
+            use_document_model=False,
+        )
 
         if result.get("data", None) is not None:
             return result["data"]
@@ -306,17 +368,22 @@ class DosRester(BaseRester):
             dos (CompleteDos): CompleteDos object
         """
 
-        es_rester = ElectronicStructureRester(endpoint=self.base_endpoint, api_key=self.api_key)
+        es_rester = ElectronicStructureRester(
+            endpoint=self.base_endpoint, api_key=self.api_key
+        )
 
-        dos_data = es_rester.get_document_by_id(document_id=material_id, fields=["dos"]).dict()
+        dos_data = es_rester.get_document_by_id(
+            document_id=material_id, fields=["dos"]
+        ).dict()
 
         if dos_data["dos"]:
             dos_calc_id = dos_data["dos"]["total"]["1"]["task_id"]
         else:
-            raise MPRestError("No density of states data found for {}".format(material_id))
+            raise MPRestError(
+                "No density of states data found for {}".format(material_id)
+            )
 
         dos_obj = self.get_dos_from_calculation_id(dos_calc_id)
-
         if dos_obj:
             return dos_obj[0]["data"]
         else:

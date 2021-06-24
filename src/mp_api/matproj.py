@@ -6,6 +6,7 @@ from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from mp_api.core.client import BaseRester
+from mp_api.routes.electronic_structure.models.core import BSPathType
 from mp_api.routes import *
 
 _DEPRECATION_WARNING = (
@@ -25,7 +26,11 @@ class MPRester:
     """
 
     def __init__(
-        self, api_key=DEFAULT_API_KEY, endpoint=DEFAULT_ENDPOINT, notify_db_version=True, include_user_agent=True,
+        self,
+        api_key=DEFAULT_API_KEY,
+        endpoint=DEFAULT_ENDPOINT,
+        notify_db_version=True,
+        include_user_agent=True,
     ):
         """
         Args:
@@ -56,20 +61,25 @@ class MPRester:
 
         self.api_key = api_key
         self.endpoint = endpoint
-        self.session = BaseRester._create_session(api_key=api_key, include_user_agent=include_user_agent)
+        self.session = BaseRester._create_session(
+            api_key=api_key, include_user_agent=include_user_agent
+        )
 
         self._all_resters = []
 
         for cls in BaseRester.__subclasses__():
 
             rester = cls(
-                api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent, session=self.session,
+                api_key=api_key,
+                endpoint=endpoint,
+                include_user_agent=include_user_agent,
+                session=self.session,
             )
 
             self._all_resters.append(rester)
 
             setattr(
-                self, cls.suffix, rester,
+                self, cls.suffix.replace("/", "_"), rester,
             )
 
     def __enter__(self):
@@ -84,7 +94,9 @@ class MPRester:
         """
         self.session.close()
 
-    def get_structure_by_material_id(self, material_id, final=True, conventional_unit_cell=False) -> Structure:
+    def get_structure_by_material_id(
+        self, material_id, final=True, conventional_unit_cell=False
+    ) -> Structure:
         """
         Get a Structure corresponding to a material_id.
 
@@ -106,10 +118,13 @@ class MPRester:
 
         if conventional_unit_cell and structure_data:
             if final:
-                structure_data = SpacegroupAnalyzer(structure_data).get_conventional_standard_structure()
+                structure_data = SpacegroupAnalyzer(
+                    structure_data
+                ).get_conventional_standard_structure()
             else:
                 structure_data = [
-                    SpacegroupAnalyzer(structure).get_conventional_standard_structure() for structure in structure_data
+                    SpacegroupAnalyzer(structure).get_conventional_standard_structure()
+                    for structure in structure_data
                 ]
 
         return structure_data
@@ -128,7 +143,9 @@ class MPRester:
 
         Returns: database version as a string
         """
-        return BaseRester(endpoint=self.endpoint + "/heartbeat")._query_resource()["db_version"]
+        return BaseRester(endpoint=self.endpoint + "/heartbeat")._query_resource()[
+            "db_version"
+        ]
 
     def get_materials_id_from_task_id(self, task_id):
         """
@@ -148,7 +165,9 @@ class MPRester:
         if len(docs) == 1:
             return docs[0].material_id
         elif len(docs) > 1:
-            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
+            raise ValueError(
+                f"Multiple documents return for {task_id}, this should not happen, please report it!"
+            )
         else:
             warnings.warn(
                 f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
@@ -181,7 +200,9 @@ class MPRester:
         return sorted(
             doc.material_id
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula, all_fields=False, fields=["material_id"]
+                chemsys_formula=chemsys_formula,
+                all_fields=False,
+                fields=["material_id"],
             )
         )
 
@@ -204,14 +225,18 @@ class MPRester:
             return [
                 doc.structure
                 for doc in self.materials.search_material_docs(
-                    chemsys_formula=chemsys_formula, all_fields=False, fields=["structure"]
+                    chemsys_formula=chemsys_formula,
+                    all_fields=False,
+                    fields=["structure"],
                 )
             ]
         else:
             structures = []
 
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula, all_fields=False, fields=["initial_structures"]
+                chemsys_formula=chemsys_formula,
+                all_fields=False,
+                fields=["initial_structures"],
             ):
                 structures.extend(doc.initial_structures)
 
@@ -272,7 +297,9 @@ class MPRester:
 
             return entries
 
-    def get_pourbaix_entries(self, chemsys, solid_compat=MaterialsProjectCompatibility()):
+    def get_pourbaix_entries(
+        self, chemsys, solid_compat=MaterialsProjectCompatibility()
+    ):
         """
         A helper function to get all entries necessary to generate
         a pourbaix diagram from the rest interface.
@@ -295,21 +322,44 @@ class MPRester:
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        return self.thermo.get_document_by_id(document_id=material_id, fields=["entries"]).entries
+        return self.thermo.get_document_by_id(
+            document_id=material_id, fields=["entries"]
+        ).entries
 
-    def get_bandstructure_by_material_id(self, material_id, line_mode=True):
+    def get_bandstructure_by_material_id(
+        self, material_id, path_type=BSPathType.setyawan_curtarolo, line_mode=True
+    ):
         """
         Get a BandStructure corresponding to a material_id.
 
         Args:
             material_id (str): Materials Project material_id.
+            path_type (BSPathType): k-point path selection convention.
             line_mode (bool): If True, fetch a BandStructureSymmLine object
                 (default). If False, return the uniform band structure.
 
         Returns:
             A BandStructure object.
         """
-        raise NotImplementedError
+        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(
+            material_id=material_id, path_type=path_type, line_mode=line_mode
+        )
+
+    def get_dos_by_material_id(
+        self, material_id, path_type=BSPathType.setyawan_curtarolo, line_mode=True
+    ):
+        """
+        Get a Dos corresponding to a material_id.
+
+        Args:
+            material_id (str): Materials Project material_id.
+           
+        Returns:
+            A CompleteDos object.
+        """
+        return self.electronic_structure_dos.get_dos_from_material_id(
+            material_id=material_id
+        )
 
     def get_phonon_dos_by_material_id(self, material_id):
         """
@@ -376,7 +426,12 @@ class MPRester:
         raise NotImplementedError
 
     def query(
-        self, criteria, properties, chunk_size=500, max_tries_per_chunk=5, mp_decode=True,
+        self,
+        criteria,
+        properties,
+        chunk_size=500,
+        max_tries_per_chunk=5,
+        mp_decode=True,
     ):
         r"""
 
@@ -738,7 +793,12 @@ class MPRester:
         raise NotImplementedError
 
     def get_interface_reactions(
-        self, reactant1, reactant2, open_el=None, relative_mu=None, use_hull_energy=False,
+        self,
+        reactant1,
+        reactant2,
+        open_el=None,
+        relative_mu=None,
+        use_hull_energy=False,
     ):
         """
         Gets critical reactions between two reactants.
