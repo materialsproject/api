@@ -367,8 +367,7 @@ class BaseRester:
                     )
 
         if not results:
-            warnings.warn(f"No result for record {document_id}.")
-            return
+            raise MPRestError(f"No result for record {document_id}.")
         elif len(results) > 1:
             raise ValueError(
                 f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
