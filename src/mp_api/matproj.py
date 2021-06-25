@@ -96,7 +96,7 @@ class MPRester:
         )
 
         self.get_charge_density_calculation_details = (
-            self.get_charge_density_calculation_details
+            self.charge_density.get_charge_density_calculation_details
         )
 
         self.get_charge_density_calculation_ids_from_material_id = (
@@ -342,8 +342,10 @@ class MPRester:
         Returns:
             PhononBandStructureSymmLine:  phonon band structure.
         """
-        raise NotImplementedError
-        
+        doc = self.phonon.get_document_by_id(material_id)
+
+        return doc.ph_bs
+
     def query(
         self,
         criteria,
@@ -406,16 +408,11 @@ class MPRester:
         # TODO: discuss
         raise NotImplementedError
 
-    def submit_structures(
-        self,
-        structures,
-        public_name,
-        public_email
-    ):
+    def submit_structures(self, structures, public_name, public_email):
         """
         Submits a list of structures to the Materials Project.
-        
-        Note that public_name and public_email will be used to credit the 
+
+        Note that public_name and public_email will be used to credit the
         submitter on the Materials Project website.
 
         Args:

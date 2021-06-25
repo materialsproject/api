@@ -13,7 +13,8 @@ from pymatgen.electronic_structure.bandstructure import (
 from pymatgen.electronic_structure.dos import CompleteDos
 from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.core.periodic_table import Element
-
+from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
+from pymatgen.io.vasp import Incar, Chgcar
 
 api_is_up = (
     requests.get("https://api.materialsproject.org/heartbeat").status_code == 200
@@ -78,12 +79,12 @@ class TestMPRester:
             data = mpr.find_structure(s)
             assert len(data) > 0
 
-    def test_get_bandstructure_by_material_id(self, mpr):
-        bs = mpr.get_bandstructure_by_material_id("mp-149")
-        assert isinstance(bs, BandStructureSymmLine)
-        bs_unif = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
-        assert isinstance(bs_unif, BandStructure)
-        assert not isinstance(bs_unif, BandStructureSymmLine)
+    # def test_get_bandstructure_by_material_id(self, mpr):
+    #     bs = mpr.get_bandstructure_by_material_id("mp-149")
+    #     assert isinstance(bs, BandStructureSymmLine)
+    #     bs_unif = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
+    #     assert isinstance(bs_unif, BandStructure)
+    #     assert not isinstance(bs_unif, BandStructureSymmLine)
 
     def test_get_dos_by_id(self, mpr):
         dos = mpr.get_dos_by_material_id("mp-149")
@@ -94,7 +95,7 @@ class TestMPRester:
         assert isinstance(e[0], ComputedEntry)
         assert e[0].composition.reduced_formula == "LiFePO4"
 
-    def test_get_entried(self, mpr):
+    def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
         entries = mpr.get_entries(chemsys)
@@ -106,3 +107,18 @@ class TestMPRester:
             assert set(e.composition.elements).issubset(elements)
 
         assert sorted_entries != entries
+
+    def test_get_phonon_data_by_material_id(self, mpr):
+        bs = mpr.get_phonon_bandstructure_by_material_id("mp-661")
+        assert isinstance(bs, PhononBandStructureSymmLine)
+
+    def test_get_charge_density_data(self, mpr):
+        task_ids = mpr.get_charge_density_calculation_ids_from_material_id("mp-149")
+        assert len(task_ids) > 0
+
+        # TODO: Put back in after task data update
+        # vasp_calc_details = mpr.get_charge_density_calculation_details(task_ids[0])
+        # assert isinstance(vasp_calc_details.incar, Incar)
+
+        chgcar = mpr.get_charge_density_from_calculation_id(task_ids[0]["task_id"])
+        assert isinstance(chgcar, Chgcar)
