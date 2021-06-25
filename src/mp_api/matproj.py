@@ -327,7 +327,8 @@ class MPRester:
             material_id (str): Materials Project material_id.
 
         Returns:
-            CompletePhononDos: A phonon DOS object.
+             CompletePhononDos: A phonon DOS object.
+
         """
         raise NotImplementedError
 
@@ -339,22 +340,10 @@ class MPRester:
             material_id (str): Materials Project material_id.
 
         Returns:
-            PhononBandStructureSymmLine: A phonon band structure.
+            PhononBandStructureSymmLine:  phonon band structure.
         """
         raise NotImplementedError
-
-    def get_phonon_ddb_by_material_id(self, material_id):
-        """
-        Get ABINIT Derivative Data Base (DDB) output for phonon calculations.
-
-        Args:
-            material_id (str): Materials Project material_id.
-
-        Returns:
-            str: ABINIT DDB file as a string.
-        """
-        raise NotImplementedError
-
+        
     def query(
         self,
         criteria,
@@ -417,14 +406,21 @@ class MPRester:
         # TODO: discuss
         raise NotImplementedError
 
-    def submit_structures(self, structures, public_name, public_email):
+    def submit_structures(
+        self,
+        structures,
+        public_name,
+        public_email
+    ):
         """
         Submits a list of structures to the Materials Project.
         
-        Note that public_name and public_email will be used to credit the
+        Note that public_name and public_email will be used to credit the 
         submitter on the Materials Project website.
+
         Args:
             structures: A list of Structure objects
+
         Returns:
             ?
         """
