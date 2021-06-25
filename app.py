@@ -46,6 +46,7 @@ insertion_electrodes_store_json = os.environ.get(
     "INSERTION_ELECTRODES_STORE", "insertion_electrodes_store.json"
 )
 molecules_store_json = os.environ.get("MOLECULES_STORE", "molecules_store.json")
+oxi_states_store_json = os.environ.get("OXI_STATES_STORE", "oxi_states_store.json")
 search_store_json = os.environ.get("SEARCH_STORE", "search_store.json")
 
 es_store_json = os.environ.get("ES_STORE", "es_store.json")
@@ -226,6 +227,13 @@ if db_uri:
         collection_name="molecules",
     )
 
+    oxi_states_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="material_id",
+        collection_name="oxi_states",
+    )
+
     search_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -324,6 +332,7 @@ else:
     synth_store = loadfn(synth_store_json)
     insertion_electrodes_store = loadfn(insertion_electrodes_store_json)
     molecules_store = loadfn(molecules_store_json)
+    oxi_states_store = loadfn(oxi_states_store_json)
     search_store = loadfn(search_store_json)
 
     es_store = loadfn(es_store_json)
@@ -484,6 +493,11 @@ resources.update(
 from mp_api.routes.molecules.resources import molecules_resource
 
 resources.update({"molecules": [molecules_resource(molecules_store)]})
+
+# Oxidation States
+from mp_api.routes.oxidation_states.resources import oxi_states_resource
+
+resources.update({"oxidation_states": [oxi_states_resource(oxi_states_store)]})
 
 # Charge Density
 from mp_api.routes.charge_density.resources import charge_density_resource
