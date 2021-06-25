@@ -79,12 +79,12 @@ class TestMPRester:
             data = mpr.find_structure(s)
             assert len(data) > 0
 
-    # def test_get_bandstructure_by_material_id(self, mpr):
-    #     bs = mpr.get_bandstructure_by_material_id("mp-149")
-    #     assert isinstance(bs, BandStructureSymmLine)
-    #     bs_unif = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
-    #     assert isinstance(bs_unif, BandStructure)
-    #     assert not isinstance(bs_unif, BandStructureSymmLine)
+    def test_get_bandstructure_by_material_id(self, mpr):
+        bs = mpr.get_bandstructure_by_material_id("mp-149")
+        assert isinstance(bs, BandStructureSymmLine)
+        bs_unif = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
+        assert isinstance(bs_unif, BandStructure)
+        assert not isinstance(bs_unif, BandStructureSymmLine)
 
     def test_get_dos_by_id(self, mpr):
         dos = mpr.get_dos_by_material_id("mp-149")
