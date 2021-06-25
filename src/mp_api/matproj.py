@@ -82,6 +82,27 @@ class MPRester:
                 self, cls.suffix.replace("/", "_"), rester,
             )
 
+        self.find_structure = self.materials.find_structure
+
+        self.get_bandstructure_by_material_id = (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id
+        )
+        self.get_dos_by_material_id = (
+            self.electronic_structure_dos.get_dos_from_material_id
+        )
+
+        self.get_charge_density_from_calculation_id = (
+            self.charge_density.get_charge_density_from_calculation_id
+        )
+
+        self.get_charge_density_calculation_details = (
+            self.get_charge_density_calculation_details
+        )
+
+        self.get_charge_density_calculation_ids_from_material_id = (
+            self.charge_density.get_charge_density_calculation_ids_from_material_id
+        )
+
     def __enter__(self):
         """
         Support for "with" context.
@@ -242,21 +263,6 @@ class MPRester:
 
             return structures
 
-    def find_structure(self, filename_or_structure):
-        """
-        Finds matching structures on the Materials Project site.
-
-        Args:
-            filename_or_structure: filename or Structure object
-
-        Returns:
-            A list of matching materials project ids for structure.
-
-        Raises:
-            MPRestError
-        """
-        return self.materials.find_structure(filename_or_structure)
-
     def get_entries(
         self, chemsys_formula, sort_by_e_above_hull=False,
     ):
@@ -313,41 +319,6 @@ class MPRester:
             ).entries.values()
         )
 
-    def get_bandstructure_by_material_id(
-        self, material_id, path_type=BSPathType.setyawan_curtarolo, line_mode=True
-    ):
-        """
-        Get a BandStructure corresponding to a material_id.
-
-        Args:
-            material_id (str): Materials Project material_id.
-            path_type (BSPathType): k-point path selection convention.
-            line_mode (bool): If True, fetch a BandStructureSymmLine object
-                (default). If False, return the uniform band structure.
-
-        Returns:
-            A BandStructure object.
-        """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(
-            material_id=material_id, path_type=path_type, line_mode=line_mode
-        )
-
-    def get_dos_by_material_id(
-        self, material_id, path_type=BSPathType.setyawan_curtarolo, line_mode=True
-    ):
-        """
-        Get a Dos corresponding to a material_id.
-
-        Args:
-            material_id (str): Materials Project material_id.
-
-        Returns:
-            A CompleteDos object.
-        """
-        return self.electronic_structure_dos.get_dos_from_material_id(
-            material_id=material_id
-        )
-
     def get_phonon_dos_by_material_id(self, material_id):
         """
         Get phonon density of states data corresponding to a material_id.
@@ -356,7 +327,7 @@ class MPRester:
             material_id (str): Materials Project material_id.
 
         Returns:
-            ﻿CompletePhononDos: A phonon DOS object.
+            CompletePhononDos: A phonon DOS object.
         """
         raise NotImplementedError
 
@@ -444,6 +415,20 @@ class MPRester:
             ...]
         """
         # TODO: discuss
+        raise NotImplementedError
+
+    def submit_structures(self, structures, public_name, public_email):
+        """
+        Submits a list of structures to the Materials Project.
+        
+        Note that public_name and public_email will be used to credit the
+        submitter on the Materials Project website.
+        Args:
+            structures: A list of Structure objects
+        Returns:
+            ?
+        """
+        # TODO: call new MPComplete endpoint
         raise NotImplementedError
 
     def get_stability(self, entries):
