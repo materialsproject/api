@@ -80,7 +80,7 @@ class DeprecationQuery(QueryOperator):
         crit = {}
 
         if task_ids:
-            crit.update({"task_id": {"$in": self.task_ids}})
+            crit.update({"deprecated_tasks": {"$in": self.task_ids}})
 
         return {"criteria": crit}
 
