@@ -319,7 +319,7 @@ class MPRester:
             material_id (str): Materials Project material_id.
 
         Returns:
-            ﻿CompletePhononDos: A phonon DOS object.
+             CompletePhononDos: A phonon DOS object.
         """
         raise NotImplementedError
 
@@ -331,48 +331,8 @@ class MPRester:
             material_id (str): Materials Project material_id.
 
         Returns:
-            PhononBandStructureSymmLine: A phonon band structure.
+            PhononBandStructureSymmLine:  phonon band structure.
         """
-        raise NotImplementedError
-
-    def get_phonon_ddb_by_material_id(self, material_id):
-        """
-        Get ABINIT Derivative Data Base (DDB) output for phonon calculations.
-
-        Args:
-            material_id (str): Materials Project material_id.
-
-        Returns:
-            str: ABINIT DDB file as a string.
-        """
-        raise NotImplementedError
-
-    def get_exp_thermo_data(self, formula):
-        """
-        Get a list of ThermoData objects associated with a formula using the
-        Materials Project REST interface.
-
-        Args:
-            formula (str): A formula to search for.
-
-        Returns:
-            List of ThermoData objects.
-        """
-        # TODO: MPContribs?
-        raise NotImplementedError
-
-    def get_exp_entry(self, formula):
-        """
-        Returns an ExpEntry object, which is the experimental equivalent of a
-        ComputedEntry and can be used for analyses using experimental data.
-
-        Args:
-            formula (str): A formula to search for.
-
-        Returns:
-            An ExpEntry object.
-        """
-        # TODO: MPContribs?
         raise NotImplementedError
 
     def query(
@@ -450,161 +410,22 @@ class MPRester:
     def submit_structures(
         self,
         structures,
-        authors,
-        projects=None,
-        references="",
-        remarks=None,
-        data=None,
-        histories=None,
-        created_at=None,
+        public_name,
+        public_email
     ):
         """
-        Submits a list of structures to the Materials Project as SNL files.
-        The argument list mirrors the arguments for the StructureNL object,
-        except that a list of structures with the same metadata is used as an
-        input.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
+        Submits a list of structures to the Materials Project.
+        
+        Note that public_name and public_email will be used to credit the 
+        submitter on the Materials Project website.
 
         Args:
             structures: A list of Structure objects
-            authors (list): List of {"name":'', "email":''} dicts,
-                *list* of Strings as 'John Doe <johndoe@gmail.com>',
-                or a single String with commas separating authors
-            projects ([str]): List of Strings ['Project A', 'Project B'].
-                This applies to all structures.
-            references (str): A String in BibTeX format. Again, this applies to
-                all structures.
-            remarks ([str]): List of Strings ['Remark A', 'Remark B']
-            data ([dict]): A list of free form dict. Namespaced at the root
-                level with an underscore, e.g. {"_materialsproject":<custom
-                data>}. The length of data should be the same as the list of
-                structures if not None.
-            histories: List of list of dicts - [[{'name':'', 'url':'',
-                'description':{}}], ...] The length of histories should be the
-                same as the list of structures if not None.
-            created_at (datetime): A datetime object
 
         Returns:
-            A list of inserted submission ids.
+            ?
         """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def submit_snl(self, snl):
-        """
-        Submits a list of StructureNL to the Materials Project site.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            snl (StructureNL/[StructureNL]): A single StructureNL, or a list
-            of StructureNL objects
-
-        Returns:
-            A list of inserted submission ids.
-
-        Raises:
-            MPRestError
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def delete_snl(self, snl_ids):
-        """
-        Delete earlier submitted SNLs.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            snl_ids: List of SNL ids.
-
-        Raises:
-            MPRestError
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def query_snl(self, criteria):
-        """
-        Query for submitted SNLs.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            criteria (dict): Query criteria.
-
-        Returns:
-            A dict, with a list of submitted SNLs in the "response" key.
-
-        Raises:
-            MPRestError
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def submit_vasp_directory(
-        self,
-        rootdir,
-        authors,
-        projects=None,
-        references="",
-        remarks=None,
-        master_data=None,
-        master_history=None,
-        created_at=None,
-        ncpus=None,
-    ):
-        """
-        Assimilates all vasp run directories beneath a particular
-        directory using BorgQueen to obtain structures, and then submits thhem
-        to the Materials Project as SNL files. VASP related meta data like
-        initial structure and final energies are automatically incorporated.
-
-        .. note::
-
-            As of now, this MP REST feature is open only to a select group of
-            users. Opening up submissions to all users is being planned for
-            the future.
-
-        Args:
-            rootdir (str): Rootdir to start assimilating VASP runs from.
-            authors: *List* of {"name":'', "email":''} dicts,
-                *list* of Strings as 'John Doe <johndoe@gmail.com>',
-                or a single String with commas separating authors. The same
-                list of authors should apply to all runs.
-            projects ([str]): List of Strings ['Project A', 'Project B'].
-                This applies to all structures.
-            references (str): A String in BibTeX format. Again, this applies to
-                all structures.
-            remarks ([str]): List of Strings ['Remark A', 'Remark B']
-            master_data (dict): A free form dict. Namespaced at the root
-                level with an underscore, e.g. {"_materialsproject":<custom
-                data>}. This data is added to all structures detected in the
-                directory, in addition to other vasp data on a per structure
-                basis.
-            master_history: A master history to be added to all entries.
-            created_at (datetime): A datetime object
-            ncpus (int): Number of cpus to use in using BorgQueen to
-                assimilate. Defaults to None, which means serial.
-        """
-        # TODO: discuss
+        # TODO: call new MPComplete endpoint
         raise NotImplementedError
 
     def get_stability(self, entries):
