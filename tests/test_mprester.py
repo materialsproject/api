@@ -116,9 +116,10 @@ class TestMPRester:
         task_ids = mpr.get_charge_density_calculation_ids_from_material_id("mp-149")
         assert len(task_ids) > 0
 
-        # TODO: Put back in after task data update
-        # vasp_calc_details = mpr.get_charge_density_calculation_details(task_ids[0])
-        # assert isinstance(vasp_calc_details.incar, Incar)
+        vasp_calc_details = mpr.get_charge_density_calculation_details(
+            task_ids[0]["task_id"]
+        )
+        assert isinstance(vasp_calc_details.incar, Incar)
 
         chgcar = mpr.get_charge_density_from_calculation_id(task_ids[0]["task_id"])
         assert isinstance(chgcar, Chgcar)
