@@ -38,13 +38,29 @@ class RoboTextSearchQuery(QueryOperator):
                 }
             },
             {
-                "$project": {
-                    "_id": 0,
-                    "task_id": 1,
-                    "description": 1,
-                    "condensed_structure": 1,
-                    "last_updates": 1,
-                    "search_score": {"$meta": "searchScore"},
+                "$facet": {
+                    "total_doc": [{"$count": "count"}],
+                    "results": [
+                        {
+                            "$project": {
+                                "_id": 0,
+                                "task_id": 1,
+                                "description": 1,
+                                "condensed_structure": 1,
+                                "last_updates": 1,
+                                "search_score": {"$meta": "searchScore"},
+                            }
+                        }
+                    ],
+                }
+            },
+            {"$unwind": "$results"},
+            {"$unwind": "$total_doc"},
+            {
+                "$replaceRoot": {
+                    "newRoot": {
+                        "$mergeObjects": ["$results", {"total_doc": "$total_doc.count"}]
+                    }
                 }
             },
             {"$sort": {"search_score": -1}},
@@ -52,6 +68,14 @@ class RoboTextSearchQuery(QueryOperator):
             {"$limit": limit},
         ]
         return {"pipeline": pipeline}
+
+    def post_process(self, docs):
+        print(docs[0])
+        self.total_doc = docs[0]["total_doc"]
+        return docs
+
+    def meta(self):
+        return {"total_doc": self.total_doc}
 
     def ensure_indexes(self):
         return [("description", False)]
