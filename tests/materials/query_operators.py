@@ -47,7 +47,7 @@ def test_elements_query():
         new_op = loadfn("temp.json")
         assert new_op.query(
             elements=",".join(eles), exclude_elements=",".join(neles)
-        ) == {"criteria": {"elements": {"$all": ["Si", "O"], "$nin": ["N", "P"],},}}
+        ) == {"criteria": {"elements": {"$all": ["Si", "O"], "$nin": ["N", "P"]}}}
 
 
 def test_deprecation_query():
