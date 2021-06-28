@@ -1,4 +1,6 @@
 from mp_api.routes.robocrys.query_operators import RoboTextSearchQuery
+from monty.tempfile import ScratchDir
+from monty.serialization import loadfn, dumpfn
 
 
 def test_robocrys_search_query():
@@ -33,3 +35,11 @@ def test_robocrys_search_query():
     assert op.query(keywords="cubic, octahedra", skip=0, limit=10) == {
         "pipeline": pipeline
     }
+
+    with ScratchDir("."):
+        dumpfn(op, "temp.json")
+        new_op = loadfn("temp.json")
+        assert new_op.query(keywords="cubic, octahedra", skip=0, limit=10) == {
+            "pipeline": pipeline
+        }
+
