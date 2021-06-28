@@ -88,7 +88,7 @@ class DeprecationQuery(QueryOperator):
 
         crit = {}
 
-        if deprecated:
+        if deprecated is not None:
             crit.update({"deprecated": deprecated})
 
         return {"criteria": crit}
