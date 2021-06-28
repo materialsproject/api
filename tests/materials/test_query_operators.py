@@ -1,5 +1,4 @@
 import os
-import copy
 
 from mp_api.core.settings import MAPISettings
 from mp_api.routes.materials.query_operators import (
