@@ -102,10 +102,10 @@ class BSDataQuery(QueryOperator):
             }
 
             for entry in d:
-                if d[entry][0]:
+                if d[entry][0] is not None:
                     crit[entry]["$gte"] = d[entry][0]
 
-                if d[entry][1]:
+                if d[entry][1] is not None:
                     crit[entry]["$lte"] = d[entry][1]
 
             if magnetic_ordering:
@@ -202,7 +202,7 @@ class DOSDataQuery(QueryOperator):
 
                         key_prefix = f"orbital.{str(orbital.name)}.{str(spin.value)}"
 
-                    elif projection_type == "element":
+                    elif projection_type.value == "elemental":
 
                         if element is None:
                             raise HTTPException(
@@ -211,18 +211,16 @@ class DOSDataQuery(QueryOperator):
                             )
 
                         if orbital is not None:
-                            key_prefix = f"element.{str(element.value)}.{str(orbital.name)}.{str(spin.value)}"
+                            key_prefix = f"elemental.{str(element.value)}.{str(orbital.name)}.{str(spin.value)}"
 
                         else:
-                            key_prefix = (
-                                f"element.{str(element.value)}.total.{str(spin.value)}"
-                            )
+                            key_prefix = f"elemental.{str(element.value)}.total.{str(spin.value)}"
 
                     key = f"dos.{key_prefix}.{entry}"
 
-                    if d[entry][0]:
+                    if d[entry][0] is not None:
                         crit[key]["$gte"] = d[entry][0]
-                    if d[entry][1]:
+                    if d[entry][1] is not None:
                         crit[key]["$lte"] = d[entry][1]
 
         if magnetic_ordering:
