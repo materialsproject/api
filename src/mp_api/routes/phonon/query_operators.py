@@ -1,11 +1,9 @@
-import io
 from emmet.core.mpid import MPID
 
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
 
 from fastapi import Path
-from fastapi.responses import StreamingResponse
 
 
 class PhononImgQuery(QueryOperator):
