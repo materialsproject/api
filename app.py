@@ -145,7 +145,7 @@ if db_uri:
     xas_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="xas_id",
+        key="spectrum_id",
         collection_name="xas",
     )
 

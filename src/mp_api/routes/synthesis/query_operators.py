@@ -73,8 +73,10 @@ class SynthesisSearchQuery(QueryOperator):
         }
 
         pipeline: List[Any] = []
+        pipeline.append({"$facet": {"results": [], "total_doc": []}})
         if keywords:
-            pipeline.append(
+            pipeline.insert(
+                0,
                 {
                     "$search": {
                         # NOTICE to MongoDB admin:
@@ -90,7 +92,7 @@ class SynthesisSearchQuery(QueryOperator):
                             # "maxNumPassages": 1
                         },
                     }
-                }
+                },
             )
             project_dict.update(
                 {
@@ -98,7 +100,12 @@ class SynthesisSearchQuery(QueryOperator):
                     "highlights": {"$meta": "searchHighlights"},
                 }
             )
-        pipeline.append({"$project": project_dict})
+        else:
+            pipeline[-1]["$facet"]["results"].extend(
+                [{"$skip": skip}, {"$limit": limit}]
+            )
+
+        pipeline[-1]["$facet"]["results"].append({"$project": project_dict})
 
         crit: Dict[str, Any] = {}
         if synthesis_type:
@@ -145,24 +152,44 @@ class SynthesisSearchQuery(QueryOperator):
             }
 
         if crit:
-            pipeline.append({"$match": crit})
+            pipeline[-1]["$facet"]["results"].append({"$match": crit})
 
-            # total = next(
-            #     self.store._collection.aggregate(
-            #         pipeline + [{"$count": "total"}], allowDiskUse=True
-            #     )
-            # )["total"]
-
+        pipeline[-1]["$facet"]["total_doc"].append({"$count": "count"})
         pipeline.extend(
-            [{"$sort": {"search_score": -1}}, {"$skip": skip}, {"$limit": limit}]
+            [
+                {"$unwind": "$results"},
+                {"$unwind": "$total_doc"},
+                {
+                    "$replaceRoot": {
+                        "newRoot": {
+                            "$mergeObjects": [
+                                "$results",
+                                {"total_doc": "$total_doc.count"},
+                            ]
+                        }
+                    }
+                },
+            ]
         )
+
+        if keywords is not None:
+            pipeline.extend(
+                [{"$sort": {"search_score": -1}}, {"$skip": skip}, {"$limit": limit}]
+            )
 
         return {"pipeline": pipeline}
 
     def post_process(self, docs):
+        self.total_doc = 0
+
+        if len(docs) > 0:
+            self.total_doc = docs[0]["total_doc"]
 
         for doc in docs:
             mask_highlights(doc)
             mask_paragraphs(doc)
 
         return docs
+
+    def meta(self):
+        return {"total_doc": self.total_doc}

@@ -54,6 +54,11 @@ class SearchStats(BaseModel):
         "estimator of the distribution, equally spaced "
         "between specified minimum and maximum values.",
     )
+    warnings: List[str] = Field(
+        None,
+        title="Warnings",
+        description="Any warnings generated while generating statistics.",
+    )
 
 
 class XASSearchData(BaseModel):

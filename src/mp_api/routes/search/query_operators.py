@@ -212,12 +212,19 @@ class SearchStatsQuery(QueryOperator):
             min_val = self.min_val
             max_val = self.max_val
             num_samples = len(docs)
+            warnings = []
 
-            values = [d[field] for d in docs]
+            values = [d[field] for d in docs if field in d]
             if not min_val:
                 min_val = min(values)
             if not max_val:
                 max_val = max(values)
+
+            if len(values) != len(docs):
+                warnings += [
+                    "Some documents have field missing.",
+                    f"Only {len(values)} of {len(docs)} ({100*len(values)/len(docs):.2f}%) have {field} field present.",
+                ]
 
             kernel = gaussian_kde(values)
 
@@ -238,6 +245,7 @@ class SearchStatsQuery(QueryOperator):
                 distribution=distribution,
                 median=median,
                 mean=mean,
+                warnings=warnings,
             )
 
         return [response]
