@@ -73,8 +73,10 @@ class SynthesisSearchQuery(QueryOperator):
         }
 
         pipeline: List[Any] = []
+        pipeline.append({"$facet": {"results": [], "total_doc": []}})
         if keywords:
-            pipeline.append(
+            pipeline.insert(
+                0,
                 {
                     "$search": {
                         # NOTICE to MongoDB admin:
@@ -90,7 +92,7 @@ class SynthesisSearchQuery(QueryOperator):
                             # "maxNumPassages": 1
                         },
                     }
-                }
+                },
             )
             project_dict.update(
                 {
@@ -98,7 +100,9 @@ class SynthesisSearchQuery(QueryOperator):
                     "highlights": {"$meta": "searchHighlights"},
                 }
             )
-        pipeline.append({"$facet": {"results": [], "total_doc": []}})
+        else:
+            pipeline[-1]["$facet"]["results"].append({"$sample": {"size": limit}})
+
         pipeline[-1]["$facet"]["results"].append({"$project": project_dict})
 
         crit: Dict[str, Any] = {}
@@ -172,8 +176,10 @@ class SynthesisSearchQuery(QueryOperator):
         return {"pipeline": pipeline}
 
     def post_process(self, docs):
+        self.total_doc = 0
 
-        self.total_doc = docs[0]["total_doc"]
+        if len(docs) > 0:
+            self.total_doc = docs[0]["total_doc"]
 
         for doc in docs:
             mask_highlights(doc)
