@@ -145,7 +145,13 @@ class MultiTaskIDQuery(QueryOperator):
         crit = {}
 
         if task_ids:
-            crit.update({"task_ids": {"$in": task_ids.split(",")}})
+            crit.update(
+                {
+                    "task_ids": {
+                        "$in": [task_id.strip() for task_id in task_ids.split(",")]
+                    }
+                }
+            )
 
         return {"criteria": crit}
 
