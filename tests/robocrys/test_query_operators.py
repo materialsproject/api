@@ -18,13 +18,29 @@ def test_robocrys_search_query():
             }
         },
         {
-            "$project": {
-                "_id": 0,
-                "task_id": 1,
-                "description": 1,
-                "condensed_structure": 1,
-                "last_updates": 1,
-                "search_score": {"$meta": "searchScore"},
+            "$facet": {
+                "total_doc": [{"$count": "count"}],
+                "results": [
+                    {
+                        "$project": {
+                            "_id": 0,
+                            "task_id": 1,
+                            "description": 1,
+                            "condensed_structure": 1,
+                            "last_updates": 1,
+                            "search_score": {"$meta": "searchScore"},
+                        }
+                    }
+                ],
+            }
+        },
+        {"$unwind": "$results"},
+        {"$unwind": "$total_doc"},
+        {
+            "$replaceRoot": {
+                "newRoot": {
+                    "$mergeObjects": ["$results", {"total_doc": "$total_doc.count"}]
+                }
             }
         },
         {"$sort": {"search_score": -1}},
