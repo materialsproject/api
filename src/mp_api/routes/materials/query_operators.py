@@ -174,7 +174,16 @@ class MultiMaterialIDQuery(QueryOperator):
         crit = {}
 
         if material_ids:
-            crit.update({"material_id": {"$in": material_ids.split(",")}})
+            crit.update(
+                {
+                    "material_id": {
+                        "$in": [
+                            material_id.strip()
+                            for material_id in material_ids.split(",")
+                        ]
+                    }
+                }
+            )
 
         return {"criteria": crit}
 
