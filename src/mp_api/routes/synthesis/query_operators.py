@@ -101,7 +101,9 @@ class SynthesisSearchQuery(QueryOperator):
                 }
             )
         else:
-            pipeline[-1]["$facet"]["results"].append({"$sample": {"size": limit}})
+            pipeline[-1]["$facet"]["results"].extend(
+                [{"$skip": skip}, {"$limit": limit}]
+            )
 
         pipeline[-1]["$facet"]["results"].append({"$project": project_dict})
 
@@ -167,11 +169,13 @@ class SynthesisSearchQuery(QueryOperator):
                         }
                     }
                 },
-                {"$sort": {"search_score": -1}},
-                {"$skip": skip},
-                {"$limit": limit},
             ]
         )
+
+        if keywords is not None:
+            pipeline.extend(
+                [{"$sort": {"search_score": -1}}, {"$skip": skip}, {"$limit": limit}]
+            )
 
         return {"pipeline": pipeline}
 
