@@ -177,6 +177,31 @@ def test_formula_auto_complete_query():
 
     assert op.query(formula="".join(eles), limit=10) == {"pipeline": pipeline}
 
+    eles = ["Si"]
+
+    pipeline = [
+        {
+            "$search": {
+                "index": "formula_autocomplete",
+                "text": {"path": "formula_pretty", "query": ["Si"]},
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "formula_pretty": 1,
+                "elements": 1,
+                "length": {"$strLenCP": "$formula_pretty"},
+            }
+        },
+        {"$match": {"elements": {"$all": eles}, "length": {"$gte": 2}}},
+        {"$limit": 10},
+        {"$sort": {"length": 1}},
+        {"$project": {"elements": 0, "length": 0}},
+    ]
+
+    assert op.query(formula="".join(eles), limit=10) == {"pipeline": pipeline}
+
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
