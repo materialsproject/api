@@ -137,7 +137,7 @@ def test_dos_data_query():
 
         c = {field: {"$gte": 0, "$lte": 5} for field in fields}
 
-        assert q == {"criteria": {"dos.magnetic_ordering": "FM", **c,}}
+        assert q == {"criteria": {"dos.magnetic_ordering": "FM", **c}}
 
         with ScratchDir("."):
             dumpfn(op, "temp.json")
@@ -155,7 +155,7 @@ def test_dos_data_query():
             )
             c = {field: {"$gte": 0, "$lte": 5} for field in fields}
 
-            assert q == {"criteria": {"dos.magnetic_ordering": "FM", **c,}}
+            assert q == {"criteria": {"dos.magnetic_ordering": "FM", **c}}
 
 
 def test_object_query():
