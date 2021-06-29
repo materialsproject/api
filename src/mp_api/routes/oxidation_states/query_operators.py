@@ -1,4 +1,3 @@
-from typing import Optional
 from fastapi import Query
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
@@ -23,7 +22,9 @@ class PossibleOxiStateQuery(QueryOperator):
         crit = defaultdict(dict)  # type: dict
 
         if possible_species:
-            crit["possible_species"] = {"$all": possible_species.split(",")}
+            crit["possible_species"] = {
+                "$all": [specie.strip() for specie in possible_species.split(",")]
+            }
 
         return {"criteria": crit}
 
