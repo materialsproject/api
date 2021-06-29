@@ -13,14 +13,30 @@ class DielectricQuery(QueryOperator):
 
     def query(
         self,
-        e_total_max: Optional[float] = Query(None, description="Maximum value for the total dielectric constant.",),
-        e_total_min: Optional[float] = Query(None, description="Minimum value for the total dielectric constant.",),
-        e_ionic_max: Optional[float] = Query(None, description="Maximum value for the ionic dielectric constant.",),
-        e_ionic_min: Optional[float] = Query(None, description="Minimum value for the ionic dielectric constant.",),
-        e_static_max: Optional[float] = Query(None, description="Maximum value for the static dielectric constant.",),
-        e_static_min: Optional[float] = Query(None, description="Minimum value for the static dielectric constant.",),
-        n_max: Optional[float] = Query(None, description="Maximum value for the refractive index.",),
-        n_min: Optional[float] = Query(None, description="Minimum value for the refractive index.",),
+        e_total_max: Optional[float] = Query(
+            None, description="Maximum value for the total dielectric constant.",
+        ),
+        e_total_min: Optional[float] = Query(
+            None, description="Minimum value for the total dielectric constant.",
+        ),
+        e_ionic_max: Optional[float] = Query(
+            None, description="Maximum value for the ionic dielectric constant.",
+        ),
+        e_ionic_min: Optional[float] = Query(
+            None, description="Minimum value for the ionic dielectric constant.",
+        ),
+        e_static_max: Optional[float] = Query(
+            None, description="Maximum value for the static dielectric constant.",
+        ),
+        e_static_min: Optional[float] = Query(
+            None, description="Minimum value for the static dielectric constant.",
+        ),
+        n_max: Optional[float] = Query(
+            None, description="Maximum value for the refractive index.",
+        ),
+        n_min: Optional[float] = Query(
+            None, description="Minimum value for the refractive index.",
+        ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
@@ -41,7 +57,7 @@ class DielectricQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self): # pragma: no cover
+    def ensure_indexes(self):  # pragma: no cover
         keys = [
             "dielectric.e_total",
             "dielectric.e_ionic",
