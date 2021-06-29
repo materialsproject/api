@@ -3,7 +3,10 @@ from fastapi import Query
 from pymatgen.core import Composition
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
-from mp_api.routes.synthesis.models import SynthesisTypeEnum, OperationTypeEnum
+from mp_api.routes.synthesis.models import (
+    SynthesisTypeEnum,
+    OperationTypeEnum,
+)
 from mp_api.routes.synthesis.utils import mask_highlights, mask_paragraphs
 
 
@@ -16,7 +19,7 @@ class SynthesisSearchQuery(QueryOperator):
         self,
         keywords: Optional[str] = Query(
             None,
-            description="String keywords to search synthesis paragraph text with.",
+            description="Comma delimited string keywords to search synthesis paragraph text with.",
         ),
         synthesis_type: Optional[List[SynthesisTypeEnum]] = Query(
             None, description="Type of synthesis to include."
@@ -86,7 +89,12 @@ class SynthesisSearchQuery(QueryOperator):
                         #     "paragraph_string": {"type": "string"}
                         #   }}}
                         "index": "synth_descriptions",
-                        "search": {"query": keywords, "path": "paragraph_string"},
+                        "search": {
+                            "query": [
+                                keyword.strip() for keyword in keywords.split(",")
+                            ],
+                            "path": "paragraph_string",
+                        },
                         "highlight": {
                             "path": "paragraph_string",
                             # "maxNumPassages": 1
@@ -122,19 +130,19 @@ class SynthesisSearchQuery(QueryOperator):
             crit["precursors_formula_s"] = reduced_formula
         if operations:
             crit["operations.type"] = {"$all": operations}
-        if condition_heating_temperature_min:
+        if condition_heating_temperature_min is not None:
             crit["operations.conditions.heating_temperature.values"] = {
                 "$gte": condition_heating_temperature_min
             }
-        if condition_heating_temperature_max:
+        if condition_heating_temperature_max is not None:
             crit["operations.conditions.heating_temperature.values"] = {
                 "$lte": condition_heating_temperature_max
             }
-        if condition_heating_time_min:
+        if condition_heating_time_min is not None:
             crit["operations.conditions.heating_time.values"] = {
                 "$gte": condition_heating_time_min
             }
-        if condition_heating_time_max:
+        if condition_heating_time_max is not None:
             crit["operations.conditions.heating_time.values"] = {
                 "$lte": condition_heating_time_max
             }
