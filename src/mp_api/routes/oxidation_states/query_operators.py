@@ -28,6 +28,6 @@ class PossibleOxiStateQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = ["possible_species"]
         return [(key, False) for key in keys]

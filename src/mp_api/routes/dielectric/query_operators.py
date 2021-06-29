@@ -41,7 +41,7 @@ class DielectricQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self): # pragma: no cover
         keys = [
             "dielectric.e_total",
             "dielectric.e_ionic",

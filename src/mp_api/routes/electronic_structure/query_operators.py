@@ -49,7 +49,7 @@ class ESSummaryDataQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
 
         keys = ["band_gap", "efermi", "magnetic_ordering", "is_gap_direct", "is_metal"]
 
@@ -121,7 +121,7 @@ class BSDataQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
 
         keys = ["bandstructure"]
 
@@ -228,7 +228,7 @@ class DOSDataQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
 
         keys = ["dos", "dos.magnetic_ordering"]
 

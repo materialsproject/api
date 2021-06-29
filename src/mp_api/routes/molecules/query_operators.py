@@ -29,7 +29,7 @@ class MoleculeElementsQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("elements", False)]
 
 
@@ -98,7 +98,7 @@ class MoleculeBaseQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = self._keys_from_query()
         indexes = []
         for key in keys:
@@ -129,5 +129,5 @@ class MoleculeFormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("formula_pretty", False)]

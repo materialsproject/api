@@ -77,5 +77,5 @@ class RoboTextSearchQuery(QueryOperator):
     def meta(self):
         return {"total_doc": self.total_doc}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("description", False)]

@@ -37,7 +37,7 @@ class SubstrateStructureQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = ["film_id", "sub_id", "sub_form", "film_orient", "orient"]
         return [(key, False) for key in keys]
 
@@ -82,6 +82,6 @@ class EnergyAreaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = ["area", "energy"]
         return [(key, False) for key in keys]

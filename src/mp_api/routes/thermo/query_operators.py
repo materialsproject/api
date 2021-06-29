@@ -22,6 +22,6 @@ class IsStableQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = self._keys_from_query()
         return [(key, False) for key in keys]

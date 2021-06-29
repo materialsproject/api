@@ -91,7 +91,7 @@ class SearchIsStableQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("is_stable", False)]
 
 
@@ -114,7 +114,7 @@ class SearchMagneticQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("ordering", False)]
 
 
@@ -137,7 +137,7 @@ class SearchIsTheoreticalQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("theoretical", False)]
 
 

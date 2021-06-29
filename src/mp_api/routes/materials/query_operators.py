@@ -33,7 +33,7 @@ class FormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = ["chemsys", "formula_pretty", "formula_anonymous", "composition_reduced"]
         return [(key, False) for key in keys]
 
@@ -70,7 +70,7 @@ class ElementsQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("elements", False)]
 
 
@@ -125,7 +125,7 @@ class SymmetryQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = ["symmetry.crystal_system", "symmetry.number", "symmetry.symbol"]
         return [(key, False) for key in keys]
 
@@ -155,7 +155,7 @@ class MultiTaskIDQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("task_ids", False)]
 
 
@@ -277,7 +277,7 @@ class FindStructureQuery(QueryOperator):
 
         return response
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("composition_reduced", False)]
 
 
@@ -357,5 +357,5 @@ class FormulaAutoCompleteQuery(QueryOperator):
 
         return {"pipeline": pipeline}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("formula_pretty", False)]

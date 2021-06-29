@@ -24,5 +24,5 @@ class ReconstructedQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("has_reconstructed", False)]

@@ -36,7 +36,7 @@ class GBStructureQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = [key for key in self._keys_from_query() if "_min" not in key]
         keys.append("rotation_angle")
         return [(key, False) for key in keys]

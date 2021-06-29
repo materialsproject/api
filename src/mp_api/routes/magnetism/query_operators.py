@@ -93,7 +93,7 @@ class MagneticQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = self._keys_from_query()
         indexes = []
         for key in keys:
