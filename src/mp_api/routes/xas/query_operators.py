@@ -36,12 +36,21 @@ class XASTaskIDQuery(QueryOperator):
     """
 
     def query(
-        self, task_ids: Optional[str] = Query(None, description="Comma-separated list of task_ids to query on"),
+        self,
+        task_ids: Optional[str] = Query(
+            None, description="Comma-separated list of task_ids to query on"
+        ),
     ) -> STORE_PARAMS:
 
         crit = {}
 
         if task_ids:
-            crit.update({"task_id": {"$in": task_ids.split(",")}})
+            crit.update(
+                {
+                    "task_id": {
+                        "$in": [task_id.strip() for task_id in task_ids.split(",")]
+                    }
+                }
+            )
 
         return {"criteria": crit}
