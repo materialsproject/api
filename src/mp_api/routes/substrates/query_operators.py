@@ -26,10 +26,14 @@ class SubstrateStructureQuery(QueryOperator):
         crit = defaultdict(dict)  # type: dict
 
         if film_orientation:
-            crit["film_orient"] = film_orientation.replace(",", " ")
+            crit["film_orient"] = " ".join(
+                [entry.strip() for entry in film_orientation.split(",")]
+            )
 
         if substrate_orientation:
-            crit["orient"] = substrate_orientation.replace(",", " ")
+            crit["orient"] = " ".join(
+                [entry.strip() for entry in substrate_orientation.split(",")]
+            )
 
         return {"criteria": crit}
 
@@ -70,10 +74,10 @@ class EnergyAreaQuery(QueryOperator):
         }
 
         for entry in d:
-            if d[entry][0]:
+            if d[entry][0] is not None:
                 crit[entry]["$gte"] = d[entry][0]
 
-            if d[entry][1]:
+            if d[entry][1] is not None:
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
