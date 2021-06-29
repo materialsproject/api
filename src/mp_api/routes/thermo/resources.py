@@ -7,10 +7,7 @@ from maggma.api.query_operator import (
     SortQuery,
     SparseFieldsQuery,
 )
-from mp_api.routes.thermo.query_operators import (
-    ThermoChemicalQuery,
-    IsStableQuery,
-)
+from mp_api.routes.thermo.query_operators import IsStableQuery
 
 from mp_api.routes.materials.query_operators import MultiMaterialIDQuery, FormulaQuery
 
@@ -26,7 +23,9 @@ def thermo_resource(thermo_store):
             NumericQuery(model=ThermoDoc),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(ThermoDoc, default_fields=["material_id", "last_updated"]),
+            SparseFieldsQuery(
+                ThermoDoc, default_fields=["material_id", "last_updated"]
+            ),
         ],
         tags=["Thermo"],
     )
