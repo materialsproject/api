@@ -19,7 +19,7 @@ class ReconstructedQuery(QueryOperator):
 
         crit = {}
 
-        if has_reconstructed:
+        if has_reconstructed is not None:
             crit.update({"has_reconstructed": has_reconstructed})
 
         return {"criteria": crit}
