@@ -387,4 +387,4 @@ class DosRester(BaseRester):
         if dos_obj:
             return dos_obj[0]["data"]
         else:
-            raise MPRestError("No band structure object found.")
+            raise MPRestError("No density of states object found.")
