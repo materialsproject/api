@@ -21,7 +21,13 @@ class MultipleTaskIDsQuery(QueryOperator):
         crit = {}
 
         if task_ids:
-            crit.update({"task_id": {"$in": task_ids.split(",")}})
+            crit.update(
+                {
+                    "task_id": {
+                        "$in": [task_id.strip() for task_id in task_ids.split(",")]
+                    }
+                }
+            )
 
         return {"criteria": crit}
 
@@ -41,7 +47,13 @@ class TrajectoryQuery(QueryOperator):
         crit = {}
 
         if task_ids:
-            crit.update({"task_id": {"$in": task_ids.split(",")}})
+            crit.update(
+                {
+                    "task_id": {
+                        "$in": [task_id.strip() for task_id in task_ids.split(",")]
+                    }
+                }
+            )
 
         return {"criteria": crit}
 
@@ -75,7 +87,7 @@ class DeprecationQuery(QueryOperator):
         ),
     ) -> STORE_PARAMS:
 
-        self.task_ids = task_ids.split(",")
+        self.task_ids = [task_id.strip() for task_id in task_ids.split(",")]
 
         crit = {}
 
