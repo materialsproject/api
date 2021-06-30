@@ -2,4 +2,6 @@
 omit = 
     *test*
     */resources.py
+    */models.py
+    */models/*
        
