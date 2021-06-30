@@ -40,12 +40,12 @@ class ThermoRester(BaseRester):
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             nelements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
             is_stable (bool): Whether the material is stable.
-            total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
-            formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
-            energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
-            equillibrium_reaction_energy (Tuple[int,int]): Minimum and maximum equilibrium reaction energy
+            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
+            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
+            energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
+            equillibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
-            uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
+            uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total energy in eV/atom to consider.
             sort_field (str): Field used to sort results.
             ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
@@ -84,7 +84,7 @@ class ThermoRester(BaseRester):
             "total_energy": "energy_per_atom",
             "formation_energy": "formation_energy_per_atom",
             "energy_above_hull": "energy_above_hull",
-            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
+            "equillibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
             "uncorrected_energy": "uncorrected_energy_per_atom",
         }
 
