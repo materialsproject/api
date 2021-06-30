@@ -475,7 +475,7 @@ class BaseRester:
 
         return all_results
 
-    def query_by_task_id(self, *args, **kwargs):
+    def query_by_task_id(self, *args, **kwargs):  # pragma: ignore
         print(
             "query_by_task_id has been renamed to get_document_by_id to be more general"
         )
@@ -505,10 +505,10 @@ class BaseRester:
             return ["Unknown fields."]
         return list(self.document_model.schema()["properties"].keys())  # type: ignore
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: ignore
         return f"<{self.__class__.__name__} {self.endpoint}>"
 
-    def __str__(self):
+    def __str__(self):  # pragma: ignore
         if self.document_model is None:
             return self.__repr__()
         return (
