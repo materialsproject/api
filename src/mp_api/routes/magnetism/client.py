@@ -1,12 +1,10 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
-import warnings
 
 from mp_api.core.client import BaseRester
-from mp_api.routes.magnetism.models import (
-    MagnetismDoc,
-    MagneticOrderingEnum,
-)
+from mp_api.routes.magnetism.models import MagnetismDoc
+
+from pymatgen.analysis.magnetism import Ordering
 
 
 class MagnetismRester(BaseRester):
@@ -17,10 +15,12 @@ class MagnetismRester(BaseRester):
 
     def search_magnetism_docs(
         self,
-        ordering: Optional[MagneticOrderingEnum] = None,
+        ordering: Optional[Ordering] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_formula_units: Optional[Tuple[float, float]] = None,
+        total_magnetization_normalized_formula_units: Optional[
+            Tuple[float, float]
+        ] = None,
         num_magnetic_sites: Optional[Tuple[float, float]] = None,
         num_unique_magnetic_sites: Optional[Tuple[float, float]] = None,
         sort_field: Optional[str] = None,
@@ -34,7 +34,7 @@ class MagnetismRester(BaseRester):
         Query magnetism docs using a variety of search criteria.
 
         Arguments:
-            ordering (MagneticOrderingEnum]): The magnetic ordering of the material.
+            ordering (Ordering]): The magnetic ordering of the material.
             total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.
             total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values
                 normalized by volume to consider.
@@ -59,28 +59,42 @@ class MagnetismRester(BaseRester):
 
         if total_magnetization:
             query_params.update(
-                {"total_magnetization_min": total_magnetization[0], "total_magnetization_max": total_magnetization[1]}
+                {
+                    "total_magnetization_min": total_magnetization[0],
+                    "total_magnetization_max": total_magnetization[1],
+                }
             )
 
         if total_magnetization_normalized_vol:
             query_params.update(
                 {
-                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[0],
-                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[1],
+                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[
+                        0
+                    ],
+                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[
+                        1
+                    ],
                 }
             )
 
         if total_magnetization_normalized_formula_units:
             query_params.update(
                 {
-                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[0],
-                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[1],
+                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[
+                        0
+                    ],
+                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[
+                        1
+                    ],
                 }
             )
 
         if num_magnetic_sites:
             query_params.update(
-                {"num_magnetic_sites_min": num_magnetic_sites[0], "num_magnetic_sites_max": num_magnetic_sites[1]}
+                {
+                    "num_magnetic_sites_min": num_magnetic_sites[0],
+                    "num_magnetic_sites_max": num_magnetic_sites[1],
+                }
             )
 
         if num_unique_magnetic_sites:
@@ -100,8 +114,16 @@ class MagnetismRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

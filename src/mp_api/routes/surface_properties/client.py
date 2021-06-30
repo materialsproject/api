@@ -76,9 +76,14 @@ class SurfacePropertiesRester(BaseRester):
             )
 
         if shape_factor:
-            query_params.update({"shape_factor_min": shape_factor[0], "shape_factor_max": shape_factor[1]})
+            query_params.update(
+                {
+                    "shape_factor_min": shape_factor[0],
+                    "shape_factor_max": shape_factor[1],
+                }
+            )
 
-        if has_reconstructed:
+        if has_reconstructed is not None:
             query_params.update({"has_reconstructed": has_reconstructed})
 
         if sort_field:
@@ -87,8 +92,16 @@ class SurfacePropertiesRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )
