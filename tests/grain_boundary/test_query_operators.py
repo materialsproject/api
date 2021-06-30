@@ -9,27 +9,41 @@ def test_grain_boundary_structure_query():
     op = GBStructureQuery()
 
     assert op.query(
-        sigma=0.5, type=GBTypeEnum.twist, chemsys="Si-Fe", pretty_formula="Fe2Si4"
+        sigma=5,
+        type=GBTypeEnum.twist,
+        chemsys="Si-Fe",
+        pretty_formula="Fe2Si4",
+        gb_plane="1,1,1",
+        rotation_axis="1,0,1",
     ) == {
         "criteria": {
-            "sigma": 0.5,
+            "sigma": 5,
             "type": "twist",
             "chemsys": "Fe-Si",
             "pretty_formula": "FeSi2",
+            "gb_plane": [1, 1, 1],
+            "rotation_axis": [1, 0, 1],
         }
     }
 
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert op.query(
-            sigma=0.5, type=GBTypeEnum.twist, chemsys="Si-Fe", pretty_formula="Fe2Si4"
+        assert new_op.query(
+            sigma=5,
+            type=GBTypeEnum.twist,
+            chemsys="Si-Fe",
+            pretty_formula="Fe2Si4",
+            gb_plane="1,1,1",
+            rotation_axis="1,0,1",
         ) == {
             "criteria": {
-                "sigma": 0.5,
+                "sigma": 5,
                 "type": "twist",
                 "chemsys": "Fe-Si",
                 "pretty_formula": "FeSi2",
+                "gb_plane": [1, 1, 1],
+                "rotation_axis": [1, 0, 1],
             }
         }
 
