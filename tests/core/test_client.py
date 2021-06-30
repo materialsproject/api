@@ -12,4 +12,3 @@ def rester():
 @pytest.mark.xfail
 def test_post_fail(rester):
     rester._post_resource({}, suburl="materials/find_structure")
-
