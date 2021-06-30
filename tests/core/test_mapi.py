@@ -60,9 +60,18 @@ def test_mapi(owner_store, pet_store):
     owner_endpoint = ReadOnlyResource(owner_store, Owner)
     pet_endpoint = ReadOnlyResource(pet_store, Pet)
 
-    manager = MAPI({"owners": owner_endpoint, "pets": pet_endpoint})
+    manager = MAPI({"owners": [owner_endpoint], "pets": [pet_endpoint]})
 
     api_dict = manager.as_dict()
 
     for k in ["@class", "@module", "resources"]:
         assert k in api_dict
+
+    assert manager.app.openapi()["components"]["securitySchemes"] == {
+        "ApiKeyAuth": {
+            "descriptions": "MP API key to authorize requests",
+            "name": "X-API-KEY",
+            "in": "header",
+            "type": "apiKey",
+        }
+    }
