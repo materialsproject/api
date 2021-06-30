@@ -24,8 +24,9 @@ search_only_resters = [
 special_resters = [
     "phonon_img",
     "charge_density",
-    "oxidation_states",
-]  # oxidation_states temporary
+]
+
+ignore = ["oxidation_states"]
 
 mpr = MPRester()
 
@@ -33,21 +34,22 @@ mpr = MPRester()
 @pytest.mark.parametrize("rester", mpr._all_resters)
 def test_generic_get_methods(rester):
     name = rester.suffix.replace("/", "_")
-    if name not in key_only_resters:
-        doc = rester.query({"limit": 1}, fields=[rester.primary_key])[0]
-        assert isinstance(doc, rester.document_model)
-
-        if name not in search_only_resters:
-            doc = rester.get_document_by_id(
-                doc.dict()[rester.primary_key], fields=[rester.primary_key]
-            )
+    if name not in ignore:
+        if name not in key_only_resters:
+            doc = rester.query({"limit": 1}, fields=[rester.primary_key])[0]
             assert isinstance(doc, rester.document_model)
 
-    elif name not in special_resters:
-        doc = rester.get_document_by_id(
-            key_only_resters[name], fields=[rester.primary_key]
-        )
-        assert isinstance(doc, rester.document_model)
+            if name not in search_only_resters:
+                doc = rester.get_document_by_id(
+                    doc.dict()[rester.primary_key], fields=[rester.primary_key]
+                )
+                assert isinstance(doc, rester.document_model)
+
+        elif name not in special_resters:
+            doc = rester.get_document_by_id(
+                key_only_resters[name], fields=[rester.primary_key]
+            )
+            assert isinstance(doc, rester.document_model)
 
 
 if os.environ.get("MP_API_KEY", None) is None:
