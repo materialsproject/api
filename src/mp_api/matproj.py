@@ -1,8 +1,12 @@
 from os import environ
 import warnings
+from collections import defaultdict
+from enum import Enum, unique
 
 from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.core.surface import get_symmetrically_equivalent_miller_indices
+from pymatgen.util.sequence import get_chunks
 
 from mp_api.core.client import BaseRester
 from mp_api.routes import *
@@ -16,6 +20,26 @@ _DEPRECATION_WARNING = (
 
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
+
+
+@unique
+class TaskType(Enum):
+    """task types available in MP"""
+
+    GGA_OPT = "GGA Structure Optimization"
+    GGAU_OPT = "GGA+U Structure Optimization"
+    SCAN_OPT = "SCAN Structure Optimization"
+    GGA_LINE = "GGA NSCF Line"
+    GGAU_LINE = "GGA+U NSCF Line"
+    GGA_UNIFORM = "GGA NSCF Uniform"
+    GGAU_UNIFORM = "GGA+U NSCF Uniform"
+    GGA_STATIC = "GGA Static"
+    GGAU_STATIC = "GGA+U Static"
+    GGA_STATIC_DIEL = "GGA Static Dielectric"
+    GGAU_STATIC_DIEL = "GGA+U Static Dielectric"
+    GGA_DEF = "GGA Deformation"
+    GGAU_DEF = "GGA+U Deformation"
+    LDA_STATIC_DIEL = "LDA Static Dielectric"
 
 
 class MPRester:
@@ -182,7 +206,7 @@ class MPRester:
         """
         docs = self.materials.search(task_ids=[task_id], fields=["material_id"])
         if len(docs) == 1:
-            return docs[0].material_id
+            return str(docs[0].material_id)
         elif len(docs) > 1:
             raise ValueError(
                 f"Multiple documents return for {task_id}, this should not happen, please report it!"
@@ -455,34 +479,30 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_substrates(self, material_id, number=50, orient=None):
+    def get_substrates(self, material_id, orient=None):
         """
         Get a substrate list for a material id. The list is in order of
         increasing elastic energy if a elastic tensor is available for
-        the material_id. Otherwise the list is in order of increasing
-        matching area.
+        the material_id.
 
         Args:
             material_id (str): Materials Project material_id, e.g. 'mp-123'.
             orient (list) : substrate orientation to look for
-            number (int) : number of substrates to return
-                n=0 returns all available matches
         Returns:
             list of dicts with substrate matches
         """
-        raise NotImplementedError
 
-    def get_all_substrates(self):
-        """
-        Gets the list of all possible substrates considered in the
-        Materials Project substrate database
+        return [
+            doc.dict()
+            for doc in self.substrates.search_substrates_docs(
+                film_id=material_id,
+                substrate_orientation=orient,
+                sort_field="energy",
+                ascending=True,
+            )
+        ]
 
-        Returns:
-            list of material_ids corresponding to possible substrates
-        """
-        raise NotImplementedError
-
-    def get_surface_data(self, material_id, miller_index=None, inc_structures=False):
+    def get_surface_data(self, material_id, miller_index=None):
         """
         Gets surface data for a material. Useful for Wulff shapes.
 
@@ -498,12 +518,23 @@ class MPRester:
             miller_index (list of integer): The miller index of the surface.
             e.g., [3, 2, 1]. If miller_index is provided, only one dictionary
             of this specific plane will be returned.
-            inc_structures (bool): Include final surface slab structures.
-                These are unnecessary for Wulff shape construction.
+
         Returns:
             Surface data for material. Energies are given in SI units (J/m^2).
         """
-        raise NotImplementedError
+        doc = self.surface_properties.get_document_by_id(material_id)
+        structure = self.get_structure_by_material_id(material_id)
+
+        if miller_index:
+            eq_indices = get_symmetrically_equivalent_miller_indices(
+                structure, miller_index
+            )
+
+            for surface in doc.surfaces:
+                if tuple(surface.miller_index) in eq_indices:
+                    return surface.dict()
+        else:
+            return doc.dict()
 
     def get_wulff_shape(self, material_id):
         """
@@ -514,7 +545,22 @@ class MPRester:
         Returns:
             pymatgen.analysis.wulff.WulffShape
         """
-        raise NotImplementedError
+        from pymatgen.analysis.wulff import WulffShape
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
+        structure = self.get_structure_by_material_id(material_id)
+        surfaces = self.get_surface_data(material_id)["surfaces"]
+        lattice = (
+            SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
+        )
+        miller_energy_map = {}
+        for surf in surfaces:
+            miller = tuple(surf["miller_index"])
+            # Prefer reconstructed surfaces, which have lower surface energies.
+            if (miller not in miller_energy_map) or surf["is_reconstructed"]:
+                miller_energy_map[miller] = surf["surface_energy"]
+        millers, energies = zip(*miller_energy_map.items())
+        return WulffShape(lattice, millers, energies)
 
     def get_gb_data(
         self,
@@ -524,7 +570,6 @@ class MPRester:
         sigma=None,
         gb_plane=None,
         rotation_axis=None,
-        include_work_of_separation=False,
     ):
         """
         Gets grain boundary data for a material.
@@ -532,6 +577,7 @@ class MPRester:
         Args:
             material_id (str): Materials Project material_id, e.g., 'mp-129'.
             pretty_formula (str): The formula of metals. e.g., 'Fe'
+            chemsys (str): Dash delimited elements in material.
             sigma(int): The sigma value of a certain type of grain boundary
             gb_plane(list of integer): The Miller index of grain
             boundary plane. e.g., [1, 1, 1]
@@ -550,7 +596,17 @@ class MPRester:
             A list of grain boundaries that satisfy the query conditions (sigma, gb_plane).
             Energies are given in SI units (J/m^2).
         """
-        raise NotImplementedError
+        return [
+            doc.dict()
+            for doc in self.grain_boundary.search_grain_boundary_docs(
+                material_ids=[material_id] if material_id else None,
+                pretty_formula=pretty_formula,
+                chemsys=chemsys,
+                sigma=sigma,
+                gb_plane=gb_plane,
+                rotation_axis=rotation_axis,
+            )
+        ]
 
     def get_interface_reactions(
         self,

@@ -64,10 +64,18 @@ class SubstratesRester(BaseRester):
             query_params.update({"substrate_formula": substrate_formula})
 
         if film_orientation:
-            query_params.update({"film_orientation": ",".join([str(i) for i in film_orientation])})
+            query_params.update(
+                {"film_orientation": ",".join([str(i) for i in film_orientation])}
+            )
 
         if substrate_orientation:
-            query_params.update({"substrate_orientation": ",".join([str(i) for i in substrate_orientation])})
+            query_params.update(
+                {
+                    "substrate_orientation": ",".join(
+                        [str(i) for i in substrate_orientation]
+                    )
+                }
+            )
 
         if area:
             query_params.update({"area_min": area[0], "area_max": area[1]})
@@ -81,8 +89,16 @@ class SubstratesRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            **query_params,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
         )

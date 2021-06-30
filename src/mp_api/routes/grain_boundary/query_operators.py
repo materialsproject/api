@@ -4,6 +4,7 @@ from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
 
 from collections import defaultdict
+from pymatgen.core.composition import Composition
 
 from mp_api.routes.grain_boundary.models import GBTypeEnum
 
@@ -15,17 +16,28 @@ class GBStructureQuery(QueryOperator):
 
     def query(
         self,
-        sigma: Optional[float] = Query(None, description="Value of sigma.",),
+        sigma: Optional[int] = Query(None, description="Value of sigma.",),
         type: Optional[GBTypeEnum] = Query(None, description="Grain boundary type.",),
         chemsys: Optional[str] = Query(
             None, description="Dash-delimited string of elements in the material.",
+        ),
+        pretty_formula: Optional[str] = Query(
+            None, description="Formula of the material.",
+        ),
+        gb_plane: Optional[str] = Query(
+            None,
+            description="Miller index of the grain boundary plane as comma delimitd integers.",
+        ),
+        rotation_axis: Optional[str] = Query(
+            None,
+            description="Miller index of the rotation axis as comma delimitd integers.",
         ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
 
         if sigma:
-            crit["sigma"] = sigma
+            crit["sigma"] = int(sigma)
 
         if type:
             crit["type"] = type.value
@@ -33,6 +45,15 @@ class GBStructureQuery(QueryOperator):
         if chemsys:
             chemsys = "-".join(sorted(chemsys.split("-")))
             crit["chemsys"] = chemsys
+
+        if pretty_formula:
+            crit["pretty_formula"] = Composition(pretty_formula).reduced_formula
+
+        if gb_plane:
+            crit["gb_plane"] = [int(n.strip()) for n in gb_plane.split(",")]
+
+        if rotation_axis:
+            crit["rotation_axis"] = [int(n.strip()) for n in rotation_axis.split(",")]
 
         return {"criteria": crit}
 
