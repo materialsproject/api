@@ -57,6 +57,12 @@ class TestMPRester:
     #     assert len(data) > 1000
 
     def test_get_materials_ids_doc(self, mpr):
+        mpids = mpr.materials.search_material_docs(
+            all_fields=False, fields=["material_id"], num_chunks=2, chunk_size=1000
+        )
+        assert len(mpids) > 1000
+
+    def test_pagination(self, mpr):
         mpids = mpr.get_materials_ids("Al2O3")
         random.shuffle(mpids)
         doc = mpr.materials.get_document_by_id(mpids.pop(0))
