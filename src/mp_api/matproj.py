@@ -2,11 +2,9 @@ from os import environ
 import warnings
 
 from pymatgen.core import Structure
-from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from mp_api.core.client import BaseRester
-from mp_api.routes.electronic_structure.models.core import BSPathType
 from mp_api.routes import *
 
 _DEPRECATION_WARNING = (

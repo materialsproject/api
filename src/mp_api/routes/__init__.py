@@ -26,3 +26,4 @@ from mp_api.routes.electronic_structure.client import (
     BandStructureRester,
     DosRester,
 )
+from mp_api.routes.oxidation_states.client import OxidationStatesRester
