@@ -21,7 +21,11 @@ search_only_resters = [
     "xas",  # Temp
 ]
 
-special_resters = ["phonon_img", "charge_density"]
+special_resters = [
+    "phonon_img",
+    "charge_density",
+    "oxidation_states",
+]  # oxidation_states temporary
 
 mpr = MPRester()
 
