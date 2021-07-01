@@ -207,13 +207,13 @@ class MPRester:
             materials_id (MPID)
         """
         docs = self.materials.search(task_ids=[task_id], fields=["material_id"])
-        if len(docs) == 1:
+        if len(docs) == 1:  # pragma: no cover
             return str(docs[0].material_id)
-        elif len(docs) > 1:
+        elif len(docs) > 1:  # pragma: no cover
             raise ValueError(
                 f"Multiple documents return for {task_id}, this should not happen, please report it!"
             )
-        else:
+        else:  # pragma: no cover
             warnings.warn(
                 f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
             )

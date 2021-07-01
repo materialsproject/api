@@ -18,6 +18,7 @@ from pymatgen.core.periodic_table import Element
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.io.vasp import Incar, Chgcar
 from pymatgen.analysis.magnetism import Ordering
+from pymatgen.analysis.wulff import WulffShape
 
 api_is_up = (
     requests.get("https://api.materialsproject.org/heartbeat").status_code == 200
@@ -164,6 +165,10 @@ class TestMPRester:
         assert gb_f.rotation_angle == pytest.approx(109.47122)
         assert mo_s3_112[0]["gb_energy"] == pytest.approx(0.4796547330588574)
         assert mo_s3_112[0]["w_sep"] == pytest.approx(6.318144)
+
+    def test_get_wulff_shape(self, mpr):
+        ws = mpr.get_wulff_shape("mp-126")
+        assert isinstance(ws, WulffShape)
 
     def test_query(self, mpr):
 
