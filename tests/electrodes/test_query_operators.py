@@ -2,7 +2,7 @@ from mp_api.routes.electrodes.query_operators import (
     ElectrodeFormulaQuery,
     VoltageStepQuery,
     InsertionVoltageStepQuery,
-    InsertionElectrodeQuery,
+    WorkingIonQuery,
 )
 
 from monty.tempfile import ScratchDir
@@ -133,24 +133,11 @@ def test_insertion_voltage_step_query():
 
 
 def test_insertion_electrode_query():
-    op = InsertionElectrodeQuery()
+    op = WorkingIonQuery()
 
-    q = op.query(
-        working_ion="Li",
-        num_steps_min=0,
-        num_steps_max=5,
-        max_voltage_step_min=0,
-        max_voltage_step_max=5,
-    )
+    q = op.query(working_ion="Li",)
 
-    fields = [
-        "num_steps",
-        "max_voltage_step",
-    ]
-
-    c = {field: {"$gte": 0, "$lte": 5} for field in fields}
-
-    assert q == {"criteria": {"working_ion": "Li", **c}}
+    assert q == {"criteria": {"working_ion": "Li"}}
 
     with ScratchDir("."):
         dumpfn(op, "temp.json")
@@ -162,6 +149,5 @@ def test_insertion_electrode_query():
             max_voltage_step_min=0,
             max_voltage_step_max=5,
         )
-        c = {field: {"$gte": 0, "$lte": 5} for field in fields}
 
-        assert q == {"criteria": {"working_ion": "Li", **c}}
+        assert q == {"criteria": {"working_ion": "Li"}}
