@@ -40,7 +40,6 @@ def test_client(rester):
         for entry in param_tuples:
             param = entry[0]
             if param not in excluded_params:
-                print(param)
                 param_type = entry[1].__args__[0]
                 q = None
                 if param_type is typing.Tuple[int, int]:

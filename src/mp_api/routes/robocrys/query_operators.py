@@ -70,7 +70,6 @@ class RoboTextSearchQuery(QueryOperator):
         return {"pipeline": pipeline}
 
     def post_process(self, docs):
-        print(docs[0])
         self.total_doc = docs[0]["total_doc"]
         return docs
 
