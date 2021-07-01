@@ -8,6 +8,7 @@ from mp_api.routes.search.query_operators import (
     SearchMagneticQuery,
     SearchIsTheoreticalQuery,
     SearchStatsQuery,
+    SearchESQuery,
 )
 
 from mp_api.routes.search.models import SearchStats
@@ -95,3 +96,11 @@ def test_search_stats_query():
     docs = [{"band_gap": 1}, {"band_gap": 2}, {"band_gap": 3}]
 
     assert isinstance(op.post_process(docs)[0], SearchStats)
+
+
+def test_search_es_query():
+    op = SearchESQuery()
+
+    assert op.query(is_gap_direct=False, is_metal=False) == {
+        "criteria": {"is_gap_direct": False, "is_metal": False}
+    }
