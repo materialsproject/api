@@ -141,6 +141,38 @@ class SearchIsTheoreticalQuery(QueryOperator):
         return [("theoretical", False)]
 
 
+class SearchESQuery(QueryOperator):
+    """
+    Method to generate a query on search electronic structure data.
+    """
+
+    def query(
+        self,
+        is_gap_direct: Optional[bool] = Query(
+            None, description="Whether a band gap is direct or not."
+        ),
+        is_metal: Optional[bool] = Query(
+            None, description="Whether the material is considered a metal."
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = defaultdict(dict)  # type: dict
+
+        if is_gap_direct is not None:
+            crit["is_gap_direct"] = is_gap_direct
+
+        if is_metal is not None:
+            crit["is_metal"] = is_metal
+
+        return {"criteria": crit}
+
+    def ensure_indexes(self):  # pragma: no cover
+
+        keys = ["is_gap_direct", "is_metal"]
+
+        return [(key, False) for key in keys]
+
+
 class SearchStatsQuery(QueryOperator):
     """
     Method to generate a query on search stats data
