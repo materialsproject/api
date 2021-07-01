@@ -26,12 +26,15 @@ api_is_up = (
 
 @pytest.fixture()
 def mpr():
-    rester = MPRester()
+    rester = MPRester(endpoint="http://127.0.0.1:8000")
     yield rester
     rester.session.close()
 
 
-@pytest.mark.skipif(((os.environ.get("MP_API_KEY", None) is None) or (not api_is_up)))
+@pytest.mark.skipif(
+    ((os.environ.get("MP_API_KEY", None) is None) or (not api_is_up)),
+    reason="API is down",
+)
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-1")
