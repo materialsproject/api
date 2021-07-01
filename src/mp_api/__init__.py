@@ -6,7 +6,7 @@ from mp_api.matproj import MPRester
 
 try:
     __version__ = get_distribution(__name__).version
-except DistributionNotFound:
+except DistributionNotFound:  # pragma: no cover
     # package is not installed
     __version__ = None  # type: ignore
 
