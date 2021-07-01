@@ -1,0 +1,283 @@
+{
+    "doi": "10.1039/C2CE25672J",
+    "paragraph_string": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "synthesis_type": "solid-state",
+    "reaction_string": "1 BiOCl + 1 Ca(NO3)2 + 2 [OH-] == 1 CaBiO2Cl + 1 H2O + 2 [NO3-]",
+    "reaction": {
+        "left_side": [
+            {
+                "amount": "1",
+                "material": "Ca(NO3)2"
+            },
+            {
+                "amount": "1",
+                "material": "BiOCl"
+            },
+            {
+                "amount": "2",
+                "material": "[OH-]"
+            }
+        ],
+        "right_side": [
+            {
+                "amount": "1",
+                "material": "CaBiO2Cl"
+            },
+            {
+                "amount": "1",
+                "material": "H2O"
+            },
+            {
+                "amount": "2",
+                "material": "[NO3-]"
+            }
+        ]
+    },
+    "targets_formula": [
+        "Ca1 Bi1 O2 Cl1"
+    ],
+    "target": {
+        "material_string": "CaBiO2Cl",
+        "material_name": "",
+        "material_formula": "CaBiO2Cl",
+        "phase": null,
+        "is_acronym": false,
+        "composition": [
+            {
+                "formula": "CaBiO2Cl",
+                "amount": "1",
+                "elements": {
+                    "Ca": "1",
+                    "Bi": "1",
+                    "O": "2",
+                    "Cl": "1"
+                }
+            }
+        ],
+        "amounts_vars": {},
+        "elements_vars": {},
+        "additives": [],
+        "oxygen_deficiency": "None"
+    },
+    "targets_formula_s": [
+        "CaBiClO2"
+    ],
+    "precursors_formula_s": [
+        "Ca(NO3)2",
+        "BiClO"
+    ],
+    "precursors_formula": [
+        "Ca1 N2 O6",
+        "Bi1 O1 Cl1"
+    ],
+    "precursors": [
+        {
+            "material_string": "Ca(NO3)2",
+            "material_name": "",
+            "material_formula": "Ca(NO3)2",
+            "phase": null,
+            "is_acronym": false,
+            "composition": [
+                {
+                    "formula": "Ca(NO3)2",
+                    "amount": "1",
+                    "elements": {
+                        "N": "2",
+                        "O": "6",
+                        "Ca": "1"
+                    }
+                }
+            ],
+            "amounts_vars": {},
+            "elements_vars": {},
+            "additives": [],
+            "oxygen_deficiency": "None"
+        },
+        {
+            "material_string": "BiOCl",
+            "material_name": "",
+            "material_formula": "BiOCl",
+            "phase": null,
+            "is_acronym": false,
+            "composition": [
+                {
+                    "formula": "BiOCl",
+                    "amount": "1",
+                    "elements": {
+                        "Bi": "1",
+                        "O": "1",
+                        "Cl": "1"
+                    }
+                }
+            ],
+            "amounts_vars": {},
+            "elements_vars": {},
+            "additives": [],
+            "oxygen_deficiency": "None"
+        }
+    ],
+    "operations": [
+        {
+            "type": "StartingSynthesis",
+            "token": "prepared",
+            "conditions": {
+                "heating_temperature": [],
+                "heating_time": [],
+                "heating_atmosphere": [],
+                "mixing_device": null,
+                "mixing_media": null
+            }
+        },
+        {
+            "type": "MixingOperation",
+            "token": "mixed",
+            "conditions": {
+                "heating_temperature": [],
+                "heating_time": [],
+                "heating_atmosphere": [],
+                "mixing_device": null,
+                "mixing_media": null
+            }
+        },
+        {
+            "type": "MixingOperation",
+            "token": "added",
+            "conditions": {
+                "heating_temperature": [],
+                "heating_time": [],
+                "heating_atmosphere": [],
+                "mixing_device": null,
+                "mixing_media": null
+            }
+        },
+        {
+            "type": "MixingOperation",
+            "token": "stirred",
+            "conditions": {
+                "heating_temperature": [],
+                "heating_time": [
+                    {
+                        "min_value": 5.0,
+                        "max_value": 5.0,
+                        "values": [
+                            5.0
+                        ],
+                        "units": "h"
+                    }
+                ],
+                "heating_atmosphere": [],
+                "mixing_device": null,
+                "mixing_media": null
+            }
+        },
+        {
+            "type": "MixingOperation",
+            "token": "washed",
+            "conditions": {
+                "heating_temperature": [],
+                "heating_time": [],
+                "heating_atmosphere": [],
+                "mixing_device": "water",
+                "mixing_media": null
+            }
+        },
+        {
+            "type": "DryingOperation",
+            "token": "dried",
+            "conditions": {
+                "heating_temperature": [
+                    {
+                        "min_value": 80.0,
+                        "max_value": 80.0,
+                        "values": [
+                            80.0
+                        ],
+                        "units": "°C"
+                    }
+                ],
+                "heating_time": [],
+                "heating_atmosphere": [],
+                "mixing_device": null,
+                "mixing_media": null
+            }
+        },
+        {
+            "type": "MixingOperation",
+            "token": "ground",
+            "conditions": {
+                "heating_temperature": [],
+                "heating_time": [],
+                "heating_atmosphere": [],
+                "mixing_device": "alumina",
+                "mixing_media": null
+            }
+        },
+        {
+            "type": "HeatingOperation",
+            "token": "heated",
+            "conditions": {
+                "heating_temperature": [],
+                "heating_time": [
+                    {
+                        "min_value": 12.0,
+                        "max_value": 12.0,
+                        "values": [
+                            12.0
+                        ],
+                        "units": "h"
+                    }
+                ],
+                "heating_atmosphere": [
+                    "air"
+                ],
+                "mixing_device": null,
+                "mixing_media": null
+            }
+        },
+        {
+            "type": "StartingSynthesis",
+            "token": "prepared",
+            "conditions": {
+                "heating_temperature": [],
+                "heating_time": [],
+                "heating_atmosphere": [],
+                "mixing_device": null,
+                "mixing_media": null
+            }
+        }
+    ],
+    "highlights": [
+        {
+            "path": "paragraph_string",
+            "texts": [
+                {
+                    "value": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+                    "type": "text"
+                },
+                {
+                    "value": "silicon",
+                    "type": "hit"
+                },
+                {
+                    "value": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+                    "type": "text"
+                }
+            ],
+            "score": 1.2976155281066895
+        },
+        {
+            "path": "paragraph_string",
+            "texts": [
+                {
+                    "value": "Silicon",
+                    "type": "hit"
+                },
+                {
+                    "value": " powder was ...",
+                    "type": "text"
+                }
+            ],
+            "score": 1.85878586769104
+        }
+    ]
+}

@@ -1,6 +1,6 @@
 from typing import List
 
-from mp_api.core.client import BaseRester
+from mp_api.core.client import BaseRester, MPRestError
 from mp_api.routes.robocrys.models import RobocrysDoc
 
 
@@ -24,7 +24,12 @@ class RobocrysRester(BaseRester):
         keyword_string = ",".join(keywords)
 
         robocrys_docs = self._query_resource(
-            criteria={"keywords": keyword_string}, suburl="text_search", use_document_model=True,
-        )
+            criteria={"keywords": keyword_string},
+            suburl="text_search",
+            use_document_model=True,
+        ).get("data", None)
+
+        if robocrys_docs is None:
+            raise MPRestError("Cannot find any matches.")
 
         return robocrys_docs

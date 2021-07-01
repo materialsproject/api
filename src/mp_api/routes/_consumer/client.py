@@ -2,12 +2,12 @@ from mp_api.routes._consumer.models import UserSettingsDoc
 from mp_api.core.client import BaseRester
 
 
-class UserSettingsRester(BaseRester):
+class UserSettingsRester(BaseRester):  # pragma: no cover
 
     suffix = "user_settings"
     document_model = UserSettingsDoc  # type: ignore
 
-    def set_user_settings(self, consumer_id, settings):  # pragma: ignore
+    def set_user_settings(self, consumer_id, settings):  # pragma: no cover
         """
         Set user settings.
         Args:
@@ -22,7 +22,7 @@ class UserSettingsRester(BaseRester):
             body=settings, params={"consumer_id": consumer_id}
         ).get("data")
 
-    def get_user_settings(self, consumer_id, settings):  # pragma: ignore
+    def get_user_settings(self, consumer_id, settings):  # pragma: no cover
         """
         Get user settings.
         Args:

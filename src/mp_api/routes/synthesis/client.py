@@ -1,4 +1,4 @@
-from mp_api.core.client import BaseRester
+from mp_api.core.client import BaseRester, MPRestError
 from mp_api.routes.synthesis.models import SynthesisSearchResultModel
 from typing import List
 
@@ -20,9 +20,10 @@ class SynthesisRester(BaseRester):
         keyword_string = ",".join(keywords)
 
         synthesis_docs = self._query_resource(
-            criteria={"keywords": keyword_string},
-            suburl="text_search",
-            use_document_model=True,
-        )
+            criteria={"keywords": keyword_string}, use_document_model=True,
+        ).get("data", None)
+
+        if synthesis_docs is None:
+            raise MPRestError("Cannot find any matches.")
 
         return synthesis_docs

@@ -1,6 +1,8 @@
+from emmet.core.symmetry import CrystalSystem
 import pytest
 import random
 import os
+import typing
 from mp_api.matproj import MPRester
 from mp_api.core.settings import MAPISettings
 import requests
@@ -15,6 +17,8 @@ from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.core.periodic_table import Element
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.io.vasp import Incar, Chgcar
+from pymatgen.analysis.magnetism import Ordering
+from pymatgen.analysis.wulff import WulffShape
 
 api_is_up = (
     requests.get("https://api.materialsproject.org/heartbeat").status_code == 200
@@ -28,7 +32,10 @@ def mpr():
     rester.session.close()
 
 
-# @pytest.mark.skipif(((os.environ.get("MP_API_KEY", None) is None) or (not api_is_up)))
+@pytest.mark.skipif(
+    ((os.environ.get("MP_API_KEY", None) is None) or (not api_is_up)),
+    reason="API is down",
+)
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-1")
@@ -158,3 +165,99 @@ class TestMPRester:
         assert gb_f.rotation_angle == pytest.approx(109.47122)
         assert mo_s3_112[0]["gb_energy"] == pytest.approx(0.4796547330588574)
         assert mo_s3_112[0]["w_sep"] == pytest.approx(6.318144)
+
+    def test_get_wulff_shape(self, mpr):
+        ws = mpr.get_wulff_shape("mp-126")
+        assert isinstance(ws, WulffShape)
+
+    def test_query(self, mpr):
+
+        excluded_params = [
+            "sort_field",
+            "ascending",
+            "chunk_size",
+            "num_chunks",
+            "all_fields",
+            "fields",
+            "equillibrium_reaction_energy",  # Fix (thermo model)
+            "weighted_work_function",  # Fix (search builder)
+            "weighted_surface_energy",  # Fix (search builder)
+            "surface_anisotropy",  # Fix (search builder)
+            "shape_factor",  # Fix (search builder)
+        ]
+
+        alt_name_dict = {
+            "material_ids": "material_id",
+            "chemsys_formula": "formula_pretty",
+            "piezoelectric_modulus": "e_ij_max",
+            "crystal_system": "symmetry",
+            "spacegroup_symbol": "symmetry",
+            "spacegroup_number": "symmetry",
+            "total_energy": "energy_per_atom",
+            "formation_energy": "formation_energy_per_atom",
+            "uncorrected_energy": "uncorrected_energy_per_atom",
+            "magnetic_ordering": "ordering",
+            "elastic_anisotropy": "universal_anisotropy",
+            "poisson_ratio": "homogeneous_poisson",
+            "piezoelectric_modulus": "e_ij_max",
+        }  # type: dict
+
+        custom_field_tests = {
+            "material_ids": ["mp-149"],
+            "chemsys_formula": "SiO2",
+            "crystal_system": CrystalSystem.cubic,
+            "spacegroup_number": 38,
+            "spacegroup_symbol": "Amm2",
+            "magnetic_ordering": Ordering.FM,
+            "has_props": ["dielectric"],
+            "theoretical": True,
+        }  # type: dict
+
+        search_method = mpr.query
+
+        # Get list of parameters
+        param_tuples = list(typing.get_type_hints(search_method).items())
+
+        # Query API for each numeric and bollean parameter and check if returned
+        for entry in param_tuples:
+            param = entry[0]
+            if param not in excluded_params:
+                print(param)
+                param_type = entry[1].__args__[0]
+                q = None
+
+                if param in custom_field_tests:
+                    project_field = alt_name_dict.get(param, None)
+                    q = {
+                        param: custom_field_tests[param],
+                        "chunk_size": 1,
+                        "num_chunks": 1,
+                    }
+                elif param_type is typing.Tuple[int, int]:
+                    project_field = alt_name_dict.get(param, None)
+                    q = {
+                        param: (-100, 100),
+                        "chunk_size": 1,
+                        "num_chunks": 1,
+                    }
+                elif param_type is typing.Tuple[float, float]:
+                    project_field = alt_name_dict.get(param, None)
+                    q = {
+                        param: (-100.12, 100.12),
+                        "chunk_size": 1,
+                        "num_chunks": 1,
+                    }
+                elif param_type is bool:
+                    project_field = alt_name_dict.get(param, None)
+                    q = {
+                        param: False,
+                        "chunk_size": 1,
+                        "num_chunks": 1,
+                    }
+
+                doc = search_method(**q)[0].dict()
+
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )

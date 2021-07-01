@@ -25,7 +25,7 @@ from maggma.api.utils import api_sanitize
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
-except ImportError:
+except ImportError:  # pragma: no cover
     # fallback to root-level import for older pymatgen versions
     from pymatgen import __version__ as pmg_version  # type: ignore
 
@@ -112,13 +112,13 @@ class BaseRester:
             )
         return session
 
-    def __enter__(self):
+    def __enter__(self):  # pragma: no cover
         """
         Support for "with" context.
         """
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb):  # pragma: no cover
         """
         Support for "with" context.
         """
@@ -330,7 +330,7 @@ class BaseRester:
         else:
             criteria = {"limit": 1}
 
-        if isinstance(fields, str):
+        if isinstance(fields, str):  # pragma: no cover
             fields = (fields,)
 
         results = []
@@ -368,7 +368,7 @@ class BaseRester:
 
         if not results:
             raise MPRestError(f"No result for record {document_id}.")
-        elif len(results) > 1:
+        elif len(results) > 1:  # pragma: no cover
             raise ValueError(
                 f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
             )
@@ -475,7 +475,7 @@ class BaseRester:
 
         return all_results
 
-    def query_by_task_id(self, *args, **kwargs):  # pragma: ignore
+    def query_by_task_id(self, *args, **kwargs):  # pragma: no cover
         print(
             "query_by_task_id has been renamed to get_document_by_id to be more general"
         )
@@ -496,8 +496,8 @@ class BaseRester:
                 criteria=criteria, monty_decode=False
             )  # do not waste cycles Monty decoding
             return results["meta"]["total_doc"]
-        except Exception:
-            return "unknown"
+        except Exception:  # pragma: no cover
+            return "Problem getting count"
 
     @property
     def available_fields(self) -> List[str]:
@@ -505,10 +505,10 @@ class BaseRester:
             return ["Unknown fields."]
         return list(self.document_model.schema()["properties"].keys())  # type: ignore
 
-    def __repr__(self):  # pragma: ignore
+    def __repr__(self):  # pragma: no cover
         return f"<{self.__class__.__name__} {self.endpoint}>"
 
-    def __str__(self):  # pragma: ignore
+    def __str__(self):  # pragma: no cover
         if self.document_model is None:
             return self.__repr__()
         return (

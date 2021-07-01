@@ -6,7 +6,7 @@ from mp_api.matproj import MPRester
 
 try:
     __version__ = get_distribution(__name__).version
-except DistributionNotFound:
+except DistributionNotFound:  # pragma: no cover
     # package is not installed
     __version__ = None  # type: ignore
 
@@ -15,7 +15,7 @@ from pathlib import Path
 
 settings = MAPISettings()
 
-try:
+try:  # pragma: no cover
     if Path(settings.app_path).exists():
         mapi = loadfn(settings.app_path)
         app = mapi.app
@@ -24,7 +24,7 @@ try:
         if settings.debug:
             print(f"Failed loading App at {settings.app_path}")
 
-except Exception as e:
+except Exception as e:  # pragma: no cover
     # Something went wrong with loading default app
     if settings.debug:
         print("Failed loading App")
