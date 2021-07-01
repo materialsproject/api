@@ -27,12 +27,12 @@ class ChargeDensityRester(BaseRester):
         else:
             raise MPRestError("No charge density found")
 
-    def get_calculation_details(self, task_id: str):
+    def get_charge_density_calculation_details(self, task_id: str):
         """
-        Get charge density calculations details for a given calculation ID.
+        Get charge density calculations details for a given calculation (task) ID.
 
         Arguments:
-            task_id (str): Calculation ID
+            task_id (str): Calculation (task) ID
 
         Returns:
             calc_details (dict): Dictionary containing INCAR, POSCAR, and KPOINTS data for the DFT calculation.
@@ -41,12 +41,13 @@ class ChargeDensityRester(BaseRester):
         task_rester = TaskRester(endpoint=self.base_endpoint, api_key=self.api_key)  # type: ignore
 
         result = task_rester.get_document_by_id(
-            document_id=task_id, fields=["orig_inputs.incar", "orig_inputs.poscar", "orig_inputs.kpoints"],
+            document_id=task_id,
+            fields=["orig_inputs.incar", "orig_inputs.poscar", "orig_inputs.kpoints"],
         ).orig_inputs
 
         return result
 
-    def get_calculation_ids_from_material_id(self, material_id: str):
+    def get_charge_density_calculation_ids_from_material_id(self, material_id: str):
         """
         Get charge density calculation ids associated with a given Materials Project ID
         that have charge density data.
@@ -62,7 +63,9 @@ class ChargeDensityRester(BaseRester):
             endpoint=self.base_endpoint, api_key=self.api_key,
         )
 
-        mat_doc = materials_rester.get_document_by_id(document_id=material_id, fields=["calc_types"])
+        mat_doc = materials_rester.get_document_by_id(
+            document_id=material_id, fields=["calc_types"]
+        )
 
         calculation_ids = []
         if mat_doc is not None:
@@ -73,6 +76,8 @@ class ChargeDensityRester(BaseRester):
         result = []
 
         if len(calculation_ids) > 0:
-            result = self.search(task_ids=",".join(calculation_ids), fields=["task_id"], chunk_size=10)
+            result = self.search(
+                task_ids=",".join(calculation_ids), fields=["task_id"], chunk_size=10
+            )
 
         return result

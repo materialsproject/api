@@ -3,7 +3,7 @@ from emmet.core.xas import XASDoc
 
 from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
 from mp_api.routes.materials.query_operators import ElementsQuery, FormulaQuery
-from mp_api.routes.xas.query_operator import XASQuery, XASTaskIDQuery
+from mp_api.routes.xas.query_operators import XASQuery, XASTaskIDQuery
 
 
 def xas_resource(xas_store):

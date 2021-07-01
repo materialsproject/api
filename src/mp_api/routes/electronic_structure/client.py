@@ -184,7 +184,9 @@ class BandStructureRester(BaseRester):
         """
 
         result = self._query_resource(
-            criteria={"task_id": task_id}, suburl="object", use_document_model=False
+            criteria={"task_id": task_id, "all_fields": True},
+            suburl="object",
+            use_document_model=False,
         )
 
         if result.get("data", None) is not None:
@@ -193,7 +195,10 @@ class BandStructureRester(BaseRester):
             raise MPRestError("No object found")
 
     def get_bandstructure_from_material_id(
-        self, material_id: str, path_type: BSPathType = BSPathType.setyawan_curtarolo,
+        self,
+        material_id: str,
+        path_type: BSPathType = BSPathType.setyawan_curtarolo,
+        line_mode=True,
     ):
         """
         Get the band structure pymatgen object associated with a Materials Project ID.
@@ -201,27 +206,40 @@ class BandStructureRester(BaseRester):
         Arguments:
             materials_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
+            line_mode (bool): Whether to return data for a line-mode calculation
 
         Returns:
-            bandstructure (BandStructureSymmLine): BandStructureSymmLine object
+            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
 
         es_rester = ElectronicStructureRester(
             endpoint=self.base_endpoint, api_key=self.api_key
         )
 
-        bs_data = es_rester.get_document_by_id(
-            document_id=material_id, fields=["bandstructure"]
-        ).bandstructure.dict()
+        if line_mode:
+            bs_data = es_rester.get_document_by_id(
+                document_id=material_id, fields=["bandstructure"]
+            ).bandstructure.dict()
 
-        if bs_data[path_type.value]:
-            bs_calc_id = bs_data[path_type.value]["task_id"]
-        else:
-            raise MPRestError(
-                "No {} band structure data found for {}".format(
-                    path_type.value, material_id
+            if bs_data.get(path_type.value, None):
+                bs_calc_id = bs_data[path_type.value]["task_id"]
+            else:
+                raise MPRestError(
+                    "No {} band structure data found for {}".format(
+                        path_type.value, material_id
+                    )
                 )
-            )
+        else:
+            bs_data = es_rester.get_document_by_id(
+                document_id=material_id, fields=["dos"]
+            ).dos.dict()
+
+            if bs_data.get("total", None):
+                bs_calc_id = bs_data["total"]["1"]["task_id"]
+            else:
+                raise MPRestError(
+                    "No uniform band structure data found for {}".format(material_id)
+                )
 
         bs_obj = self.get_bandstructure_from_calculation_id(bs_calc_id)
 
@@ -329,7 +347,9 @@ class DosRester(BaseRester):
         """
 
         result = self._query_resource(
-            criteria={"task_id": task_id}, suburl="object", use_document_model=False
+            criteria={"task_id": task_id, "all_fields": True},
+            suburl="object",
+            use_document_model=False,
         )
 
         if result.get("data", None) is not None:
@@ -364,7 +384,6 @@ class DosRester(BaseRester):
             )
 
         dos_obj = self.get_dos_from_calculation_id(dos_calc_id)
-
         if dos_obj:
             return dos_obj[0]["data"]
         else:

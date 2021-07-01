@@ -25,7 +25,7 @@ class XASQuery(QueryOperator):
 
         return {"criteria": query} if len(query) > 0 else {}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = ["edge", "absorbing_element", "spectrum_type"]
         return [(key, False) for key in keys]
 
@@ -36,12 +36,21 @@ class XASTaskIDQuery(QueryOperator):
     """
 
     def query(
-        self, task_ids: Optional[str] = Query(None, description="Comma-separated list of task_ids to query on"),
+        self,
+        task_ids: Optional[str] = Query(
+            None, description="Comma-separated list of task_ids to query on"
+        ),
     ) -> STORE_PARAMS:
 
         crit = {}
 
         if task_ids:
-            crit.update({"task_id": {"$in": task_ids.split(",")}})
+            crit.update(
+                {
+                    "task_id": {
+                        "$in": [task_id.strip() for task_id in task_ids.split(",")]
+                    }
+                }
+            )
 
         return {"criteria": crit}

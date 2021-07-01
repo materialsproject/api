@@ -58,6 +58,6 @@ class MPCompleteGetQuery(QueryOperator):
             crit.update({"public_name": public_name})
 
         if public_email is not None:
-            crit.update({"public_name": public_email})
+            crit.update({"public_email": public_email})
 
         return {"criteria": crit}

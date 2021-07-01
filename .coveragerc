@@ -1,2 +1,7 @@
 [run]
-omit = *test*
+omit = 
+    *test*
+    */resources.py
+    */models.py
+    */models/*
+       

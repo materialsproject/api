@@ -14,7 +14,8 @@ from pymatgen.core.structure import Structure
 
 class FormulaQuery(QueryOperator):
     """
-    Factory method to generate a dependency for querying by formula with wild cards
+    Factory method to generate a dependency for querying by
+        formula or chemical system with wild cards.
     """
 
     def query(
@@ -32,7 +33,7 @@ class FormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = ["chemsys", "formula_pretty", "formula_anonymous", "composition_reduced"]
         return [(key, False) for key in keys]
 
@@ -69,7 +70,7 @@ class ElementsQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("elements", False)]
 
 
@@ -87,7 +88,7 @@ class DeprecationQuery(QueryOperator):
 
         crit = {}
 
-        if deprecated:
+        if deprecated is not None:
             crit.update({"deprecated": deprecated})
 
         return {"criteria": crit}
@@ -124,7 +125,7 @@ class SymmetryQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = ["symmetry.crystal_system", "symmetry.number", "symmetry.symbol"]
         return [(key, False) for key in keys]
 
@@ -144,11 +145,17 @@ class MultiTaskIDQuery(QueryOperator):
         crit = {}
 
         if task_ids:
-            crit.update({"task_ids": {"$in": task_ids.split(",")}})
+            crit.update(
+                {
+                    "task_ids": {
+                        "$in": [task_id.strip() for task_id in task_ids.split(",")]
+                    }
+                }
+            )
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("task_ids", False)]
 
 
@@ -167,7 +174,16 @@ class MultiMaterialIDQuery(QueryOperator):
         crit = {}
 
         if material_ids:
-            crit.update({"material_id": {"$in": material_ids.split(",")}})
+            crit.update(
+                {
+                    "material_id": {
+                        "$in": [
+                            material_id.strip()
+                            for material_id in material_ids.split(",")
+                        ]
+                    }
+                }
+            )
 
         return {"criteria": crit}
 
@@ -261,7 +277,7 @@ class FindStructureQuery(QueryOperator):
 
         return response
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("composition_reduced", False)]
 
 
@@ -341,5 +357,5 @@ class FormulaAutoCompleteQuery(QueryOperator):
 
         return {"pipeline": pipeline}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("formula_pretty", False)]

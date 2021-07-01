@@ -13,8 +13,8 @@ class EOSRester(BaseRester):
 
     def search_eos_docs(
         self,
-        volume: Optional[Tuple[float, float]] = None,
-        energy: Optional[Tuple[float, float]] = None,
+        volumes: Optional[Tuple[float, float]] = None,
+        energies: Optional[Tuple[float, float]] = None,
         sort_field: Optional[str] = None,
         ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
@@ -26,8 +26,8 @@ class EOSRester(BaseRester):
         Query equations of state docs using a variety of search criteria.
 
         Arguments:
-            volume (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
-            energy (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
+            volumes (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
+            energies (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
             sort_field (str): Field used to sort results.
             ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
@@ -42,11 +42,13 @@ class EOSRester(BaseRester):
 
         query_params = defaultdict(dict)  # type: dict
 
-        if volume:
-            query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
+        if volumes:
+            query_params.update({"volumes_min": volumes[0], "volumes_max": volumes[1]})
 
-        if energy:
-            query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
+        if energies:
+            query_params.update(
+                {"energies_min": energies[0], "energies_max": energies[1]}
+            )
 
         if sort_field:
             query_params.update({"sort_field": sort_field})
@@ -54,8 +56,16 @@ class EOSRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

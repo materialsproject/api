@@ -1,9 +1,12 @@
 from os import environ
 import warnings
+from collections import defaultdict
+from enum import Enum, unique
 
 from pymatgen.core import Structure
-from pymatgen.entries.compatibility import MaterialsProjectCompatibility
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.core.surface import get_symmetrically_equivalent_miller_indices
+from pymatgen.util.sequence import get_chunks
 
 from mp_api.core.client import BaseRester
 from mp_api.routes import *
@@ -19,13 +22,37 @@ DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
 
+@unique
+class TaskType(Enum):
+    """task types available in MP"""
+
+    GGA_OPT = "GGA Structure Optimization"
+    GGAU_OPT = "GGA+U Structure Optimization"
+    SCAN_OPT = "SCAN Structure Optimization"
+    GGA_LINE = "GGA NSCF Line"
+    GGAU_LINE = "GGA+U NSCF Line"
+    GGA_UNIFORM = "GGA NSCF Uniform"
+    GGAU_UNIFORM = "GGA+U NSCF Uniform"
+    GGA_STATIC = "GGA Static"
+    GGAU_STATIC = "GGA+U Static"
+    GGA_STATIC_DIEL = "GGA Static Dielectric"
+    GGAU_STATIC_DIEL = "GGA+U Static Dielectric"
+    GGA_DEF = "GGA Deformation"
+    GGAU_DEF = "GGA+U Deformation"
+    LDA_STATIC_DIEL = "LDA Static Dielectric"
+
+
 class MPRester:
     """
     Intended as a drop-in replacement for the current MPRester.
     """
 
     def __init__(
-        self, api_key=DEFAULT_API_KEY, endpoint=DEFAULT_ENDPOINT, notify_db_version=True, include_user_agent=True,
+        self,
+        api_key=DEFAULT_API_KEY,
+        endpoint=DEFAULT_ENDPOINT,
+        notify_db_version=True,
+        include_user_agent=True,
     ):
         """
         Args:
@@ -56,21 +83,47 @@ class MPRester:
 
         self.api_key = api_key
         self.endpoint = endpoint
-        self.session = BaseRester._create_session(api_key=api_key, include_user_agent=include_user_agent)
+        self.session = BaseRester._create_session(
+            api_key=api_key, include_user_agent=include_user_agent
+        )
 
         self._all_resters = []
 
         for cls in BaseRester.__subclasses__():
 
             rester = cls(
-                api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent, session=self.session,
+                api_key=api_key,
+                endpoint=endpoint,
+                include_user_agent=include_user_agent,
+                session=self.session,
             )
 
             self._all_resters.append(rester)
 
             setattr(
-                self, cls.suffix, rester,
+                self, cls.suffix.replace("/", "_"), rester,
             )
+
+        self.find_structure = self.materials.find_structure
+
+        self.get_bandstructure_by_material_id = (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id
+        )
+        self.get_dos_by_material_id = (
+            self.electronic_structure_dos.get_dos_from_material_id
+        )
+
+        self.get_charge_density_from_calculation_id = (
+            self.charge_density.get_charge_density_from_calculation_id
+        )
+
+        self.get_charge_density_calculation_details = (
+            self.charge_density.get_charge_density_calculation_details
+        )
+
+        self.get_charge_density_calculation_ids_from_material_id = (
+            self.charge_density.get_charge_density_calculation_ids_from_material_id
+        )
 
     def __enter__(self):
         """
@@ -84,7 +137,9 @@ class MPRester:
         """
         self.session.close()
 
-    def get_structure_by_material_id(self, material_id, final=True, conventional_unit_cell=False) -> Structure:
+    def get_structure_by_material_id(
+        self, material_id, final=True, conventional_unit_cell=False
+    ) -> Structure:
         """
         Get a Structure corresponding to a material_id.
 
@@ -104,12 +159,15 @@ class MPRester:
             material_id=material_id, final=final
         )
 
-        if conventional_unit_cell:
+        if conventional_unit_cell and structure_data:
             if final:
-                structure_data = SpacegroupAnalyzer(structure_data).get_conventional_standard_structure()
+                structure_data = SpacegroupAnalyzer(
+                    structure_data
+                ).get_conventional_standard_structure()
             else:
                 structure_data = [
-                    SpacegroupAnalyzer(structure).get_conventional_standard_structure() for structure in structure_data
+                    SpacegroupAnalyzer(structure).get_conventional_standard_structure()
+                    for structure in structure_data
                 ]
 
         return structure_data
@@ -128,7 +186,9 @@ class MPRester:
 
         Returns: database version as a string
         """
-        return BaseRester(endpoint=self.endpoint + "/heartbeat")._query_resource()["db_version"]
+        return BaseRester(endpoint=self.endpoint + "/heartbeat")._query_resource()[
+            "db_version"
+        ]
 
     def get_materials_id_from_task_id(self, task_id):
         """
@@ -146,9 +206,11 @@ class MPRester:
         """
         docs = self.materials.search(task_ids=[task_id], fields=["material_id"])
         if len(docs) == 1:
-            return docs[0].material_id
+            return str(docs[0].material_id)
         elif len(docs) > 1:
-            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
+            raise ValueError(
+                f"Multiple documents return for {task_id}, this should not happen, please report it!"
+            )
         else:
             warnings.warn(
                 f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
@@ -181,7 +243,9 @@ class MPRester:
         return sorted(
             doc.material_id
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula, all_fields=False, fields=["material_id"]
+                chemsys_formula=chemsys_formula,
+                all_fields=False,
+                fields=["material_id"],
             )
         )
 
@@ -204,40 +268,29 @@ class MPRester:
             return [
                 doc.structure
                 for doc in self.materials.search_material_docs(
-                    chemsys_formula=chemsys_formula, all_fields=False, fields=["structure"]
+                    chemsys_formula=chemsys_formula,
+                    all_fields=False,
+                    fields=["structure"],
                 )
             ]
         else:
             structures = []
 
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula, all_fields=False, fields=["initial_structures"]
+                chemsys_formula=chemsys_formula,
+                all_fields=False,
+                fields=["initial_structures"],
             ):
                 structures.extend(doc.initial_structures)
 
             return structures
-
-    def find_structure(self, filename_or_structure):
-        """
-        Finds matching structures on the Materials Project site.
-
-        Args:
-            filename_or_structure: filename or Structure object
-
-        Returns:
-            A list of matching materials project ids for structure.
-
-        Raises:
-            MPRestError
-        """
-        return self.materials.find_structure(filename_or_structure)
 
     def get_entries(
         self, chemsys_formula, sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
-        to a chemical system, formula, or materials_id or full criteria.
+        to a chemical system or formula.
 
         Args:
             chemsys_formula (str): A chemical system
@@ -257,7 +310,7 @@ class MPRester:
                 chemsys_formula=chemsys_formula,
                 all_fields=False,
                 fields=["entries"],
-                sort_field="e_above_hull",
+                sort_field="energy_above_hull",
                 ascending=True,
             ):
                 entries.extend(list(doc.entries.values()))
@@ -272,19 +325,6 @@ class MPRester:
 
             return entries
 
-    def get_pourbaix_entries(self, chemsys, solid_compat=MaterialsProjectCompatibility()):
-        """
-        A helper function to get all entries necessary to generate
-        a pourbaix diagram from the rest interface.
-
-        Args:
-            chemsys ([str]): A list of elements comprising the chemical
-                system, e.g. ['Li', 'Fe']
-            solid_compat: Compatiblity scheme used to pre-process solid DFT energies prior to applying aqueous
-                energy adjustments. Default: MaterialsProjectCompatibility().
-        """
-        raise NotImplementedError
-
     def get_entry_by_material_id(self, material_id):
         """
         Get all ComputedEntry objects corresponding to a material_id.
@@ -295,21 +335,11 @@ class MPRester:
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        return self.thermo.get_document_by_id(document_id=material_id, fields=["entries"]).entries
-
-    def get_bandstructure_by_material_id(self, material_id, line_mode=True):
-        """
-        Get a BandStructure corresponding to a material_id.
-
-        Args:
-            material_id (str): Materials Project material_id.
-            line_mode (bool): If True, fetch a BandStructureSymmLine object
-                (default). If False, return the uniform band structure.
-
-        Returns:
-            A BandStructure object.
-        """
-        raise NotImplementedError
+        return list(
+            self.thermo.get_document_by_id(
+                document_id=material_id, fields=["entries"]
+            ).entries.values()
+        )
 
     def get_phonon_dos_by_material_id(self, material_id):
         """
@@ -320,6 +350,7 @@ class MPRester:
 
         Returns:
              CompletePhononDos: A phonon DOS object.
+
         """
         raise NotImplementedError
 
@@ -333,10 +364,20 @@ class MPRester:
         Returns:
             PhononBandStructureSymmLine:  phonon band structure.
         """
-        raise NotImplementedError
+        doc = self.phonon.get_document_by_id(material_id)
+
+        return doc.ph_bs
 
     def query(
-        self, criteria, properties, chunk_size=500, max_tries_per_chunk=5, mp_decode=True,
+        self,
+        criteria,
+        properties,
+        sort_field=None,
+        ascending=None,
+        num_chunks=None,
+        chunk_size=1000,
+        all_fields=True,
+        fields=None,
     ):
         r"""
 
@@ -361,31 +402,13 @@ class MPRester:
         up to MAX_TRIES_PER_CHUNK times.
 
         Args:
-            criteria (str/dict): Criteria of the query as a string or
-                mongo-style dict.
-
-                If string, it supports a powerful but simple string criteria.
-                E.g., "Fe2O3" means search for materials with reduced_formula
-                Fe2O3. Wild cards are also supported. E.g., "\\*2O" means get
-                all materials whose formula can be formed as \\*2O, e.g.,
-                Li2O, K2O, etc.
-
-                Other syntax examples:
-                mp-1234: Interpreted as a Materials ID.
-                Fe2O3 or *2O3: Interpreted as reduced formulas.
-                Li-Fe-O or *-Fe-O: Interpreted as chemical systems.
-
-                You can mix and match with spaces, which are interpreted as
-                "OR". E.g. "mp-1234 FeO" means query for all compounds with
-                reduced formula FeO or with materials_id mp-1234.
-
-                Using a full dict syntax, even more powerful queries can be
-                constructed. For example, {"elements":{"$in":["Li",
+            criteria (str/dict): Criteria of the query as a dictionary.
+                For example, {"elements":{"$in":["Li",
                 "Na", "K"], "$all": ["O"]}, "nelements":2} selects all Li, Na
                 and K oxides. {"band_gap": {"$gt": 1}} selects all materials
                 with band gaps greater than 1 eV.
             properties (list): Properties to request for as a list. For
-                example, ["formula", "formation_energy_per_atom"] returns
+                example, ["formula_pretty", "formation_energy_per_atom"] returns
                 the formula and formation energy per atom.
             chunk_size (int): Number of materials for which to fetch data at a
                 time. More data-intensive properties may require smaller chunk
@@ -399,24 +422,19 @@ class MPRester:
 
         Returns:
             List of results. E.g.,
-            [{u'formula': {u'O': 1, u'Li': 2.0}},
-            {u'formula': {u'Na': 2.0, u'O': 2.0}},
-            {u'formula': {u'K': 1, u'O': 3.0}},
+            [{u'composition': {u'O': 1, u'Li': 2.0}},
+            {u'composition': {u'Na': 2.0, u'O': 2.0}},
+            {u'composition': {u'K': 1, u'O': 3.0}},
             ...]
         """
         # TODO: discuss
         raise NotImplementedError
 
-    def submit_structures(
-        self,
-        structures,
-        public_name,
-        public_email
-    ):
+    def submit_structures(self, structures, public_name, public_email):
         """
         Submits a list of structures to the Materials Project.
-        
-        Note that public_name and public_email will be used to credit the 
+
+        Note that public_name and public_email will be used to credit the
         submitter on the Materials Project website.
 
         Args:
@@ -461,34 +479,30 @@ class MPRester:
         """
         raise NotImplementedError
 
-    def get_substrates(self, material_id, number=50, orient=None):
+    def get_substrates(self, material_id, orient=None):
         """
         Get a substrate list for a material id. The list is in order of
         increasing elastic energy if a elastic tensor is available for
-        the material_id. Otherwise the list is in order of increasing
-        matching area.
+        the material_id.
 
         Args:
             material_id (str): Materials Project material_id, e.g. 'mp-123'.
             orient (list) : substrate orientation to look for
-            number (int) : number of substrates to return
-                n=0 returns all available matches
         Returns:
             list of dicts with substrate matches
         """
-        raise NotImplementedError
 
-    def get_all_substrates(self):
-        """
-        Gets the list of all possible substrates considered in the
-        Materials Project substrate database
+        return [
+            doc.dict()
+            for doc in self.substrates.search_substrates_docs(
+                film_id=material_id,
+                substrate_orientation=orient,
+                sort_field="energy",
+                ascending=True,
+            )
+        ]
 
-        Returns:
-            list of material_ids corresponding to possible substrates
-        """
-        raise NotImplementedError
-
-    def get_surface_data(self, material_id, miller_index=None, inc_structures=False):
+    def get_surface_data(self, material_id, miller_index=None):
         """
         Gets surface data for a material. Useful for Wulff shapes.
 
@@ -504,12 +518,23 @@ class MPRester:
             miller_index (list of integer): The miller index of the surface.
             e.g., [3, 2, 1]. If miller_index is provided, only one dictionary
             of this specific plane will be returned.
-            inc_structures (bool): Include final surface slab structures.
-                These are unnecessary for Wulff shape construction.
+
         Returns:
             Surface data for material. Energies are given in SI units (J/m^2).
         """
-        raise NotImplementedError
+        doc = self.surface_properties.get_document_by_id(material_id)
+        structure = self.get_structure_by_material_id(material_id)
+
+        if miller_index:
+            eq_indices = get_symmetrically_equivalent_miller_indices(
+                structure, miller_index
+            )
+
+            for surface in doc.surfaces:
+                if tuple(surface.miller_index) in eq_indices:
+                    return surface.dict()
+        else:
+            return doc.dict()
 
     def get_wulff_shape(self, material_id):
         """
@@ -520,7 +545,22 @@ class MPRester:
         Returns:
             pymatgen.analysis.wulff.WulffShape
         """
-        raise NotImplementedError
+        from pymatgen.analysis.wulff import WulffShape
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
+        structure = self.get_structure_by_material_id(material_id)
+        surfaces = self.get_surface_data(material_id)["surfaces"]
+        lattice = (
+            SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
+        )
+        miller_energy_map = {}
+        for surf in surfaces:
+            miller = tuple(surf["miller_index"])
+            # Prefer reconstructed surfaces, which have lower surface energies.
+            if (miller not in miller_energy_map) or surf["is_reconstructed"]:
+                miller_energy_map[miller] = surf["surface_energy"]
+        millers, energies = zip(*miller_energy_map.items())
+        return WulffShape(lattice, millers, energies)
 
     def get_gb_data(
         self,
@@ -530,7 +570,6 @@ class MPRester:
         sigma=None,
         gb_plane=None,
         rotation_axis=None,
-        include_work_of_separation=False,
     ):
         """
         Gets grain boundary data for a material.
@@ -538,6 +577,7 @@ class MPRester:
         Args:
             material_id (str): Materials Project material_id, e.g., 'mp-129'.
             pretty_formula (str): The formula of metals. e.g., 'Fe'
+            chemsys (str): Dash delimited elements in material.
             sigma(int): The sigma value of a certain type of grain boundary
             gb_plane(list of integer): The Miller index of grain
             boundary plane. e.g., [1, 1, 1]
@@ -556,10 +596,25 @@ class MPRester:
             A list of grain boundaries that satisfy the query conditions (sigma, gb_plane).
             Energies are given in SI units (J/m^2).
         """
-        raise NotImplementedError
+        return [
+            doc.dict()
+            for doc in self.grain_boundary.search_grain_boundary_docs(
+                material_ids=[material_id] if material_id else None,
+                pretty_formula=pretty_formula,
+                chemsys=chemsys,
+                sigma=sigma,
+                gb_plane=gb_plane,
+                rotation_axis=rotation_axis,
+            )
+        ]
 
     def get_interface_reactions(
-        self, reactant1, reactant2, open_el=None, relative_mu=None, use_hull_energy=False,
+        self,
+        reactant1,
+        reactant2,
+        open_el=None,
+        relative_mu=None,
+        use_hull_energy=False,
     ):
         """
         Gets critical reactions between two reactants.
@@ -587,31 +642,4 @@ class MPRester:
                 `pymatgen.analysis.reaction_calculator.Reaction`.
 
         """
-        raise NotImplementedError
-
-    @staticmethod
-    def parse_criteria(criteria_string):
-        """
-        Parses a powerful and simple string criteria and generates a proper
-        mongo syntax criteria.
-
-        Args:
-            criteria_string (str): A string representing a search criteria.
-                Also supports wild cards. E.g.,
-                something like "*2O" gets converted to
-                {'pretty_formula': {'$in': [u'B2O', u'Xe2O', u"Li2O", ...]}}
-
-                Other syntax examples:
-                    mp-1234: Interpreted as a Materials ID.
-                    Fe2O3 or *2O3: Interpreted as reduced formulas.
-                    Li-Fe-O or *-Fe-O: Interpreted as chemical systems.
-
-                You can mix and match with spaces, which are interpreted as
-                "OR". E.g., "mp-1234 FeO" means query for all compounds with
-                reduced formula FeO or with materials_id mp-1234.
-
-        Returns:
-            A mongo query dict.
-        """
-        # TODO: discuss
         raise NotImplementedError

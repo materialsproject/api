@@ -16,7 +16,8 @@ class ElectrodeFormulaQuery(QueryOperator):
     def query(
         self,
         formula: Optional[str] = Query(
-            None, description="Query by formula including anonymized formula or by including wild cards",
+            None,
+            description="Query by formula including anonymized formula or by including wild cards",
         ),
     ) -> STORE_PARAMS:
 
@@ -33,7 +34,7 @@ class ElectrodeFormulaQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("composition_reduced", False)]
 
 
@@ -45,28 +46,36 @@ class VoltageStepQuery(QueryOperator):
     def query(
         self,
         delta_volume_max: Optional[float] = Query(
-            None, description="Maximum value for the max volume change in percent for a particular voltage step.",
+            None,
+            description="Maximum value for the max volume change in percent for a particular voltage step.",
         ),
         delta_volume_min: Optional[float] = Query(
-            None, description="Minimum value for the max volume change in percent for a particular voltage step.",
+            None,
+            description="Minimum value for the max volume change in percent for a particular voltage step.",
         ),
         average_voltage_max: Optional[float] = Query(
-            None, description="Maximum value for the average voltage for a particular voltage step in V.",
+            None,
+            description="Maximum value for the average voltage for a particular voltage step in V.",
         ),
         average_voltage_min: Optional[float] = Query(
-            None, description="Minimum value for the average voltage for a particular voltage step in V.",
+            None,
+            description="Minimum value for the average voltage for a particular voltage step in V.",
         ),
         max_voltage_max: Optional[float] = Query(
-            None, description="Maximum value for the maximum voltage for a particular voltage step in V.",
+            None,
+            description="Maximum value for the maximum voltage for a particular voltage step in V.",
         ),
         max_voltage_min: Optional[float] = Query(
-            None, description="Minimum value for the maximum voltage for a particular voltage step in V.",
+            None,
+            description="Minimum value for the maximum voltage for a particular voltage step in V.",
         ),
         min_voltage_max: Optional[float] = Query(
-            None, description="Maximum value for the minimum voltage for a particular voltage step in V.",
+            None,
+            description="Maximum value for the minimum voltage for a particular voltage step in V.",
         ),
         min_voltage_min: Optional[float] = Query(
-            None, description="Minimum value for the minimum voltage for a particular voltage step in V.",
+            None,
+            description="Minimum value for the minimum voltage for a particular voltage step in V.",
         ),
         capacity_grav_max: Optional[float] = Query(
             None, description="Maximum value for the gravimetric capacity in maH/g.",
@@ -81,28 +90,36 @@ class VoltageStepQuery(QueryOperator):
             None, description="Minimum value for the volumetric capacity in maH/cc.",
         ),
         energy_grav_max: Optional[float] = Query(
-            None, description="Maximum value for the gravimetric energy (specific energy) in Wh/kg.",
+            None,
+            description="Maximum value for the gravimetric energy (specific energy) in Wh/kg.",
         ),
         energy_grav_min: Optional[float] = Query(
-            None, description="Minimum value for the gravimetric energy (specific energy) in Wh/kg.",
+            None,
+            description="Minimum value for the gravimetric energy (specific energy) in Wh/kg.",
         ),
         energy_vol_max: Optional[float] = Query(
-            None, description="Maximum value for the volumetric energy (energy_density) in Wh/l.",
+            None,
+            description="Maximum value for the volumetric energy (energy_density) in Wh/l.",
         ),
         energy_vol_min: Optional[float] = Query(
-            None, description="Minimum value for the volumetric energy (energy_density) in Wh/l.",
+            None,
+            description="Minimum value for the volumetric energy (energy_density) in Wh/l.",
         ),
         fracA_charge_max: Optional[float] = Query(
-            None, description="Maximum value for the atomic fraction of the working ion in the charged state.",
+            None,
+            description="Maximum value for the atomic fraction of the working ion in the charged state.",
         ),
         fracA_charge_min: Optional[float] = Query(
-            None, description="Minimum value for the atomic fraction of the working ion in the charged state.",
+            None,
+            description="Minimum value for the atomic fraction of the working ion in the charged state.",
         ),
         fracA_discharge_max: Optional[float] = Query(
-            None, description="Maximum value for the atomic fraction of the working ion in the discharged state.",
+            None,
+            description="Maximum value for the atomic fraction of the working ion in the discharged state.",
         ),
         fracA_discharge_min: Optional[float] = Query(
-            None, description="Minimum value for the atomic fraction of the working ion in the discharged state.",
+            None,
+            description="Minimum value for the atomic fraction of the working ion in the discharged state.",
         ),
     ) -> STORE_PARAMS:
 
@@ -122,15 +139,15 @@ class VoltageStepQuery(QueryOperator):
         }
 
         for entry in d:
-            if d[entry][0]:
+            if d[entry][0] is not None:
                 crit[entry]["$gte"] = d[entry][0]
 
-            if d[entry][1]:
+            if d[entry][1] is not None:
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = [key for key in self._keys_from_query() if key != "delta_volume_min"]
         indexes = []
         for key in keys:
@@ -149,16 +166,20 @@ class InsertionVoltageStepQuery(QueryOperator):
     def query(
         self,
         stability_charge_max: Optional[float] = Query(
-            None, description="The maximum value of the energy above hull of the charged material.",
+            None,
+            description="The maximum value of the energy above hull of the charged material.",
         ),
         stability_charge_min: Optional[float] = Query(
-            None, description="The minimum value of the energy above hull of the charged material.",
+            None,
+            description="The minimum value of the energy above hull of the charged material.",
         ),
         stability_discharge_max: Optional[float] = Query(
-            None, description="The maximum value of the energy above hull of the discharged material.",
+            None,
+            description="The maximum value of the energy above hull of the discharged material.",
         ),
         stability_discharge_min: Optional[float] = Query(
-            None, description="The minimum value of the energy above hull of the discharged material.",
+            None,
+            description="The minimum value of the energy above hull of the discharged material.",
         ),
     ) -> STORE_PARAMS:
 
@@ -170,15 +191,15 @@ class InsertionVoltageStepQuery(QueryOperator):
         }
 
         for entry in d:
-            if d[entry][0]:
+            if d[entry][0] is not None:
                 crit[entry]["$gte"] = d[entry][0]
 
-            if d[entry][1]:
+            if d[entry][1] is not None:
                 crit[entry]["$lte"] = d[entry][1]
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         keys = self._keys_from_query()
 
         indexes = []
@@ -189,57 +210,24 @@ class InsertionVoltageStepQuery(QueryOperator):
         return indexes
 
 
-class InsertionElectrodeQuery(QueryOperator):
+class WorkingIonQuery(QueryOperator):
     """
     Method to generate a query for ranges of insertion electrode data values
     """
 
     def query(
         self,
-        working_ion: Optional[Element] = Query(None, title="Element of the working ion"),
-        num_steps_max: Optional[float] = Query(
-            None,
-            description="The maximum value of the The number of distinct voltage steps from fully charge to \
-                discharge based on the stable intermediate states.",
-        ),
-        num_steps_min: Optional[float] = Query(
-            None,
-            description="The minimum value of the The number of distinct voltage steps from fully charge to \
-                discharge based on the stable intermediate states.",
-        ),
-        max_voltage_step_max: Optional[float] = Query(
-            None, description="The maximum value of the maximum absolute difference in adjacent voltage steps.",
-        ),
-        max_voltage_step_min: Optional[float] = Query(
-            None, description="The minimum value of maximum absolute difference in adjacent voltage steps.",
+        working_ion: Optional[Element] = Query(
+            None, title="Element of the working ion"
         ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
-
-        d = {
-            "num_steps": [num_steps_min, num_steps_max],
-            "max_voltage_step": [max_voltage_step_min, max_voltage_step_max],
-        }
-
-        for entry in d:
-            if d[entry][0]:
-                crit[entry]["$gte"] = d[entry][0]
-
-            if d[entry][1]:
-                crit[entry]["$lte"] = d[entry][1]
 
         if working_ion:
             crit["working_ion"] = str(working_ion)
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
-        keys = self._keys_from_query()
-
-        indexes = []
-        for key in keys:
-            if "_min" in key:
-                key = key.replace("_min", "")
-                indexes.append((key, False))
-        return indexes
+    def ensure_indexes(self):  # pragma: no cover
+        return [("working_ion", False)]

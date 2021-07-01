@@ -7,7 +7,7 @@ class UserSettingsRester(BaseRester):
     suffix = "user_settings"
     document_model = UserSettingsDoc  # type: ignore
 
-    def set_user_settings(self, consumer_id, settings):
+    def set_user_settings(self, consumer_id, settings):  # pragma: ignore
         """
         Set user settings.
         Args:
@@ -22,7 +22,7 @@ class UserSettingsRester(BaseRester):
             body=settings, params={"consumer_id": consumer_id}
         ).get("data")
 
-    def get_user_settings(self, consumer_id, settings):
+    def get_user_settings(self, consumer_id, settings):  # pragma: ignore
         """
         Get user settings.
         Args:

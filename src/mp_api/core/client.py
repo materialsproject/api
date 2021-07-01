@@ -15,11 +15,12 @@ from os import environ
 import warnings
 
 import requests
-from monty.json import MontyEncoder, MontyDecoder
+from monty.json import MontyDecoder
 from requests.exceptions import RequestException
 from pydantic import BaseModel
 from tqdm import tqdm
 
+from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
 
 try:
@@ -147,7 +148,7 @@ class BaseRester:
             available.
         """
 
-        payload = json.dumps(body, cls=MontyEncoder)
+        payload = jsanitize(body)
 
         try:
             url = self.endpoint
@@ -155,7 +156,7 @@ class BaseRester:
                 url = urljoin(self.endpoint, suburl)
                 if not url.endswith("/"):
                     url += "/"
-            response = self.session.post(url, data=payload, verify=True, params=params)
+            response = self.session.post(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
 
@@ -474,7 +475,7 @@ class BaseRester:
 
         return all_results
 
-    def query_by_task_id(self, *args, **kwargs):
+    def query_by_task_id(self, *args, **kwargs):  # pragma: ignore
         print(
             "query_by_task_id has been renamed to get_document_by_id to be more general"
         )
@@ -504,10 +505,10 @@ class BaseRester:
             return ["Unknown fields."]
         return list(self.document_model.schema()["properties"].keys())  # type: ignore
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: ignore
         return f"<{self.__class__.__name__} {self.endpoint}>"
 
-    def __str__(self):
+    def __str__(self):  # pragma: ignore
         if self.document_model is None:
             return self.__repr__()
         return (

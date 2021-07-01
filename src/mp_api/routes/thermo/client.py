@@ -18,11 +18,11 @@ class ThermoRester(BaseRester):
         chemsys_formula: Optional[str] = None,
         nelements: Optional[Tuple[int, int]] = None,
         is_stable: Optional[bool] = None,
-        total_energy: Optional[Tuple[int, int]] = None,
-        formation_energy: Optional[Tuple[int, int]] = None,
-        energy_above_hull: Optional[Tuple[int, int]] = None,
-        equillibrium_reaction_energy: Optional[Tuple[int, int]] = None,
-        uncorrected_energy: Optional[Tuple[int, int]] = None,
+        total_energy: Optional[Tuple[float, float]] = None,
+        formation_energy: Optional[Tuple[float, float]] = None,
+        energy_above_hull: Optional[Tuple[float, float]] = None,
+        equillibrium_reaction_energy: Optional[Tuple[float, float]] = None,
+        uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_field: Optional[str] = None,
         ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
@@ -40,12 +40,13 @@ class ThermoRester(BaseRester):
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             nelements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
             is_stable (bool): Whether the material is stable.
-            total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
-            formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
-            energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
-            equillibrium_reaction_energy (Tuple[int,int]): Minimum and maximum equilibrium reaction energy
+            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
+            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
+            energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
+            equillibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
-            uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
+            uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
+                energy in eV/atom to consider.
             sort_field (str): Field used to sort results.
             ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
@@ -64,10 +65,12 @@ class ThermoRester(BaseRester):
             query_params.update({"formula": chemsys_formula})
 
         if material_ids:
-            query_params.update({"task_ids": ",".join(material_ids)})
+            query_params.update({"material_ids": ",".join(material_ids)})
 
         if nelements:
-            query_params.update({"nelements_min": nelements[0], "nelements_max": nelements[1]})
+            query_params.update(
+                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
+            )
 
         if is_stable is not None:
             query_params.update({"is_stable": is_stable})
@@ -89,11 +92,22 @@ class ThermoRester(BaseRester):
         for param, value in locals().items():
             if "energy" in param and value:
                 query_params.update(
-                    {"{}_min".format(name_dict[param]): value[0], "{}_max".format(name_dict[param]): value[1]}
+                    {
+                        "{}_min".format(name_dict[param]): value[0],
+                        "{}_max".format(name_dict[param]): value[1],
+                    }
                 )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params,
         )

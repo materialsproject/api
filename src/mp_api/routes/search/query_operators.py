@@ -5,8 +5,9 @@ from fastapi import Query
 
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
-from mp_api.routes.magnetism.models import MagneticOrderingEnum
 from mp_api.routes.search.models import SearchStats
+
+from pymatgen.analysis.magnetism import Ordering
 
 from scipy.stats import gaussian_kde
 import numpy as np
@@ -17,20 +18,6 @@ if version_info >= (3, 8):
     from typing import Literal  # type: ignore
 else:
     from typing_extensions import Literal
-
-
-class HasPropsEnum(Enum):
-    magnetism = "magnetism"
-    piezoelectric = "piezoelectric"
-    dielectric = "dielectric"
-    elasticity = "elasticity"
-    surface_properties = "surface_properties"
-    insertion_electrode = "insertion_electrode"
-    bandstructure = "bandstructure"
-    dos = "dos"
-    xas = "xas"
-    grain_boundaries = "grain_boundaries"
-    eos = "eos"
 
 
 class HasPropsQuery(QueryOperator):
@@ -49,7 +36,9 @@ class HasPropsQuery(QueryOperator):
         crit = {}
 
         if has_props:
-            crit = {"has_props": {"$all": has_props.split(",")}}
+            crit = {
+                "has_props": {"$all": [prop.strip() for prop in has_props.split(",")]}
+            }
 
         return {"criteria": crit}
 
@@ -69,7 +58,16 @@ class MaterialIDsSearchQuery(QueryOperator):
         crit = {}
 
         if material_ids:
-            crit.update({"material_id": {"$in": material_ids.split(",")}})
+            crit.update(
+                {
+                    "material_id": {
+                        "$in": [
+                            material_id.strip()
+                            for material_id in material_ids.split(",")
+                        ]
+                    }
+                }
+            )
 
         return {"criteria": crit}
 
@@ -93,7 +91,7 @@ class SearchIsStableQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("is_stable", False)]
 
 
@@ -104,7 +102,7 @@ class SearchMagneticQuery(QueryOperator):
 
     def query(
         self,
-        ordering: Optional[MagneticOrderingEnum] = Query(
+        ordering: Optional[Ordering] = Query(
             None, description="Magnetic ordering of the material."
         ),
     ) -> STORE_PARAMS:
@@ -116,7 +114,7 @@ class SearchMagneticQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("ordering", False)]
 
 
@@ -139,7 +137,7 @@ class SearchIsTheoreticalQuery(QueryOperator):
 
         return {"criteria": crit}
 
-    def ensure_indexes(self):
+    def ensure_indexes(self):  # pragma: no cover
         return [("theoretical", False)]
 
 
@@ -183,9 +181,9 @@ class SearchStatsQuery(QueryOperator):
 
             if min_val or max_val:
                 pipeline = [{"$match": {field: {}}}]  # type: list
-                if min_val:
+                if min_val is not None:
                     pipeline[0]["$match"][field]["$gte"] = min_val
-                if max_val:
+                if max_val is not None:
                     pipeline[0]["$match"][field]["$lte"] = max_val
             else:
                 pipeline = []
@@ -215,9 +213,9 @@ class SearchStatsQuery(QueryOperator):
             warnings = []
 
             values = [d[field] for d in docs if field in d]
-            if not min_val:
+            if min_val is None:
                 min_val = min(values)
-            if not max_val:
+            if max_val is None:
                 max_val = max(values)
 
             if len(values) != len(docs):
