@@ -2,7 +2,7 @@ from mp_api.routes._consumer.models import UserSettingsDoc
 from mp_api.core.client import BaseRester
 
 
-class UserSettingsRester(BaseRester):
+class UserSettingsRester(BaseRester):  # pragma: no cover
 
     suffix = "user_settings"
     document_model = UserSettingsDoc  # type: ignore
