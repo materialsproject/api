@@ -72,7 +72,7 @@ class GrainBoundaryRester(BaseRester):
 
         if separation_energy:
             query_params.update(
-                {"w_sep_min": separation_energy[0], "w_sep_max": separation_energy[1],}
+                {"w_sep_min": separation_energy[0], "w_sep_max": separation_energy[1]}
             )
 
         if rotation_angle:

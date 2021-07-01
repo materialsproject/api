@@ -45,7 +45,8 @@ class ThermoRester(BaseRester):
             energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
             equillibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
-            uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total energy in eV/atom to consider.
+            uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
+                energy in eV/atom to consider.
             sort_field (str): Field used to sort results.
             ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
