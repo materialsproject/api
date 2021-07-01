@@ -43,10 +43,6 @@ class PiezoRester(BaseRester):
 
         query_params = defaultdict(dict)  # type: dict
 
-        if chunk_size <= 0 or chunk_size > 100:
-            warnings.warn("Improper chunk size given. Setting value to 100.")
-            chunk_size = 100
-
         if piezoelectric_modulus:
             query_params.update(
                 {
