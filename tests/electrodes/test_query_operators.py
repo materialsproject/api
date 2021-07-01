@@ -142,12 +142,6 @@ def test_insertion_electrode_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op.query(
-            working_ion="Li",
-            num_steps_min=0,
-            num_steps_max=5,
-            max_voltage_step_min=0,
-            max_voltage_step_max=5,
-        )
+        q = new_op.query(working_ion="Li",)
 
         assert q == {"criteria": {"working_ion": "Li"}}
