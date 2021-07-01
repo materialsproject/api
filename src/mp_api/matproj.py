@@ -492,7 +492,7 @@ class MPRester:
         Returns:
             ([SearchDoc]) List of SearchDoc documents
         """
-        return self.search.search_docs(
+        return self.search.search_docs(  # type: ignore
             material_ids=material_ids,
             chemsys_formula=chemsys_formula,
             nsites=nsites,

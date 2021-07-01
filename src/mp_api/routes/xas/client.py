@@ -60,4 +60,3 @@ class XASRester(BaseRester):
             fields=fields,
             **query_params,
         )
-
