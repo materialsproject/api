@@ -30,6 +30,7 @@ setup(
         "requests>=2.23.0",
         "monty",
         "emmet-core",
+        "maggma",
     ],
     extras_require={
         "server": [
