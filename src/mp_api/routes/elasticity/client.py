@@ -84,11 +84,16 @@ class ElasticityRester(BaseRester):
 
         if elastic_anisotropy:
             query_params.update(
-                {"elastic_anisotropy_min": elastic_anisotropy[0], "elastic_anisotropy_max": elastic_anisotropy[1]}
+                {
+                    "elastic_anisotropy_min": elastic_anisotropy[0],
+                    "elastic_anisotropy_max": elastic_anisotropy[1],
+                }
             )
 
         if poisson_ratio:
-            query_params.update({"poisson_min": poisson_ratio[0], "poisson_max": poisson_ratio[1]})
+            query_params.update(
+                {"poisson_min": poisson_ratio[0], "poisson_max": poisson_ratio[1]}
+            )
 
         if sort_field:
             query_params.update({"sort_field": sort_field})
@@ -96,8 +101,16 @@ class ElasticityRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

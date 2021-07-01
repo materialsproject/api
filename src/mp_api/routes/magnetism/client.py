@@ -21,8 +21,8 @@ class MagnetismRester(BaseRester):
         total_magnetization_normalized_formula_units: Optional[
             Tuple[float, float]
         ] = None,
-        num_magnetic_sites: Optional[Tuple[float, float]] = None,
-        num_unique_magnetic_sites: Optional[Tuple[float, float]] = None,
+        num_magnetic_sites: Optional[Tuple[int, int]] = None,
+        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         sort_field: Optional[str] = None,
         ascending: Optional[bool] = None,
         num_chunks: Optional[int] = None,
@@ -40,8 +40,8 @@ class MagnetismRester(BaseRester):
                 normalized by volume to consider.
             total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
-            num_magnetic_sites (Tuple[float,float]): Minimum and maximum number of magnetic sites to consider.
-            num_unique_magnetic_sites (Tuple[float,float]): Minimum and maximum number of unique magnetic sites
+            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
                 to consider.
             sort_field (str): Field used to sort results.
             ascending (bool): Whether sorting should be in ascending order.

@@ -11,7 +11,8 @@ class ElectrodeRester(BaseRester):
     document_model = InsertionElectrodeDoc  # type: ignore
     primary_key = "battery_id"
 
-    def search_electrode_docs(
+    # TODO: This requires a model fix to function properly
+    def search_electrode_docs(  # pragma: ignore
         self,
         working_ion: Optional[Element] = None,
         delta_volume: Optional[Tuple[float, float]] = None,
@@ -83,12 +84,21 @@ class ElectrodeRester(BaseRester):
             query_params.update({"ascending": ascending})
 
         for param, value in locals().items():
-            if param not in ["__class__", "self", "working_ion", "query_params"] and value:
+            if (
+                param not in ["__class__", "self", "working_ion", "query_params"]
+                and value
+            ):
                 if isinstance(value, tuple):
-                    query_params.update({f"{param}_min": value[0], f"{param}_max": value[1]})
+                    query_params.update(
+                        {f"{param}_min": value[0], f"{param}_max": value[1]}
+                    )
                 else:
                     query_params.update({param: value})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(**query_params)

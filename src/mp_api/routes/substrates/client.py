@@ -58,10 +58,10 @@ class SubstratesRester(BaseRester):
             query_params.update({"film_id": film_id})
 
         if substrate_id:
-            query_params.update({"substrate_id": substrate_id})
+            query_params.update({"sub_id": substrate_id})
 
         if substrate_formula:
-            query_params.update({"substrate_formula": substrate_formula})
+            query_params.update({"sub_form": substrate_formula})
 
         if film_orientation:
             query_params.update(

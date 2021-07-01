@@ -1,5 +1,4 @@
 from typing import List, Optional
-import warnings
 
 from mp_api.routes.tasks.models import TaskDoc
 from mp_api.core.client import BaseRester
@@ -19,15 +18,6 @@ class TaskRester(BaseRester):
 
         :param task_id: A specified task_id
         :return: Trajectory object
-        """
-
-        pass
-
-    def is_deprecated(self, task_id):
-        """
-        Returns whether or not a given task is deprecated.
-        :param task_id: A specified task_id
-        :return: True or False
         """
 
         pass

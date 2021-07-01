@@ -1,6 +1,8 @@
-import pytest
 import os
+import pytest
 from mp_api.matproj import MPRester
+
+# -- Rester name data for generic tests
 
 key_only_resters = {
     "phonon": "mp-11703",
@@ -26,15 +28,18 @@ special_resters = [
     "charge_density",
 ]
 
-ignore = ["oxidation_states"]
+ignore_generic = ["oxidation_states"]
+
 
 mpr = MPRester()
 
 
 @pytest.mark.parametrize("rester", mpr._all_resters)
 def test_generic_get_methods(rester):
+
+    # -- Test generic search and get_document_by_id methods
     name = rester.suffix.replace("/", "_")
-    if name not in ignore:
+    if name not in ignore_generic:
         if name not in key_only_resters:
             doc = rester.query({"limit": 1}, fields=[rester.primary_key])[0]
             assert isinstance(doc, rester.document_model)

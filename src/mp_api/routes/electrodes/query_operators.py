@@ -210,7 +210,7 @@ class InsertionVoltageStepQuery(QueryOperator):
         return indexes
 
 
-class InsertionElectrodeQuery(QueryOperator):
+class WorkingIonQuery(QueryOperator):
     """
     Method to generate a query for ranges of insertion electrode data values
     """
@@ -220,39 +220,9 @@ class InsertionElectrodeQuery(QueryOperator):
         working_ion: Optional[Element] = Query(
             None, title="Element of the working ion"
         ),
-        num_steps_max: Optional[float] = Query(
-            None,
-            description="The maximum value of the The number of distinct voltage steps from fully charge to \
-                discharge based on the stable intermediate states.",
-        ),
-        num_steps_min: Optional[float] = Query(
-            None,
-            description="The minimum value of the The number of distinct voltage steps from fully charge to \
-                discharge based on the stable intermediate states.",
-        ),
-        max_voltage_step_max: Optional[float] = Query(
-            None,
-            description="The maximum value of the maximum absolute difference in adjacent voltage steps.",
-        ),
-        max_voltage_step_min: Optional[float] = Query(
-            None,
-            description="The minimum value of maximum absolute difference in adjacent voltage steps.",
-        ),
     ) -> STORE_PARAMS:
 
         crit = defaultdict(dict)  # type: dict
-
-        d = {
-            "num_steps": [num_steps_min, num_steps_max],
-            "max_voltage_step": [max_voltage_step_min, max_voltage_step_max],
-        }
-
-        for entry in d:
-            if d[entry][0] is not None:
-                crit[entry]["$gte"] = d[entry][0]
-
-            if d[entry][1] is not None:
-                crit[entry]["$lte"] = d[entry][1]
 
         if working_ion:
             crit["working_ion"] = str(working_ion)
@@ -260,11 +230,4 @@ class InsertionElectrodeQuery(QueryOperator):
         return {"criteria": crit}
 
     def ensure_indexes(self):  # pragma: no cover
-        keys = self._keys_from_query()
-
-        indexes = []
-        for key in keys:
-            if "_min" in key:
-                key = key.replace("_min", "")
-                indexes.append((key, False))
-        return indexes
+        return [("working_ion", False)]

@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
 
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
 from mp_api.routes.piezo.models import PiezoDoc
 
 import warnings
@@ -49,7 +49,10 @@ class PiezoRester(BaseRester):
 
         if piezoelectric_modulus:
             query_params.update(
-                {"piezo_modulus_min": piezoelectric_modulus[0], "piezo_modulus_max": piezoelectric_modulus[1]}
+                {
+                    "piezo_modulus_min": piezoelectric_modulus[0],
+                    "piezo_modulus_max": piezoelectric_modulus[1],
+                }
             )
 
         if sort_field:
@@ -58,8 +61,16 @@ class PiezoRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

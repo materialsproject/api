@@ -64,7 +64,7 @@ class ThermoRester(BaseRester):
             query_params.update({"formula": chemsys_formula})
 
         if material_ids:
-            query_params.update({"task_ids": ",".join(material_ids)})
+            query_params.update({"material_ids": ",".join(material_ids)})
 
         if nelements:
             query_params.update(
@@ -84,7 +84,7 @@ class ThermoRester(BaseRester):
             "total_energy": "energy_per_atom",
             "formation_energy": "formation_energy_per_atom",
             "energy_above_hull": "energy_above_hull",
-            "equillibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
+            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
             "uncorrected_energy": "uncorrected_energy_per_atom",
         }
 

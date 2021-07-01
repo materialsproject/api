@@ -1,6 +1,5 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
-import warnings
 
 from mp_api.core.client import BaseRester
 
@@ -73,10 +72,7 @@ class GrainBoundaryRester(BaseRester):
 
         if separation_energy:
             query_params.update(
-                {
-                    "w_sep_energy_min": separation_energy[0],
-                    "w_sep_energy_max": separation_energy[1],
-                }
+                {"w_sep_min": separation_energy[0], "w_sep_max": separation_energy[1],}
             )
 
         if rotation_angle:
@@ -96,7 +92,7 @@ class GrainBoundaryRester(BaseRester):
             query_params.update({"sigma": sigma})
 
         if type:
-            query_params.update({"type": type})
+            query_params.update({"type": type.value})
 
         if chemsys:
             query_params.update({"chemsys": chemsys})

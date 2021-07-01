@@ -26,13 +26,12 @@ class SearchRester(BaseRester):
         spacegroup_number: Optional[int] = None,
         spacegroup_symbol: Optional[str] = None,
         deprecated: Optional[bool] = None,
-        total_energy: Optional[Tuple[int, int]] = None,
-        formation_energy: Optional[Tuple[int, int]] = None,
-        energy_above_hull: Optional[Tuple[int, int]] = None,
-        equillibrium_reaction_energy: Optional[Tuple[int, int]] = None,
-        uncorrected_energy: Optional[Tuple[int, int]] = None,
+        total_energy: Optional[Tuple[float, float]] = None,
+        formation_energy: Optional[Tuple[float, float]] = None,
+        energy_above_hull: Optional[Tuple[float, float]] = None,
+        equillibrium_reaction_energy: Optional[Tuple[float, float]] = None,
+        uncorrected_energy: Optional[Tuple[float, float]] = None,
         is_stable: Optional[bool] = None,
-        equillibrium_reaction_energy_per_atom: Optional[Tuple[float, float]] = None,
         band_gap: Optional[Tuple[float, float]] = None,
         efermi: Optional[Tuple[float, float]] = None,
         is_gap_direct: Optional[bool] = None,
@@ -87,8 +86,6 @@ class SearchRester(BaseRester):
             total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
             formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
             energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
-            equillibrium_reaction_energy (Tuple[int,int]): Minimum and maximum equilibrium reaction energy
-                in eV/atom to consider.
             uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
@@ -147,7 +144,6 @@ class SearchRester(BaseRester):
             "total_energy": "energy_per_atom",
             "formation_energy": "formation_energy_per_atom",
             "energy_above_hull": "energy_above_hull",
-            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
             "uncorrected_energy": "uncorrected_energy_per_atom",
             "nsites": "nsites",
             "volume": "volume",

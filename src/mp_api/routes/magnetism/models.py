@@ -6,14 +6,6 @@ from monty.json import MontyDecoder
 from datetime import datetime
 
 
-class MagneticOrderingEnum(Enum):
-    FM = "FM"
-    NM = "NM"
-    FiM = "FiM"
-    AFM = "AFM"
-    unknown = "Unknown"
-
-
 class MagnetismData(BaseModel):
     """
     Model for magnetic data within a magnetism doc

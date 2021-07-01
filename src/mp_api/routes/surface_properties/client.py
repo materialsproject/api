@@ -1,6 +1,5 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
-import warnings
 
 from mp_api.core.client import BaseRester
 from mp_api.routes.surface_properties.models import SurfacePropDoc
