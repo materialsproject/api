@@ -79,3 +79,15 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
+
+  auto-gen-release:
+    needs:
+      - lint
+      - test
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.API_VER_BUMP_TOKEN }}
+    steps:
+      - uses: rymndhng/release-on-push-action@v0.20.0
+        with:
+          bump_version_scheme: norelease
