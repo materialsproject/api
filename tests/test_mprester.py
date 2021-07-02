@@ -222,7 +222,6 @@ class TestMPRester:
         for entry in param_tuples:
             param = entry[0]
             if param not in excluded_params:
-                print(param)
                 param_type = entry[1].__args__[0]
                 q = None
 
