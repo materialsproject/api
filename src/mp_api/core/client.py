@@ -23,6 +23,8 @@ from tqdm import tqdm
 from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
 
+from mp_api.core.ratelimit import check_limit
+
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
 except ImportError:  # pragma: no cover
@@ -148,6 +150,8 @@ class BaseRester:
             available.
         """
 
+        check_limit()
+
         payload = jsanitize(body)
 
         try:
@@ -222,6 +226,8 @@ class BaseRester:
             "meta" containing meta information, e.g. total number of documents
             available.
         """
+
+        check_limit()
 
         if criteria:
             criteria = {k: v for k, v in criteria.items() if v is not None}
