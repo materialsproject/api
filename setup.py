@@ -31,6 +31,7 @@ setup(
         "monty",
         "emmet-core",
         "maggma",
+        "ratelimit",
     ],
     extras_require={
         "server": [
