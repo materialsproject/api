@@ -4,5 +4,5 @@ typing-extensions==3.10.0.0
 maggma==0.29.4
 requests==2.25.1
 monty==2021.6.10
-emmet-core==0.4.1
+emmet-core==0.5.0
 ratelimit==2.2.1
