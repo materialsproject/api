@@ -13,6 +13,19 @@ def test_synthesis_search_query():
         pipeline = (
             [
                 {
+                    "$match": {
+                        "synthesis_type": {"$in": ["solid-state"]},
+                        "targets_formula_s": "SiO2",
+                        "precursors_formula_s": "SiO2",
+                        "operations.type": {"$all": ["ShapingOperation"]},
+                        "operations.conditions.heating_temperature.values": {"$lte": 5},
+                        "operations.conditions.heating_time.values": {"$lte": 5},
+                        "operations.conditions.heating_atmosphere": {"$all": "air"},
+                        "operations.conditions.mixing_device": {"$all": "zirconia"},
+                        "operations.conditions.mixing_media": {"$all": "water"},
+                    }
+                },
+                {
                     "$facet": {
                         "results": [
                             {"$skip": 0},
@@ -31,29 +44,6 @@ def test_synthesis_search_query():
                                     "precursors": 1,
                                     "precursors_formula_s": 1,
                                     "paragraph_string": 1,
-                                }
-                            },
-                            {
-                                "$match": {
-                                    "synthesis_type": {"$in": ["solid-state"]},
-                                    "targets_formula_s": "SiO2",
-                                    "precursors_formula_s": "SiO2",
-                                    "operations.type": {"$all": ["ShapingOperation"]},
-                                    "operations.conditions.heating_temperature.values": {
-                                        "$lte": 5
-                                    },
-                                    "operations.conditions.heating_time.values": {
-                                        "$lte": 5
-                                    },
-                                    "operations.conditions.heating_atmosphere": {
-                                        "$all": "air"
-                                    },
-                                    "operations.conditions.mixing_device": {
-                                        "$all": "zirconia"
-                                    },
-                                    "operations.conditions.mixing_media": {
-                                        "$all": "water"
-                                    },
                                 }
                             },
                         ],
@@ -86,6 +76,19 @@ def test_synthesis_search_query():
                     }
                 },
                 {
+                    "$match": {
+                        "synthesis_type": {"$in": ["solid-state"]},
+                        "targets_formula_s": "SiO2",
+                        "precursors_formula_s": "SiO2",
+                        "operations.type": {"$all": ["ShapingOperation"]},
+                        "operations.conditions.heating_temperature.values": {"$lte": 5},
+                        "operations.conditions.heating_time.values": {"$lte": 5},
+                        "operations.conditions.heating_atmosphere": {"$all": "air"},
+                        "operations.conditions.mixing_device": {"$all": "zirconia"},
+                        "operations.conditions.mixing_media": {"$all": "water"},
+                    }
+                },
+                {
                     "$facet": {
                         "results": [
                             {
@@ -104,29 +107,6 @@ def test_synthesis_search_query():
                                     "paragraph_string": 1,
                                     "search_score": {"$meta": "searchScore"},
                                     "highlights": {"$meta": "searchHighlights"},
-                                }
-                            },
-                            {
-                                "$match": {
-                                    "synthesis_type": {"$in": ["solid-state"]},
-                                    "targets_formula_s": "SiO2",
-                                    "precursors_formula_s": "SiO2",
-                                    "operations.type": {"$all": ["ShapingOperation"]},
-                                    "operations.conditions.heating_temperature.values": {
-                                        "$lte": 5
-                                    },
-                                    "operations.conditions.heating_time.values": {
-                                        "$lte": 5
-                                    },
-                                    "operations.conditions.heating_atmosphere": {
-                                        "$all": "air"
-                                    },
-                                    "operations.conditions.mixing_device": {
-                                        "$all": "zirconia"
-                                    },
-                                    "operations.conditions.mixing_media": {
-                                        "$all": "water"
-                                    },
                                 }
                             },
                         ],
