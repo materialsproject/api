@@ -160,7 +160,10 @@ class SynthesisSearchQuery(QueryOperator):
             }
 
         if crit:
-            pipeline[-1]["$facet"]["results"].append({"$match": crit})
+            if keywords:
+                pipeline.insert(1, {"$match": crit})
+            else:
+                pipeline.insert(0, {"$match": crit})
 
         pipeline[-1]["$facet"]["total_doc"].append({"$count": "count"})
         pipeline.extend(
