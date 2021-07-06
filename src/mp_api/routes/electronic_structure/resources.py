@@ -71,6 +71,7 @@ def bs_obj_resource(s3_store):
         enable_get_by_key=False,
         enable_default_search=True,
         sub_path="/bandstructure/object/",
+        monty_encoded_response=True,
     )
     return resource
 
@@ -108,5 +109,6 @@ def dos_obj_resource(s3_store):
         enable_get_by_key=False,
         enable_default_search=True,
         sub_path="/dos/object/",
+        monty_encoded_response=True,
     )
     return resource
