@@ -751,4 +751,3 @@ class MPRester:
                 rotation_axis=rotation_axis,
             )
         ]
-

@@ -21,4 +21,3 @@ def phonon_bsdos_resource(phonon_bs_store):
     )
 
     return resource
-

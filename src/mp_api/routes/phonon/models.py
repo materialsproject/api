@@ -35,4 +35,3 @@ class PhononBSDOSDoc(BaseModel):
     @validator("last_updated", pre=True)
     def last_updated_dict_ok(cls, v):
         return MontyDecoder().process_decoded(v)
-
