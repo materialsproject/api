@@ -1,4 +1,4 @@
-from os import environ
+from os import environ, path
 import warnings
 from typing import Optional, Tuple, List
 from enum import Enum, unique
@@ -11,6 +11,7 @@ from emmet.core.mpid import MPID
 from emmet.core.symmetry import CrystalSystem
 
 from mp_api.core.client import BaseRester
+from mp_api.routes.electronic_structure.models.core import BSPathType
 from mp_api.routes import *
 
 _DEPRECATION_WARNING = (
@@ -106,25 +107,16 @@ class MPRester:
                 self, cls.suffix.replace("/", "_"), rester,
             )
 
-        self.find_structure = self.materials.find_structure
-
-        self.get_bandstructure_by_material_id = (
-            self.electronic_structure_bandstructure.get_bandstructure_from_material_id
-        )
-        self.get_dos_by_material_id = (
-            self.electronic_structure_dos.get_dos_from_material_id
-        )
-
         self.get_charge_density_from_calculation_id = (
             self.charge_density.get_charge_density_from_calculation_id
         )
 
-        self.get_charge_density_calculation_details = (
-            self.charge_density.get_charge_density_calculation_details
-        )
-
         self.get_charge_density_calculation_ids_from_material_id = (
             self.charge_density.get_charge_density_calculation_ids_from_material_id
+        )
+
+        self.get_charge_density_calculation_details = (
+            self.charge_density.get_charge_density_calculation_details
         )
 
     def __enter__(self):
@@ -287,6 +279,32 @@ class MPRester:
 
             return structures
 
+    def find_structure(
+        self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5, limit=1
+    ):
+        """
+        Finds matching structures on the Materials Project site.
+        Args:
+            filename_or_structure: filename or Structure object
+            ltol: fractional length tolerance
+            stol: site tolerance
+            angle_tol: angle tolerance in degrees
+            limit: amount of structure matches to limit to
+        Returns:
+            A list of matching materials project ids for structure, \
+                including normalized rms distances and max distances between paired sites.
+        Raises:
+            MPRestError
+        """
+
+        return self.materials.find_structure(
+            filename_or_structure,
+            ltol=ltol,
+            stol=stol,
+            angle_tol=angle_tol,
+            limit=limit,
+        )
+
     def get_entries(
         self, chemsys_formula, sort_by_e_above_hull=False,
     ):
@@ -343,6 +361,41 @@ class MPRester:
             ).entries.values()
         )
 
+    def get_bandstructure_by_material_id(
+        self,
+        material_id: str,
+        path_type: BSPathType = BSPathType.setyawan_curtarolo,
+        line_mode=True,
+    ):
+        """
+        Get the band structure pymatgen object associated with a Materials Project ID.
+
+        Arguments:
+            materials_id (str): Materials Project ID for a material
+            path_type (BSPathType): k-point path selection convention
+            line_mode (bool): Whether to return data for a line-mode calculation
+
+        Returns:
+            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
+        """
+        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+            material_id=material_id, path_type=path_type, line_mode=line_mode
+        )
+
+    def get_dos_by_material_id(self, material_id: str):
+        """
+        Get the complete density of states pymatgen object associated with a Materials Project ID.
+
+        Arguments:
+            materials_id (str): Materials Project ID for a material
+
+        Returns:
+            dos (CompleteDos): CompleteDos object
+        """
+        return self.electronic_structure_dos.get_dos_from_material_id(  # type: ignore
+            material_id=material_id
+        )
+
     def get_phonon_dos_by_material_id(self, material_id):
         """
         Get phonon density of states data corresponding to a material_id.
@@ -367,6 +420,19 @@ class MPRester:
             PhononBandStructureSymmLine:  phonon band structure.
         """
         return self.phonon.get_document_by_id(material_id, fields=["ph_bs"]).ph_bs
+
+    def get_charge_density_by_material_id(self, material_id: str):
+        """
+        Get charge density data for a given Materials Project ID.
+
+        Arguments:
+            material_id (str): Material Project ID
+
+        Returns:
+            chgcar (dict): Pymatgen CHGCAR object.
+        """
+
+        return self.charge_density.get_charge_density_from_material_id(material_id)  # type: ignore
 
     def query(
         self,
@@ -557,39 +623,6 @@ class MPRester:
         # TODO: call new MPComplete endpoint
         raise NotImplementedError
 
-    def get_stability(self, entries):
-        """
-        Returns the stability of all entries.
-        """
-        # TODO: discuss
-        raise NotImplementedError
-
-    def get_cohesive_energy(self, material_id, per_atom=False):
-        """
-        Gets the cohesive for a material (eV per formula unit). Cohesive energy
-            is defined as the difference between the bulk energy and the sum of
-            total DFT energy of isolated atoms for atom elements in the bulk.
-        Args:
-            material_id (str): Materials Project material_id, e.g. 'mp-123'.
-            per_atom (bool): Whether or not to return cohesive energy per atom
-        Returns:
-            Cohesive energy (eV).
-        """
-        raise NotImplementedError
-
-    def get_reaction(self, reactants, products):
-        """
-        Gets a reaction from the Materials Project.
-
-        Args:
-            reactants ([str]): List of formulas
-            products ([str]): List of formulas
-
-        Returns:
-            rxn
-        """
-        raise NotImplementedError
-
     def get_substrates(self, material_id, orient=None):
         """
         Get a substrate list for a material id. The list is in order of
@@ -719,38 +752,3 @@ class MPRester:
             )
         ]
 
-    def get_interface_reactions(
-        self,
-        reactant1,
-        reactant2,
-        open_el=None,
-        relative_mu=None,
-        use_hull_energy=False,
-    ):
-        """
-        Gets critical reactions between two reactants.
-
-        Get critical reactions ("kinks" in the mixing ratio where
-        reaction products change) between two reactants. See the
-        `pymatgen.analysis.interface_reactions` module for more info.
-
-        Args:
-            reactant1 (str): Chemical formula for reactant
-            reactant2 (str): Chemical formula for reactant
-            open_el (str): Element in reservoir available to system
-            relative_mu (float): Relative chemical potential of element in
-                reservoir with respect to pure substance. Must be non-positive.
-            use_hull_energy (bool): Whether to use the convex hull energy for a
-            given composition for the reaction energy calculation. If false,
-            the energy of the ground state structure will be preferred; if a
-            ground state can not be found for a composition, the convex hull
-            energy will be used with a warning message.
-
-        Returns:
-            list: list of dicts of form {ratio,energy,rxn} where `ratio` is the
-                reactant mixing ratio, `energy` is the reaction energy
-                in eV/atom, and `rxn` is a
-                `pymatgen.analysis.reaction_calculator.Reaction`.
-
-        """
-        raise NotImplementedError

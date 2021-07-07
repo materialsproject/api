@@ -77,7 +77,33 @@ class ChargeDensityRester(BaseRester):
 
         if len(calculation_ids) > 0:
             result = self.search(
-                task_ids=",".join(calculation_ids), fields=["task_id"], chunk_size=10
+                task_ids=",".join(calculation_ids),
+                fields=["task_id", "last_updated"],
+                chunk_size=10,
             )
 
         return result
+
+    def get_charge_density_from_material_id(self, material_id: str):
+        """
+        Get charge density data for a given Materials Project ID.
+
+        Arguments:
+            material_id (str): Material Project ID
+
+        Returns:
+            chgcar (dict): Pymatgen CHGCAR object.
+        """
+
+        task_id = sorted(
+            self.get_charge_density_calculation_ids_from_material_id(material_id),
+            key=lambda d: d["last_updated"],
+            reverse=True,
+        )[0]["task_id"]
+
+        result = self.search(task_ids=task_id, fields=["task_id", "data"], chunk_size=1)
+
+        if len(result) > 0:
+            return result[0]["data"]
+        else:
+            raise MPRestError("No charge density found")

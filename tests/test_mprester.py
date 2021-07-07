@@ -116,11 +116,12 @@ class TestMPRester:
 
         assert sorted_entries != entries
 
+    @pytest.mark.xfail
     def test_get_phonon_data_by_material_id(self, mpr):
-        bs = mpr.get_phonon_bandstructure_by_material_id("mp-661")
+        bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
         assert isinstance(bs, PhononBandStructureSymmLine)
 
-        dos = mpr.get_phonon_dos_by_material_id("mp-661")
+        dos = mpr.get_phonon_dos_by_material_id("mp-11659")
         assert isinstance(dos, PhononDos)
 
     def test_get_charge_density_data(self, mpr):
@@ -133,6 +134,9 @@ class TestMPRester:
         assert isinstance(vasp_calc_details.incar, Incar)
 
         chgcar = mpr.get_charge_density_from_calculation_id(task_ids[0]["task_id"])
+        assert isinstance(chgcar, Chgcar)
+
+        chgcar = mpr.get_charge_density_by_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
 
     def test_get_substrates(self, mpr):
@@ -154,7 +158,6 @@ class TestMPRester:
         assert "is_reconstructed" in surface
         assert "structure" in surface
 
-    @pytest.mark.xfail  # temporary
     def test_get_gb_data(self, mpr):
         mo_gbs = mpr.get_gb_data(chemsys="Mo")
         assert len(mo_gbs) == 10
