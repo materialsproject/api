@@ -21,10 +21,6 @@ from pymatgen.io.vasp import Incar, Chgcar
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.wulff import WulffShape
 
-api_is_up = (
-    requests.get("https://api.materialsproject.org/heartbeat").status_code == 200
-)
-
 
 @pytest.fixture()
 def mpr():
@@ -34,8 +30,7 @@ def mpr():
 
 
 @pytest.mark.skipif(
-    ((os.environ.get("MP_API_KEY", None) is None) or (not api_is_up)),
-    reason="API is down",
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
