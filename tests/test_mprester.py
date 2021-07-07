@@ -16,6 +16,7 @@ from pymatgen.electronic_structure.dos import CompleteDos
 from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.core.periodic_table import Element
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
+from pymatgen.phonon.dos import PhononDos
 from pymatgen.io.vasp import Incar, Chgcar
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.wulff import WulffShape
@@ -118,6 +119,9 @@ class TestMPRester:
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-661")
         assert isinstance(bs, PhononBandStructureSymmLine)
+
+        dos = mpr.get_phonon_dos_by_material_id("mp-661")
+        assert isinstance(dos, PhononDos)
 
     def test_get_charge_density_data(self, mpr):
         task_ids = mpr.get_charge_density_calculation_ids_from_material_id("mp-149")

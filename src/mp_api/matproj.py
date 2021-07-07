@@ -354,7 +354,7 @@ class MPRester:
              CompletePhononDos: A phonon DOS object.
 
         """
-        raise NotImplementedError
+        return self.phonon.get_document_by_id(material_id, fields=["ph_dos"]).ph_dos
 
     def get_phonon_bandstructure_by_material_id(self, material_id):
         """
@@ -366,9 +366,7 @@ class MPRester:
         Returns:
             PhononBandStructureSymmLine:  phonon band structure.
         """
-        doc = self.phonon.get_document_by_id(material_id)
-
-        return doc.ph_bs
+        return self.phonon.get_document_by_id(material_id, fields=["ph_bs"]).ph_bs
 
     def query(
         self,
