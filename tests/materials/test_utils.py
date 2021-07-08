@@ -15,3 +15,6 @@ def test_formula_to_criteria():
     }
     # Anonymous element
     assert formula_to_criteria("A2B3") == {"formula_anonymous": "A2B3"}
+
+    # Chemsys
+    assert formula_to_criteria("Si-O") == {"chemsys": "O-Si"}
