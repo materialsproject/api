@@ -1,3 +1,4 @@
+import os
 import pytest
 from mp_api.routes.robocrys.client import RobocrysRester
 
@@ -13,6 +14,9 @@ def rester():
     rester.session.close()
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client(rester):
     # Get specific search method
     search_method = None

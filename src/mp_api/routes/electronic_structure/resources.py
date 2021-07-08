@@ -33,6 +33,7 @@ def es_resource(es_store):
             ),
         ],
         tags=["Electronic Structure"],
+        monty_encoded_response=True,
     )
 
     return resource
@@ -54,6 +55,7 @@ def bs_resource(es_store):
         tags=["Electronic Structure"],
         enable_get_by_key=False,
         sub_path="/bandstructure/",
+        monty_encoded_response=True,
     )
 
     return resource
@@ -92,6 +94,7 @@ def dos_resource(es_store):
         tags=["Electronic Structure"],
         enable_get_by_key=False,
         sub_path="/dos/",
+        monty_encoded_response=True,
     )
 
     return resource

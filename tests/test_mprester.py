@@ -16,13 +16,10 @@ from pymatgen.electronic_structure.dos import CompleteDos
 from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.core.periodic_table import Element
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
+from pymatgen.phonon.dos import PhononDos
 from pymatgen.io.vasp import Incar, Chgcar
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.wulff import WulffShape
-
-api_is_up = (
-    requests.get("https://api.materialsproject.org/heartbeat").status_code == 200
-)
 
 
 @pytest.fixture()
@@ -33,8 +30,7 @@ def mpr():
 
 
 @pytest.mark.skipif(
-    ((os.environ.get("MP_API_KEY", None) is None) or (not api_is_up)),
-    reason="API is down",
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
@@ -115,9 +111,13 @@ class TestMPRester:
 
         assert sorted_entries != entries
 
+    @pytest.mark.xfail
     def test_get_phonon_data_by_material_id(self, mpr):
-        bs = mpr.get_phonon_bandstructure_by_material_id("mp-661")
+        bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
         assert isinstance(bs, PhononBandStructureSymmLine)
+
+        dos = mpr.get_phonon_dos_by_material_id("mp-11659")
+        assert isinstance(dos, PhononDos)
 
     def test_get_charge_density_data(self, mpr):
         task_ids = mpr.get_charge_density_calculation_ids_from_material_id("mp-149")
@@ -129,6 +129,9 @@ class TestMPRester:
         assert isinstance(vasp_calc_details.incar, Incar)
 
         chgcar = mpr.get_charge_density_from_calculation_id(task_ids[0]["task_id"])
+        assert isinstance(chgcar, Chgcar)
+
+        chgcar = mpr.get_charge_density_by_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
 
     def test_get_substrates(self, mpr):
@@ -150,7 +153,6 @@ class TestMPRester:
         assert "is_reconstructed" in surface
         assert "structure" in surface
 
-    @pytest.mark.xfail  # temporary
     def test_get_gb_data(self, mpr):
         mo_gbs = mpr.get_gb_data(chemsys="Mo")
         assert len(mo_gbs) == 10

@@ -13,9 +13,12 @@ def dielectric_resource(dielectric_store):
             DielectricQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(DielectricDoc, default_fields=["task_id", "last_updated"]),
+            SparseFieldsQuery(
+                DielectricDoc, default_fields=["task_id", "last_updated"]
+            ),
         ],
         tags=["Dielectric"],
+        monty_encoded_response=True,
     )
 
     return resource

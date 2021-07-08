@@ -1,3 +1,4 @@
+import os
 import pytest
 from mp_api.routes.materials.client import MaterialsRester
 from emmet.core.symmetry import CrystalSystem
@@ -34,6 +35,9 @@ custom_field_tests = {
 }  # type: dict
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
     # Get specific search method
