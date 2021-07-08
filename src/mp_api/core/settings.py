@@ -23,7 +23,7 @@ class MAPISettings(BaseSettings):
     db_version: str = Field("2021_04_26", description="Database version")
 
     requests_per_min: int = Field(
-        55, description="Number of requests per minute to for rate limit."
+        100, description="Number of requests per minute to for rate limit."
     )
 
     class Config:
