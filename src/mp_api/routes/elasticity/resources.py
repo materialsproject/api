@@ -21,9 +21,12 @@ def elasticity_resource(elasticity_store):
             PoissonQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(ElasticityDoc, default_fields=["task_id", "pretty_formula"],),
+            SparseFieldsQuery(
+                ElasticityDoc, default_fields=["task_id", "pretty_formula"],
+            ),
         ],
         tags=["Elasticity"],
+        monty_encoded_response=True,
     )
 
     return resource

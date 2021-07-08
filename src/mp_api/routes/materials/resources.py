@@ -73,6 +73,7 @@ def materials_resource(materials_store):
             ),
         ],
         tags=["Materials"],
+        monty_encoded_response=True,
     )
 
     return resource

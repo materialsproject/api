@@ -13,6 +13,7 @@ def fermi_resource(fermi_store):
             SparseFieldsQuery(FermiDoc, default_fields=["task_id", "last_updated"]),
         ],
         tags=["Electronic Structure"],
+        monty_encoded_response=True,
     )
 
     return resource

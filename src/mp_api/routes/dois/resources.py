@@ -14,6 +14,7 @@ def dois_resource(dois_store):
         ],
         tags=["DOIs"],
         enable_default_search=False,
+        monty_encoded_response=True,
     )
 
     return resource
