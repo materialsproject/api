@@ -12,10 +12,6 @@ db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 db_version = os.environ.get("DB_VERSION", default_settings.db_version)
 debug = os.environ.get("API_DEBUG", default_settings.debug)
 
-# Uncomment to use JSON store for development
-# core_store = JSONStore("./test_files/materials_Li_Fe_V.json")
-# task_store = JSONStore("./test_files/tasks_Li_Fe_V.json")
-
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
 formula_autocomplete_store_json = os.environ.get(
     "FORMULA_AUTOCOMPLETE_STORE", "formula_autocomplete_store.json"
