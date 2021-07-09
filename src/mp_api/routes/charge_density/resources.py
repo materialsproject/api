@@ -18,7 +18,7 @@ def charge_density_resource(s3_store):
         tags=["Charge Density"],
         enable_default_search=True,
         enable_get_by_key=False,
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource

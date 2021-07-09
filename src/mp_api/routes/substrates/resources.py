@@ -27,7 +27,7 @@ def substrates_resource(substrates_store):
         ],
         tags=["Substrates"],
         enable_get_by_key=False,
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource

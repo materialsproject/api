@@ -28,7 +28,7 @@ def thermo_resource(thermo_store):
             ),
         ],
         tags=["Thermo"],
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource

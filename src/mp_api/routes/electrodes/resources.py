@@ -26,7 +26,7 @@ def insertion_electrodes_resource(insertion_electrodes_store):
             ),
         ],
         tags=["Electrodes"],
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource

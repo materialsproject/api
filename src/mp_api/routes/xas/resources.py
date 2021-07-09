@@ -31,7 +31,7 @@ def xas_resource(xas_store):
             ),
         ],
         tags=["XAS"],
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource
