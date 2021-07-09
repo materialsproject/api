@@ -30,7 +30,7 @@ setup(
         "requests>=2.23.0",
         "monty",
         "emmet-core",
-        "maggma",
+        "maggma>=0.30.1",
         "ratelimit",
     ],
     extras_require={
