@@ -18,7 +18,7 @@ def dielectric_resource(dielectric_store):
             ),
         ],
         tags=["Dielectric"],
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource

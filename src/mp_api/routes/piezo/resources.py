@@ -16,7 +16,7 @@ def piezo_resource(piezo_store):
             SparseFieldsQuery(PiezoDoc, default_fields=["task_id", "last_updated"]),
         ],
         tags=["Piezoelectric"],
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource

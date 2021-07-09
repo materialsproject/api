@@ -13,7 +13,7 @@ def similarity_resource(similarity_store):
         ],
         tags=["Similarity"],
         enable_default_search=False,
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource

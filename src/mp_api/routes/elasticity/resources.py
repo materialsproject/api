@@ -26,7 +26,7 @@ def elasticity_resource(elasticity_store):
             ),
         ],
         tags=["Elasticity"],
-        monty_encoded_response=True,
+        disable_validation=False,
     )
 
     return resource

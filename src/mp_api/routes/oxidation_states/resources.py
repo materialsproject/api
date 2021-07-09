@@ -26,7 +26,7 @@ def oxi_states_resource(oxi_states_store):
             ),
         ],
         tags=["Oxidation States"],
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource

@@ -17,7 +17,7 @@ def phonon_bsdos_resource(phonon_bs_store):
         ],
         tags=["Phonon"],
         enable_default_search=False,
-        monty_encoded_response=True,
+        disable_validation=True,
     )
 
     return resource
