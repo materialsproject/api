@@ -1,3 +1,4 @@
+import os
 import pytest
 from mp_api.routes.electrodes.client import ElectrodeRester
 
@@ -23,7 +24,10 @@ alt_name_dict = {}  # type: dict
 custom_field_tests = {"working_ion": Element("Li")}  # type: dict
 
 
-@pytest.mark.xfail  # TODO: Fix model validation
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
+@pytest.mark.xfail
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
     # Get specific search method

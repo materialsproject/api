@@ -14,6 +14,7 @@ def wulff_resource(wulff_store):
         ],
         tags=["Surface Properties"],
         enable_default_search=False,
+        disable_validation=True,
     )
 
     return resource

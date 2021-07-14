@@ -13,6 +13,7 @@ def similarity_resource(similarity_store):
         ],
         tags=["Similarity"],
         enable_default_search=False,
+        disable_validation=True,
     )
 
     return resource

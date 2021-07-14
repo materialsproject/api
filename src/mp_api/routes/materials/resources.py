@@ -73,6 +73,7 @@ def materials_resource(materials_store):
             ),
         ],
         tags=["Materials"],
+        disable_validation=True,
     )
 
     return resource

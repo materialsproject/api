@@ -24,6 +24,7 @@ def molecules_resource(molecules_store):
             SparseFieldsQuery(MoleculesDoc, default_fields=["task_id"]),
         ],
         tags=["Molecules"],
+        disable_validation=True,
     )
 
     return resource

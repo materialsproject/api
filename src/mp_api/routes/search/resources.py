@@ -46,6 +46,7 @@ def search_resource(search_store):
             SparseFieldsQuery(SearchDoc, default_fields=["material_id"]),
         ],
         tags=["Search"],
+        disable_validation=True,
     )
 
     return resource

@@ -1,3 +1,4 @@
+import os
 import pytest
 from mp_api.routes.magnetism.client import MagnetismRester
 from pymatgen.analysis.magnetism import Ordering
@@ -23,6 +24,9 @@ alt_name_dict = {}  # type: dict
 custom_field_tests = {"ordering": Ordering.FM}  # type: dict
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
     # Get specific search method

@@ -12,10 +12,6 @@ db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 db_version = os.environ.get("DB_VERSION", default_settings.db_version)
 debug = os.environ.get("API_DEBUG", default_settings.debug)
 
-# Uncomment to use JSON store for development
-# core_store = JSONStore("./test_files/materials_Li_Fe_V.json")
-# task_store = JSONStore("./test_files/tasks_Li_Fe_V.json")
-
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
 formula_autocomplete_store_json = os.environ.get(
     "FORMULA_AUTOCOMPLETE_STORE", "formula_autocomplete_store.json"
@@ -27,7 +23,6 @@ dielectric_piezo_store_json = os.environ.get(
 )
 magnetism_store_json = os.environ.get("MAGNETISM_STORE", "magnetism_store.json")
 phonon_bs_store_json = os.environ.get("PHONON_BS_STORE", "phonon_bs_store.json")
-phonon_img_store_json = os.environ.get("PHONON_IMG_STORE", "phonon_img_store.json")
 eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
 similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.json")
 xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
@@ -118,15 +113,8 @@ if db_uri:
     phonon_bs_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
-        collection_name="phonon_bs",
-    )
-
-    phonon_img_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="phonon_img",
+        key="material_id",
+        collection_name="pmg_ph_bs",
     )
 
     eos_store = MongoURIStore(
@@ -317,7 +305,6 @@ else:
     dielectric_piezo_store = loadfn(dielectric_piezo_store_json)
     magnetism_store = loadfn(magnetism_store_json)
     phonon_bs_store = loadfn(phonon_bs_store_json)
-    phonon_img_store = loadfn(phonon_img_store_json)
     eos_store = loadfn(eos_store_json)
     similarity_store = loadfn(similarity_store_json)
     xas_store = loadfn(xas_store_json)
@@ -405,16 +392,9 @@ from mp_api.routes.piezo.resources import piezo_resource
 resources.update({"piezoelectric": [piezo_resource(dielectric_piezo_store)]})
 
 # Phonon
-from mp_api.routes.phonon.resources import phonon_bs_resource, phonon_img_resource
+from mp_api.routes.phonon.resources import phonon_bsdos_resource
 
-resources.update(
-    {
-        "phonon": [
-            phonon_img_resource(phonon_img_store),
-            phonon_bs_resource(phonon_bs_store),
-        ]
-    }
-)
+resources.update({"phonon": [phonon_bsdos_resource(phonon_bs_store),]})
 
 # EOS
 from mp_api.routes.eos.resources import eos_resource

@@ -14,6 +14,7 @@ def dois_resource(dois_store):
         ],
         tags=["DOIs"],
         enable_default_search=False,
+        disable_validation=True,
     )
 
     return resource

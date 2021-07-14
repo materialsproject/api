@@ -1,3 +1,4 @@
+import os
 import pytest
 from mp_api.core.client import BaseRester
 from mp_api.matproj import MPRester
@@ -17,11 +18,17 @@ def mpr():
     rester.session.close()
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.xfail
 def test_post_fail(rester):
     rester._post_resource({}, suburl="materials/find_structure")
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_pagination(mpr):
     mpids = mpr.materials.search_material_docs(
         all_fields=False, fields=["material_id"], num_chunks=2, chunk_size=1000
@@ -29,6 +36,9 @@ def test_pagination(mpr):
     assert len(mpids) > 1000
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_count(mpr):
     count = mpr.materials.count(
         dict(task_ids="mp-149", all_fields=False, fields="material_id", limit=1000)
@@ -36,11 +46,17 @@ def test_count(mpr):
     assert count == 1
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.xfail
 def test_get_document_no_id(mpr):
     mpr.materials.get_document_by_id(None)
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.xfail
 def test_get_document_no_doc(mpr):
     mpr.materials.get_document_by_id("mp-1a")

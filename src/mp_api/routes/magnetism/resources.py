@@ -16,6 +16,7 @@ def magnetism_resource(magnetism_store):
             SparseFieldsQuery(MagnetismDoc, default_fields=["task_id", "last_updated"]),
         ],
         tags=["Magnetism"],
+        disable_validation=True,
     )
 
     return resource

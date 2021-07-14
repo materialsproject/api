@@ -16,6 +16,7 @@ def eos_resource(eos_store):
             SparseFieldsQuery(EOSDoc, default_fields=["task_id"]),
         ],
         tags=["EOS"],
+        disable_validation=True,
     )
 
     return resource

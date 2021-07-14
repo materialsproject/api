@@ -28,6 +28,7 @@ def thermo_resource(thermo_store):
             ),
         ],
         tags=["Thermo"],
+        disable_validation=True,
     )
 
     return resource

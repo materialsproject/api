@@ -18,6 +18,7 @@ def surface_props_resource(surface_prop_store):
             SparseFieldsQuery(SurfacePropDoc, default_fields=["task_id"]),
         ],
         tags=["Surface Properties"],
+        disable_validation=True,
     )
 
     return resource

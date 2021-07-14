@@ -31,6 +31,7 @@ def gb_resource(gb_store):
         ],
         tags=["Grain Boundaries"],
         enable_get_by_key=False,
+        disable_validation=True,
     )
 
     return resource

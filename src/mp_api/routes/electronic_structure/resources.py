@@ -33,6 +33,7 @@ def es_resource(es_store):
             ),
         ],
         tags=["Electronic Structure"],
+        disable_validation=True,
     )
 
     return resource
@@ -54,6 +55,7 @@ def bs_resource(es_store):
         tags=["Electronic Structure"],
         enable_get_by_key=False,
         sub_path="/bandstructure/",
+        disable_validation=True,
     )
 
     return resource
@@ -71,7 +73,7 @@ def bs_obj_resource(s3_store):
         enable_get_by_key=False,
         enable_default_search=True,
         sub_path="/bandstructure/object/",
-        monty_encoded_response=True,
+        disable_validation=True,
     )
     return resource
 
@@ -92,6 +94,7 @@ def dos_resource(es_store):
         tags=["Electronic Structure"],
         enable_get_by_key=False,
         sub_path="/dos/",
+        disable_validation=True,
     )
 
     return resource
@@ -109,6 +112,6 @@ def dos_obj_resource(s3_store):
         enable_get_by_key=False,
         enable_default_search=True,
         sub_path="/dos/object/",
-        monty_encoded_response=True,
+        disable_validation=True,
     )
     return resource

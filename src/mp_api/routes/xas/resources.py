@@ -31,6 +31,7 @@ def xas_resource(xas_store):
             ),
         ],
         tags=["XAS"],
+        disable_validation=True,
     )
 
     return resource

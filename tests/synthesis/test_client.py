@@ -1,3 +1,4 @@
+import os
 import pytest
 from mp_api.routes.synthesis.client import SynthesisRester
 
@@ -11,6 +12,9 @@ def rester():
     rester.session.close()
 
 
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client(rester):
     # Get specific search method
     search_method = None
@@ -27,4 +31,3 @@ def test_client(rester):
         assert doc.doi is not None
         assert doc.paragraph_string is not None
         assert doc.synthesis_type is not None
-
