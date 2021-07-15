@@ -42,7 +42,7 @@ insertion_electrodes_store_json = os.environ.get(
 )
 molecules_store_json = os.environ.get("MOLECULES_STORE", "molecules_store.json")
 oxi_states_store_json = os.environ.get("OXI_STATES_STORE", "oxi_states_store.json")
-search_store_json = os.environ.get("SEARCH_STORE", "search_store.json")
+summary_store_json = os.environ.get("SUMMARY_STORE", "summary_store.json")
 
 es_store_json = os.environ.get("ES_STORE", "es_store.json")
 
@@ -222,11 +222,11 @@ if db_uri:
         collection_name="oxi_states",
     )
 
-    search_store = MongoURIStore(
+    summary_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
         key="material_id",
-        collection_name="search",
+        collection_name="summary",
     )
 
     es_store = MongoURIStore(
@@ -320,7 +320,7 @@ else:
     insertion_electrodes_store = loadfn(insertion_electrodes_store_json)
     molecules_store = loadfn(molecules_store_json)
     oxi_states_store = loadfn(oxi_states_store_json)
-    search_store = loadfn(search_store_json)
+    ssummary_store = loadfn(summary_store_json)
 
     es_store = loadfn(es_store_json)
 
@@ -394,7 +394,7 @@ resources.update({"piezoelectric": [piezo_resource(dielectric_piezo_store)]})
 # Phonon
 from mp_api.routes.phonon.resources import phonon_bsdos_resource
 
-resources.update({"phonon": [phonon_bsdos_resource(phonon_bs_store),]})
+resources.update({"phonon": [phonon_bsdos_resource(phonon_bs_store)]})
 
 # EOS
 from mp_api.routes.eos.resources import eos_resource
@@ -485,15 +485,14 @@ from mp_api.routes.charge_density.resources import charge_density_resource
 resources.update({"charge_density": [charge_density_resource(s3_chgcar)]})
 
 # Search
-from mp_api.routes.search.resources import search_resource, search_stats_resource
+from mp_api.routes.summary.resources import summary_resource, summary_stats_resource
 
 resources.update(
-    {"search": [search_stats_resource(search_store), search_resource(search_store)]}
+    {"search": [summary_stats_resource(summary_store), summary_resource(summary_store)]}
 )
 
 # Electronic Structure
 from mp_api.routes.electronic_structure.resources import (
-    dos_obj_resource,
     es_resource,
     bs_resource,
     bs_obj_resource,

@@ -1,21 +1,20 @@
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 from emmet.core.mpid import MPID
-from emmet.core.search import SearchDoc
+from emmet.core.summary import SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from mp_api.core.client import BaseRester
 from pymatgen.analysis.magnetism import Ordering
-from pymatgen.core.periodic_table import Element
 
 
-class SearchRester(BaseRester):
+class SummaryRester(BaseRester):
 
     suffix = "search"
-    document_model = SearchDoc  # type: ignore
+    document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_docs(
+    def search_summary_docs(
         self,
         material_ids: Optional[List[MPID]] = None,
         chemsys_formula: Optional[str] = None,
@@ -135,7 +134,7 @@ class SearchRester(BaseRester):
                 Default is material_id if all_fields is False.
 
         Returns:
-            ([SearchDoc]) List of SearchDoc documents
+            ([SummaryDoc]) List of SummaryDoc documents
         """
 
         query_params = defaultdict(dict)  # type: dict

@@ -5,7 +5,7 @@ from fastapi import Query
 
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
-from mp_api.routes.search.models import SearchStats
+from emmet.core.summary import SummaryStats
 
 from pymatgen.analysis.magnetism import Ordering
 
@@ -267,7 +267,7 @@ class SearchStatsQuery(QueryOperator):
             median = float(np.median(values))
             mean = float(np.mean(values))
 
-            response = SearchStats(
+            response = SummaryStats(
                 field=field,
                 num_samples=num_samples,
                 min=min_val,

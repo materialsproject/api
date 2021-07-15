@@ -1,4 +1,4 @@
-from emmet.core.search import SearchDoc
+from emmet.core.summary import SummaryDoc
 
 from maggma.api.query_operator import (
     PaginationQuery,
@@ -13,8 +13,8 @@ from mp_api.routes.materials.query_operators import (
     FormulaQuery,
     SymmetryQuery,
 )
-from mp_api.routes.search.models import SearchStats
-from mp_api.routes.search.query_operators import (
+from emmet.core.summary import SummaryStats
+from mp_api.routes.summary.query_operators import (
     HasPropsQuery,
     MaterialIDsSearchQuery,
     SearchIsStableQuery,
@@ -25,10 +25,10 @@ from mp_api.routes.search.query_operators import (
 )
 
 
-def search_resource(search_store):
+def summary_resource(summary_store):
     resource = ReadOnlyResource(
-        search_store,
-        SearchDoc,
+        summary_store,
+        SummaryDoc,
         query_operators=[
             MaterialIDsSearchQuery(),
             FormulaQuery(),
@@ -38,26 +38,26 @@ def search_resource(search_store):
             SearchIsTheoreticalQuery(),
             SearchMagneticQuery(),
             SearchESQuery(),
-            NumericQuery(model=SearchDoc, excluded_fields=["composition"]),
+            NumericQuery(model=SummaryDoc, excluded_fields=["composition"]),
             HasPropsQuery(),
             DeprecationQuery(),
             SortQuery(),
             PaginationQuery(),
-            SparseFieldsQuery(SearchDoc, default_fields=["material_id"]),
+            SparseFieldsQuery(SummaryDoc, default_fields=["material_id"]),
         ],
-        tags=["Search"],
+        tags=["Summary"],
         disable_validation=True,
     )
 
     return resource
 
 
-def search_stats_resource(search_store):
+def summary_stats_resource(summary_store):
     resource = AggregationResource(
-        search_store,
-        SearchStats,
-        pipeline_query_operator=SearchStatsQuery(SearchDoc),
-        tags=["Search"],
+        summary_store,
+        SummaryStats,
+        pipeline_query_operator=SearchStatsQuery(SummaryDoc),
+        tags=["Summary"],
         sub_path="/stats/",
     )
 
