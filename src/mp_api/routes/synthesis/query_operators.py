@@ -16,49 +16,49 @@ class SynthesisSearchQuery(QueryOperator):
     """
 
     def query(
-        self,
-        keywords: Optional[str] = Query(
-            None,
-            description="Comma delimited string keywords to search synthesis paragraph text with.",
-        ),
-        synthesis_type: Optional[List[SynthesisTypeEnum]] = Query(
-            None, description="Type of synthesis to include."
-        ),
-        target_formula: Optional[str] = Query(
-            None, description="Chemical formula of the target material."
-        ),
-        precursor_formula: Optional[str] = Query(
-            None, description="Chemical formula of the precursor material."
-        ),
-        operations: Optional[List[OperationTypeEnum]] = Query(
-            None, description="List of operations that syntheses must have."
-        ),
-        condition_heating_temperature_min: Optional[float] = Query(
-            None, description="Minimal heating temperature."
-        ),
-        condition_heating_temperature_max: Optional[float] = Query(
-            None, description="Maximal heating temperature."
-        ),
-        condition_heating_time_min: Optional[float] = Query(
-            None, description="Minimal heating time."
-        ),
-        condition_heating_time_max: Optional[float] = Query(
-            None, description="Maximal heating time."
-        ),
-        condition_heating_atmosphere: Optional[List[str]] = Query(
-            None, description='Required heating atmosphere, such as "air", "argon".'
-        ),
-        condition_mixing_device: Optional[List[str]] = Query(
-            None, description='Required mixing device, such as "zirconia", "Al2O3".'
-        ),
-        condition_mixing_media: Optional[List[str]] = Query(
-            None, description='Required mixing media, such as "alcohol", "water".'
-        ),
-        skip: int = Query(0, description="Number of entries to skip in the search"),
-        limit: int = Query(
-            10,
-            description="Max number of entries to return in a single query. Limited to 10.",
-        ),
+            self,
+            keywords: Optional[str] = Query(
+                None,
+                description="Comma delimited string keywords to search synthesis paragraph text with.",
+            ),
+            synthesis_type: Optional[List[SynthesisTypeEnum]] = Query(
+                None, description="Type of synthesis to include."
+            ),
+            target_formula: Optional[str] = Query(
+                None, description="Chemical formula of the target material."
+            ),
+            precursor_formula: Optional[str] = Query(
+                None, description="Chemical formula of the precursor material."
+            ),
+            operations: Optional[List[OperationTypeEnum]] = Query(
+                None, description="List of operations that syntheses must have."
+            ),
+            condition_heating_temperature_min: Optional[float] = Query(
+                None, description="Minimal heating temperature."
+            ),
+            condition_heating_temperature_max: Optional[float] = Query(
+                None, description="Maximal heating temperature."
+            ),
+            condition_heating_time_min: Optional[float] = Query(
+                None, description="Minimal heating time."
+            ),
+            condition_heating_time_max: Optional[float] = Query(
+                None, description="Maximal heating time."
+            ),
+            condition_heating_atmosphere: Optional[List[str]] = Query(
+                None, description='Required heating atmosphere, such as "air", "argon".'
+            ),
+            condition_mixing_device: Optional[List[str]] = Query(
+                None, description='Required mixing device, such as "zirconia", "Al2O3".'
+            ),
+            condition_mixing_media: Optional[List[str]] = Query(
+                None, description='Required mixing media, such as "alcohol", "water".'
+            ),
+            skip: int = Query(0, description="Number of entries to skip in the search"),
+            limit: int = Query(
+                10,
+                description="Max number of entries to return in a single query. Limited to 10.",
+            ),
     ):
         project_dict: Dict[str, Union[Dict, int]] = {
             "_id": 0,
@@ -131,21 +131,25 @@ class SynthesisSearchQuery(QueryOperator):
         if operations:
             crit["operations.type"] = {"$all": operations}
         if condition_heating_temperature_min is not None:
-            crit["operations.conditions.heating_temperature.values"] = {
-                "$gte": condition_heating_temperature_min
-            }
+            field = "operations.conditions.heating_temperature.values"
+            if field not in crit:
+                crit[field] = {"$elemMatch": {}}
+            crit[field]["$elemMatch"]["$gte"] = condition_heating_temperature_min
         if condition_heating_temperature_max is not None:
-            crit["operations.conditions.heating_temperature.values"] = {
-                "$lte": condition_heating_temperature_max
-            }
+            field = "operations.conditions.heating_temperature.values"
+            if field not in crit:
+                crit[field] = {"$elemMatch": {}}
+            crit[field]["$elemMatch"]["$lte"] = condition_heating_temperature_max
         if condition_heating_time_min is not None:
-            crit["operations.conditions.heating_time.values"] = {
-                "$gte": condition_heating_time_min
-            }
+            field = "operations.conditions.heating_time.values"
+            if field not in crit:
+                crit[field] = {"$elemMatch": {}}
+            crit[field]["$elemMatch"]["$gte"] = condition_heating_time_min
         if condition_heating_time_max is not None:
-            crit["operations.conditions.heating_time.values"] = {
-                "$lte": condition_heating_time_max
-            }
+            field = "operations.conditions.heating_time.values"
+            if field not in crit:
+                crit[field] = {"$elemMatch": {}}
+            crit[field]["$elemMatch"]["$lte"] = condition_heating_time_max
         if condition_heating_atmosphere:
             crit["operations.conditions.heating_atmosphere"] = {
                 "$all": condition_heating_atmosphere

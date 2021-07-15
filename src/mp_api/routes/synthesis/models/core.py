@@ -59,6 +59,11 @@ class SynthesisRecipe(BaseModel):
 
 
 class SynthesisSearchResultModel(SynthesisRecipe):
+    """
+    Model for a document containing synthesis recipes
+    data and additional keyword search results
+    """
+
     search_score: Optional[float] = Field(
         None, description="Search score.",
     )

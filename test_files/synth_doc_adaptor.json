@@ -1,0 +1,237 @@
+{
+  "src": {
+    "synthesis_type": "solid-state",
+    "targets_string": [
+      "Li4Ti5O12"
+    ],
+    "reaction": {
+      "element_substitution": {},
+      "left_side": [
+        {
+          "material": "TiO2",
+          "amount": "5"
+        },
+        {
+          "material": "Li2CO3",
+          "amount": "2"
+        }
+      ],
+      "right_side": [
+        {
+          "material": "Li4Ti5O12",
+          "amount": "1"
+        },
+        {
+          "material": "CO2",
+          "amount": "2"
+        }
+      ]
+    },
+    "reaction_string": "2 Li2CO3 + 5 TiO2 == 1 Li4Ti5O12 + 2 CO2",
+    "doi": "10.1149/1.1383553",
+    "operations": [
+      {
+        "type": "StartingSynthesis",
+        "token": "fabricated",
+        "conditions": {
+          "heating_temperature": null,
+          "heating_time": null,
+          "heating_atmosphere": null,
+          "mixing_device": null,
+          "mixing_media": null
+        }
+      }
+    ],
+    "target": {
+      "material_string": "Li4Ti5O12",
+      "material_name": "",
+      "material_formula": "Li4Ti5O12",
+      "phase": null,
+      "additives": [],
+      "oxygen_deficiency": null,
+      "is_acronym": false,
+      "amounts_vars": {},
+      "elements_vars": {},
+      "composition": [
+        {
+          "formula": "Li4Ti5O12",
+          "amount": "1",
+          "elements": {
+            "Li": "4",
+            "Ti": "5",
+            "O": "12"
+          }
+        }
+      ]
+    },
+    "precursors": [
+      {
+        "material_string": "TiO2",
+        "material_name": "",
+        "material_formula": "TiO2",
+        "phase": null,
+        "additives": [],
+        "oxygen_deficiency": null,
+        "is_acronym": false,
+        "amounts_vars": {},
+        "elements_vars": {},
+        "composition": [
+          {
+            "formula": "TiO2",
+            "amount": "1",
+            "elements": {
+              "Ti": "1",
+              "O": "2"
+            }
+          }
+        ]
+      },
+      {
+        "material_string": "Li2CO3",
+        "material_name": "",
+        "material_formula": "Li2CO3",
+        "phase": null,
+        "additives": [],
+        "oxygen_deficiency": null,
+        "is_acronym": false,
+        "amounts_vars": {},
+        "elements_vars": {},
+        "composition": [
+          {
+            "formula": "Li2CO3",
+            "amount": "1",
+            "elements": {
+              "Li": "2",
+              "C": "1",
+              "O": "3"
+            }
+          }
+        ]
+      }
+    ],
+    "paragraph_string": "High surface area activated carbons were obtained  <...> ce of these materials will be published elsewhere."
+  },
+  "product": {
+    "synthesis_type": "solid-state",
+    "reaction": {
+      "element_substitution": {},
+      "left_side": [
+        {
+          "material": "TiO2",
+          "amount": "5"
+        },
+        {
+          "material": "Li2CO3",
+          "amount": "2"
+        }
+      ],
+      "right_side": [
+        {
+          "material": "Li4Ti5O12",
+          "amount": "1"
+        },
+        {
+          "material": "CO2",
+          "amount": "2"
+        }
+      ]
+    },
+    "reaction_string": "2 Li2CO3 + 5 TiO2 == 1 Li4Ti5O12 + 2 CO2",
+    "doi": "10.1149/1.1383553",
+    "operations": [
+      {
+        "type": "StartingSynthesis",
+        "token": "fabricated",
+        "conditions": {
+          "heating_temperature": null,
+          "heating_time": null,
+          "heating_atmosphere": null,
+          "mixing_device": null,
+          "mixing_media": null
+        }
+      }
+    ],
+    "target": {
+      "material_string": "Li4Ti5O12",
+      "material_name": "",
+      "material_formula": "Li4Ti5O12",
+      "phase": null,
+      "additives": [],
+      "oxygen_deficiency": null,
+      "is_acronym": false,
+      "amounts_vars": {},
+      "elements_vars": {},
+      "composition": [
+        {
+          "formula": "Li4Ti5O12",
+          "amount": "1",
+          "elements": {
+            "Li": "4",
+            "Ti": "5",
+            "O": "12"
+          }
+        }
+      ]
+    },
+    "precursors": [
+      {
+        "material_string": "TiO2",
+        "material_name": "",
+        "material_formula": "TiO2",
+        "phase": null,
+        "additives": [],
+        "oxygen_deficiency": null,
+        "is_acronym": false,
+        "amounts_vars": {},
+        "elements_vars": {},
+        "composition": [
+          {
+            "formula": "TiO2",
+            "amount": "1",
+            "elements": {
+              "Ti": "1",
+              "O": "2"
+            }
+          }
+        ]
+      },
+      {
+        "material_string": "Li2CO3",
+        "material_name": "",
+        "material_formula": "Li2CO3",
+        "phase": null,
+        "additives": [],
+        "oxygen_deficiency": null,
+        "is_acronym": false,
+        "amounts_vars": {},
+        "elements_vars": {},
+        "composition": [
+          {
+            "formula": "Li2CO3",
+            "amount": "1",
+            "elements": {
+              "Li": "2",
+              "C": "1",
+              "O": "3"
+            }
+          }
+        ]
+      }
+    ],
+    "paragraph_string": "High surface area activated carbons were obtained  <...> ce of these materials will be published elsewhere.",
+    "targets_formula": [
+      "Li4 Ti5 O12"
+    ],
+    "targets_formula_s": [
+      "Li4Ti5O12"
+    ],
+    "precursors_formula": [
+      "Ti1 O2",
+      "Li2 C1 O3"
+    ],
+    "precursors_formula_s": [
+      "TiO2",
+      "Li2CO3"
+    ]
+  }
+}

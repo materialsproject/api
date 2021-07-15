@@ -9,7 +9,6 @@ import re
 
 from pymatgen.core.composition import CompositionError, Composition
 from pymongo import MongoClient
-from tqdm import tqdm
 
 
 def convert_value(val):
@@ -74,7 +73,7 @@ def convert_material(mat):
         'amounts_vars': {x: convert_mat_value(y) for x, y in mat['amounts_vars'].items()},
         'elements_vars': {x: [str(z.strip()) for z in y if z.strip()] for x, y in mat['elements_vars'].items()},
         'additives': [str(x.strip()) for x in mat['additives'] if x.strip()],
-        'oxygen_deficiency': str(mat['oxygen_deficiency']) or None
+        'oxygen_deficiency': str(mat['oxygen_deficiency']) if mat['oxygen_deficiency'] else None,
     }
 
 
@@ -84,13 +83,13 @@ def get_material_formula(mat):
     formula = re.sub(r'·\d*H2O', '', formula)
     try:
         return Composition(formula)
-    except CompositionError:
+    except (CompositionError, ValueError):
         q = None
         for comp in mat['composition']:
             if q is None:
-                q = Composition({x: float(y) for x, y in comp['elements'].items()})
+                q = Composition({x: float(y) for x, y in comp['elements'].items()}) * float(comp['amount'])
             else:
-                q += Composition({x: float(y) for x, y in comp['elements'].items()})
+                q += Composition({x: float(y) for x, y in comp['elements'].items()}) * float(comp['amount'])
         return q
 
 
@@ -135,11 +134,11 @@ def convert_one(doc):
                 'material': str(x['material'])
             } for x in doc['reaction']['right']],
         },
-        'targets_formula': [json.loads(x.to_json()) for x in target_comps(doc)],
+        'targets_formula': [x.formula for x in target_comps(doc)],
         'target': convert_material(doc['target']),
         'targets_formula_s': [x.reduced_formula for x in target_comps(doc)],
         'precursors_formula_s': [x.reduced_formula for x in precursor_comps(doc)],
-        'precursors_formula': [json.loads(x.to_json()) for x in precursor_comps(doc)],
+        'precursors_formula': [x.formula for x in precursor_comps(doc)],
         'precursors': [convert_material(x) for x in doc['precursors']],
         'operations': [convert_op(x) for x in doc.get('operations', [])]
     }
@@ -154,9 +153,9 @@ def main():
 
     synthesis_recipes = []
 
-    for item in tqdm(synpro_db.Reactions_Solid_State.find()):
+    for item in synpro_db.Reactions_Solid_State.find():
         synthesis_recipes.append(convert_one(item))
-    for item in tqdm(synpro_db.Reactions_Sol_Gel.find()):
+    for item in synpro_db.Reactions_Sol_Gel.find():
         synthesis_recipes.append(convert_one(item))
 
     with open('synthesis_recipes.json', 'w') as f:

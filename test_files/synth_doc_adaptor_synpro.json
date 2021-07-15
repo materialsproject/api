@@ -1,0 +1,477 @@
+{
+  "src": {
+    "_id": "ID",
+    "synthesis_type": "solid-state",
+    "targets_string": [
+      "Nb9PO25"
+    ],
+    "reaction": {
+      "left": [
+        {
+          "material": "Nb2O5",
+          "amount": "4.5"
+        },
+        {
+          "material": "NH4H2PO4",
+          "amount": "1"
+        }
+      ],
+      "right": [
+        {
+          "material": "PNb9O25",
+          "amount": "1"
+        },
+        {
+          "material": "H2O",
+          "amount": "1.5"
+        },
+        {
+          "material": "NH3",
+          "amount": "1"
+        }
+      ],
+      "element_substitution": {},
+      "thermo": [
+        {
+          "amts_vars": null,
+          "reaction": "4.5 Nb2O5 + 1 H6N1O4P1 == 1.0 Nb9O25P1 + 1.5 H2O1 + 1 H3N1",
+          "dGrxn": {
+            "2000": -0.0405
+          },
+          "target": "Nb9O25P1"
+        }
+      ]
+    },
+    "reaction_string": "1 NH4H2PO4 + 4.5 Nb2O5 == 1 PNb9O25 + 1.5 H2O + 1 NH3",
+    "doi": [
+      "10.1149/1.1455647"
+    ],
+    "ext_abstract": [
+      "Among the large family of Wadsley-Roth-type phases...",
+      "...",
+      "... of V5+ to V2+ (in tetrahedral coordination) takes place."
+    ],
+    "ext_paragraph": [
+      "PNb9O25 was easily obtained by a solid-state reaction in air...",
+      "...",
+      "The program FullProf was used for crystal structure determination from the Rietveld method."
+    ],
+    "data_per_sentence": [
+      "OTHER DATA"
+    ],
+    "other_materials": [
+      {
+        "material_string": "ammonium phosphate",
+        "material_name": "ammonium phosphate",
+        "material_formula": "(NH4)3PO4",
+        "phase": "",
+        "additives": [],
+        "oxygen_deficiency": null,
+        "is_acronym": false,
+        "amounts_vars": {},
+        "elements_vars": {},
+        "composition": [
+          {
+            "formula": "(NH4)3PO4",
+            "amount": "1",
+            "elements": {
+              "N": "3",
+              "H": "12",
+              "P": "1",
+              "O": "4"
+            },
+            "species": {
+              "NH4": "3",
+              "PO4": "1"
+            }
+          }
+        ]
+      },
+      {
+        "material_string": "water",
+        "material_name": "water",
+        "material_formula": "H2O",
+        "phase": null,
+        "additives": [],
+        "oxygen_deficiency": null,
+        "is_acronym": false,
+        "amounts_vars": {},
+        "elements_vars": {},
+        "composition": [
+          {
+            "formula": "H2O",
+            "amount": "1",
+            "elements": {
+              "H": "2",
+              "O": "1"
+            },
+            "species": {
+              "H2O": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "operations": [
+      {
+        "string": "heated",
+        "i": [
+          1,
+          4
+        ],
+        "type": "HeatingOperation",
+        "attributes": {
+          "temperature": [
+            {
+              "min": null,
+              "max": 350.0,
+              "values": [
+                350.0
+              ],
+              "tok_ids": [
+                19
+              ],
+              "units": "°C"
+            }
+          ],
+          "time": [
+            {
+              "max": 3.0,
+              "min": 3.0,
+              "values": [
+                3.0
+              ],
+              "tok_ids": [
+                23
+              ],
+              "units": "h"
+            }
+          ],
+          "environment": [
+            "",
+            ""
+          ]
+        }
+      }
+    ],
+    "target": {
+      "material_string": "PNb9O25",
+      "material_name": "",
+      "material_formula": "PNb9O25",
+      "phase": "",
+      "additives": [],
+      "oxygen_deficiency": null,
+      "is_acronym": false,
+      "amounts_vars": {},
+      "elements_vars": {},
+      "composition": [
+        {
+          "formula": "PNb9O25",
+          "amount": "1",
+          "elements": {
+            "P": "1",
+            "Nb": "9",
+            "O": "25"
+          },
+          "species": {
+            "P": "1",
+            "Nb": "9",
+            "O": "25"
+          },
+          "valence": [
+            {
+              "valence": {
+                "Nb": 5.0,
+                "P": 5.0,
+                "O": -2.0
+              },
+              "amounts_vars": [
+                {}
+              ],
+              "elements_vars": {}
+            }
+          ]
+        }
+      ],
+      "thermo": [
+        {
+          "interpolation": "1.0 Nb9PO25",
+          "mp_ids": [
+            "mp-17677"
+          ],
+          "Hf": -3.0321,
+          "Hd": 0.0288,
+          "T": {
+            "2000": {
+              "dGf": -1.8578,
+              "dGd": 0.0429
+            }
+          },
+          "formula": "Nb9O25P1",
+          "amts_vars": null
+        }
+      ]
+    },
+    "precursors": [
+      {
+        "material_string": "Nb2O5",
+        "material_name": "",
+        "material_formula": "Nb2O5",
+        "phase": "",
+        "additives": [],
+        "oxygen_deficiency": null,
+        "is_acronym": false,
+        "amounts_vars": {},
+        "elements_vars": {},
+        "composition": [
+          {
+            "formula": "Nb2O5",
+            "amount": "1",
+            "elements": {
+              "Nb": "2",
+              "O": "5"
+            },
+            "species": {
+              "Nb": "2",
+              "O": "5"
+            },
+            "valence": [
+              {
+                "valence": {
+                  "Nb": 5.0,
+                  "O": -2.0
+                },
+                "amounts_vars": [
+                  {}
+                ],
+                "elements_vars": {}
+              }
+            ]
+          }
+        ],
+        "thermo": [
+          {
+            "interpolation": "1.0 Nb2O5",
+            "mp_ids": [
+              "mp-1201852"
+            ],
+            "Hf": -3.0892,
+            "Hd": -0.1129,
+            "T": {
+              "2000": {
+                "dGf": -1.9428,
+                "dGd": -0.0777
+              }
+            },
+            "formula": "Nb2O5",
+            "amts_vars": null
+          }
+        ]
+      },
+      {
+        "material_string": "NH4H2PO4",
+        "material_name": "",
+        "material_formula": "NH4H2PO4",
+        "phase": "",
+        "additives": [],
+        "oxygen_deficiency": null,
+        "is_acronym": false,
+        "amounts_vars": {},
+        "elements_vars": {},
+        "composition": [
+          {
+            "formula": "NH4H2PO4",
+            "amount": "1",
+            "elements": {
+              "N": "1",
+              "H": "6",
+              "P": "1",
+              "O": "4"
+            },
+            "species": {
+              "NH4": "1",
+              "H2PO4": "1"
+            },
+            "valence": [
+              {
+                "valence": {
+                  "P": 5.0,
+                  "H": 1.0,
+                  "N": -3.0,
+                  "O": -2.0
+                },
+                "amounts_vars": [
+                  {}
+                ],
+                "elements_vars": {}
+              }
+            ]
+          }
+        ],
+        "thermo": [
+          {
+            "interpolation": "1.0 PH6NO4",
+            "mp_ids": [
+              "mp-1220029"
+            ],
+            "Hf": -1.5617,
+            "Hd": -0.0097,
+            "T": {
+              "2000": {
+                "dGf": -0.2212,
+                "dGd": 0.1747
+              }
+            },
+            "formula": "H6N1O4P1",
+            "amts_vars": null
+          }
+        ]
+      }
+    ]
+  },
+  "product": {
+    "doi": "['10.1149/1.1455647']",
+    "paragraph_string": "PNb9O25 was easily obtained by a solid-state reaction in air... ... The program FullProf was used for crystal structure determination from the Rietveld method.",
+    "synthesis_type": "solid-state",
+    "reaction_string": "1 NH4H2PO4 + 4.5 Nb2O5 == 1 PNb9O25 + 1.5 H2O + 1 NH3",
+    "reaction": {
+      "left_side": [
+        {
+          "amount": "4.5",
+          "material": "Nb2O5"
+        },
+        {
+          "amount": "1",
+          "material": "NH4H2PO4"
+        }
+      ],
+      "right_side": [
+        {
+          "amount": "1",
+          "material": "PNb9O25"
+        },
+        {
+          "amount": "1.5",
+          "material": "H2O"
+        },
+        {
+          "amount": "1",
+          "material": "NH3"
+        }
+      ]
+    },
+    "targets_formula": [
+      "Nb9 P1 O25"
+    ],
+    "target": {
+      "material_string": "PNb9O25",
+      "material_name": "",
+      "material_formula": "PNb9O25",
+      "phase": null,
+      "is_acronym": false,
+      "composition": [
+        {
+          "formula": "PNb9O25",
+          "amount": "1",
+          "elements": {
+            "P": "1",
+            "Nb": "9",
+            "O": "25"
+          }
+        }
+      ],
+      "amounts_vars": {},
+      "elements_vars": {},
+      "additives": [],
+      "oxygen_deficiency": null
+    },
+    "targets_formula_s": [
+      "Nb9PO25"
+    ],
+    "precursors_formula_s": [
+      "Nb2O5",
+      "PH6NO4"
+    ],
+    "precursors_formula": [
+      "Nb2 O5",
+      "P1 H6 N1 O4"
+    ],
+    "precursors": [
+      {
+        "material_string": "Nb2O5",
+        "material_name": "",
+        "material_formula": "Nb2O5",
+        "phase": null,
+        "is_acronym": false,
+        "composition": [
+          {
+            "formula": "Nb2O5",
+            "amount": "1",
+            "elements": {
+              "Nb": "2",
+              "O": "5"
+            }
+          }
+        ],
+        "amounts_vars": {},
+        "elements_vars": {},
+        "additives": [],
+        "oxygen_deficiency": null
+      },
+      {
+        "material_string": "NH4H2PO4",
+        "material_name": "",
+        "material_formula": "NH4H2PO4",
+        "phase": null,
+        "is_acronym": false,
+        "composition": [
+          {
+            "formula": "NH4H2PO4",
+            "amount": "1",
+            "elements": {
+              "N": "1",
+              "H": "6",
+              "P": "1",
+              "O": "4"
+            }
+          }
+        ],
+        "amounts_vars": {},
+        "elements_vars": {},
+        "additives": [],
+        "oxygen_deficiency": null
+      }
+    ],
+    "operations": [
+      {
+        "type": "HeatingOperation",
+        "token": "heated",
+        "conditions": {
+          "heating_temperature": [
+            {
+              "min_value": null,
+              "max_value": 350.0,
+              "values": [
+                350.0
+              ],
+              "units": "\u00b0C"
+            }
+          ],
+          "heating_time": [
+            {
+              "min_value": 3.0,
+              "max_value": 3.0,
+              "values": [
+                3.0
+              ],
+              "units": "h"
+            }
+          ],
+          "heating_atmosphere": [],
+          "mixing_device": null,
+          "mixing_media": null
+        }
+      }
+    ]
+  }
+}
