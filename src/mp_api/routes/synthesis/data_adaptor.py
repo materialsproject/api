@@ -31,7 +31,7 @@ def convert_recipe(recipe):
         print('Cannot process materials: ', targets_string)
         raise
 
-    recipe['targets_formula'] = [json.loads(x.to_json()) for x in target_comps]
+    recipe['targets_formula'] = [x.formula for x in target_comps]
     recipe['targets_formula_s'] = [x.reduced_formula for x in target_comps]
     del recipe['targets_string']
 
@@ -43,7 +43,7 @@ def convert_recipe(recipe):
         except (CompositionError, ValueError):
             print('Cannot process precursor material: ', precursor['material_formula'])
             continue
-        recipe['precursors_formula'].append(json.loads(comp.to_json()))
+        recipe['precursors_formula'].append(comp.formula)
         recipe['precursors_formula_s'].append(comp.reduced_formula)
 
     return recipe
