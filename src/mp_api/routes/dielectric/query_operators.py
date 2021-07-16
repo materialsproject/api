@@ -25,11 +25,11 @@ class DielectricQuery(QueryOperator):
         e_ionic_min: Optional[float] = Query(
             None, description="Minimum value for the ionic dielectric constant.",
         ),
-        e_static_max: Optional[float] = Query(
-            None, description="Maximum value for the static dielectric constant.",
+        e_electronic_max: Optional[float] = Query(
+            None, description="Maximum value for the electronic dielectric constant.",
         ),
-        e_static_min: Optional[float] = Query(
-            None, description="Minimum value for the static dielectric constant.",
+        e_electronic_min: Optional[float] = Query(
+            None, description="Minimum value for the electronic dielectric constant.",
         ),
         n_max: Optional[float] = Query(
             None, description="Maximum value for the refractive index.",
@@ -44,7 +44,7 @@ class DielectricQuery(QueryOperator):
         d = {
             "dielectric.e_total": [e_total_min, e_total_max],
             "dielectric.e_ionic": [e_ionic_min, e_ionic_max],
-            "dielectric.e_static": [e_static_min, e_static_max],
+            "dielectric.e_electronic": [e_electronic_min, e_electronic_max],
             "dielectric.n": [n_min, n_max],
         }
 
@@ -61,7 +61,7 @@ class DielectricQuery(QueryOperator):
         keys = [
             "dielectric.e_total",
             "dielectric.e_ionic",
-            "dielectric.e_static",
+            "dielectric.e_electronic",
             "dielectric.n",
         ]
         return [(key, False) for key in keys]

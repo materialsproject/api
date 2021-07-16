@@ -15,7 +15,7 @@ class DielectricRester(BaseRester):
         self,
         e_total: Optional[Tuple[float, float]] = None,
         e_ionic: Optional[Tuple[float, float]] = None,
-        e_static: Optional[Tuple[float, float]] = None,
+        e_electronic: Optional[Tuple[float, float]] = None,
         n: Optional[Tuple[float, float]] = None,
         sort_field: Optional[str] = None,
         ascending: Optional[bool] = None,
@@ -30,7 +30,7 @@ class DielectricRester(BaseRester):
         Arguments:
             e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.
             e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
-            e_static (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
+            e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
             n (Tuple[float,float]): Minimum and maximum refractive index to consider.
             sort_field (str): Field used to sort results.
             ascending (bool): Whether sorting should be in ascending order.
@@ -52,8 +52,13 @@ class DielectricRester(BaseRester):
         if e_ionic:
             query_params.update({"e_ionic_min": e_ionic[0], "e_ionic_max": e_ionic[1]})
 
-        if e_static:
-            query_params.update({"e_static_min": e_static[0], "e_static_max": e_static[1]})
+        if e_electronic:
+            query_params.update(
+                {
+                    "e_electronic_min": e_electronic[0],
+                    "e_electronic_max": e_electronic[1],
+                }
+            )
 
         if n:
             query_params.update({"n_min": n[0], "n_max": n[1]})
@@ -64,8 +69,16 @@ class DielectricRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )
