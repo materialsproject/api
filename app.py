@@ -484,11 +484,16 @@ from mp_api.routes.charge_density.resources import charge_density_resource
 
 resources.update({"charge_density": [charge_density_resource(s3_chgcar)]})
 
-# Search
+# Summary
 from mp_api.routes.summary.resources import summary_resource, summary_stats_resource
 
 resources.update(
-    {"search": [summary_stats_resource(summary_store), summary_resource(summary_store)]}
+    {
+        "summary": [
+            summary_stats_resource(summary_store),
+            summary_resource(summary_store),
+        ]
+    }
 )
 
 # Electronic Structure
