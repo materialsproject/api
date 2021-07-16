@@ -5,7 +5,7 @@ from fastapi import Query
 
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
-from mp_api.routes.search.models import SearchStats
+from emmet.core.summary import SummaryStats
 
 from pymatgen.analysis.magnetism import Ordering
 
@@ -88,6 +88,29 @@ class SearchIsStableQuery(QueryOperator):
 
         if is_stable is not None:
             crit["is_stable"] = is_stable
+
+        return {"criteria": crit}
+
+    def ensure_indexes(self):  # pragma: no cover
+        return [("is_stable", False)]
+
+
+class SearchHasReconstructedQuery(QueryOperator):
+    """
+    Method to generate a query on whether a material has any reconstructed surfaces
+    """
+
+    def query(
+        self,
+        has_reconstructed: Optional[bool] = Query(
+            None, description="Whether the material has reconstructed surfaces."
+        ),
+    ):
+
+        crit = {}
+
+        if has_reconstructed is not None:
+            crit["has_reconstructed"] = has_reconstructed
 
         return {"criteria": crit}
 
@@ -267,7 +290,7 @@ class SearchStatsQuery(QueryOperator):
             median = float(np.median(values))
             mean = float(np.mean(values))
 
-            response = SearchStats(
+            response = SummaryStats(
                 field=field,
                 num_samples=num_samples,
                 min=min_val,

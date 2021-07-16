@@ -111,7 +111,6 @@ class TestMPRester:
 
         assert sorted_entries != entries
 
-    @pytest.mark.xfail
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
         assert isinstance(bs, PhononBandStructureSymmLine)
@@ -181,11 +180,6 @@ class TestMPRester:
             "num_chunks",
             "all_fields",
             "fields",
-            "equillibrium_reaction_energy",  # Fix (thermo model)
-            "weighted_work_function",  # Fix (search builder)
-            "weighted_surface_energy",  # Fix (search builder)
-            "surface_anisotropy",  # Fix (search builder)
-            "shape_factor",  # Fix (search builder)
         ]
 
         alt_name_dict = {
@@ -198,10 +192,12 @@ class TestMPRester:
             "total_energy": "energy_per_atom",
             "formation_energy": "formation_energy_per_atom",
             "uncorrected_energy": "uncorrected_energy_per_atom",
+            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
             "magnetic_ordering": "ordering",
             "elastic_anisotropy": "universal_anisotropy",
             "poisson_ratio": "homogeneous_poisson",
             "piezoelectric_modulus": "e_ij_max",
+            "surface_energy_anisotropy": "surface_anisotropy",
         }  # type: dict
 
         custom_field_tests = {
@@ -213,6 +209,7 @@ class TestMPRester:
             "magnetic_ordering": Ordering.FM,
             "has_props": ["dielectric"],
             "theoretical": True,
+            "has_reconstructed": False,
         }  # type: dict
 
         search_method = mpr.query

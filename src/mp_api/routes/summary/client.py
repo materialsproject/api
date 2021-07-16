@@ -1,21 +1,20 @@
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 from emmet.core.mpid import MPID
-from emmet.core.search import SearchDoc
+from emmet.core.summary import SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from mp_api.core.client import BaseRester
 from pymatgen.analysis.magnetism import Ordering
-from pymatgen.core.periodic_table import Element
 
 
-class SearchRester(BaseRester):
+class SummaryRester(BaseRester):
 
-    suffix = "search"
-    document_model = SearchDoc  # type: ignore
+    suffix = "summary"
+    document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_docs(
+    def search_summary_docs(
         self,
         material_ids: Optional[List[MPID]] = None,
         chemsys_formula: Optional[str] = None,
@@ -42,6 +41,8 @@ class SearchRester(BaseRester):
         total_magnetization_normalized_formula_units: Optional[
             Tuple[float, float]
         ] = None,
+        num_magnetic_sites: Optional[Tuple[int, int]] = None,
+        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         k_voigt: Optional[Tuple[float, float]] = None,
         k_reuss: Optional[Tuple[float, float]] = None,
         k_vrh: Optional[Tuple[float, float]] = None,
@@ -52,13 +53,14 @@ class SearchRester(BaseRester):
         poisson_ratio: Optional[Tuple[float, float]] = None,
         e_total: Optional[Tuple[float, float]] = None,
         e_ionic: Optional[Tuple[float, float]] = None,
-        e_static: Optional[Tuple[float, float]] = None,
+        e_electronic: Optional[Tuple[float, float]] = None,
         n: Optional[Tuple[float, float]] = None,
         piezoelectric_modulus: Optional[Tuple[float, float]] = None,
         weighted_surface_energy: Optional[Tuple[float, float]] = None,
         weighted_work_function: Optional[Tuple[float, float]] = None,
-        surface_anisotropy: Optional[Tuple[float, float]] = None,
+        surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
         shape_factor: Optional[Tuple[float, float]] = None,
+        has_reconstructed: Optional[bool] = None,
         has_props: Optional[List[str]] = None,
         theoretical: Optional[bool] = None,
         sort_field: Optional[str] = None,
@@ -97,6 +99,9 @@ class SearchRester(BaseRester):
                 normalized by volume to consider.
             total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
+            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
+                to consider.
             k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
                 the Voigt average of the bulk modulus.
             k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
@@ -115,7 +120,7 @@ class SearchRester(BaseRester):
                 Poisson's ratio.
             e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.
             e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
-            e_static (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
+            e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
             n (Tuple[float,float]): Minimum and maximum refractive index to consider.
             piezoelectric_modulus (Tuple[float,float]): Minimum and maximum piezoelectric modulus to consider.
             weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy in J/m² to
@@ -124,6 +129,7 @@ class SearchRester(BaseRester):
             surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values to
                 consider.
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
+            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             has_props: (List[str]): The calculated properties available for the material.
             theoretical: (bool): Whether the material is theoretical.
             sort_field (str): Field used to sort results.
@@ -135,7 +141,7 @@ class SearchRester(BaseRester):
                 Default is material_id if all_fields is False.
 
         Returns:
-            ([SearchDoc]) List of SearchDoc documents
+            ([SummaryDoc]) List of SummaryDoc documents
         """
 
         query_params = defaultdict(dict)  # type: dict
@@ -145,6 +151,7 @@ class SearchRester(BaseRester):
             "formation_energy": "formation_energy_per_atom",
             "energy_above_hull": "energy_above_hull",
             "uncorrected_energy": "uncorrected_energy_per_atom",
+            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
             "nsites": "nsites",
             "volume": "volume",
             "density": "density",
@@ -153,6 +160,8 @@ class SearchRester(BaseRester):
             "total_magnetization": "total_magnetization",
             "total_magnetization_normalized_vol": "total_magnetization_normalized_vol",
             "total_magnetization_normalized_formula_units": "total_magnetization_normalized_formula_units",
+            "num_magnetic_sites": "num_magnetic_sites",
+            "num_unique_magnetic_sites": "num_unique_magnetic_sites",
             "k_voigt": "k_voigt",
             "k_reuss": "k_reuss",
             "k_vrh": "k_vrh",
@@ -163,7 +172,7 @@ class SearchRester(BaseRester):
             "poisson_ratio": "homogeneous_poisson",
             "e_total": "e_total",
             "e_ionic": "e_ionic",
-            "e_static": "e_static",
+            "e_electronic": "e_electronic",
             "n": "n",
             "piezoelectric_modulus": "e_ij_max",
             "weighted_surface_energy": "weighted_surface_energy",
@@ -209,6 +218,9 @@ class SearchRester(BaseRester):
 
         if magnetic_ordering:
             query_params.update({"ordering": magnetic_ordering.value})
+
+        if has_reconstructed is not None:
+            query_params.update({"has_reconstructed": has_reconstructed})
 
         if has_props:
             query_params.update({"has_props": ",".join(has_props)})

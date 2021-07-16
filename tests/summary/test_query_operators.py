@@ -1,9 +1,10 @@
 from monty.tempfile import ScratchDir
 from monty.serialization import loadfn, dumpfn
 
-from mp_api.routes.search.query_operators import (
+from mp_api.routes.summary.query_operators import (
     HasPropsQuery,
     MaterialIDsSearchQuery,
+    SearchHasReconstructedQuery,
     SearchIsStableQuery,
     SearchMagneticQuery,
     SearchIsTheoreticalQuery,
@@ -11,10 +12,10 @@ from mp_api.routes.search.query_operators import (
     SearchESQuery,
 )
 
-from mp_api.routes.search.models import SearchStats
+from emmet.core.summary import SummaryStats
 
 from pymatgen.analysis.magnetism import Ordering
-from emmet.core.search import SearchDoc
+from emmet.core.summary import SummaryDoc
 
 
 def test_has_props_query():
@@ -69,6 +70,21 @@ def test_magnetic_query():
         assert new_op.query(ordering=Ordering.FiM) == {"criteria": {"ordering": "FiM"}}
 
 
+def test_has_reconstructed_query():
+    op = SearchHasReconstructedQuery()
+
+    assert op.query(has_reconstructed=False) == {
+        "criteria": {"has_reconstructed": False}
+    }
+
+    with ScratchDir("."):
+        dumpfn(op, "temp.json")
+        new_op = loadfn("temp.json")
+        assert new_op.query(has_reconstructed=False) == {
+            "criteria": {"has_reconstructed": False}
+        }
+
+
 def test_is_theoretical_query():
     op = SearchIsTheoreticalQuery()
 
@@ -81,7 +97,7 @@ def test_is_theoretical_query():
 
 
 def test_search_stats_query():
-    op = SearchStatsQuery(SearchDoc)
+    op = SearchStatsQuery(SummaryDoc)
 
     pipeline = [
         {"$match": {"band_gap": {"$gte": 0, "$lte": 5}}},
@@ -95,7 +111,7 @@ def test_search_stats_query():
 
     docs = [{"band_gap": 1}, {"band_gap": 2}, {"band_gap": 3}]
 
-    assert isinstance(op.post_process(docs)[0], SearchStats)
+    assert isinstance(op.post_process(docs)[0], SummaryStats)
 
 
 def test_search_es_query():

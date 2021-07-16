@@ -11,8 +11,8 @@ def test_dielectric_query_operator():
     q = op.query(
         e_total_min=0,
         e_total_max=5,
-        e_static_min=0,
-        e_static_max=5,
+        e_electronic_min=0,
+        e_electronic_max=5,
         e_ionic_min=0,
         e_ionic_max=5,
         n_min=0,
@@ -22,7 +22,7 @@ def test_dielectric_query_operator():
     fields = [
         "dielectric.e_total",
         "dielectric.e_ionic",
-        "dielectric.e_static",
+        "dielectric.e_electronic",
         "dielectric.n",
     ]
 
@@ -34,8 +34,8 @@ def test_dielectric_query_operator():
         q = new_op.query(
             e_total_min=0,
             e_total_max=5,
-            e_static_min=0,
-            e_static_max=5,
+            e_electronic_min=0,
+            e_electronic_max=5,
             e_ionic_min=0,
             e_ionic_max=5,
             n_min=0,

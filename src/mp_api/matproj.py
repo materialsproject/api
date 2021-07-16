@@ -461,6 +461,8 @@ class MPRester:
         total_magnetization_normalized_formula_units: Optional[
             Tuple[float, float]
         ] = None,
+        num_magnetic_sites: Optional[Tuple[int, int]] = None,
+        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         k_voigt: Optional[Tuple[float, float]] = None,
         k_reuss: Optional[Tuple[float, float]] = None,
         k_vrh: Optional[Tuple[float, float]] = None,
@@ -471,13 +473,14 @@ class MPRester:
         poisson_ratio: Optional[Tuple[float, float]] = None,
         e_total: Optional[Tuple[float, float]] = None,
         e_ionic: Optional[Tuple[float, float]] = None,
-        e_static: Optional[Tuple[float, float]] = None,
+        e_electronic: Optional[Tuple[float, float]] = None,
         n: Optional[Tuple[float, float]] = None,
         piezoelectric_modulus: Optional[Tuple[float, float]] = None,
         weighted_surface_energy: Optional[Tuple[float, float]] = None,
         weighted_work_function: Optional[Tuple[float, float]] = None,
-        surface_anisotropy: Optional[Tuple[float, float]] = None,
+        surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
         shape_factor: Optional[Tuple[float, float]] = None,
+        has_reconstructed: Optional[bool] = None,
         has_props: Optional[List[str]] = None,
         theoretical: Optional[bool] = None,
         sort_field: Optional[str] = None,
@@ -516,6 +519,9 @@ class MPRester:
                 normalized by volume to consider.
             total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
+            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
+                to consider.
             k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
                 the Voigt average of the bulk modulus.
             k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
@@ -534,7 +540,7 @@ class MPRester:
                 Poisson's ratio.
             e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.
             e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
-            e_static (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
+            e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
             n (Tuple[float,float]): Minimum and maximum refractive index to consider.
             piezoelectric_modulus (Tuple[float,float]): Minimum and maximum piezoelectric modulus to consider.
             weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy in J/m² to
@@ -543,6 +549,7 @@ class MPRester:
             surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values to
                 consider.
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
+            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             has_props: (List[str]): The calculated properties available for the material.
             theoretical: (bool): Whether the material is theoretical.
             sort_field (str): Field used to sort results.
@@ -554,9 +561,10 @@ class MPRester:
                 Default is material_id if all_fields is False.
 
         Returns:
-            ([SearchDoc]) List of SearchDoc documents
+            ([SummaryDoc]) List of SummaryDoc documents
         """
-        return self.search.search_docs(  # type: ignore
+
+        return self.summary.search_summary_docs(  # type: ignore
             material_ids=material_ids,
             chemsys_formula=chemsys_formula,
             nsites=nsites,
@@ -580,6 +588,8 @@ class MPRester:
             total_magnetization=total_magnetization,
             total_magnetization_normalized_vol=total_magnetization_normalized_vol,
             total_magnetization_normalized_formula_units=total_magnetization_normalized_formula_units,
+            num_magnetic_sites=num_magnetic_sites,
+            num_unique_magnetic_sites=num_unique_magnetic_sites,
             k_voigt=k_voigt,
             k_reuss=k_reuss,
             k_vrh=k_vrh,
@@ -590,13 +600,14 @@ class MPRester:
             poisson_ratio=poisson_ratio,
             e_total=e_total,
             e_ionic=e_ionic,
-            e_static=e_static,
+            e_electronic=e_electronic,
             n=n,
             piezoelectric_modulus=piezoelectric_modulus,
             weighted_surface_energy=weighted_surface_energy,
             weighted_work_function=weighted_work_function,
-            surface_anisotropy=surface_anisotropy,
+            surface_energy_anisotropy=surface_energy_anisotropy,
             shape_factor=shape_factor,
+            has_reconstructed=has_reconstructed,
             has_props=has_props,
             theoretical=theoretical,
             sort_field=sort_field,

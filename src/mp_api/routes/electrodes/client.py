@@ -15,10 +15,8 @@ class ElectrodeRester(BaseRester):
     def search_electrode_docs(  # pragma: ignore
         self,
         working_ion: Optional[Element] = None,
-        delta_volume: Optional[Tuple[float, float]] = None,
+        max_delta_volume: Optional[Tuple[float, float]] = None,
         average_voltage: Optional[Tuple[float, float]] = None,
-        max_voltage: Optional[Tuple[float, float]] = None,
-        min_voltage: Optional[Tuple[float, float]] = None,
         capacity_grav: Optional[Tuple[float, float]] = None,
         capacity_vol: Optional[Tuple[float, float]] = None,
         energy_grav: Optional[Tuple[float, float]] = None,
@@ -27,7 +25,7 @@ class ElectrodeRester(BaseRester):
         fracA_discharge: Optional[Tuple[float, float]] = None,
         stability_charge: Optional[Tuple[float, float]] = None,
         stability_discharge: Optional[Tuple[float, float]] = None,
-        num_steps: Optional[Tuple[float, float]] = None,
+        num_steps: Optional[Tuple[int, int]] = None,
         max_voltage_step: Optional[Tuple[float, float]] = None,
         sort_field: Optional[str] = None,
         ascending: Optional[bool] = None,
@@ -41,13 +39,11 @@ class ElectrodeRester(BaseRester):
 
         Arguments:
             working_ion (Element): Element of the working ion.
-            delta_volume (Tuple[float,float]): Minimum and maximum value of the max volume change in percent for a
+            max_delta_volume (Tuple[float,float]): Minimum and maximum value of the max volume change in percent for a
                 particular voltage step.
             average_voltage (Tuple[float,float]): Minimum and maximum value of the average voltage for a particular
                 voltage step in V.
-            max_voltage (Tuple[float,float]): Minimum and maximum value of the maximum voltage for a particular
-                voltage step in V.
-            min_voltage (Tuple[float,float]): Minimum and maximum value of the minimum voltage for a particular
+            max_voltage_step (Tuple[float,float]): Minimum and maximum value of the maximum voltage for a particular
                 voltage step in V.
             capacity_grav (Tuple[float,float]): Minimum and maximum value of the gravimetric capacity in maH/g.
             capacity_vol (Tuple[float,float]): Minimum and maximum value of the volumetric capacity in maH/cc.

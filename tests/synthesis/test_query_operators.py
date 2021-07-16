@@ -18,11 +18,15 @@ def test_synthesis_search_query():
                         "targets_formula_s": "SiO2",
                         "precursors_formula_s": "SiO2",
                         "operations.type": {"$all": ["ShapingOperation"]},
-                        "operations.conditions.heating_temperature.values": {"$lte": 5},
-                        "operations.conditions.heating_time.values": {"$lte": 5},
-                        "operations.conditions.heating_atmosphere": {"$all": "air"},
-                        "operations.conditions.mixing_device": {"$all": "zirconia"},
-                        "operations.conditions.mixing_media": {"$all": "water"},
+                        "operations.conditions.heating_temperature.values": {
+                            "$elemMatch": {"$gte": 0, "$lte": 5}
+                        },
+                        "operations.conditions.heating_time.values": {
+                            "$elemMatch": {"$gte": 0, "$lte": 5}
+                        },
+                        "operations.conditions.heating_atmosphere": {"$all": ["air"]},
+                        "operations.conditions.mixing_device": {"$all": ["zirconia"]},
+                        "operations.conditions.mixing_media": {"$all": ["water"]},
                     }
                 },
                 {
@@ -81,11 +85,15 @@ def test_synthesis_search_query():
                         "targets_formula_s": "SiO2",
                         "precursors_formula_s": "SiO2",
                         "operations.type": {"$all": ["ShapingOperation"]},
-                        "operations.conditions.heating_temperature.values": {"$lte": 5},
-                        "operations.conditions.heating_time.values": {"$lte": 5},
-                        "operations.conditions.heating_atmosphere": {"$all": "air"},
-                        "operations.conditions.mixing_device": {"$all": "zirconia"},
-                        "operations.conditions.mixing_media": {"$all": "water"},
+                        "operations.conditions.heating_temperature.values": {
+                            "$elemMatch": {"$gte": 0, "$lte": 5}
+                        },
+                        "operations.conditions.heating_time.values": {
+                            "$elemMatch": {"$gte": 0, "$lte": 5}
+                        },
+                        "operations.conditions.heating_atmosphere": {"$all": ["air"]},
+                        "operations.conditions.mixing_device": {"$all": ["zirconia"]},
+                        "operations.conditions.mixing_media": {"$all": ["water"]},
                     }
                 },
                 {
@@ -108,7 +116,7 @@ def test_synthesis_search_query():
                                     "search_score": {"$meta": "searchScore"},
                                     "highlights": {"$meta": "searchHighlights"},
                                 }
-                            },
+                            }
                         ],
                         "total_doc": [{"$count": "count"}],
                     }
@@ -148,7 +156,7 @@ def test_synthesis_search_query():
             limit=10,
         )
 
-        assert q == {"pipeline": pipeline}
+        assert q["pipeline"] == pipeline
 
         with ScratchDir("."):
             dumpfn(op, "temp.json")
