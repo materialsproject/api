@@ -95,6 +95,29 @@ class SearchIsStableQuery(QueryOperator):
         return [("is_stable", False)]
 
 
+class SearchHasReconstructedQuery(QueryOperator):
+    """
+    Method to generate a query on whether a material has any reconstructed surfaces
+    """
+
+    def query(
+        self,
+        has_reconstructed: Optional[bool] = Query(
+            None, description="Whether the material has reconstructed surfaces."
+        ),
+    ):
+
+        crit = {}
+
+        if has_reconstructed is not None:
+            crit["has_reconstructed"] = has_reconstructed
+
+        return {"criteria": crit}
+
+    def ensure_indexes(self):  # pragma: no cover
+        return [("is_stable", False)]
+
+
 class SearchMagneticQuery(QueryOperator):
     """
     Method to generate a query for magnetic data in search docs.

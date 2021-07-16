@@ -15,7 +15,7 @@ from mp_api.routes.dielectric.client import DielectricRester
 from mp_api.routes.dois.client import DOIRester
 from mp_api.routes.piezo.client import PiezoRester
 from mp_api.routes.magnetism.client import MagnetismRester
-from mp_api.routes.search.client import SearchRester
+from mp_api.routes.summary.client import SummaryRester
 from mp_api.routes.robocrys.client import RobocrysRester
 from mp_api.routes.molecules.client import MoleculesRester
 from mp_api.routes.synthesis.client import SynthesisRester

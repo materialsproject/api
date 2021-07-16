@@ -20,6 +20,7 @@ from mp_api.routes.summary.query_operators import (
     SearchIsStableQuery,
     SearchIsTheoreticalQuery,
     SearchMagneticQuery,
+    SearchHasReconstructedQuery,
     SearchStatsQuery,
     SearchESQuery,
 )
@@ -39,6 +40,7 @@ def summary_resource(summary_store):
             SearchMagneticQuery(),
             SearchESQuery(),
             NumericQuery(model=SummaryDoc, excluded_fields=["composition"]),
+            SearchHasReconstructedQuery(),
             HasPropsQuery(),
             DeprecationQuery(),
             SortQuery(),
