@@ -36,7 +36,7 @@ class SimilarityDoc(BaseModel):
         description="List containing similar structure data for a given material.",
     )
 
-    task_id: str = Field(
+    material_id: str = Field(
         None,
         description="The Materials Project ID for the material. This comes in the form: mp-******",
     )

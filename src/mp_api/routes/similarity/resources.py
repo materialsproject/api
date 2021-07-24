@@ -9,7 +9,7 @@ def similarity_resource(similarity_store):
         SimilarityDoc,
         query_operators=[
             PaginationQuery(),
-            SparseFieldsQuery(SimilarityDoc, default_fields=["task_id"]),
+            SparseFieldsQuery(SimilarityDoc, default_fields=["material_id"]),
         ],
         tags=["Similarity"],
         enable_default_search=False,

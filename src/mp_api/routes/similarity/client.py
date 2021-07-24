@@ -6,4 +6,4 @@ class SimilarityRester(BaseRester):
 
     suffix = "similarity"
     document_model = SimilarityDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
