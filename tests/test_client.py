@@ -6,7 +6,6 @@ from mp_api.matproj import MPRester
 
 key_only_resters = {
     "phonon": "mp-11703",
-    "phonon_img": "mp-11703",
     "similarity": "mp-149",
     "doi": "mp-149",
     "wulff": "mp-149",
@@ -23,7 +22,6 @@ search_only_resters = [
 ]
 
 special_resters = [
-    "phonon_img",
     "charge_density",
 ]
 
