@@ -6,7 +6,6 @@ from mp_api.matproj import MPRester
 
 key_only_resters = {
     "phonon": "mp-11703",
-    "phonon_img": "mp-11703",
     "similarity": "mp-149",
     "doi": "mp-149",
     "wulff": "mp-149",
@@ -20,15 +19,13 @@ search_only_resters = [
     "electronic_structure_dos",
     "substrates",
     "synthesis",
-    "xas",  # Temp
 ]
 
 special_resters = [
-    "phonon_img",
     "charge_density",
 ]
 
-ignore_generic = ["oxidation_states"]
+ignore_generic = ["provenance"]  # temp
 
 
 mpr = MPRester()

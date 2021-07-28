@@ -8,7 +8,7 @@ class XASRester(BaseRester):
 
     suffix = "xas"
     document_model = XASDoc  # type: ignore
-    primary_key = "xas_id"
+    primary_key = "spectrum_id"
 
     def get_available_elements(
         # TODO implement actual check

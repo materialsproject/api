@@ -221,7 +221,7 @@ class MPRester:
         Returns:
             BibTeX (str)
         """
-        raise NotImplementedError
+        return self.provenance.get_document_by_id(material_id).references
 
     def get_materials_ids(self, chemsys_formula):
         """

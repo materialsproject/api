@@ -27,3 +27,4 @@ from mp_api.routes.electronic_structure.client import (
     DosRester,
 )
 from mp_api.routes.oxidation_states.client import OxidationStatesRester
+from mp_api.routes.provenance.client import ProvenanceRester
