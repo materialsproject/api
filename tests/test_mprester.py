@@ -54,6 +54,7 @@ class TestMPRester:
     def test_get_materials_id_from_task_id(self, mpr):
         assert mpr.get_materials_id_from_task_id("mp-540081") == "mp-19017"
 
+    @pytest.mark.xfail
     def test_get_materials_id_references(self, mpr):
         data = mpr.get_materials_id_references("mp-123")
         assert len(data) > 5
