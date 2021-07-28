@@ -2,7 +2,7 @@ from typing import List, Optional
 from emmet.core.provenance import ProvenanceDoc
 
 
-class EOSRester:
+class ProvenanceRester:
 
     def get_document_by_id(
         self,
