@@ -4,6 +4,6 @@ from emmet.core.provenance import ProvenanceDoc
 
 class ProvenanceRester(BaseRester):
 
-    suffix = "eos"
+    suffix = "provenance"
     document_model = ProvenanceDoc  # type: ignore
     primary_key = "material_id"
