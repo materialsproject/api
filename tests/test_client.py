@@ -20,7 +20,6 @@ search_only_resters = [
     "electronic_structure_dos",
     "substrates",
     "synthesis",
-    "xas",  # Temp
 ]
 
 special_resters = [
@@ -28,7 +27,7 @@ special_resters = [
     "charge_density",
 ]
 
-ignore_generic = ["oxidation_states"]
+ignore_generic = ["provenance"]  # temp
 
 
 mpr = MPRester()
