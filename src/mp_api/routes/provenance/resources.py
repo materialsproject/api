@@ -10,7 +10,7 @@ def provenance_resource(provenance_store):
         ProvenanceDoc,
         query_operators=[PaginationQuery()],
         tags=["Provenance"],
-        disable_validation=False,
+        disable_validation=True,
         enable_default_search=False,
     )
 
