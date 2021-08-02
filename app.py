@@ -540,6 +540,10 @@ from mp_api.routes._consumer.resources import settings_resource
 
 resources.update({"user_settings": [settings_resource(consumer_settings_store)]})
 
+# === MAPI setup
+from mp_api.core.documentation import description, tags_meta
 
-api = MAPI(resources=resources, debug=debug)
+api = MAPI(
+    resources=resources, debug=debug, description=description, tags_meta=tags_meta
+)
 app = api.app
