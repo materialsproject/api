@@ -17,13 +17,13 @@ If you intend heavy API usage, you can give us a heads up by sending a message t
 ## Accessing Data
 To use the API, you have three options:
 
-1. You can use our first-party supported Python client. This is the recommend route. The client is pip installable.
+1. You can use our first-party supported Python client. This is the recommend route. The `mp-api` package containing the client is pip installable.
 
     ```
     pip install mp-api
     ```
 
-    The `MPRester` client can the be accessed through this package. This will ultimately replace the legacy `MPRester` available in pymatgen. 
+    The `MPRester` client can be accessed by importing from it. This will ultimately replace the legacy `MPRester` available in pymatgen.
     
     For more details on how to use this, including code examples, please see <https://next-gen.materialsproject.org/api>.
 
@@ -36,11 +36,23 @@ To use the API, you have three options:
 tags_meta = [
     {
         "name": "Materials",
-        "description": "Core endpoints for data associated with each unique material in the Materials Project database defined by `material_id`. Root level data is defined by `MaterialsDoc` schema.",
+        "description": 'Route for "core" information associated with a given material in the Materials Project \
+            database. The unique identifier for a material is its `material_id` (e.g. `mp-149`). Core data in \
+            this context refers to the crystal structure, information associated with it such as the density \
+            and chemical formula, and the associated calculations which are identified with unique `task_id` \
+            values. It does not contain any materials properties such as the formation energy or band gap, please \
+            consult other property-specific endpoints for this information. See the `MaterialsDoc` schema for \
+            a full list of fields returned by this route.',
     },
     {
         "name": "Tasks",
-        "description": "Core endpoints for data associated with each unique calculation in the Materials Project database defined by `task_id`. Root level data is defined by `TaskDoc` schema.",
+        "description": 'Route for "core" information associated with a given calculation in the Materials Project \
+            database. Multiple calculations can ultimately be associated with a unique material, and are the source \
+            of its reported properties. The unique identifier for a calculation is its `task_id`. Note \
+            that the `material_id` chosen for a given material is sourced from one of the `task_id` values \
+            associated with it. Core data in this context refers to calculation quantities such as parsed input \
+            and output data (e.g. VASP input flags, atomic forces, structures) and runtime statistics. See the \
+            `TaskDoc` schema for a full list of fields returned by this route.',
     },
     {
         "name": "Thermo",
