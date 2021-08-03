@@ -111,6 +111,20 @@ class TestMPRester:
 
         assert sorted_entries != entries
 
+    def test_get_entries_in_chemsys(self, mpr):
+        syms = ["Li", "Fe", "O"]
+        syms2 = "Li-Fe-O"
+        entries = mpr.get_entries_in_chemsys(syms)
+        entries2 = mpr.get_entries_in_chemsys(syms2)
+        elements = set([Element(sym) for sym in syms])
+        for e in entries:
+            assert isinstance(e, ComputedEntry)
+            assert set(e.composition.elements).issubset(elements)
+
+        e1 = set([i.entry_id for i in entries])
+        e2 = set([i.entry_id for i in entries2])
+        assert e1 == e2
+
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
         assert isinstance(bs, PhononBandStructureSymmLine)
