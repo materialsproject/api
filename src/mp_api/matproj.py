@@ -2,6 +2,7 @@ from os import environ, path
 import warnings
 from typing import Optional, Tuple, List
 from enum import Enum, unique
+import itertools
 
 from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -360,6 +361,37 @@ class MPRester:
                 document_id=material_id, fields=["entries"]
             ).entries.values()
         )
+
+    def get_entries_in_chemsys(
+        self, elements,
+    ):
+        """
+        Helper method to get a list of ComputedEntries in a chemical system.
+        For example, elements = ["Li", "Fe", "O"] will return a list of all
+        entries in the Li-Fe-O chemical system, i.e., all LixOy,
+        FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for
+        creating phase diagrams of entire chemical systems.
+        Args:
+            elements (str or [str]): Chemical system string comprising element
+                symbols separated by dashes, e.g., "Li-Fe-O" or List of element
+                symbols, e.g., ["Li", "Fe", "O"].
+        Returns:
+            List of ComputedEntries.
+        """
+        if isinstance(elements, str):
+            elements = elements.split("-")
+
+        all_chemsyses = []
+        for i in range(len(elements)):
+            for els in itertools.combinations(elements, i + 1):
+                all_chemsyses.append("-".join(sorted(els)))
+
+        entries = []
+
+        for chemsys in all_chemsyses:
+            entries.extend(self.get_entries(chemsys_formula=chemsys))
+
+        return entries
 
     def get_bandstructure_by_material_id(
         self,
