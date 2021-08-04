@@ -187,10 +187,6 @@ tags_meta = [
             methodology discussed by [Ding *et al.*](https://doi.org/10.1021/acsami.6b01630) \
             Note that substrate data has not been calculated for all materials in the Materials \
             Project database. See the `SubstratesDoc` schema for a full list of fields returned by this route.",
-        "externalDocs": {
-            "description": "For a more detailed description",
-            "url": "https://docs.materialsproject.org/methodology/elasticity",
-        },
     },
     {
         "name": "Surface Properties",
