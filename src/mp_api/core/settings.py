@@ -20,7 +20,7 @@ class MAPISettings(BaseSettings):
         description="Directory with test files",
     )
 
-    db_version: str = Field("2021_04_26", description="Database version")
+    db_version: str = Field("2021_prerelease", description="Database version")
 
     requests_per_min: int = Field(
         60, description="Number of requests per minute to for rate limit."
