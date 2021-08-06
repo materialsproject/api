@@ -1,16 +1,17 @@
 # coding: utf-8
 """ Primary MAPI module """
 import os
-from pkg_resources import get_distribution, DistributionNotFound
 from monty.serialization import loadfn
-from mp_api.matproj import MPRester
+from pkg_resources import get_distribution, DistributionNotFound
 
 try:
-    __version__ = get_distribution(__package__).version
     from setuptools_scm import get_version
-    __version__ = get_version(root='../../', relative_to=__file__)
-except (DistributionNotFound, ImportError, LookupError):  # pragma: no cover
-    __version__ = os.environ.get("SETUPTOOLS_SCM_PRETEND_VERSION")
+    __version__ = get_version(root="../../", relative_to=__file__)
+except (ImportError, LookupError):  # pragma: no cover
+    try:
+        __version__ = get_distribution(__package__).version
+    except DistributionNotFound:  # pragma: no cover
+        __version__ = os.environ.get("SETUPTOOLS_SCM_PRETEND_VERSION", None)
 
 from mp_api.core.settings import MAPISettings
 from pathlib import Path
