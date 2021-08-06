@@ -27,6 +27,7 @@ ENV FLASK_ENV production
 ENV PORT 5001
 ENV NUM_WORKERS 4
 ENV RELOAD ""
+ENV SETUPTOOLS_SCM_PRETEND_VERSION dev
 
 EXPOSE 5001
 CMD gunicorn -b 0.0.0.0:$PORT -k uvicorn.workers.UvicornWorker -w $NUM_WORKERS --log-level debug --access-logfile - $RELOAD app:app
