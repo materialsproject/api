@@ -19,3 +19,4 @@ def test_formula_to_criteria():
     # Chemsys
     assert formula_to_criteria("Si-O") == {"chemsys": "O-Si"}
     assert formula_to_criteria("Si-*") == {"elements": {"$all": ["Si"]}, "nelements": 2}
+    assert formula_to_criteria("*-*-*") == {"nelements": 3}
