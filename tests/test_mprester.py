@@ -54,6 +54,7 @@ class TestMPRester:
     def test_get_materials_id_from_task_id(self, mpr):
         assert mpr.get_materials_id_from_task_id("mp-540081") == "mp-19017"
 
+    @pytest.mark.xfail  # temp xfail while data is fixed
     def test_get_materials_id_references(self, mpr):
         data = mpr.get_materials_id_references("mp-123")
         assert len(data) > 5
@@ -131,8 +132,9 @@ class TestMPRester:
         dos = mpr.get_phonon_dos_by_material_id("mp-11659")
         assert isinstance(dos, PhononDos)
 
+    @pytest.mark.xfail  # temp xfail while data is fixes
     def test_get_charge_density_data(self, mpr):
-        task_ids = mpr.get_charge_density_calculation_ids_from_material_id("mp-149")
+        task_ids = mpr.get_charge_density_calculation_ids_from_material_id("mp-13")
         assert len(task_ids) > 0
 
         vasp_calc_details = mpr.get_charge_density_calculation_details(
@@ -143,7 +145,7 @@ class TestMPRester:
         chgcar = mpr.get_charge_density_from_calculation_id(task_ids[0]["task_id"])
         assert isinstance(chgcar, Chgcar)
 
-        chgcar = mpr.get_charge_density_by_material_id("mp-149")
+        chgcar = mpr.get_charge_density_by_material_id("mp-13")
         assert isinstance(chgcar, Chgcar)
 
     def test_get_substrates(self, mpr):
@@ -184,6 +186,7 @@ class TestMPRester:
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
 
+    @pytest.mark.xfail  # temp xfail while data is fixed
     def test_query(self, mpr):
 
         excluded_params = [
