@@ -34,8 +34,8 @@ def mpr():
 )
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
-        s1 = mpr.get_structure_by_material_id("mp-1")
-        assert s1.formula == "Cs2"
+        s1 = mpr.get_structure_by_material_id("mp-149")
+        assert s1.formula == "Si2"
 
         s1 = mpr.get_structure_by_material_id("mp-4163", conventional_unit_cell=True)
         assert s1.formula == "Ca12 Ti8 O28"
@@ -47,7 +47,6 @@ class TestMPRester:
         with pytest.warns(UserWarning):
             mpr.get_structure_by_material_id("mp-698856")
 
-    @pytest.mark.xfail # temp xfail until deployment
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
         assert db_version == MAPISettings().db_version
@@ -154,7 +153,7 @@ class TestMPRester:
 
     def test_get_surface_data(self, mpr):
         data = mpr.get_surface_data("mp-126")  # Pt
-        one_surf = mpr.get_surface_data("mp-129", miller_index=[-2, -3, 1])
+        one_surf = mpr.get_surface_data("mp-129", miller_index=[1, 2, 3])
         assert one_surf["surface_energy"] == pytest.approx(2.99156963)
         assert one_surf["miller_index"] == pytest.approx([3, 2, 1])
         assert "surfaces" in data
@@ -199,6 +198,7 @@ class TestMPRester:
         alt_name_dict = {
             "material_ids": "material_id",
             "chemsys_formula": "formula_pretty",
+            "exclude_elements": "formula_pretty",
             "piezoelectric_modulus": "e_ij_max",
             "crystal_system": "symmetry",
             "spacegroup_symbol": "symmetry",
@@ -217,6 +217,7 @@ class TestMPRester:
         custom_field_tests = {
             "material_ids": ["mp-149"],
             "chemsys_formula": "SiO2",
+            "exclude_elements": ["Si"],
             "crystal_system": CrystalSystem.cubic,
             "spacegroup_number": 38,
             "spacegroup_symbol": "Amm2",

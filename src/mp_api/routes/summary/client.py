@@ -18,6 +18,7 @@ class SummaryRester(BaseRester):
         self,
         material_ids: Optional[List[MPID]] = None,
         chemsys_formula: Optional[str] = None,
+        exclude_elements: Optional[List[str]] = None,
         nsites: Optional[Tuple[int, int]] = None,
         volume: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
@@ -78,6 +79,7 @@ class SummaryRester(BaseRester):
             chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
                 or formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            exclude_elements (List(str)): List of elements to exclude.
             crystal_system (CrystalSystem): Crystal system of material.
             spacegroup_number (int): Space group number of material.
             spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
@@ -198,6 +200,9 @@ class SummaryRester(BaseRester):
 
         if chemsys_formula:
             query_params.update({"formula": chemsys_formula})
+
+        if exclude_elements is not None:
+            query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
         query_params.update(
             {

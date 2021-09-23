@@ -470,7 +470,7 @@ class MPRester:
         self,
         material_ids: Optional[List[MPID]] = None,
         chemsys_formula: Optional[str] = None,
-        exclude_elements: Optional[str] = None,
+        exclude_elements: Optional[List[str]] = None,
         nsites: Optional[Tuple[int, int]] = None,
         volume: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
@@ -601,7 +601,7 @@ class MPRester:
         return self.summary.search_summary_docs(  # type: ignore
             material_ids=material_ids,
             chemsys_formula=chemsys_formula,
-            exclude_element=exclude_elements,
+            exclude_elements=exclude_elements,
             nsites=nsites,
             volume=volume,
             density=density,

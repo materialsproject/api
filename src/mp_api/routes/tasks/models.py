@@ -44,7 +44,7 @@ class OrigInputs(BaseModel):
         None, description="Pymatgen object representing the INCAR file",
     )
 
-    poscar: Potcar = Field(
+    poscar: Poscar = Field(
         None, description="Pymatgen object representing the POSCAR file",
     )
 
