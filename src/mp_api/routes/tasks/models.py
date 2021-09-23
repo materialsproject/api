@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
+from json import decoder
+from typing import List, Dict
 
 from monty.json import MontyDecoder
 from pydantic import BaseModel, Field, validator
@@ -8,7 +9,7 @@ from pydantic import BaseModel, Field, validator
 from pymatgen.core.structure import Structure
 from pymatgen.core.composition import Composition
 from pymatgen.core.periodic_table import Element
-from pymatgen.io.vasp import Incar, Poscar, Kpoints, Potcar
+from pymatgen.io.vasp import Incar, Poscar, Kpoints
 from pymatgen.core.trajectory import Trajectory
 
 monty_decoder = MontyDecoder()
@@ -30,12 +31,20 @@ class TaskType(str, Enum):
     GGA_U_Structure_Optimization = "GGA+U Structure Optimization"
 
 
+class Potcar(BaseModel):
+    functional: str = Field(None, description="Functional type use in the calculation.")
+
+    symbols: List[str] = Field(
+        None, description="List of VASP potcar symbols used in the calculation."
+    )
+
+
 class OrigInputs(BaseModel):
     incar: Incar = Field(
         None, description="Pymatgen object representing the INCAR file",
     )
 
-    poscar: Poscar = Field(
+    poscar: Potcar = Field(
         None, description="Pymatgen object representing the POSCAR file",
     )
 
