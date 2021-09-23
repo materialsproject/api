@@ -7,7 +7,6 @@ from mp_api.routes.fermi.client import FermiRester
 from mp_api.routes.grain_boundary.client import GrainBoundaryRester
 from mp_api.routes.substrates.client import SubstratesRester
 from mp_api.routes.surface_properties.client import SurfacePropertiesRester
-from mp_api.routes.wulff.client import WulffRester
 from mp_api.routes.phonon.client import PhononRester
 from mp_api.routes.elasticity.client import ElasticityRester
 from mp_api.routes.thermo.client import ThermoRester

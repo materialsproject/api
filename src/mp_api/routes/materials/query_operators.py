@@ -82,7 +82,7 @@ class DeprecationQuery(QueryOperator):
     def query(
         self,
         deprecated: Optional[bool] = Query(
-            None, description="Whether the material is marked as deprecated",
+            False, description="Whether the material is marked as deprecated",
         ),
     ) -> STORE_PARAMS:
 

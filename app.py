@@ -34,7 +34,6 @@ substrates_store_json = os.environ.get("SUBSTRATES_STORE", "substrates_store.jso
 surface_props_store_json = os.environ.get(
     "SURFACE_PROPS_STORE", "surface_props_store.json"
 )
-wulff_store_json = os.environ.get("WULFF_STORE", "wulff_store.json")
 robocrys_store_json = os.environ.get("ROBOCRYS_STORE", "robocrys_store.json")
 synth_store_json = os.environ.get("SYNTH_STORE", "synth_store.json")
 insertion_electrodes_store_json = os.environ.get(
@@ -181,13 +180,6 @@ if db_uri:
         collection_name="surface_properties",
     )
 
-    wulff_store = MongoURIStore(
-        uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
-        key="task_id",
-        collection_name="wulff",
-    )
-
     robo_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
@@ -322,14 +314,13 @@ else:
     doi_store = loadfn(doi_store_json)
     substrates_store = loadfn(substrates_store_json)
     surface_props_store = loadfn(surface_props_store_json)
-    wulff_store = loadfn(wulff_store_json)
     robo_store = loadfn(robocrys_store_json)
     synth_store = loadfn(synth_store_json)
     insertion_electrodes_store = loadfn(insertion_electrodes_store_json)
     molecules_store = loadfn(molecules_store_json)
     oxi_states_store = loadfn(oxi_states_store_json)
     provenance_store = loadfn(provenance_store_json)
-    ssummary_store = loadfn(summary_store_json)
+    summary_store = loadfn(summary_store_json)
 
     es_store = loadfn(es_store_json)
 
@@ -450,10 +441,6 @@ from mp_api.routes.surface_properties.resources import surface_props_resource
 
 resources.update({"surface_properties": [surface_props_resource(surface_props_store)]})
 
-# Wulff
-from mp_api.routes.wulff.resources import wulff_resource
-
-resources.update({"wulff": [wulff_resource(wulff_store)]})
 
 # Robocrystallographer
 from mp_api.routes.robocrys.resources import robo_resource, robo_search_resource
