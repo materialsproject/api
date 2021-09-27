@@ -29,7 +29,7 @@ class SummaryRester(BaseRester):
         total_energy: Optional[Tuple[float, float]] = None,
         formation_energy: Optional[Tuple[float, float]] = None,
         energy_above_hull: Optional[Tuple[float, float]] = None,
-        equillibrium_reaction_energy: Optional[Tuple[float, float]] = None,
+        equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         is_stable: Optional[bool] = None,
         band_gap: Optional[Tuple[float, float]] = None,
@@ -39,9 +39,7 @@ class SummaryRester(BaseRester):
         magnetic_ordering: Optional[Ordering] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_formula_units: Optional[
-            Tuple[float, float]
-        ] = None,
+        total_magnetization_normalized_formula_units: Optional[Tuple[float, float]] = None,
         num_magnetic_sites: Optional[Tuple[int, int]] = None,
         num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         k_voigt: Optional[Tuple[float, float]] = None,
@@ -88,6 +86,8 @@ class SummaryRester(BaseRester):
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
             total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
+            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
+                in eV/atom to consider.
             formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
             energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
             uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
@@ -153,7 +153,7 @@ class SummaryRester(BaseRester):
             "formation_energy": "formation_energy_per_atom",
             "energy_above_hull": "energy_above_hull",
             "uncorrected_energy": "uncorrected_energy_per_atom",
-            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
+            "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
             "nsites": "nsites",
             "volume": "volume",
             "density": "density",
@@ -239,16 +239,8 @@ class SummaryRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

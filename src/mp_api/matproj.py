@@ -52,11 +52,7 @@ class MPRester:
     """
 
     def __init__(
-        self,
-        api_key=DEFAULT_API_KEY,
-        endpoint=DEFAULT_ENDPOINT,
-        notify_db_version=True,
-        include_user_agent=True,
+        self, api_key=DEFAULT_API_KEY, endpoint=DEFAULT_ENDPOINT, notify_db_version=True, include_user_agent=True,
     ):
         """
         Args:
@@ -87,19 +83,14 @@ class MPRester:
 
         self.api_key = api_key
         self.endpoint = endpoint
-        self.session = BaseRester._create_session(
-            api_key=api_key, include_user_agent=include_user_agent
-        )
+        self.session = BaseRester._create_session(api_key=api_key, include_user_agent=include_user_agent)
 
         self._all_resters = []
 
         for cls in BaseRester.__subclasses__():
 
             rester = cls(
-                api_key=api_key,
-                endpoint=endpoint,
-                include_user_agent=include_user_agent,
-                session=self.session,
+                api_key=api_key, endpoint=endpoint, include_user_agent=include_user_agent, session=self.session,
             )
 
             self._all_resters.append(rester)
@@ -108,17 +99,13 @@ class MPRester:
                 self, cls.suffix.replace("/", "_"), rester,
             )
 
-        self.get_charge_density_from_calculation_id = (
-            self.charge_density.get_charge_density_from_calculation_id
-        )
+        self.get_charge_density_from_calculation_id = self.charge_density.get_charge_density_from_calculation_id
 
         self.get_charge_density_calculation_ids_from_material_id = (
             self.charge_density.get_charge_density_calculation_ids_from_material_id
         )
 
-        self.get_charge_density_calculation_details = (
-            self.charge_density.get_charge_density_calculation_details
-        )
+        self.get_charge_density_calculation_details = self.charge_density.get_charge_density_calculation_details
 
     def __enter__(self):
         """
@@ -132,9 +119,7 @@ class MPRester:
         """
         self.session.close()
 
-    def get_structure_by_material_id(
-        self, material_id, final=True, conventional_unit_cell=False
-    ) -> Structure:
+    def get_structure_by_material_id(self, material_id, final=True, conventional_unit_cell=False) -> Structure:
         """
         Get a Structure corresponding to a material_id.
 
@@ -156,13 +141,10 @@ class MPRester:
 
         if conventional_unit_cell and structure_data:
             if final:
-                structure_data = SpacegroupAnalyzer(
-                    structure_data
-                ).get_conventional_standard_structure()
+                structure_data = SpacegroupAnalyzer(structure_data).get_conventional_standard_structure()
             else:
                 structure_data = [
-                    SpacegroupAnalyzer(structure).get_conventional_standard_structure()
-                    for structure in structure_data
+                    SpacegroupAnalyzer(structure).get_conventional_standard_structure() for structure in structure_data
                 ]
 
         return structure_data
@@ -181,9 +163,7 @@ class MPRester:
 
         Returns: database version as a string
         """
-        return BaseRester(endpoint=self.endpoint + "/heartbeat")._query_resource()[
-            "db_version"
-        ]
+        return BaseRester(endpoint=self.endpoint + "/heartbeat")._query_resource()["db_version"]
 
     def get_materials_id_from_task_id(self, task_id):
         """
@@ -203,9 +183,7 @@ class MPRester:
         if len(docs) == 1:  # pragma: no cover
             return str(docs[0].material_id)
         elif len(docs) > 1:  # pragma: no cover
-            raise ValueError(
-                f"Multiple documents return for {task_id}, this should not happen, please report it!"
-            )
+            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
         else:  # pragma: no cover
             warnings.warn(
                 f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
@@ -238,9 +216,7 @@ class MPRester:
         return sorted(
             doc.material_id
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula,
-                all_fields=False,
-                fields=["material_id"],
+                chemsys_formula=chemsys_formula, all_fields=False, fields=["material_id"],
             )
         )
 
@@ -263,26 +239,20 @@ class MPRester:
             return [
                 doc.structure
                 for doc in self.materials.search_material_docs(
-                    chemsys_formula=chemsys_formula,
-                    all_fields=False,
-                    fields=["structure"],
+                    chemsys_formula=chemsys_formula, all_fields=False, fields=["structure"],
                 )
             ]
         else:
             structures = []
 
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula,
-                all_fields=False,
-                fields=["initial_structures"],
+                chemsys_formula=chemsys_formula, all_fields=False, fields=["initial_structures"],
             ):
                 structures.extend(doc.initial_structures)
 
             return structures
 
-    def find_structure(
-        self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5, limit=1
-    ):
+    def find_structure(self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5, limit=1):
         """
         Finds matching structures on the Materials Project site.
         Args:
@@ -299,11 +269,7 @@ class MPRester:
         """
 
         return self.materials.find_structure(
-            filename_or_structure,
-            ltol=ltol,
-            stol=stol,
-            angle_tol=angle_tol,
-            limit=limit,
+            filename_or_structure, ltol=ltol, stol=stol, angle_tol=angle_tol, limit=limit,
         )
 
     def get_entries(
@@ -356,11 +322,7 @@ class MPRester:
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        return list(
-            self.thermo.get_document_by_id(
-                document_id=material_id, fields=["entries"]
-            ).entries.values()
-        )
+        return list(self.thermo.get_document_by_id(document_id=material_id, fields=["entries"]).entries.values())
 
     def get_entries_in_chemsys(
         self, elements,
@@ -394,10 +356,7 @@ class MPRester:
         return entries
 
     def get_bandstructure_by_material_id(
-        self,
-        material_id: str,
-        path_type: BSPathType = BSPathType.setyawan_curtarolo,
-        line_mode=True,
+        self, material_id: str, path_type: BSPathType = BSPathType.setyawan_curtarolo, line_mode=True,
     ):
         """
         Get the band structure pymatgen object associated with a Materials Project ID.
@@ -481,7 +440,7 @@ class MPRester:
         total_energy: Optional[Tuple[float, float]] = None,
         formation_energy: Optional[Tuple[float, float]] = None,
         energy_above_hull: Optional[Tuple[float, float]] = None,
-        equillibrium_reaction_energy: Optional[Tuple[float, float]] = None,
+        equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         is_stable: Optional[bool] = None,
         band_gap: Optional[Tuple[float, float]] = None,
@@ -491,9 +450,7 @@ class MPRester:
         magnetic_ordering: Optional[Ordering] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_formula_units: Optional[
-            Tuple[float, float]
-        ] = None,
+        total_magnetization_normalized_formula_units: Optional[Tuple[float, float]] = None,
         num_magnetic_sites: Optional[Tuple[int, int]] = None,
         num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         k_voigt: Optional[Tuple[float, float]] = None,
@@ -540,6 +497,8 @@ class MPRester:
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
             total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
+            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
+                in eV/atom to consider.
             formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
             energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
             uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
@@ -612,7 +571,7 @@ class MPRester:
             total_energy=total_energy,
             formation_energy=formation_energy,
             energy_above_hull=energy_above_hull,
-            equillibrium_reaction_energy=equillibrium_reaction_energy,
+            equilibrium_reaction_energy=equilibrium_reaction_energy,
             uncorrected_energy=uncorrected_energy,
             is_stable=is_stable,
             band_gap=band_gap,
@@ -685,10 +644,7 @@ class MPRester:
         return [
             doc.dict()
             for doc in self.substrates.search_substrates_docs(
-                film_id=material_id,
-                substrate_orientation=orient,
-                sort_field="energy",
-                ascending=True,
+                film_id=material_id, substrate_orientation=orient, sort_field="energy", ascending=True,
             )
         ]
 
@@ -716,9 +672,7 @@ class MPRester:
         structure = self.get_structure_by_material_id(material_id)
 
         if miller_index:
-            eq_indices = get_symmetrically_equivalent_miller_indices(
-                structure, miller_index
-            )
+            eq_indices = get_symmetrically_equivalent_miller_indices(structure, miller_index)
 
             for surface in doc.surfaces:
                 if tuple(surface.miller_index) in eq_indices:
@@ -740,9 +694,7 @@ class MPRester:
 
         structure = self.get_structure_by_material_id(material_id)
         surfaces = self.get_surface_data(material_id)["surfaces"]
-        lattice = (
-            SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
-        )
+        lattice = SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
         miller_energy_map = {}
         for surf in surfaces:
             miller = tuple(surf["miller_index"])
@@ -753,13 +705,7 @@ class MPRester:
         return WulffShape(lattice, millers, energies)
 
     def get_gb_data(
-        self,
-        material_id=None,
-        pretty_formula=None,
-        chemsys=None,
-        sigma=None,
-        gb_plane=None,
-        rotation_axis=None,
+        self, material_id=None, pretty_formula=None, chemsys=None, sigma=None, gb_plane=None, rotation_axis=None,
     ):
         """
         Gets grain boundary data for a material.
