@@ -68,7 +68,9 @@ class ThermoRester(BaseRester):
             query_params.update({"material_ids": ",".join(material_ids)})
 
         if nelements:
-            query_params.update({"nelements_min": nelements[0], "nelements_max": nelements[1]})
+            query_params.update(
+                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
+            )
 
         if is_stable is not None:
             query_params.update({"is_stable": is_stable})
@@ -90,11 +92,22 @@ class ThermoRester(BaseRester):
         for param, value in locals().items():
             if "energy" in param and value:
                 query_params.update(
-                    {"{}_min".format(name_dict[param]): value[0], "{}_max".format(name_dict[param]): value[1],}
+                    {
+                        "{}_min".format(name_dict[param]): value[0],
+                        "{}_max".format(name_dict[param]): value[1],
+                    }
                 )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params,
         )
