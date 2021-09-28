@@ -54,7 +54,6 @@ class TestMPRester:
     def test_get_materials_id_from_task_id(self, mpr):
         assert mpr.get_materials_id_from_task_id("mp-540081") == "mp-19017"
 
-    @pytest.mark.xfail  # temp xfail while data is fixed
     def test_get_materials_id_references(self, mpr):
         data = mpr.get_materials_id_references("mp-123")
         assert len(data) > 5
@@ -186,7 +185,7 @@ class TestMPRester:
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
 
-    @pytest.mark.xfail  # temp xfail while data is fixed
+    @pytest.mark.xfail  # temporary until api deploy
     def test_query(self, mpr):
 
         excluded_params = [
@@ -221,6 +220,7 @@ class TestMPRester:
             "material_ids": ["mp-149"],
             "chemsys_formula": "SiO2",
             "exclude_elements": ["Si"],
+            "possible_species": ["O2-"],
             "crystal_system": CrystalSystem.cubic,
             "spacegroup_number": 38,
             "spacegroup_symbol": "Amm2",
