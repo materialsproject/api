@@ -10,8 +10,7 @@ class MineralData(BaseModel):
     """
 
     type: str = Field(
-        None,
-        description="Mineral type.",
+        None, description="Mineral type.",
     )
 
 
@@ -21,28 +20,23 @@ class CondensedStructureData(BaseModel):
     """
 
     formula: str = Field(
-        None,
-        description="Formula for the material.",
+        None, description="Formula for the material.",
     )
 
     spg_symbol: str = Field(
-        None,
-        description="Space group symbol of the material.",
+        None, description="Space group symbol of the material.",
     )
 
     crystal_system: str = Field(
-        None,
-        description="Crystal system of the material.",
+        None, description="Crystal system of the material.",
     )
 
     mineral: MineralData = Field(
-        None,
-        description="Matched mineral data for the material.",
+        None, description="Matched mineral data for the material.",
     )
 
     dimensionality: int = Field(
-        None,
-        description="Dimensionality of the material.",
+        None, description="Dimensionality of the material.",
     )
 
 
@@ -52,23 +46,20 @@ class RobocrysDoc(BaseModel):
     """
 
     description: str = Field(
-        None,
-        description="Decription text from robocrytallographer.",
+        None, description="Decription text from robocrytallographer.",
     )
 
     condensed_structure: CondensedStructureData = Field(
-        None,
-        description="Condensed structure data from robocrytallographer.",
+        None, description="Condensed structure data from robocrytallographer.",
     )
 
-    task_id: str = Field(
+    material_id: str = Field(
         None,
         description="The Materials Project ID of the material. This comes in the form: mp-******",
     )
 
     last_updated: datetime = Field(
-        None,
-        description="Timestamp for the most recent calculation for this document",
+        None, description="Timestamp for the most recent calculation for this document",
     )
 
     # Make sure that the datetime field is properly formatted
