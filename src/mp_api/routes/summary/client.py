@@ -19,6 +19,7 @@ class SummaryRester(BaseRester):
         material_ids: Optional[List[MPID]] = None,
         chemsys_formula: Optional[str] = None,
         exclude_elements: Optional[List[str]] = None,
+        possible_species: Optional[List[str]] = None,
         nsites: Optional[Tuple[int, int]] = None,
         volume: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
@@ -29,7 +30,7 @@ class SummaryRester(BaseRester):
         total_energy: Optional[Tuple[float, float]] = None,
         formation_energy: Optional[Tuple[float, float]] = None,
         energy_above_hull: Optional[Tuple[float, float]] = None,
-        equillibrium_reaction_energy: Optional[Tuple[float, float]] = None,
+        equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         is_stable: Optional[bool] = None,
         band_gap: Optional[Tuple[float, float]] = None,
@@ -80,6 +81,8 @@ class SummaryRester(BaseRester):
                 or formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             exclude_elements (List(str)): List of elements to exclude.
+            possible_species (List(str)): List of element symbols appended with oxidation states.
+                (e.g. Cr2+,O2-)
             crystal_system (CrystalSystem): Crystal system of material.
             spacegroup_number (int): Space group number of material.
             spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
@@ -88,6 +91,8 @@ class SummaryRester(BaseRester):
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
             total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
+            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
+                in eV/atom to consider.
             formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
             energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
             uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
@@ -153,7 +158,7 @@ class SummaryRester(BaseRester):
             "formation_energy": "formation_energy_per_atom",
             "energy_above_hull": "energy_above_hull",
             "uncorrected_energy": "uncorrected_energy_per_atom",
-            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
+            "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
             "nsites": "nsites",
             "volume": "volume",
             "density": "density",
@@ -203,6 +208,9 @@ class SummaryRester(BaseRester):
 
         if exclude_elements is not None:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
+
+        if possible_species is not None:
+            query_params.update({"possible_species": ",".join(possible_species)})
 
         query_params.update(
             {

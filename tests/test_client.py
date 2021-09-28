@@ -10,7 +10,7 @@ key_only_resters = {
     "doi": "mp-149",
     "wulff": "mp-149",
     "charge_density": "mp-1936745",
-    "robocrys": "mp-149",
+    "provenance": "mp-149",
 }
 
 search_only_resters = [
@@ -25,7 +25,7 @@ special_resters = [
     "charge_density",
 ]
 
-ignore_generic = ["provenance"]  # temp
+ignore_generic = ["robocrys"]  # temp
 
 
 mpr = MPRester()

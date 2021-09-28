@@ -100,7 +100,6 @@ def test_es_client(es_rester):
 
 
 bs_custom_field_tests = {
-    "path_type": BSPathType.setyawan_curtarolo,
     "magnetic_ordering": Ordering.FM,
     "is_metal": True,
     "is_gap_direct": True,
@@ -110,7 +109,7 @@ bs_custom_field_tests = {
 
 bs_sub_doc_fields = ["bandstructure"]
 
-bs_alt_name_dict = {"path_type": "setyawan_curtarolo"}  # type: dict
+bs_alt_name_dict = {}  # type: dict
 
 
 @pytest.fixture
@@ -139,6 +138,8 @@ def test_bs_client(bs_rester):
             "num_chunks": 1,
         }
         doc = search_method(**q)[0].dict()
+        print(q)
+        print(doc)
         for sub_field in bs_sub_doc_fields:
             if sub_field in doc:
                 doc = doc[sub_field]
@@ -146,11 +147,13 @@ def test_bs_client(bs_rester):
         if param != "path_type":
             doc = doc["setyawan_curtarolo"]
 
+        print("=====")
+        print(doc)
+
         assert doc[project_field if project_field is not None else param] is not None
 
 
 dos_custom_field_tests = {
-    "projection_type": DOSProjectionType.total,
     "magnetic_ordering": Ordering.FM,
     "efermi": (0, 100),
     "band_gap": (0, 5),
@@ -160,9 +163,7 @@ dos_excluded_params = ["orbital", "element"]
 
 dos_sub_doc_fields = ["dos"]
 
-dos_alt_name_dict = {
-    "projection_type": "total",
-}  # type: dict
+dos_alt_name_dict = {}  # type: dict
 
 
 @pytest.fixture

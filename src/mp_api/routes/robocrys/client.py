@@ -8,7 +8,7 @@ class RobocrysRester(BaseRester):
 
     suffix = "robocrys"
     document_model = RobocrysDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
 
     def search_robocrys_text(self, keywords: List[str]):
         """

@@ -21,7 +21,7 @@ class ThermoRester(BaseRester):
         total_energy: Optional[Tuple[float, float]] = None,
         formation_energy: Optional[Tuple[float, float]] = None,
         energy_above_hull: Optional[Tuple[float, float]] = None,
-        equillibrium_reaction_energy: Optional[Tuple[float, float]] = None,
+        equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_field: Optional[str] = None,
         ascending: Optional[bool] = None,
@@ -43,7 +43,7 @@ class ThermoRester(BaseRester):
             total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
             formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
             energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
-            equillibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
+            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
             uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
                 energy in eV/atom to consider.
@@ -85,7 +85,7 @@ class ThermoRester(BaseRester):
             "total_energy": "energy_per_atom",
             "formation_energy": "formation_energy_per_atom",
             "energy_above_hull": "energy_above_hull",
-            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
+            "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
             "uncorrected_energy": "uncorrected_energy_per_atom",
         }
 

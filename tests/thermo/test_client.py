@@ -14,7 +14,7 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
-    "equillibrium_reaction_energy",
+    "equilibrium_reaction_energy",
 ]
 
 sub_doc_fields = []  # type: list
@@ -25,6 +25,7 @@ alt_name_dict = {
     "total_energy": "energy_per_atom",
     "formation_energy": "formation_energy_per_atom",
     "uncorrected_energy": "uncorrected_energy_per_atom",
+    "equilibirum_reaction_energy": "equilibirum_reaction_energy_per_atom",
 }  # type: dict
 
 custom_field_tests = {
