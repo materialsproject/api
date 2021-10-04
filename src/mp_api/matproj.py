@@ -108,18 +108,6 @@ class MPRester:
                 self, cls.suffix.replace("/", "_"), rester,
             )
 
-        self.get_charge_density_from_calculation_id = (
-            self.charge_density.get_charge_density_from_calculation_id
-        )
-
-        self.get_charge_density_calculation_ids_from_material_id = (
-            self.charge_density.get_charge_density_calculation_ids_from_material_id
-        )
-
-        self.get_charge_density_calculation_details = (
-            self.charge_density.get_charge_density_calculation_details
-        )
-
     def __enter__(self):
         """
         Support for "with" context.
