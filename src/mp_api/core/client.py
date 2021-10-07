@@ -9,7 +9,7 @@ import json
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Dict, Optional, List, Union
+from typing import Dict, Optional, List, Union, Generic, TypeVar
 from urllib.parse import urljoin
 from os import environ
 import warnings
@@ -35,8 +35,10 @@ except ImportError:  # pragma: no cover
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
+T = TypeVar("T")
 
-class BaseRester:
+
+class BaseRester(Generic[T]):
     """
     Base client class with core stubs
     """
@@ -312,7 +314,7 @@ class BaseRester:
         document_id: str,
         fields: Optional[List[str]] = None,
         monty_decode: bool = True,
-    ):
+    ) -> T:
         """
         Query the endpoint for a single document.
 
@@ -483,7 +485,7 @@ class BaseRester:
 
     def query_by_task_id(self, *args, **kwargs):  # pragma: no cover
         print(
-            "query_by_task_id has been renamed to get_document_by_id to be more general"
+            f"query_by_task_id has been renamed to get_document_by_id to be more general, {self.__repr__()}"
         )
         return self.get_document_by_id(*args, **kwargs)
 
