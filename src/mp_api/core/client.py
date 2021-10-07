@@ -483,12 +483,6 @@ class BaseRester(Generic[T]):
 
         return all_results
 
-    def query_by_task_id(self, *args, **kwargs):  # pragma: no cover
-        print(
-            f"query_by_task_id has been renamed to get_document_by_id to be more general, {self.__repr__()}"
-        )
-        return self.get_document_by_id(*args, **kwargs)
-
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
         """
         Return a count of total documents.
