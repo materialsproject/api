@@ -5,7 +5,7 @@ from mp_api.core.client import BaseRester
 from mp_api.routes.eos.models import EOSDoc
 
 
-class EOSRester(BaseRester):
+class EOSRester(BaseRester[EOSDoc]):
 
     suffix = "eos"
     document_model = EOSDoc  # type: ignore

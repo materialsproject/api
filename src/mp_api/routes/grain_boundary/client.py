@@ -6,7 +6,7 @@ from mp_api.core.client import BaseRester
 from mp_api.routes.grain_boundary.models import GBTypeEnum, GrainBoundaryDoc
 
 
-class GrainBoundaryRester(BaseRester):
+class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
 
     suffix = "grain_boundary"
     document_model = GrainBoundaryDoc  # type: ignore

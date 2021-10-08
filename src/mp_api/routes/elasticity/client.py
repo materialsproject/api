@@ -7,7 +7,7 @@ from mp_api.routes.elasticity.models import ElasticityDoc
 import warnings
 
 
-class ElasticityRester(BaseRester):
+class ElasticityRester(BaseRester[ElasticityDoc]):
 
     suffix = "elasticity"
     document_model = ElasticityDoc  # type: ignore

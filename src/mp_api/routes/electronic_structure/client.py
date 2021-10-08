@@ -8,7 +8,7 @@ from pymatgen.electronic_structure.core import Spin, OrbitalType
 from pymatgen.core.periodic_table import Element
 
 
-class ElectronicStructureRester(BaseRester):
+class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
     suffix = "electronic_structure"
     document_model = ElectronicStructureDoc  # type: ignore

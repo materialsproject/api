@@ -5,7 +5,7 @@ from emmet.core.thermo import ThermoDoc
 from pymatgen.core.periodic_table import Element
 
 
-class ThermoRester(BaseRester):
+class ThermoRester(BaseRester[ThermoDoc]):
 
     suffix = "thermo"
     document_model = ThermoDoc  # type: ignore

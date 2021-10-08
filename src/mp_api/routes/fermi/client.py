@@ -6,7 +6,7 @@ from typing import Optional, List
 import warnings
 
 
-class FermiRester(BaseRester):
+class FermiRester(BaseRester[FermiDoc]):
 
     suffix = "fermi"
     document_model = FermiDoc  # type: ignore

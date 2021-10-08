@@ -5,7 +5,7 @@ from mp_api.core.client import BaseRester
 from mp_api.routes.surface_properties.models import SurfacePropDoc
 
 
-class SurfacePropertiesRester(BaseRester):
+class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
 
     suffix = "surface_properties"
     document_model = SurfacePropDoc  # type: ignore

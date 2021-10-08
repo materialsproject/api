@@ -7,7 +7,7 @@ from mp_api.routes.piezo.models import PiezoDoc
 import warnings
 
 
-class PiezoRester(BaseRester):
+class PiezoRester(BaseRester[PiezoDoc]):
 
     suffix = "piezoelectric"
     document_model = PiezoDoc  # type: ignore

@@ -8,7 +8,7 @@ from mp_api.core.client import BaseRester
 from pymatgen.analysis.magnetism import Ordering
 
 
-class SummaryRester(BaseRester):
+class SummaryRester(BaseRester[SummaryDoc]):
 
     suffix = "summary"
     document_model = SummaryDoc  # type: ignore

@@ -7,7 +7,7 @@ from mp_api.routes.magnetism.models import MagnetismDoc
 from pymatgen.analysis.magnetism import Ordering
 
 
-class MagnetismRester(BaseRester):
+class MagnetismRester(BaseRester[MagnetismDoc]):
 
     suffix = "magnetism"
     document_model = MagnetismDoc  # type: ignore

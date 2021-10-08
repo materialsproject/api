@@ -5,7 +5,7 @@ from typing import Optional, Tuple, List
 from collections import defaultdict
 
 
-class ElectrodeRester(BaseRester):
+class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
     suffix = "insertion_electrodes"
     document_model = InsertionElectrodeDoc  # type: ignore

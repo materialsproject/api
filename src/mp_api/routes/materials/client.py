@@ -8,7 +8,7 @@ from emmet.core.utils import jsanitize
 from mp_api.core.client import BaseRester, MPRestError
 
 
-class MaterialsRester(BaseRester):
+class MaterialsRester(BaseRester[MaterialsDoc]):
 
     suffix = "materials"
     document_model = MaterialsDoc  # type: ignore

@@ -4,7 +4,7 @@ from mp_api.core.client import BaseRester, MPRestError
 from emmet.core.xas import Edge, Type, XASDoc
 
 
-class XASRester(BaseRester):
+class XASRester(BaseRester[XASDoc]):
 
     suffix = "xas"
     document_model = XASDoc  # type: ignore

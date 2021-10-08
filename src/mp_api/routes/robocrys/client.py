@@ -4,7 +4,7 @@ from mp_api.core.client import BaseRester, MPRestError
 from mp_api.routes.robocrys.models import RobocrysDoc
 
 
-class RobocrysRester(BaseRester):
+class RobocrysRester(BaseRester[RobocrysDoc]):
 
     suffix = "robocrys"
     document_model = RobocrysDoc  # type: ignore
