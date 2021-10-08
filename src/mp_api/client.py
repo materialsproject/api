@@ -171,7 +171,7 @@ class MPRester:
             Structure object or list of Structure objects.
         """
 
-        structure_data = self.materials.get_structure_by_material_id(  # type: ignore
+        structure_data = self.materials.get_structure_by_material_id(
             material_id=material_id, final=final
         )
 
