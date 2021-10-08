@@ -5,7 +5,7 @@ from mp_api.routes.materials.client import MaterialsRester
 from mp_api.routes.charge_density.models import ChgcarDataDoc
 
 
-class ChargeDensityRester(BaseRester):
+class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
 
     suffix = "charge_density"
     primary_key = "task_id"
