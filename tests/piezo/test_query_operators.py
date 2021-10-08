@@ -14,6 +14,6 @@ def test_piezo_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op.query(piezo_modulus_min=0, piezo_modulus_max=5) == {
-            "criteria": {"piezo.e_ij_max": {"$gte": 0, "$lte": 5}}
-        }
+        assert new_op._query_resource_data(
+            piezo_modulus_min=0, piezo_modulus_max=5
+        ) == {"criteria": {"piezo.e_ij_max": {"$gte": 0, "$lte": 5}}}

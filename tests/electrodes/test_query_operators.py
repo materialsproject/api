@@ -24,7 +24,7 @@ def test_electrode_formula_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op.query(formula="BiFeO3") == {
+        assert new_op._query_resource_data(formula="BiFeO3") == {
             "criteria": {
                 "framework.Bi": 1.0,
                 "framework.Fe": 1.0,
@@ -78,7 +78,7 @@ def test_voltage_step_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op.query(
+        q = new_op._query_resource_data(
             delta_volume_min=0,
             delta_volume_max=5,
             average_voltage_min=0,
@@ -123,7 +123,7 @@ def test_insertion_voltage_step_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op.query(
+        q = new_op._query_resource_data(
             stability_charge_min=0,
             stability_charge_max=5,
             stability_discharge_min=0,
@@ -142,6 +142,6 @@ def test_insertion_electrode_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op.query(working_ion="Li",)
+        q = new_op._query_resource_data(working_ion="Li",)
 
         assert q == {"criteria": {"working_ion": "Li"}}

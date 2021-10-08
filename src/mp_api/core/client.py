@@ -286,7 +286,7 @@ class BaseRester(Generic[T]):
 
             raise MPRestError(str(ex))
 
-    def query(
+    def _query_resource_data(
         self,
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
@@ -295,8 +295,8 @@ class BaseRester(Generic[T]):
         use_document_model: bool = True,
     ) -> Union[List[T], List[Dict]]:
         """
-        Query the endpoint for a list of documents. This will return a single page of results,
-        prefer `get_all_documents` to automatically get all results.
+        Query the endpoint for a list of documents without associated meta information. Only
+        returns a single page of results.
 
         Arguments:
             criteria: dictionary of criteria to filter down
@@ -358,7 +358,7 @@ class BaseRester(Generic[T]):
         results = []
 
         try:
-            results = self.query(
+            results = self._query_resource_data(
                 criteria=criteria,
                 fields=fields,
                 monty_decode=monty_decode,
@@ -382,7 +382,7 @@ class BaseRester(Generic[T]):
                     )
                     document_id = new_document_id
 
-                    results = self.query(
+                    results = self._query_resource_data(
                         criteria=criteria,
                         fields=fields,
                         monty_decode=monty_decode,

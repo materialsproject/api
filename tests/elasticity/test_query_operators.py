@@ -28,7 +28,7 @@ def test_bulk_modulus_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op.query(
+        q = new_op._query_resource_data(
             k_voigt_min=0,
             k_voigt_max=5,
             k_reuss_min=0,
@@ -58,7 +58,7 @@ def test_shear_modulus_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op.query(
+        q = new_op._query_resource_data(
             g_voigt_min=0,
             g_voigt_max=5,
             g_reuss_min=0,
@@ -86,7 +86,7 @@ def test_poisson_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op.query(
+        q = new_op._query_resource_data(
             elastic_anisotropy_min=0,
             elastic_anisotropy_max=5,
             poisson_min=0,
@@ -103,4 +103,6 @@ def test_chemsys_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op.query(chemsys="Fe-Bi-O") == {"criteria": {"chemsys": "Bi-Fe-O"}}
+        assert new_op._query_resource_data(chemsys="Fe-Bi-O") == {
+            "criteria": {"chemsys": "Bi-Fe-O"}
+        }

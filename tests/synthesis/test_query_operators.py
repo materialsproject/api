@@ -161,7 +161,7 @@ def test_synthesis_search_query():
         with ScratchDir("."):
             dumpfn(op, "temp.json")
             new_op = loadfn("temp.json")
-            q = new_op.query(
+            q = new_op._query_resource_data(
                 keywords=keywords,
                 synthesis_type=[SynthesisTypeEnum.solid_state],
                 target_formula="SiO2",

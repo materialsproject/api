@@ -32,4 +32,6 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
         Raises:
             MPRestError
         """
-        return self.query(query={"consumer_id": consumer_id}, monty_decode=False)
+        return self._query_resource_data(
+            query={"consumer_id": consumer_id}, monty_decode=False
+        )

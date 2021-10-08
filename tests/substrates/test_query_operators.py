@@ -19,7 +19,7 @@ def test_substrate_structure_operator():
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
 
-        assert new_op.query(
+        assert new_op._query_resource_data(
             film_orientation="0,1, 1", substrate_orientation="1, 0,1"
         ) == {"criteria": {"film_orient": "0 1 1", "orient": "1 0 1"}}
 
@@ -36,5 +36,7 @@ def test_energy_area_operator():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op.query(area_min=0, area_max=5, energy_min=0, energy_max=5)
+        q = new_op._query_resource_data(
+            area_min=0, area_max=5, energy_min=0, energy_max=5
+        )
         assert q == {"criteria": {field: {"$gte": 0, "$lte": 5} for field in fields}}

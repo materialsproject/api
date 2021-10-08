@@ -17,7 +17,7 @@ def test_user_settings_post_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op.query(
+        assert new_op._query_resource_data(
             consumer_id="test", settings={"test": "test", "test2": 10}
         ) == {
             "criteria": {
@@ -38,4 +38,6 @@ def test_user_settings_get_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op.query(consumer_id="test") == {"criteria": {"consumer_id": "test"}}
+        assert new_op._query_resource_data(consumer_id="test") == {
+            "criteria": {"consumer_id": "test"}
+        }

@@ -22,7 +22,7 @@ def test_multiple_task_ids_query():
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
 
-        assert new_op.query(task_ids=" mp-149, mp-13") == {
+        assert new_op._query_resource_data(task_ids=" mp-149, mp-13") == {
             "criteria": {"task_id": {"$in": ["mp-149", "mp-13"]}}
         }
 
@@ -38,7 +38,7 @@ def test_trajectory_query():
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
 
-        assert new_op.query(task_ids=" mp-149, mp-13") == {
+        assert new_op._query_resource_data(task_ids=" mp-149, mp-13") == {
             "criteria": {"task_id": {"$in": ["mp-149", "mp-13"]}}
         }
 
@@ -59,7 +59,7 @@ def test_deprecation_query():
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
 
-        assert new_op.query(task_ids=" mp-149, mp-13") == {
+        assert new_op._query_resource_data(task_ids=" mp-149, mp-13") == {
             "criteria": {"deprecated_tasks": {"$in": ["mp-149", "mp-13"]}}
         }
 
