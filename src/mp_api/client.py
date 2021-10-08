@@ -52,7 +52,37 @@ class MPRester:
     Access the new Materials Project API.
     """
 
+    # Type hints for all routes
+    # To re-generate this list, use:
+    # for rester in MPRester()._all_resters:
+    #     print(f"{rester.suffix.replace('/', '_')}: {rester.__class__.__name__}")
+    eos: EOSRester
     materials: MaterialsRester
+    similarity: SimilarityRester
+    tasks: TaskRester
+    xas: XASRester
+    fermi: FermiRester
+    grain_boundary: GrainBoundaryRester
+    substrates: SubstratesRester
+    surface_properties: SurfacePropertiesRester
+    phonon: PhononRester
+    elasticity: ElasticityRester
+    thermo: ThermoRester
+    dielectric: DielectricRester
+    doi: DOIRester
+    piezoelectric: PiezoRester
+    magnetism: MagnetismRester
+    summary: SummaryRester
+    robocrys: RobocrysRester
+    molecules: MoleculesRester
+    synthesis: SynthesisRester
+    insertion_electrodes: ElectrodeRester
+    charge_density: ChargeDensityRester
+    electronic_structure: ElectronicStructureRester
+    electronic_structure_bandstructure: BandStructureRester
+    electronic_structure_dos: DosRester
+    oxidation_states: OxidationStatesRester
+    provenance: ProvenanceRester
 
     def __init__(
         self,
