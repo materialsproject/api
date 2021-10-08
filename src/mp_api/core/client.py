@@ -50,11 +50,13 @@ class BaseRester(Generic[T]):
 
     def __init__(
         self,
-        api_key=DEFAULT_API_KEY,
-        endpoint=DEFAULT_ENDPOINT,
-        include_user_agent=True,
-        session=None,
-        debug=False,
+        api_key: str = DEFAULT_API_KEY,
+        endpoint: str = DEFAULT_ENDPOINT,
+        include_user_agent: bool = True,
+        session: Optional[requests.Session] = None,
+        debug: bool = False,
+        monty_decode: bool = True,
+        use_document_model: bool = True,
     ):
         """
         Args:
@@ -77,6 +79,10 @@ class BaseRester(Generic[T]):
             session: requests Session object with which to connect to the API, for
                 advanced usage only.
             debug: if True, print the URL for every request
+            monty_decode: Decode the data using monty into python objects
+            use_document_model: If False, skip the creating the document model and return data
+                as a dictionary. This can be simpler to work with but bypasses data validation
+                and will not give auto-complete for available fields.
         """
 
         self.api_key = api_key
@@ -84,6 +90,8 @@ class BaseRester(Generic[T]):
         self.endpoint = endpoint
         self.debug = debug
         self.include_user_agent = include_user_agent
+        self.monty_decode = monty_decode
+        self.use_document_model = use_document_model
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
@@ -140,9 +148,7 @@ class BaseRester(Generic[T]):
         self,
         body: Dict = None,
         params: Optional[Dict] = None,
-        monty_decode: bool = True,
         suburl: Optional[str] = None,
-        use_document_model: Optional[bool] = True,
     ) -> Dict:
         """
         Post data to the endpoint for a Resource.
@@ -150,9 +156,7 @@ class BaseRester(Generic[T]):
         Arguments:
             body: body json to send in post request
             params: extra params to send in post request
-            monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
-            use_document_model: whether to use the core document model for data reconstruction
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -174,12 +178,12 @@ class BaseRester(Generic[T]):
 
             if response.status_code == 200:
 
-                if monty_decode:
+                if self.monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
                 else:
                     data = json.loads(response.text)
 
-                if self.document_model and use_document_model:
+                if self.document_model and self.use_document_model:
                     data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
@@ -213,9 +217,7 @@ class BaseRester(Generic[T]):
         self,
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
-        monty_decode: bool = True,
         suburl: Optional[str] = None,
-        use_document_model: Optional[bool] = True,
     ) -> Dict:
         """
         Query the endpoint for a Resource containing a list of documents
@@ -227,9 +229,7 @@ class BaseRester(Generic[T]):
         Arguments:
             criteria: dictionary of criteria to filter down
             fields: list of fields to return
-            monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
-            use_document_model: whether to use the core document model for data reconstruction
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -259,12 +259,12 @@ class BaseRester(Generic[T]):
 
             if response.status_code == 200:
 
-                if monty_decode:
+                if self.monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
                 else:
                     data = json.loads(response.text)
 
-                if self.document_model and use_document_model:
+                if self.document_model and self.use_document_model:
                     data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
@@ -298,9 +298,7 @@ class BaseRester(Generic[T]):
         self,
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
-        monty_decode: bool = True,
         suburl: Optional[str] = None,
-        use_document_model: bool = True,
     ) -> Union[List[T], List[Dict]]:
         """
         Query the endpoint for a list of documents without associated meta information. Only
@@ -309,30 +307,17 @@ class BaseRester(Generic[T]):
         Arguments:
             criteria: dictionary of criteria to filter down
             fields: list of fields to return
-            monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
-            use_document_model: If False, skip the creating the document model and return data
-                as a dictionary. This can be simpler to work with but bypasses data validation
-                and will not give auto-complete for available fields.
-
 
         Returns:
             A list of documents
         """
         return self._query_resource(
-            criteria=criteria,
-            fields=fields,
-            monty_decode=monty_decode,
-            suburl=suburl,
-            use_document_model=use_document_model,
+            criteria=criteria, fields=fields, suburl=suburl,
         ).get("data")
 
     def get_document_by_id(
-        self,
-        document_id: str,
-        fields: Optional[List[str]] = None,
-        monty_decode: bool = True,
-        use_document_model: bool = True,
+        self, document_id: str, fields: Optional[List[str]] = None,
     ) -> Union[T, dict]:
         """
         Query the endpoint for a single document.
@@ -340,10 +325,6 @@ class BaseRester(Generic[T]):
         Arguments:
             document_id: the unique key for this kind of document, typically a task_id
             fields: list of fields to return, by default will return all fields
-            monty_decode: Decode the data using monty into python objects
-            use_document_model: If False, skip the creating the document model and return data
-                as a dictionary. This can be simpler to work with but bypasses data validation
-                and will not give auto-complete for available fields.
 
         Returns:
             A single document.
@@ -367,11 +348,7 @@ class BaseRester(Generic[T]):
 
         try:
             results = self._query_resource_data(
-                criteria=criteria,
-                fields=fields,
-                monty_decode=monty_decode,
-                suburl=document_id,
-                use_document_model=use_document_model,
+                criteria=criteria, fields=fields, suburl=document_id,
             )
         except MPRestError:
 
@@ -391,10 +368,7 @@ class BaseRester(Generic[T]):
                     document_id = new_document_id
 
                     results = self._query_resource_data(
-                        criteria=criteria,
-                        fields=fields,
-                        monty_decode=monty_decode,
-                        suburl=document_id,
+                        criteria=criteria, fields=fields, suburl=document_id,
                     )
 
         if not results:
@@ -412,7 +386,6 @@ class BaseRester(Generic[T]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
-        use_document_model: Optional[bool] = True,
         **kwargs,
     ) -> Union[List[T], List[Dict]]:
         """
@@ -428,9 +401,6 @@ class BaseRester(Generic[T]):
             fields (List[str]): List of fields to project. When searching, it is better to only ask for
                 the specific fields of interest to reduce the time taken to retrieve the documents. See
                  the available_fields property to see a list of fields to choose from.
-            use_document_model (bool): If False, skip the creating the document model and return data
-                as a dictionary. This can be simpler to work with but bypasses data validation
-                and will not give auto-complete for available fields.
             kwargs: Supported search terms, e.g. nelements_max=3 for the "materials" search API.
                 Consult the specific API route for valid search terms.
 
@@ -455,7 +425,6 @@ class BaseRester(Generic[T]):
         fields=None,
         chunk_size=1000,
         num_chunks=None,
-        use_document_model: Optional[bool] = True,
     ) -> Union[List[T], List[Dict]]:
         """
         Iterates over pages until all documents are retrieved. Displays
@@ -469,9 +438,7 @@ class BaseRester(Generic[T]):
 
         query_params["limit"] = chunk_size
 
-        results = self._query_resource(
-            query_params, fields=fields, use_document_model=use_document_model
-        )
+        results = self._query_resource(query_params, fields=fields,)
 
         # if we have all the results in a single page, return directly
         if len(results["data"]) == results["meta"]["total_doc"]:
@@ -524,9 +491,13 @@ class BaseRester(Generic[T]):
             criteria[
                 "limit"
             ] = 1  # we just want the meta information, only ask for single document
-            results = self._query_resource(
-                criteria=criteria, monty_decode=False
-            )  # do not waste cycles Monty decoding
+            user_preferences = self.monty_decode, self.use_document_model
+            self.monty_decode, self.use_document_model = (
+                False,
+                False,
+            )  # do not waste cycles decoding
+            results = self._query_resource(criteria=criteria,)
+            self.monty_decode, self.use_document_model = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover
             return "Problem getting count"
