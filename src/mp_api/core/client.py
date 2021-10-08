@@ -83,6 +83,7 @@ class BaseRester(Generic[T]):
         self.base_endpoint = endpoint
         self.endpoint = endpoint
         self.debug = debug
+        self.include_user_agent = include_user_agent
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
@@ -90,15 +91,21 @@ class BaseRester(Generic[T]):
             self.endpoint += "/"
 
         if session:
-            self.session = session
+            self._session = session
         else:
-            self.session = self._create_session(api_key, include_user_agent)
+            self._session = None
 
         self.document_model = (
             api_sanitize(self.document_model)
             if self.document_model is not None
             else None
         )
+
+    @property
+    def session(self) -> requests.Session:
+        if not self._session:
+            self._session = self._create_session(self.api_key, self.include_user_agent)
+        return self._session
 
     @staticmethod
     def _create_session(api_key, include_user_agent):
@@ -127,6 +134,7 @@ class BaseRester(Generic[T]):
         Support for "with" context.
         """
         self.session.close()
+        self._session = None
 
     def _post_resource(
         self,
