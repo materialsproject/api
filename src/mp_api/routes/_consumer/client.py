@@ -2,10 +2,13 @@ from mp_api.routes._consumer.models import UserSettingsDoc
 from mp_api.core.client import BaseRester
 
 
-class UserSettingsRester(BaseRester):  # pragma: no cover
+class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
 
-    suffix = "user_settings"
+    suffix = "_user_settings"
     document_model = UserSettingsDoc  # type: ignore
+    primary_key = "consumer_id"
+    monty_decode = False
+    use_document_model = False
 
     def set_user_settings(self, consumer_id, settings):  # pragma: no cover
         """
@@ -22,7 +25,7 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
             body=settings, params={"consumer_id": consumer_id}
         ).get("data")
 
-    def get_user_settings(self, consumer_id, settings):  # pragma: no cover
+    def get_user_settings(self, consumer_id):  # pragma: no cover
         """
         Get user settings.
         Args:
@@ -32,6 +35,4 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
         Raises:
             MPRestError
         """
-        return self._query_resource_data(
-            query={"consumer_id": consumer_id}, monty_decode=False
-        )
+        return self.get_document_by_id(consumer_id)
