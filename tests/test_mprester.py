@@ -147,24 +147,24 @@ class TestMPRester:
         chgcar = mpr.get_charge_density_by_material_id("mp-13")
         assert isinstance(chgcar, Chgcar)
 
-    def test_get_substrates(self, mpr):
-        substrate_data = mpr.get_substrates("mp-123", [1, 0, 0])
-        substrates = [sub_dict["sub_id"] for sub_dict in substrate_data]
-        assert "mp-2534" in substrates
-
-    def test_get_surface_data(self, mpr):
-        data = mpr.get_surface_data("mp-126")  # Pt
-        one_surf = mpr.get_surface_data("mp-129", miller_index=[1, 2, 3])
-        assert one_surf["surface_energy"] == pytest.approx(2.99156963)
-        assert one_surf["miller_index"] == pytest.approx([3, 2, 1])
-        assert "surfaces" in data
-        surfaces = data["surfaces"]
-        assert len(surfaces) > 0
-        surface = surfaces.pop()
-        assert "miller_index" in surface
-        assert "surface_energy" in surface
-        assert "is_reconstructed" in surface
-        assert "structure" in surface
+    # def test_get_substrates(self, mpr):
+    #     substrate_data = mpr.get_substrates("mp-123", [1, 0, 0])
+    #     substrates = [sub_dict["sub_id"] for sub_dict in substrate_data]
+    #     assert "mp-2534" in substrates
+    #
+    # def test_get_surface_data(self, mpr):
+    #     data = mpr.get_surface_data("mp-126")  # Pt
+    #     one_surf = mpr.get_surface_data("mp-129", miller_index=[1, 2, 3])
+    #     assert one_surf["surface_energy"] == pytest.approx(2.99156963)
+    #     assert one_surf["miller_index"] == pytest.approx([3, 2, 1])
+    #     assert "surfaces" in data
+    #     surfaces = data["surfaces"]
+    #     assert len(surfaces) > 0
+    #     surface = surfaces.pop()
+    #     assert "miller_index" in surface
+    #     assert "surface_energy" in surface
+    #     assert "is_reconstructed" in surface
+    #     assert "structure" in surface
 
     def test_get_gb_data(self, mpr):
         mo_gbs = mpr.get_gb_data(chemsys="Mo")
