@@ -57,7 +57,10 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         """
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=False,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=False,
+            fields=("last_updated", "task_id"),
         )
 
     # TODO: need to move upwards to MPRester to avoid initialization of MaterialsRester ?
