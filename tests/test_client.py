@@ -25,7 +25,7 @@ special_resters = [
     "charge_density",
 ]
 
-ignore_generic = ["robocrys"]  # temp
+ignore_generic = ["robocrys", "_user_settings"]  # temp
 
 
 mpr = MPRester()
