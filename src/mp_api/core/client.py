@@ -264,8 +264,13 @@ class BaseRester(Generic[T]):
                 else:
                     data = json.loads(response.text)
 
-                # sub-urls may use different document models
-                if self.document_model and self.use_document_model and (not suburl):
+                # other sub-urls may use different document models
+                # the client does not handle this in a particularly smart way currently
+                if (
+                    self.document_model
+                    and self.use_document_model
+                    and (not suburl or suburl != self.primary_key)
+                ):
                     data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
