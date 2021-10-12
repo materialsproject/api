@@ -31,7 +31,7 @@ def test_formula_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data("Si2O4") == {
+        assert new_op.query("Si2O4") == {
             "criteria": {
                 "composition_reduced.O": 2.0,
                 "composition_reduced.Si": 1.0,
@@ -52,7 +52,7 @@ def test_elements_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(
+        assert new_op.query(
             elements=",".join(eles), exclude_elements=",".join(neles)
         ) == {"criteria": {"elements": {"$all": ["Si", "O"], "$nin": ["N", "P"]}}}
 
@@ -64,7 +64,7 @@ def test_deprecation_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(True) == {"criteria": {"deprecated": True}}
+        assert new_op.query(True) == {"criteria": {"deprecated": True}}
 
 
 def test_symmetry_query():
@@ -84,7 +84,7 @@ def test_symmetry_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(
+        assert new_op.query(
             crystal_system=CrystalSystem.cubic,
             spacegroup_number=221,
             spacegroup_symbol="Pm3m",
@@ -106,7 +106,7 @@ def test_multi_task_id_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(task_ids="mp-149, mp-13") == {
+        assert new_op.query(task_ids="mp-149, mp-13") == {
             "criteria": {"task_ids": {"$in": ["mp-149", "mp-13"]}}
         }
 
@@ -120,7 +120,7 @@ def test_multi_material_id_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(material_ids="mp-149, mp-13") == {
+        assert new_op.query(material_ids="mp-149, mp-13") == {
             "criteria": {"material_id": {"$in": ["mp-149", "mp-13"]}}
         }
 
@@ -204,6 +204,4 @@ def test_formula_auto_complete_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(formula="".join(eles), limit=10) == {
-            "pipeline": pipeline
-        }
+        assert new_op.query(formula="".join(eles), limit=10) == {"pipeline": pipeline}

@@ -31,7 +31,7 @@ def test_dielectric_query_operator():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op._query_resource_data(
+        q = new_op.query(
             e_total_min=0,
             e_total_max=5,
             e_electronic_min=0,

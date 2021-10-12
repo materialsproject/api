@@ -28,9 +28,9 @@ def test_has_props_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(
-            has_props="electronic_structure, thermo"
-        ) == {"criteria": {"has_props": {"$all": ["electronic_structure", "thermo"]}}}
+        assert new_op.query(has_props="electronic_structure, thermo") == {
+            "criteria": {"has_props": {"$all": ["electronic_structure", "thermo"]}}
+        }
 
 
 def test_material_ids_query():
@@ -43,7 +43,7 @@ def test_material_ids_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(material_ids="mp-149, mp-13") == {
+        assert new_op.query(material_ids="mp-149, mp-13") == {
             "criteria": {"material_id": {"$in": ["mp-149", "mp-13"]}}
         }
 
@@ -56,9 +56,7 @@ def test_is_stable_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(is_stable=True) == {
-            "criteria": {"is_stable": True}
-        }
+        assert new_op.query(is_stable=True) == {"criteria": {"is_stable": True}}
 
 
 def test_magnetic_query():
@@ -69,9 +67,7 @@ def test_magnetic_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(ordering=Ordering.FiM) == {
-            "criteria": {"ordering": "FiM"}
-        }
+        assert new_op.query(ordering=Ordering.FiM) == {"criteria": {"ordering": "FiM"}}
 
 
 def test_has_reconstructed_query():
@@ -84,7 +80,7 @@ def test_has_reconstructed_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(has_reconstructed=False) == {
+        assert new_op.query(has_reconstructed=False) == {
             "criteria": {"has_reconstructed": False}
         }
 
@@ -97,9 +93,7 @@ def test_is_theoretical_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(theoretical=False) == {
-            "criteria": {"theoretical": False}
-        }
+        assert new_op.query(theoretical=False) == {"criteria": {"theoretical": False}}
 
 
 def test_search_stats_query():

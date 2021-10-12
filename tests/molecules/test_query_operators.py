@@ -18,7 +18,7 @@ def test_molecule_elements_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(elements="Si, O, P") == {
+        assert new_op.query(elements="Si, O, P") == {
             "criteria": {"elements": {"$all": ["Si", "O", "P"]}}
         }
 
@@ -53,7 +53,7 @@ def test_molecule_base_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op._query_resource_data(
+        q = new_op.query(
             nelements_min=0,
             nelements_max=5,
             EA_min=0,
@@ -78,6 +78,6 @@ def test_molecule_formula_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(formula="C6H12O6") == {
+        assert new_op.query(formula="C6H12O6") == {
             "criteria": {"formula_pretty": "H2CO"}
         }

@@ -38,7 +38,7 @@ def test_magnetic_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        q = new_op._query_resource_data(
+        q = new_op.query(
             ordering=Ordering.FM,
             total_magnetization_min=0,
             total_magnetization_max=5,

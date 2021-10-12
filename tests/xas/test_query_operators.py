@@ -20,7 +20,7 @@ def test_xas_operator():
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
 
-        assert new_op._query_resource_data(
+        assert new_op.query(
             edge=Edge.K, spectrum_type=Type.XANES, absorbing_element=Element("Cu")
         ) == {
             "criteria": {
@@ -42,6 +42,6 @@ def test_xas_task_id_operator():
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
 
-        assert new_op._query_resource_data(material_ids="mp-149, mp-13") == {
+        assert new_op.query(material_ids="mp-149, mp-13") == {
             "criteria": {"material_id": {"$in": ["mp-149", "mp-13"]}}
         }

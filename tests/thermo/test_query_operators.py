@@ -13,6 +13,4 @@ def test_is_stable_operator():
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
 
-        assert new_op._query_resource_data(is_stable=True) == {
-            "criteria": {"is_stable": True}
-        }
+        assert new_op.query(is_stable=True) == {"criteria": {"is_stable": True}}

@@ -29,7 +29,7 @@ def test_grain_boundary_structure_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(
+        assert new_op.query(
             sigma=5,
             type=GBTypeEnum.twist,
             chemsys="Si-Fe",
@@ -58,6 +58,6 @@ def test_grain_boundary_task_id_query():
     with ScratchDir("."):
         dumpfn(op, "temp.json")
         new_op = loadfn("temp.json")
-        assert new_op._query_resource_data(task_ids="mp-149, mp-13") == {
+        assert new_op.query(task_ids="mp-149, mp-13") == {
             "criteria": {"task_id": {"$in": ["mp-149", "mp-13"]}}
         }
