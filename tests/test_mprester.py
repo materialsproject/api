@@ -166,20 +166,20 @@ class TestMPRester:
     #     assert "is_reconstructed" in surface
     #     assert "structure" in surface
 
-    def test_get_gb_data(self, mpr):
-        mo_gbs = mpr.get_gb_data(chemsys="Mo")
-        assert len(mo_gbs) == 10
-        mo_gbs_s5 = mpr.get_gb_data(pretty_formula="Mo", sigma=5)
-        assert len(mo_gbs_s5) == 3
-        mo_s3_112 = mpr.get_gb_data(
-            material_id="mp-129", sigma=3, gb_plane=[1, -1, -2],
-        )
-        assert len(mo_s3_112) == 1
-        gb_f = mo_s3_112[0]["final_structure"]
-        assert gb_f.rotation_axis == pytest.approx([1, 1, 0])
-        assert gb_f.rotation_angle == pytest.approx(109.47122)
-        assert mo_s3_112[0]["gb_energy"] == pytest.approx(0.4796547330588574)
-        assert mo_s3_112[0]["w_sep"] == pytest.approx(6.318144)
+    # def test_get_gb_data(self, mpr):
+    #     mo_gbs = mpr.get_gb_data(chemsys="Mo")
+    #     assert len(mo_gbs) == 10
+    #     mo_gbs_s5 = mpr.get_gb_data(pretty_formula="Mo", sigma=5)
+    #     assert len(mo_gbs_s5) == 3
+    #     mo_s3_112 = mpr.get_gb_data(
+    #         material_id="mp-129", sigma=3, gb_plane=[1, -1, -2],
+    #     )
+    #     assert len(mo_s3_112) == 1
+    #     gb_f = mo_s3_112[0]["final_structure"]
+    #     assert gb_f.rotation_axis == pytest.approx([1, 1, 0])
+    #     assert gb_f.rotation_angle == pytest.approx(109.47122)
+    #     assert mo_s3_112[0]["gb_energy"] == pytest.approx(0.4796547330588574)
+    #     assert mo_s3_112[0]["w_sep"] == pytest.approx(6.318144)
 
     def test_get_wulff_shape(self, mpr):
         ws = mpr.get_wulff_shape("mp-126")
