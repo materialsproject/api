@@ -720,9 +720,9 @@ class MPRester:
         )
         miller_energy_map = {}
         for surf in surfaces:
-            miller = tuple(surf["miller_index"])
+            miller = tuple(surf.miller_index)
             # Prefer reconstructed surfaces, which have lower surface energies.
-            if (miller not in miller_energy_map) or surf["is_reconstructed"]:
-                miller_energy_map[miller] = surf["surface_energy"]
+            if (miller not in miller_energy_map) or surf.is_reconstructed:
+                miller_energy_map[miller] = surf.surface_energy
         millers, energies = zip(*miller_energy_map.items())
         return WulffShape(lattice, millers, energies)
