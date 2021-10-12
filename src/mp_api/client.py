@@ -312,22 +312,36 @@ class MPRester:
         ltol=_EMMET_SETTINGS.LTOL,
         stol=_EMMET_SETTINGS.STOL,
         angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
-    ):
+        allow_multiple_results=False,
+    ) -> Union[List[str], str]:
         """
-        Finds matching structures on the Materials Project site.
+        Finds matching structures from the Materials Project database.
+
+        Multiple results may be returned of "similar" structures based on
+        distance using the pymatgen StructureMatcher algorithm, however only
+        a single result should match with the same spacegroup, calculated to the
+        default tolerances.
+
         Args:
             filename_or_structure: filename or Structure object
             ltol: fractional length tolerance
             stol: site tolerance
             angle_tol: angle tolerance in degrees
+            allow_multiple_results: changes return type for either
+            a single material_id or list of material_ids
         Returns:
-            A matching material_id if one is found
+            A matching material_id if one is found or list of results if allow_multiple_results
+            is True
         Raises:
             MPRestError
         """
 
         return self.materials.find_structure(
-            filename_or_structure, ltol=ltol, stol=stol, angle_tol=angle_tol,
+            filename_or_structure,
+            ltol=ltol,
+            stol=stol,
+            angle_tol=angle_tol,
+            allow_multiple_results=allow_multiple_results,
         )
 
     def get_entries(
