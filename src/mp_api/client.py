@@ -1,6 +1,6 @@
 from os import environ, path
 import warnings
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union
 from enum import Enum, unique
 import itertools
 
