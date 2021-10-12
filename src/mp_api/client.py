@@ -6,11 +6,12 @@ import itertools
 
 from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.core.surface import get_symmetrically_equivalent_miller_indices
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.wulff import WulffShape
 from emmet.core.mpid import MPID
 from emmet.core.symmetry import CrystalSystem
+from emmet.core.vasp.calc_types import TaskType
+from emmet.core.settings import EmmetSettings
 
 from mp_api.core.client import BaseRester
 from mp_api.routes.electronic_structure.models.core import BSPathType
@@ -22,29 +23,10 @@ _DEPRECATION_WARNING = (
     "methods will be retained until at least January 2022 for backwards compatibility."
 )
 
+_EMMET_SETTINGS = EmmetSettings()
 
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
-
-
-@unique
-class TaskType(Enum):
-    """task types available in MP"""
-
-    GGA_OPT = "GGA Structure Optimization"
-    GGAU_OPT = "GGA+U Structure Optimization"
-    SCAN_OPT = "SCAN Structure Optimization"
-    GGA_LINE = "GGA NSCF Line"
-    GGAU_LINE = "GGA+U NSCF Line"
-    GGA_UNIFORM = "GGA NSCF Uniform"
-    GGAU_UNIFORM = "GGA+U NSCF Uniform"
-    GGA_STATIC = "GGA Static"
-    GGAU_STATIC = "GGA+U Static"
-    GGA_STATIC_DIEL = "GGA Static Dielectric"
-    GGAU_STATIC_DIEL = "GGA+U Static Dielectric"
-    GGA_DEF = "GGA Deformation"
-    GGAU_DEF = "GGA+U Deformation"
-    LDA_STATIC_DIEL = "LDA Static Dielectric"
 
 
 class MPRester:
@@ -83,13 +65,16 @@ class MPRester:
     electronic_structure_dos: DosRester
     oxidation_states: OxidationStatesRester
     provenance: ProvenanceRester
+    user_settings: UserSettingsRester
 
     def __init__(
         self,
         api_key=DEFAULT_API_KEY,
         endpoint=DEFAULT_ENDPOINT,
-        notify_db_version=True,
+        notify_db_version=False,
         include_user_agent=True,
+        monty_decode: bool = True,
+        use_document_model: bool = True,
     ):
         """
         Args:
@@ -116,6 +101,10 @@ class MPRester:
                 making the API request. This helps MP support pymatgen users, and
                 is similar to what most web browsers send with each page request.
                 Set to False to disable the user agent.
+            monty_decode: Decode the data using monty into python objects
+            use_document_model: If False, skip the creating the document model and return data
+                as a dictionary. This can be simpler to work with but bypasses data validation
+                and will not give auto-complete for available fields.
         """
 
         self.api_key = api_key
@@ -126,6 +115,9 @@ class MPRester:
 
         self._all_resters = []
 
+        if notify_db_version:
+            raise NotImplementedError("This has not yet been implemented.")
+
         for cls in BaseRester.__subclasses__():
 
             rester = cls(
@@ -133,6 +125,8 @@ class MPRester:
                 endpoint=endpoint,
                 include_user_agent=include_user_agent,
                 session=self.session,
+                monty_decode=monty_decode,
+                use_document_model=use_document_model,
             )
 
             self._all_resters.append(rester)
@@ -152,6 +146,17 @@ class MPRester:
         Support for "with" context.
         """
         self.session.close()
+
+    def get_task_ids_associated_with_material_id(
+        self, material_id: str, task_types: Optional[List[TaskType]] = None
+    ) -> List[str]:
+        """
+
+        :param material_id:
+        :param task_types: if specified, will restrict to certain task types, e.g. [TaskType.GGA_STATIC]
+        :return:
+        """
+        pass
 
     def get_structure_by_material_id(
         self, material_id, final=True, conventional_unit_cell=False
@@ -302,7 +307,11 @@ class MPRester:
             return structures
 
     def find_structure(
-        self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5, limit=1
+        self,
+        filename_or_structure,
+        ltol=_EMMET_SETTINGS.LTOL,
+        stol=_EMMET_SETTINGS.STOL,
+        angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
     ):
         """
         Finds matching structures on the Materials Project site.
@@ -311,20 +320,14 @@ class MPRester:
             ltol: fractional length tolerance
             stol: site tolerance
             angle_tol: angle tolerance in degrees
-            limit: amount of structure matches to limit to
         Returns:
-            A list of matching materials project ids for structure, \
-                including normalized rms distances and max distances between paired sites.
+            A matching material_id if one is found
         Raises:
             MPRestError
         """
 
         return self.materials.find_structure(
-            filename_or_structure,
-            ltol=ltol,
-            stol=stol,
-            angle_tol=angle_tol,
-            limit=limit,
+            filename_or_structure, ltol=ltol, stol=stol, angle_tol=angle_tol,
         )
 
     def get_entries(
