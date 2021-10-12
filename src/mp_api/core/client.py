@@ -264,7 +264,8 @@ class BaseRester(Generic[T]):
                 else:
                     data = json.loads(response.text)
 
-                if self.document_model and self.use_document_model:
+                # sub-urls may use different document models
+                if self.document_model and self.use_document_model and (not suburl):
                     data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
