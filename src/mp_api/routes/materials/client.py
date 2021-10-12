@@ -4,8 +4,11 @@ from pymatgen.core.structure import Structure
 from emmet.core.material import MaterialsDoc
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.utils import jsanitize
+from emmet.core.settings import EmmetSettings
 
 from mp_api.core.client import BaseRester, MPRestError
+
+_EMMET_SETTINGS = EmmetSettings()
 
 
 class MaterialsRester(BaseRester[MaterialsDoc]):
@@ -130,20 +133,23 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         )
 
     def find_structure(
-        self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5, limit=1
+        self,
+        filename_or_structure,
+        ltol=_EMMET_SETTINGS.LTOL,
+        stol=_EMMET_SETTINGS.STOL,
+        angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
     ):
         """
-        Finds matching structures on the Materials Project site.
+        Finds matching structures on the Materials Project site
         Args:
             filename_or_structure: filename or Structure object
         Returns:
-            A list of matching materials project ids for structure, \
-                including normalized rms distances and max distances between paired sites.
+            A matching material_id if one is found
         Raises:
             MPRestError
         """
 
-        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "limit": limit}
+        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "limit": 1}
 
         if isinstance(filename_or_structure, str):
             s = Structure.from_file(filename_or_structure)
@@ -152,6 +158,9 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         else:
             raise MPRestError("Provide filename or Structure object.")
 
-        return self._post_resource(
-            body=s.as_dict(), params=params, suburl="find_structure",
-        ).get("data")
+        return getattr(
+            self._post_resource(
+                body=s.as_dict(), params=params, suburl="find_structure",
+            ).get("data"),
+            "material_id",
+        )
