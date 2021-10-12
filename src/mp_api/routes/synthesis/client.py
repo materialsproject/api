@@ -69,7 +69,6 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
                 "condition_mixing_device": condition_mixing_device,
                 "condition_mixing_media": condition_mixing_media,
             },
-            use_document_model=True,
         ).get("data", None)
 
         if synthesis_docs is None:
