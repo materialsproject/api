@@ -446,10 +446,12 @@ class BaseRester(Generic[T]):
 
         # otherwise prepare to iterate over all pages
         all_results = results["data"]
-        count = 1
+        num_pages_retrieved = 1
 
         # progress bar
         total_docs = results["meta"]["total_doc"]
+        if num_chunks:
+            total_docs = min(len(all_results) * num_chunks, total_docs)
         t = tqdm(
             desc=f"Retrieving {self.document_model.__name__} documents",
             total=total_docs,
@@ -465,17 +467,19 @@ class BaseRester(Generic[T]):
             )
 
         while True:
-            query_params["skip"] = count * chunk_size
+
+            if num_chunks and num_pages_retrieved >= num_chunks:
+                break
+
+            query_params["skip"] = num_pages_retrieved * chunk_size
             results = self._query_resource(query_params, fields=fields)
 
             t.update(len(results["data"]))
 
-            if not any(results["data"]) or (
-                num_chunks is not None and count == num_chunks
-            ):
+            if not any(results["data"]):
                 break
 
-            count += 1
+            num_pages_retrieved += 1
             all_results += results["data"]
 
         return all_results
