@@ -242,7 +242,7 @@ class BandStructureRester(BaseRester):
         bs_obj = self.get_bandstructure_from_task_id(bs_task_id)
 
         if bs_obj:
-            return bs_obj[0]["data"]
+            return bs_obj[0].data
         else:
             raise MPRestError("No band structure object found.")
 
@@ -371,6 +371,6 @@ class DosRester(BaseRester):
 
         dos_obj = self.get_dos_from_task_id(dos_task_id)
         if dos_obj:
-            return dos_obj[0]["data"]
+            return dos_obj[0].data
         else:
             raise MPRestError("No density of states object found.")
