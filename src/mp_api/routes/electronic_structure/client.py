@@ -172,21 +172,19 @@ class BandStructureRester(BaseRester):
             **query_params
         )
 
-    def get_bandstructure_from_calculation_id(self, task_id: str):
+    def get_bandstructure_from_task_id(self, task_id: str):
         """
-        Get the band structure pymatgen object associated with a given calculation ID.
+        Get the band structure pymatgen object associated with a given task ID.
 
         Arguments:
-            task_id (str): Calculation ID for the band structure calculation
+            task_id (str): Task ID for the band structure calculation
 
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
 
         result = self._query_resource(
-            criteria={"task_id": task_id, "all_fields": True},
-            suburl="object",
-            use_document_model=False,
+            criteria={"task_id": task_id, "all_fields": True}, suburl="object",
         )
 
         if result.get("data", None) is not None:
@@ -222,7 +220,7 @@ class BandStructureRester(BaseRester):
             ).bandstructure.dict()
 
             if bs_data.get(path_type.value, None):
-                bs_calc_id = bs_data[path_type.value]["task_id"]
+                bs_task_id = bs_data[path_type.value]["task_id"]
             else:
                 raise MPRestError(
                     "No {} band structure data found for {}".format(
@@ -235,13 +233,13 @@ class BandStructureRester(BaseRester):
             ).dos.dict()
 
             if bs_data.get("total", None):
-                bs_calc_id = bs_data["total"]["1"]["task_id"]
+                bs_task_id = bs_data["total"]["1"]["task_id"]
             else:
                 raise MPRestError(
                     "No uniform band structure data found for {}".format(material_id)
                 )
 
-        bs_obj = self.get_bandstructure_from_calculation_id(bs_calc_id)
+        bs_obj = self.get_bandstructure_from_task_id(bs_task_id)
 
         if bs_obj:
             return bs_obj[0]["data"]
@@ -325,21 +323,19 @@ class DosRester(BaseRester):
             **query_params
         )
 
-    def get_dos_from_calculation_id(self, task_id: str):
+    def get_dos_from_task_id(self, task_id: str):
         """
         Get the density of states pymatgen object associated with a given calculation ID.
 
         Arguments:
-            task_id (str): Calculation ID for the density of states calculation
+            task_id (str): Task ID for the density of states calculation
 
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
 
         result = self._query_resource(
-            criteria={"task_id": task_id, "all_fields": True},
-            suburl="object",
-            use_document_model=False,
+            criteria={"task_id": task_id, "all_fields": True}, suburl="object",
         )
 
         if result.get("data", None) is not None:
@@ -367,13 +363,13 @@ class DosRester(BaseRester):
         ).dict()
 
         if dos_data["dos"]:
-            dos_calc_id = dos_data["dos"]["total"]["1"]["task_id"]
+            dos_task_id = dos_data["dos"]["total"]["1"]["task_id"]
         else:
             raise MPRestError(
                 "No density of states data found for {}".format(material_id)
             )
 
-        dos_obj = self.get_dos_from_calculation_id(dos_calc_id)
+        dos_obj = self.get_dos_from_task_id(dos_task_id)
         if dos_obj:
             return dos_obj[0]["data"]
         else:
