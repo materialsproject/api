@@ -153,8 +153,5 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             raise MPRestError("Provide filename or Structure object.")
 
         return self._post_resource(
-            body=s.as_dict(),
-            params=params,
-            suburl="find_structure",
-            use_document_model=False,
+            body=s.as_dict(), params=params, suburl="find_structure",
         ).get("data")

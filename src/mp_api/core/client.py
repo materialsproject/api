@@ -184,7 +184,7 @@ class BaseRester(Generic[T]):
                     data = json.loads(response.text)
 
                 if self.document_model and self.use_document_model:
-                    data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+                    data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
 
                 return data
 
