@@ -128,12 +128,12 @@ class MPRester:
                 session=self.session,
                 monty_decode=monty_decode,
                 use_document_model=use_document_model,
-            )
+            )  # type: BaseRester
 
             self._all_resters.append(rester)
 
             setattr(
-                self, cls.suffix.replace("/", "_"), rester,
+                self, cls.suffix.replace("/", "_"), rester,  # type: ignore
             )
 
     def __enter__(self):
@@ -169,7 +169,7 @@ class MPRester:
 
     def get_structure_by_material_id(
         self, material_id, final=True, conventional_unit_cell=False
-    ) -> Structure:
+    ) -> Union[Structure, List[Structure]]:
         """
         Get a Structure corresponding to a material_id.
 
@@ -737,44 +737,6 @@ class MPRester:
         millers, energies = zip(*miller_energy_map.items())
         return WulffShape(lattice, millers, energies)
 
-    # TODO: need to move upwards to MPRester to avoid initialization of MaterialsRester ?
-    def _get_possible_charge_density_task_ids_from_material_id(self, material_id: str):
-        """
-        Get charge density calculation ids associated with a given Materials Project ID
-        that have charge density data.
-
-        Arguments:
-            material_id (str): Materials Project ID
-
-        Returns:
-            task_ids (List[str]): List of calculation ids that may have charge density data.
-        """
-
-        materials_rester = MaterialsRester(  # type: ignore
-            endpoint=self.base_endpoint, api_key=self.api_key,
-        )
-
-        mat_doc = materials_rester.get_document_by_id(
-            document_id=material_id, fields=["calc_types"]
-        )
-
-        task_ids = []
-        if mat_doc is not None:
-            for task_id, calculation_type in mat_doc.calc_types.items():
-                if "Static" in calculation_type:
-                    task_ids.append(task_id)
-
-        result = []
-
-        if len(task_ids) > 0:
-            result = self.search(
-                task_ids=",".join(task_ids),
-                fields=["task_id", "last_updated"],
-                chunk_size=10,
-            )
-
-        return result
-
     def get_charge_density_from_material_id(self, material_id: str) -> Optional[Chgcar]:
         """
         Get charge density data for a given Materials Project ID.
@@ -793,9 +755,9 @@ class MPRester:
         )
         results = self.charge_density.search(task_ids=task_ids)
 
-        fs_id = sorted(results, key=lambda x: x.last_updated, reverse=True)[0].fs_id
+        latest_doc = sorted(results, key=lambda x: x.last_updated, reverse=True)[0]
 
-        result = self.charge_density.get_document_by_id(fs_id)
+        result = self.charge_density.get_document_by_id(latest_doc.fs_id)  # type: ignore
 
         if result:
             return result.data

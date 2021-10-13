@@ -178,13 +178,16 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             use_document_model=False,
         ).get("data")
 
-        if len(results) > 1:
+        if len(results) > 1:  # type: ignore
             if not allow_multiple_results:
                 raise ValueError(
                     "Multiple matches found for this combination of tolerances, but "
                     "`allow_multiple_results` set to False."
                 )
-            return results
+            return results  # type: ignore
 
         if results:
             return results[0]["material_id"]
+        else:
+            return []
+

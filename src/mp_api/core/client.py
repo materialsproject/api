@@ -44,13 +44,13 @@ class BaseRester(Generic[T]):
     """
 
     suffix: Optional[str] = None
-    document_model: Optional[BaseModel] = None
+    document_model: BaseModel = None  # type: ignore
     supports_versions: bool = False
     primary_key: str = "material_id"
 
     def __init__(
         self,
-        api_key: str = DEFAULT_API_KEY,
+        api_key: Union[str, None] = DEFAULT_API_KEY,
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
         session: Optional[requests.Session] = None,
@@ -101,10 +101,10 @@ class BaseRester(Generic[T]):
         if session:
             self._session = session
         else:
-            self._session = None
+            self._session = None  # type: ignore
 
         self.document_model = (
-            api_sanitize(self.document_model)
+            api_sanitize(self.document_model)  # type: ignore
             if self.document_model is not None
             else None
         )
@@ -329,7 +329,7 @@ class BaseRester(Generic[T]):
         Returns:
             A list of documents
         """
-        return self._query_resource(
+        return self._query_resource(  # type: ignore
             criteria=criteria,
             fields=fields,
             suburl=suburl,
@@ -338,7 +338,7 @@ class BaseRester(Generic[T]):
 
     def get_document_by_id(
         self, document_id: str, fields: Optional[List[str]] = None,
-    ) -> Union[T, dict]:
+    ) -> Union[T]:
         """
         Query the endpoint for a single document.
 
@@ -364,7 +364,7 @@ class BaseRester(Generic[T]):
         if isinstance(fields, str):  # pragma: no cover
             fields = (fields,)
 
-        results = []
+        results = []  # type: List
 
         try:
             results = self._query_resource_data(
@@ -473,7 +473,7 @@ class BaseRester(Generic[T]):
         if num_chunks:
             total_docs = min(len(all_results) * num_chunks, total_docs)
         t = tqdm(
-            desc=f"Retrieving {self.document_model.__name__} documents",
+            desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
             total=total_docs,
         )
         t.update(len(all_results))

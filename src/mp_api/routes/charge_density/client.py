@@ -4,7 +4,7 @@ from platform import version
 from typing import Union, Optional, List, Dict
 
 try:
-    from typing import Literal
+    from typing import Literal  # type: ignore
 except ImportError:
     from typing_extensions import Literal
 
@@ -22,13 +22,13 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
 
     suffix = "charge_density"
     primary_key = "task_id"
-    document_model = ChgcarDataDoc
+    document_model = ChgcarDataDoc  # type: ignore
 
     def download_for_task_ids(
         self,
         path: str,
         task_ids: List[str],
-        ext: Literal["json.gz", "json", "mpk", "mpk.gz"] = "json.gz",
+        ext: Literal["json.gz", "json", "mpk", "mpk.gz"] = "json.gz",  # type: ignore
     ) -> int:
         """
         Download a set of charge densities.
@@ -41,17 +41,17 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         :return: An integer for the number of charge densities saved.
         """
         num_downloads = 0
-        path = Path(path)
+        path_obj = Path(path)
         chgcar_summary_docs = self.search(task_ids=task_ids)
         for entry in chgcar_summary_docs:
-            fs_id = entry.fs_id
-            task_id = entry.task_id
+            fs_id = entry.fs_id  # type: ignore
+            task_id = entry.task_id  # type: ignore
             doc = self.get_document_by_id(fs_id)
-            dumpfn(doc, path / f"{task_id}.{ext}")
+            dumpfn(doc, path_obj / f"{task_id}.{ext}")
             num_downloads += 1
         return num_downloads
 
-    def search(
+    def search(  # type: ignore
         self, num_chunks: Optional[int] = 1, chunk_size: int = 10, **kwargs
     ) -> Union[List[ChgcarDataDoc], List[Dict]]:  # type: ignore
         """
