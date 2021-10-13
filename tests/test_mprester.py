@@ -143,40 +143,6 @@ class TestMPRester:
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
 
-    # def test_get_substrates(self, mpr):
-    #     substrate_data = mpr.get_substrates("mp-123", [1, 0, 0])
-    #     substrates = [sub_dict["sub_id"] for sub_dict in substrate_data]
-    #     assert "mp-2534" in substrates
-    #
-    # def test_get_surface_data(self, mpr):
-    #     data = mpr.get_surface_data("mp-126")  # Pt
-    #     one_surf = mpr.get_surface_data("mp-129", miller_index=[1, 2, 3])
-    #     assert one_surf["surface_energy"] == pytest.approx(2.99156963)
-    #     assert one_surf["miller_index"] == pytest.approx([3, 2, 1])
-    #     assert "surfaces" in data
-    #     surfaces = data["surfaces"]
-    #     assert len(surfaces) > 0
-    #     surface = surfaces.pop()
-    #     assert "miller_index" in surface
-    #     assert "surface_energy" in surface
-    #     assert "is_reconstructed" in surface
-    #     assert "structure" in surface
-
-    # def test_get_gb_data(self, mpr):
-    #     mo_gbs = mpr.get_gb_data(chemsys="Mo")
-    #     assert len(mo_gbs) == 10
-    #     mo_gbs_s5 = mpr.get_gb_data(pretty_formula="Mo", sigma=5)
-    #     assert len(mo_gbs_s5) == 3
-    #     mo_s3_112 = mpr.get_gb_data(
-    #         material_id="mp-129", sigma=3, gb_plane=[1, -1, -2],
-    #     )
-    #     assert len(mo_s3_112) == 1
-    #     gb_f = mo_s3_112[0]["final_structure"]
-    #     assert gb_f.rotation_axis == pytest.approx([1, 1, 0])
-    #     assert gb_f.rotation_angle == pytest.approx(109.47122)
-    #     assert mo_s3_112[0]["gb_energy"] == pytest.approx(0.4796547330588574)
-    #     assert mo_s3_112[0]["w_sep"] == pytest.approx(6.318144)
-
     def test_get_wulff_shape(self, mpr):
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
