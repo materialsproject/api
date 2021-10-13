@@ -158,7 +158,7 @@ class MPRester:
         :return:
         """
         tasks = self.materials.get_document_by_id(
-            material_id, fields=["calc_types",]
+            material_id, fields=["calc_types"]
         ).calc_types
         if calc_types:
             return [

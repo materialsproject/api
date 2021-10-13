@@ -3,6 +3,7 @@
 import os
 from monty.serialization import loadfn
 from pkg_resources import get_distribution, DistributionNotFound
+from mp_api.client import MPRester
 
 try:
     from setuptools_scm import get_version
@@ -34,5 +35,3 @@ except Exception as e:  # pragma: no cover
         print("Failed loading App")
         print(e)
         app = None
-
-from mp_api.client import MPRester
