@@ -149,6 +149,7 @@ class BaseRester(Generic[T]):
         body: Dict = None,
         params: Optional[Dict] = None,
         suburl: Optional[str] = None,
+        use_document_model: Optional[bool] = None,
     ) -> Dict:
         """
         Post data to the endpoint for a Resource.
@@ -157,12 +158,16 @@ class BaseRester(Generic[T]):
             body: body json to send in post request
             params: extra params to send in post request
             suburl: make a request to a specified sub-url
+            use_document_model: if None, will defer to the self.use_document_model attribute
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
             "meta" containing meta information, e.g. total number of documents
             available.
         """
+
+        if use_document_model is None:
+            use_document_model = self.use_document_model
 
         check_limit()
 
@@ -183,7 +188,7 @@ class BaseRester(Generic[T]):
                 else:
                     data = json.loads(response.text)
 
-                if self.document_model and self.use_document_model:
+                if self.document_model and use_document_model:
                     if isinstance(data["data"], dict):
                         data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
                     elif isinstance(data["data"], list):
@@ -221,6 +226,7 @@ class BaseRester(Generic[T]):
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
         suburl: Optional[str] = None,
+        use_document_model: Optional[bool] = None,
     ) -> Dict:
         """
         Query the endpoint for a Resource containing a list of documents
@@ -233,6 +239,7 @@ class BaseRester(Generic[T]):
             criteria: dictionary of criteria to filter down
             fields: list of fields to return
             suburl: make a request to a specified sub-url
+            use_document_model: if None, will defer to the self.use_document_model attribute
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -241,6 +248,9 @@ class BaseRester(Generic[T]):
         """
 
         check_limit()
+
+        if use_document_model is None:
+            use_document_model = self.use_document_model
 
         if criteria:
             criteria = {k: v for k, v in criteria.items() if v is not None}
@@ -269,11 +279,7 @@ class BaseRester(Generic[T]):
 
                 # other sub-urls may use different document models
                 # the client does not handle this in a particularly smart way currently
-                if (
-                    self.document_model
-                    and self.use_document_model
-                    and (not suburl or suburl != self.primary_key)
-                ):
+                if self.document_model and use_document_model:
                     data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
@@ -308,6 +314,7 @@ class BaseRester(Generic[T]):
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
         suburl: Optional[str] = None,
+        use_document_model: Optional[bool] = None,
     ) -> Union[List[T], List[Dict]]:
         """
         Query the endpoint for a list of documents without associated meta information. Only
@@ -317,12 +324,16 @@ class BaseRester(Generic[T]):
             criteria: dictionary of criteria to filter down
             fields: list of fields to return
             suburl: make a request to a specified sub-url
+            use_document_model: if None, will defer to the self.use_document_model attribute
 
         Returns:
             A list of documents
         """
         return self._query_resource(
-            criteria=criteria, fields=fields, suburl=suburl,
+            criteria=criteria,
+            fields=fields,
+            suburl=suburl,
+            use_document_model=use_document_model,
         ).get("data")
 
     def get_document_by_id(
@@ -509,7 +520,7 @@ class BaseRester(Generic[T]):
                 False,
                 False,
             )  # do not waste cycles decoding
-            results = self._query_resource(criteria=criteria,)
+            results = self._query_resource(criteria=criteria)
             self.monty_decode, self.use_document_model = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover
