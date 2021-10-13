@@ -244,7 +244,7 @@ class BandStructureRester(BaseRester):
         bs_obj = self.get_bandstructure_from_task_id(bs_task_id)
 
         if bs_obj:
-            return bs_obj["data"]
+            return bs_obj[0]["data"]
         else:
             raise MPRestError("No band structure object found.")
 
@@ -342,8 +342,10 @@ class DosRester(BaseRester):
             use_document_model=False,
         )
 
+        print(result)
+
         if result.get("data", None) is not None:
-            return result[0]["data"]
+            return result["data"]
         else:
             raise MPRestError("No object found")
 

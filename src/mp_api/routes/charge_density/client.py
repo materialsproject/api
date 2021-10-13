@@ -1,7 +1,13 @@
 from pathlib import Path
 from platform import version
 
-from typing import Union, Optional, List, Dict, Literal
+from typing import Union, Optional, List, Dict
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 from warnings import warn
 
 from monty.serialization import dumpfn
