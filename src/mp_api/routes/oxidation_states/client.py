@@ -2,7 +2,7 @@ from mp_api.core.client import BaseRester
 from emmet.core.oxidation_states import OxidationStateDoc
 
 
-class OxidationStatesRester(BaseRester):
+class OxidationStatesRester(BaseRester[OxidationStateDoc]):
 
     suffix = "oxidation_states"
     document_model = OxidationStateDoc  # type: ignore

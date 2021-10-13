@@ -4,21 +4,11 @@ from mp_api.core.client import BaseRester, MPRestError
 from emmet.core.xas import Edge, Type, XASDoc
 
 
-class XASRester(BaseRester):
+class XASRester(BaseRester[XASDoc]):
 
     suffix = "xas"
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
-
-    def get_available_elements(
-        # TODO implement actual check
-        self,
-        edge: Optional[Edge] = None,
-        spectrum_type: Optional[Type] = None,
-        absorbing_element: Optional[Element] = None,
-        required_elements: Optional[List[Element]] = None,
-    ):
-        return [str(e) for e in Element]
 
     def search_xas_docs(
         # TODO: add proper docstring

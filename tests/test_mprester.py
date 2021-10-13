@@ -1,4 +1,5 @@
 from emmet.core.symmetry import CrystalSystem
+from emmet.core.vasp.calc_types import CalcType
 import pytest
 import random
 import os
@@ -17,7 +18,7 @@ from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.core.periodic_table import Element
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import PhononDos
-from pymatgen.io.vasp import Incar, Chgcar
+from pymatgen.io.vasp import Chgcar
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.wulff import WulffShape
 
@@ -53,6 +54,12 @@ class TestMPRester:
 
     def test_get_materials_id_from_task_id(self, mpr):
         assert mpr.get_materials_id_from_task_id("mp-540081") == "mp-19017"
+
+    def test_get_task_ids_associated_with_material_id(self, mpr):
+        results = mpr.get_task_ids_associated_with_material_id(
+            "mp-149", calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
+        )
+        assert len(results) > 0
 
     def test_get_materials_id_references(self, mpr):
         data = mpr.get_materials_id_references("mp-123")
@@ -131,61 +138,15 @@ class TestMPRester:
         dos = mpr.get_phonon_dos_by_material_id("mp-11659")
         assert isinstance(dos, PhononDos)
 
-    @pytest.mark.xfail  # temp xfail while data is fixes
+    @pytest.mark.xfail  # temporary until api deploy
     def test_get_charge_density_data(self, mpr):
-        task_ids = mpr.get_charge_density_calculation_ids_from_material_id("mp-13")
-        assert len(task_ids) > 0
-
-        vasp_calc_details = mpr.get_charge_density_calculation_details(
-            task_ids[0]["task_id"]
-        )
-        assert isinstance(vasp_calc_details.incar, Incar)
-
-        chgcar = mpr.get_charge_density_from_calculation_id(task_ids[0]["task_id"])
+        chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
-
-        chgcar = mpr.get_charge_density_by_material_id("mp-13")
-        assert isinstance(chgcar, Chgcar)
-
-    def test_get_substrates(self, mpr):
-        substrate_data = mpr.get_substrates("mp-123", [1, 0, 0])
-        substrates = [sub_dict["sub_id"] for sub_dict in substrate_data]
-        assert "mp-2534" in substrates
-
-    def test_get_surface_data(self, mpr):
-        data = mpr.get_surface_data("mp-126")  # Pt
-        one_surf = mpr.get_surface_data("mp-129", miller_index=[1, 2, 3])
-        assert one_surf["surface_energy"] == pytest.approx(2.99156963)
-        assert one_surf["miller_index"] == pytest.approx([3, 2, 1])
-        assert "surfaces" in data
-        surfaces = data["surfaces"]
-        assert len(surfaces) > 0
-        surface = surfaces.pop()
-        assert "miller_index" in surface
-        assert "surface_energy" in surface
-        assert "is_reconstructed" in surface
-        assert "structure" in surface
-
-    def test_get_gb_data(self, mpr):
-        mo_gbs = mpr.get_gb_data(chemsys="Mo")
-        assert len(mo_gbs) == 10
-        mo_gbs_s5 = mpr.get_gb_data(pretty_formula="Mo", sigma=5)
-        assert len(mo_gbs_s5) == 3
-        mo_s3_112 = mpr.get_gb_data(
-            material_id="mp-129", sigma=3, gb_plane=[1, -1, -2],
-        )
-        assert len(mo_s3_112) == 1
-        gb_f = mo_s3_112[0]["final_structure"]
-        assert gb_f.rotation_axis == pytest.approx([1, 1, 0])
-        assert gb_f.rotation_angle == pytest.approx(109.47122)
-        assert mo_s3_112[0]["gb_energy"] == pytest.approx(0.4796547330588574)
-        assert mo_s3_112[0]["w_sep"] == pytest.approx(6.318144)
 
     def test_get_wulff_shape(self, mpr):
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
 
-    @pytest.mark.xfail  # temporary until api deploy
     def test_query(self, mpr):
 
         excluded_params = [
@@ -195,6 +156,7 @@ class TestMPRester:
             "num_chunks",
             "all_fields",
             "fields",
+            "equilibrium_reaction_energy",  # temp until data update
         ]
 
         alt_name_dict = {
@@ -208,7 +170,7 @@ class TestMPRester:
             "total_energy": "energy_per_atom",
             "formation_energy": "formation_energy_per_atom",
             "uncorrected_energy": "uncorrected_energy_per_atom",
-            "equillibrium_reaction_energy": "equillibrium_reaction_energy_per_atom",
+            # "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
             "magnetic_ordering": "ordering",
             "elastic_anisotropy": "universal_anisotropy",
             "poisson_ratio": "homogeneous_poisson",

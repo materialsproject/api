@@ -7,7 +7,7 @@ from mp_api.core.client import BaseRester
 from mp_api.routes.molecules.models import MoleculesDoc
 
 
-class MoleculesRester(BaseRester):
+class MoleculesRester(BaseRester[MoleculesDoc]):
 
     suffix = "molecules"
     document_model = MoleculesDoc  # type: ignore
@@ -64,7 +64,9 @@ class MoleculesRester(BaseRester):
             query_params.update({"smiles": smiles})
 
         if nelements:
-            query_params.update({"nelements_min": nelements[0], "nelements_max": nelements[1]})
+            query_params.update(
+                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
+            )
 
         if EA:
             query_params.update({"EA_min": EA[0], "EA_max": EA[1]})
@@ -81,8 +83,16 @@ class MoleculesRester(BaseRester):
         if ascending is not None:
             query_params.update({"ascending": ascending})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

@@ -5,7 +5,7 @@ from mp_api.core.client import BaseRester
 from mp_api.routes.dielectric.models import DielectricDoc
 
 
-class DielectricRester(BaseRester):
+class DielectricRester(BaseRester[DielectricDoc]):
 
     suffix = "dielectric"
     document_model = DielectricDoc  # type: ignore

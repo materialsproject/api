@@ -296,7 +296,6 @@ if db_uri:
         collection_name="settings",
     )
 
-
 else:
     materials_store = loadfn(materials_store_json)
     formula_autocomplete_store = loadfn(formula_autocomplete_store_json)
@@ -525,7 +524,7 @@ resources.update({"mpcomplete": [mpcomplete_resource(mpcomplete_store)]})
 # Consumers
 from mp_api.routes._consumer.resources import settings_resource
 
-resources.update({"user_settings": [settings_resource(consumer_settings_store)]})
+resources.update({"_user_settings": [settings_resource(consumer_settings_store)]})
 
 # === MAPI setup
 from mp_api.core.documentation import description, tags_meta

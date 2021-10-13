@@ -25,7 +25,7 @@ special_resters = [
     "charge_density",
 ]
 
-ignore_generic = ["robocrys"]  # temp
+ignore_generic = ["robocrys", "_user_settings"]  # temp
 
 
 mpr = MPRester()
@@ -41,7 +41,9 @@ def test_generic_get_methods(rester):
     name = rester.suffix.replace("/", "_")
     if name not in ignore_generic:
         if name not in key_only_resters:
-            doc = rester.query({"limit": 1}, fields=[rester.primary_key])[0]
+            doc = rester._query_resource_data(
+                {"limit": 1}, fields=[rester.primary_key]
+            )[0]
             assert isinstance(doc, rester.document_model)
 
             if name not in search_only_resters:

@@ -6,7 +6,7 @@ from mp_api.core.client import BaseRester
 from mp_api.routes.substrates.models import SubstratesDoc
 
 
-class SubstratesRester(BaseRester):
+class SubstratesRester(BaseRester[SubstratesDoc]):
 
     suffix = "substrates"
     document_model = SubstratesDoc  # type: ignore

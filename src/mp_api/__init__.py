@@ -3,9 +3,11 @@
 import os
 from monty.serialization import loadfn
 from pkg_resources import get_distribution, DistributionNotFound
+from mp_api.client import MPRester
 
 try:
     from setuptools_scm import get_version
+
     __version__ = get_version(root="../../", relative_to=__file__)
 except (ImportError, LookupError):  # pragma: no cover
     try:

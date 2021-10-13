@@ -38,11 +38,17 @@ def formula_to_criteria(formula: str) -> Dict:
 
         formula_dummies = formula.replace("*", "{}").format(*dummies[:nstars])
 
-        integer_formula = Composition(formula_dummies).get_integer_formula_and_factor()[0]
+        integer_formula = Composition(formula_dummies).get_integer_formula_and_factor()[
+            0
+        ]
         comp = Composition(integer_formula).reduced_composition
         crit = dict()
         crit["formula_anonymous"] = comp.anonymized_formula
-        real_elts = [str(e) for e in comp.elements if not e.as_dict().get("element", "A") in dummies]
+        real_elts = [
+            str(e)
+            for e in comp.elements
+            if not e.as_dict().get("element", "A") in dummies
+        ]
 
         for el, n in comp.to_reduced_dict.items():
             if el in real_elts:

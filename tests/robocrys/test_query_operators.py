@@ -61,4 +61,3 @@ def test_robocrys_search_query():
 
     assert op.post_process([{"total_doc": 10}]) == [{"total_doc": 10}]
     assert op.meta() == {"total_doc": 10}
-

@@ -4,7 +4,7 @@ from mp_api.routes.tasks.models import TaskDoc
 from mp_api.core.client import BaseRester
 
 
-class TaskRester(BaseRester):
+class TaskRester(BaseRester[TaskDoc]):
 
     suffix = "tasks"
     document_model = TaskDoc  # type: ignore

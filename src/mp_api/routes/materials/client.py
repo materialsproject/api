@@ -4,11 +4,14 @@ from pymatgen.core.structure import Structure
 from emmet.core.material import MaterialsDoc
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.utils import jsanitize
+from emmet.core.settings import EmmetSettings
 
 from mp_api.core.client import BaseRester, MPRestError
 
+_EMMET_SETTINGS = EmmetSettings()
 
-class MaterialsRester(BaseRester):
+
+class MaterialsRester(BaseRester[MaterialsDoc]):
 
     suffix = "materials"
     document_model = MaterialsDoc  # type: ignore
@@ -130,20 +133,36 @@ class MaterialsRester(BaseRester):
         )
 
     def find_structure(
-        self, filename_or_structure, ltol=0.2, stol=0.3, angle_tol=5, limit=1
-    ):
+        self,
+        filename_or_structure,
+        ltol=_EMMET_SETTINGS.LTOL,
+        stol=_EMMET_SETTINGS.STOL,
+        angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
+        allow_multiple_results=False,
+    ) -> Union[List[str], str]:
         """
-        Finds matching structures on the Materials Project site.
+        Finds matching structures from the Materials Project database.
+
+        Multiple results may be returned of "similar" structures based on
+        distance using the pymatgen StructureMatcher algorithm, however only
+        a single result should match with the same spacegroup, calculated to the
+        default tolerances.
+
         Args:
             filename_or_structure: filename or Structure object
+            ltol: fractional length tolerance
+            stol: site tolerance
+            angle_tol: angle tolerance in degrees
+            allow_multiple_results: changes return type for either
+            a single material_id or list of material_ids
         Returns:
-            A list of matching materials project ids for structure, \
-                including normalized rms distances and max distances between paired sites.
+            A matching material_id if one is found or list of results if allow_multiple_results
+            is True
         Raises:
             MPRestError
         """
 
-        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "limit": limit}
+        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "limit": 1}
 
         if isinstance(filename_or_structure, str):
             s = Structure.from_file(filename_or_structure)
@@ -152,9 +171,22 @@ class MaterialsRester(BaseRester):
         else:
             raise MPRestError("Provide filename or Structure object.")
 
-        return self._post_resource(
+        results = self._post_resource(
             body=s.as_dict(),
             params=params,
             suburl="find_structure",
             use_document_model=False,
         ).get("data")
+
+        if len(results) > 1:  # type: ignore
+            if not allow_multiple_results:
+                raise ValueError(
+                    "Multiple matches found for this combination of tolerances, but "
+                    "`allow_multiple_results` set to False."
+                )
+            return results  # type: ignore
+
+        if results:
+            return results[0]["material_id"]
+        else:
+            return []

@@ -9,7 +9,7 @@ import json
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Dict, Optional, List, Union
+from typing import Dict, Optional, List, Union, Generic, TypeVar
 from urllib.parse import urljoin
 from os import environ
 import warnings
@@ -35,24 +35,28 @@ except ImportError:  # pragma: no cover
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
+T = TypeVar("T")
 
-class BaseRester:
+
+class BaseRester(Generic[T]):
     """
     Base client class with core stubs
     """
 
     suffix: Optional[str] = None
-    document_model: Optional[BaseModel] = None
+    document_model: BaseModel = None  # type: ignore
     supports_versions: bool = False
     primary_key: str = "material_id"
 
     def __init__(
         self,
-        api_key=DEFAULT_API_KEY,
-        endpoint=DEFAULT_ENDPOINT,
-        include_user_agent=True,
-        session=None,
-        debug=False,
+        api_key: Union[str, None] = DEFAULT_API_KEY,
+        endpoint: str = DEFAULT_ENDPOINT,
+        include_user_agent: bool = True,
+        session: Optional[requests.Session] = None,
+        debug: bool = False,
+        monty_decode: bool = True,
+        use_document_model: bool = True,
     ):
         """
         Args:
@@ -75,12 +79,19 @@ class BaseRester:
             session: requests Session object with which to connect to the API, for
                 advanced usage only.
             debug: if True, print the URL for every request
+            monty_decode: Decode the data using monty into python objects
+            use_document_model: If False, skip the creating the document model and return data
+                as a dictionary. This can be simpler to work with but bypasses data validation
+                and will not give auto-complete for available fields.
         """
 
         self.api_key = api_key
         self.base_endpoint = endpoint
         self.endpoint = endpoint
         self.debug = debug
+        self.include_user_agent = include_user_agent
+        self.monty_decode = monty_decode
+        self.use_document_model = use_document_model
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
@@ -88,15 +99,21 @@ class BaseRester:
             self.endpoint += "/"
 
         if session:
-            self.session = session
+            self._session = session
         else:
-            self.session = self._create_session(api_key, include_user_agent)
+            self._session = None  # type: ignore
 
         self.document_model = (
-            api_sanitize(self.document_model)
+            api_sanitize(self.document_model)  # type: ignore
             if self.document_model is not None
             else None
         )
+
+    @property
+    def session(self) -> requests.Session:
+        if not self._session:
+            self._session = self._create_session(self.api_key, self.include_user_agent)
+        return self._session
 
     @staticmethod
     def _create_session(api_key, include_user_agent):
@@ -125,30 +142,32 @@ class BaseRester:
         Support for "with" context.
         """
         self.session.close()
+        self._session = None
 
     def _post_resource(
         self,
         body: Dict = None,
         params: Optional[Dict] = None,
-        monty_decode: bool = True,
         suburl: Optional[str] = None,
-        use_document_model: Optional[bool] = True,
-    ):
+        use_document_model: Optional[bool] = None,
+    ) -> Dict:
         """
         Post data to the endpoint for a Resource.
 
         Arguments:
             body: body json to send in post request
             params: extra params to send in post request
-            monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
-            use_document_model: whether to use the core document model for data reconstruction
+            use_document_model: if None, will defer to the self.use_document_model attribute
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
             "meta" containing meta information, e.g. total number of documents
             available.
         """
+
+        if use_document_model is None:
+            use_document_model = self.use_document_model
 
         check_limit()
 
@@ -164,13 +183,16 @@ class BaseRester:
 
             if response.status_code == 200:
 
-                if monty_decode:
+                if self.monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
                 else:
                     data = json.loads(response.text)
 
                 if self.document_model and use_document_model:
-                    data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+                    if isinstance(data["data"], dict):
+                        data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
+                    elif isinstance(data["data"], list):
+                        data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 return data
 
@@ -203,10 +225,9 @@ class BaseRester:
         self,
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
-        monty_decode: bool = True,
         suburl: Optional[str] = None,
-        use_document_model: Optional[bool] = True,
-    ):
+        use_document_model: Optional[bool] = None,
+    ) -> Dict:
         """
         Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
@@ -217,9 +238,8 @@ class BaseRester:
         Arguments:
             criteria: dictionary of criteria to filter down
             fields: list of fields to return
-            monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
-            use_document_model: whether to use the core document model for data reconstruction
+            use_document_model: if None, will defer to the self.use_document_model attribute
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -228,6 +248,9 @@ class BaseRester:
         """
 
         check_limit()
+
+        if use_document_model is None:
+            use_document_model = self.use_document_model
 
         if criteria:
             criteria = {k: v for k, v in criteria.items() if v is not None}
@@ -249,11 +272,13 @@ class BaseRester:
 
             if response.status_code == 200:
 
-                if monty_decode:
+                if self.monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
                 else:
                     data = json.loads(response.text)
 
+                # other sub-urls may use different document models
+                # the client does not handle this in a particularly smart way currently
                 if self.document_model and use_document_model:
                     data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
@@ -284,42 +309,42 @@ class BaseRester:
 
             raise MPRestError(str(ex))
 
-    def query(
+    def _query_resource_data(
         self,
         criteria: Optional[Dict] = None,
         fields: Optional[List[str]] = None,
-        monty_decode: bool = True,
         suburl: Optional[str] = None,
-    ):
+        use_document_model: Optional[bool] = None,
+    ) -> Union[List[T], List[Dict]]:
         """
-        Query the endpoint for a list of documents.
+        Query the endpoint for a list of documents without associated meta information. Only
+        returns a single page of results.
 
         Arguments:
             criteria: dictionary of criteria to filter down
             fields: list of fields to return
-            monty_decode: Decode the data using monty into python objects
             suburl: make a request to a specified sub-url
+            use_document_model: if None, will defer to the self.use_document_model attribute
 
         Returns:
             A list of documents
         """
-        return self._query_resource(
-            criteria=criteria, fields=fields, monty_decode=monty_decode, suburl=suburl,
+        return self._query_resource(  # type: ignore
+            criteria=criteria,
+            fields=fields,
+            suburl=suburl,
+            use_document_model=use_document_model,
         ).get("data")
 
     def get_document_by_id(
-        self,
-        document_id: str,
-        fields: Optional[List[str]] = None,
-        monty_decode: bool = True,
-    ):
+        self, document_id: str, fields: Optional[List[str]] = None,
+    ) -> Union[T]:
         """
         Query the endpoint for a single document.
 
         Arguments:
             document_id: the unique key for this kind of document, typically a task_id
             fields: list of fields to return, by default will return all fields
-            monty_decode: Decode the data using monty into python objects
 
         Returns:
             A single document.
@@ -339,14 +364,11 @@ class BaseRester:
         if isinstance(fields, str):  # pragma: no cover
             fields = (fields,)
 
-        results = []
+        results = []  # type: List
 
         try:
-            results = self.query(
-                criteria=criteria,
-                fields=fields,
-                monty_decode=monty_decode,
-                suburl=document_id,
+            results = self._query_resource_data(
+                criteria=criteria, fields=fields, suburl=document_id,
             )
         except MPRestError:
 
@@ -365,11 +387,8 @@ class BaseRester:
                     )
                     document_id = new_document_id
 
-                    results = self.query(
-                        criteria=criteria,
-                        fields=fields,
-                        monty_decode=monty_decode,
-                        suburl=document_id,
+                    results = self._query_resource_data(
+                        criteria=criteria, fields=fields, suburl=document_id,
                     )
 
         if not results:
@@ -388,7 +407,7 @@ class BaseRester:
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
         **kwargs,
-    ):
+    ) -> Union[List[T], List[Dict]]:
         """
         A generic search method to retrieve documents matching specific parameters.
 
@@ -426,7 +445,7 @@ class BaseRester:
         fields=None,
         chunk_size=1000,
         num_chunks=None,
-    ):
+    ) -> Union[List[T], List[Dict]]:
         """
         Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
@@ -439,7 +458,7 @@ class BaseRester:
 
         query_params["limit"] = chunk_size
 
-        results = self._query_resource(query_params, fields=fields)
+        results = self._query_resource(query_params, fields=fields,)
 
         # if we have all the results in a single page, return directly
         if len(results["data"]) == results["meta"]["total_doc"]:
@@ -447,12 +466,14 @@ class BaseRester:
 
         # otherwise prepare to iterate over all pages
         all_results = results["data"]
-        count = 1
+        num_pages_retrieved = 1
 
         # progress bar
         total_docs = results["meta"]["total_doc"]
+        if num_chunks:
+            total_docs = min(len(all_results) * num_chunks, total_docs)
         t = tqdm(
-            desc=f"Retrieving {self.document_model.__name__} documents",
+            desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
             total=total_docs,
         )
         t.update(len(all_results))
@@ -466,26 +487,22 @@ class BaseRester:
             )
 
         while True:
-            query_params["skip"] = count * chunk_size
+
+            if num_chunks and num_pages_retrieved >= num_chunks:
+                break
+
+            query_params["skip"] = num_pages_retrieved * chunk_size
             results = self._query_resource(query_params, fields=fields)
 
             t.update(len(results["data"]))
 
-            if not any(results["data"]) or (
-                num_chunks is not None and count == num_chunks
-            ):
+            if not any(results["data"]):
                 break
 
-            count += 1
+            num_pages_retrieved += 1
             all_results += results["data"]
 
         return all_results
-
-    def query_by_task_id(self, *args, **kwargs):  # pragma: no cover
-        print(
-            "query_by_task_id has been renamed to get_document_by_id to be more general"
-        )
-        return self.get_document_by_id(*args, **kwargs)
 
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
         """
@@ -498,9 +515,13 @@ class BaseRester:
             criteria[
                 "limit"
             ] = 1  # we just want the meta information, only ask for single document
-            results = self._query_resource(
-                criteria=criteria, monty_decode=False
-            )  # do not waste cycles Monty decoding
+            user_preferences = self.monty_decode, self.use_document_model
+            self.monty_decode, self.use_document_model = (
+                False,
+                False,
+            )  # do not waste cycles decoding
+            results = self._query_resource(criteria=criteria)
+            self.monty_decode, self.use_document_model = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover
             return "Problem getting count"
