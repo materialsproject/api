@@ -190,4 +190,3 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             return results[0]["material_id"]
         else:
             return []
-
