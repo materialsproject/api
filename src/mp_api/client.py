@@ -5,15 +5,16 @@ from enum import Enum, unique
 import itertools
 
 from pymatgen.core import Structure
+from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.wulff import WulffShape
 from emmet.core.mpid import MPID
 from emmet.core.symmetry import CrystalSystem
-from emmet.core.vasp.calc_types import TaskType
+from emmet.core.vasp.calc_types import TaskType, CalcType
 from emmet.core.settings import EmmetSettings
 
-from mp_api.core.client import BaseRester
+from mp_api.core.client import BaseRester, MPRestError
 from mp_api.routes.electronic_structure.models.core import BSPathType
 from mp_api.routes import *
 
@@ -148,15 +149,23 @@ class MPRester:
         self.session.close()
 
     def get_task_ids_associated_with_material_id(
-        self, material_id: str, task_types: Optional[List[TaskType]] = None
+        self, material_id: str, calc_types: Optional[List[CalcType]] = None
     ) -> List[str]:
         """
 
         :param material_id:
-        :param task_types: if specified, will restrict to certain task types, e.g. [TaskType.GGA_STATIC]
+        :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
         :return:
         """
-        pass
+        tasks = self.materials.get_document_by_id(
+            material_id, fields=["calc_types",]
+        ).calc_types
+        if calc_types:
+            return [
+                task for task, calc_type in tasks.items() if calc_type in calc_types
+            ]
+        else:
+            return list(tasks.values())
 
     def get_structure_by_material_id(
         self, material_id, final=True, conventional_unit_cell=False
@@ -740,3 +749,64 @@ class MPRester:
                 miller_energy_map[miller] = surf.surface_energy
         millers, energies = zip(*miller_energy_map.items())
         return WulffShape(lattice, millers, energies)
+
+    # TODO: need to move upwards to MPRester to avoid initialization of MaterialsRester ?
+    def _get_possible_charge_density_task_ids_from_material_id(self, material_id: str):
+        """
+        Get charge density calculation ids associated with a given Materials Project ID
+        that have charge density data.
+
+        Arguments:
+            material_id (str): Materials Project ID
+
+        Returns:
+            task_ids (List[str]): List of calculation ids that may have charge density data.
+        """
+
+        materials_rester = MaterialsRester(  # type: ignore
+            endpoint=self.base_endpoint, api_key=self.api_key,
+        )
+
+        mat_doc = materials_rester.get_document_by_id(
+            document_id=material_id, fields=["calc_types"]
+        )
+
+        task_ids = []
+        if mat_doc is not None:
+            for task_id, calculation_type in mat_doc.calc_types.items():
+                if "Static" in calculation_type:
+                    task_ids.append(task_id)
+
+        result = []
+
+        if len(task_ids) > 0:
+            result = self.search(
+                task_ids=",".join(task_ids),
+                fields=["task_id", "last_updated"],
+                chunk_size=10,
+            )
+
+        return result
+
+    def get_charge_density_from_material_id(self, material_id: str) -> Optional[Chgcar]:
+        """
+        Get charge density data for a given Materials Project ID.
+
+        Arguments:
+            material_id (str): Material Project ID
+
+        Returns:
+            chgcar: Pymatgen CHGCAR object.
+        """
+
+        # TODO: really we want a recommended task_id for charge densities here
+        # this could potentially introduce an ambiguity
+        task_ids = self.get_task_ids_associated_with_material_id(
+            material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
+        )
+        result = self.charge_density.search(task_ids=task_ids, chunk_size=1)
+
+        if len(result) > 0:
+            return result[0].data
+        else:
+            raise MPRestError("No charge density found")
