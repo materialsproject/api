@@ -296,7 +296,6 @@ if db_uri:
         collection_name="settings",
     )
 
-
 else:
     materials_store = loadfn(materials_store_json)
     formula_autocomplete_store = loadfn(formula_autocomplete_store_json)

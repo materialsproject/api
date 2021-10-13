@@ -500,19 +500,6 @@ class MPRester:
         """
         return self.phonon.get_document_by_id(material_id, fields=["ph_bs"]).ph_bs
 
-    def get_charge_density_by_material_id(self, material_id: str):
-        """
-        Get charge density data for a given Materials Project ID.
-
-        Arguments:
-            material_id (str): Material Project ID
-
-        Returns:
-            chgcar (dict): Pymatgen CHGCAR object.
-        """
-
-        return self.charge_density.get_charge_density_from_material_id(material_id)  # type: ignore
-
     def query(
         self,
         material_ids: Optional[List[MPID]] = None,
@@ -804,9 +791,13 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        result = self.charge_density.search(task_ids=task_ids, chunk_size=1)
+        results = self.charge_density.search(task_ids=task_ids)
 
-        if len(result) > 0:
-            return result[0].data
+        fs_id = sorted(results, key=lambda x: x.last_updated, reverse=True)[0].fs_id
+
+        result = self.charge_density.get_document_by_id(fs_id)
+
+        if result:
+            return result.data
         else:
             raise MPRestError("No charge density found")

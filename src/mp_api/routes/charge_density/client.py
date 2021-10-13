@@ -42,14 +42,17 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         """
         num_downloads = 0
         path = Path(path)
-        for task_id in task_ids:
-            doc = self.get_document_by_id(task_id)
-            dumpfn(doc, path / f"{doc.task_id}.{ext}")
+        chgcar_summary_docs = self.search(task_ids=task_ids)
+        for entry in chgcar_summary_docs:
+            fs_id = entry.fs_id
+            task_id = entry.task_id
+            doc = self.get_document_by_id(fs_id)
+            dumpfn(doc, path / f"{task_id}.{ext}")
             num_downloads += 1
         return num_downloads
 
     def search(
-        self, num_chunks: Optional[int] = 1, chunk_size: int = 10,
+        self, num_chunks: Optional[int] = 1, chunk_size: int = 10, **kwargs
     ) -> Union[List[ChgcarDataDoc], List[Dict]]:  # type: ignore
         """
         A search method to find what charge densities are available via this API.
@@ -66,5 +69,6 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=False,
-            fields=("last_updated", "task_id"),
+            fields=["last_updated", "task_id", "fs_id"],
+            **kwargs,
         )

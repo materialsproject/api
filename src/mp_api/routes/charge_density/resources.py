@@ -17,7 +17,7 @@ def charge_density_resource(s3_store):
         ],
         tags=["Charge Density"],
         enable_default_search=True,
-        enable_get_by_key=False,
+        enable_get_by_key=True,
         disable_validation=True,
     )
 
