@@ -51,7 +51,7 @@ def test_count(mpr):
 )
 @pytest.mark.xfail
 def test_get_document_no_id(mpr):
-    mpr.materials.get_document_by_id(None)
+    mpr.materials.get_data_by_id(None)
 
 
 @pytest.mark.skipif(
@@ -59,7 +59,7 @@ def test_get_document_no_id(mpr):
 )
 @pytest.mark.xfail
 def test_get_document_no_doc(mpr):
-    mpr.materials.get_document_by_id("mp-1a")
+    mpr.materials.get_data_by_id("mp-1a")
 
 
 def test_available_fields(rester, mpr):

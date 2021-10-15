@@ -68,7 +68,7 @@ class TestMPRester:
     def test_get_materials_ids_doc(self, mpr):
         mpids = mpr.get_materials_ids("Al2O3")
         random.shuffle(mpids)
-        doc = mpr.materials.get_document_by_id(mpids.pop(0))
+        doc = mpr.materials.get_data_by_id(mpids.pop(0))
         assert doc.formula_pretty == "Al2O3"
 
     def test_get_structures(self, mpr):

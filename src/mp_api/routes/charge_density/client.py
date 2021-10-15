@@ -46,7 +46,7 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         for entry in chgcar_summary_docs:
             fs_id = entry.fs_id  # type: ignore
             task_id = entry.task_id  # type: ignore
-            doc = self.get_document_by_id(fs_id)
+            doc = self.get_data_by_id(fs_id)
             dumpfn(doc, path_obj / f"{task_id}.{ext}")
             num_downloads += 1
         return num_downloads

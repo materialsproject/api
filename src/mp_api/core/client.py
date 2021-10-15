@@ -336,7 +336,7 @@ class BaseRester(Generic[T]):
             use_document_model=use_document_model,
         ).get("data")
 
-    def get_document_by_id(
+    def get_data_by_id(
         self, document_id: str, fields: Optional[List[str]] = None,
     ) -> Union[T]:
         """
