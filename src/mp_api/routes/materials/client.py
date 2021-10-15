@@ -34,12 +34,10 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
                 pymatgen structure objects.
         """
         if final:
-            response = self.get_document_by_id(material_id, fields=["structure"])
+            response = self.get_data_by_id(material_id, fields=["structure"])
             return response.structure if response is not None else response  # type: ignore
         else:
-            response = self.get_document_by_id(
-                material_id, fields=["initial_structures"]
-            )
+            response = self.get_data_by_id(material_id, fields=["initial_structures"])
             return response.initial_structures if response is not None else response  # type: ignore
 
     def search_material_docs(

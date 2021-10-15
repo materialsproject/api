@@ -217,7 +217,7 @@ class BandStructureRester(BaseRester):
         )
 
         if line_mode:
-            bs_data = es_rester.get_document_by_id(
+            bs_data = es_rester.get_data_by_id(
                 document_id=material_id, fields=["bandstructure"]
             ).bandstructure.dict()
 
@@ -230,7 +230,7 @@ class BandStructureRester(BaseRester):
                     )
                 )
         else:
-            bs_data = es_rester.get_document_by_id(
+            bs_data = es_rester.get_data_by_id(
                 document_id=material_id, fields=["dos"]
             ).dos.dict()
 
@@ -364,7 +364,7 @@ class DosRester(BaseRester):
             endpoint=self.base_endpoint, api_key=self.api_key
         )
 
-        dos_data = es_rester.get_document_by_id(
+        dos_data = es_rester.get_data_by_id(
             document_id=material_id, fields=["dos"]
         ).dict()
 

@@ -157,7 +157,7 @@ class MPRester:
         :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
         :return:
         """
-        tasks = self.materials.get_document_by_id(
+        tasks = self.materials.get_data_by_id(
             material_id, fields=["calc_types"]
         ).calc_types
         if calc_types:
@@ -257,7 +257,7 @@ class MPRester:
         Returns:
             BibTeX (str)
         """
-        return self.provenance.get_document_by_id(material_id).references
+        return self.provenance.get_data_by_id(material_id).references
 
     def get_materials_ids(self, chemsys_formula):
         """
@@ -404,7 +404,7 @@ class MPRester:
             List of ComputedEntry or ComputedStructureEntry object.
         """
         return list(
-            self.thermo.get_document_by_id(
+            self.thermo.get_data_by_id(
                 document_id=material_id, fields=["entries"]
             ).entries.values()
         )
@@ -486,7 +486,7 @@ class MPRester:
              CompletePhononDos: A phonon DOS object.
 
         """
-        return self.phonon.get_document_by_id(material_id, fields=["ph_dos"]).ph_dos
+        return self.phonon.get_data_by_id(material_id, fields=["ph_dos"]).ph_dos
 
     def get_phonon_bandstructure_by_material_id(self, material_id):
         """
@@ -498,7 +498,7 @@ class MPRester:
         Returns:
             PhononBandStructureSymmLine:  phonon band structure.
         """
-        return self.phonon.get_document_by_id(material_id, fields=["ph_bs"]).ph_bs
+        return self.phonon.get_data_by_id(material_id, fields=["ph_bs"]).ph_bs
 
     def query(
         self,
@@ -722,7 +722,7 @@ class MPRester:
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
         structure = self.get_structure_by_material_id(material_id)
-        surfaces = surfaces = self.surface_properties.get_document_by_id(
+        surfaces = surfaces = self.surface_properties.get_data_by_id(
             material_id
         ).surfaces
         lattice = (
@@ -757,7 +757,7 @@ class MPRester:
 
         latest_doc = sorted(results, key=lambda x: x.last_updated, reverse=True)[0]
 
-        result = self.charge_density.get_document_by_id(latest_doc.fs_id)  # type: ignore
+        result = self.charge_density.get_data_by_id(latest_doc.fs_id)  # type: ignore
 
         if result:
             return result.data

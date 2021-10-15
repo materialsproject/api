@@ -35,4 +35,4 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
         Raises:
             MPRestError
         """
-        return self.get_document_by_id(consumer_id)
+        return self.get_data_by_id(consumer_id)

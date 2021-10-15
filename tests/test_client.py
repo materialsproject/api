@@ -37,7 +37,7 @@ mpr = MPRester()
 @pytest.mark.parametrize("rester", mpr._all_resters)
 def test_generic_get_methods(rester):
 
-    # -- Test generic search and get_document_by_id methods
+    # -- Test generic search and get_data_by_id methods
     name = rester.suffix.replace("/", "_")
     if name not in ignore_generic:
         if name not in key_only_resters:
@@ -47,13 +47,13 @@ def test_generic_get_methods(rester):
             assert isinstance(doc, rester.document_model)
 
             if name not in search_only_resters:
-                doc = rester.get_document_by_id(
+                doc = rester.get_data_by_id(
                     doc.dict()[rester.primary_key], fields=[rester.primary_key]
                 )
                 assert isinstance(doc, rester.document_model)
 
         elif name not in special_resters:
-            doc = rester.get_document_by_id(
+            doc = rester.get_data_by_id(
                 key_only_resters[name], fields=[rester.primary_key]
             )
             assert isinstance(doc, rester.document_model)
