@@ -1,7 +1,7 @@
 from datetime import datetime
 from monty.json import MontyDecoder
 
-from emmet.core.polar import Dielectric
+from emmet.core.polar import DielectricDoc as BaseDielectricDoc
 
 from pydantic import BaseModel, Field, validator
 
@@ -11,7 +11,7 @@ class DielectricDoc(BaseModel):
     Dielectric tensor and associated information.
     """
 
-    dielectric: Dielectric = Field(
+    dielectric: BaseDielectricDoc = Field(
         None, description="Dielectric data",
     )
 
