@@ -1,5 +1,5 @@
 pydantic==1.8.2
-pymatgen==2022.0.14
+pymatgen==2022.0.15
 typing-extensions==3.10.0.2
 maggma==0.31.0
 requests==2.26.0
