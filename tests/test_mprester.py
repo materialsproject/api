@@ -138,7 +138,6 @@ class TestMPRester:
         dos = mpr.get_phonon_dos_by_material_id("mp-11659")
         assert isinstance(dos, PhononDos)
 
-    @pytest.mark.xfail  # temporary until api deploy
     def test_get_charge_density_data(self, mpr):
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
