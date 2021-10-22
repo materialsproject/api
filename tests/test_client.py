@@ -11,6 +11,7 @@ key_only_resters = {
     "wulff": "mp-149",
     "charge_density": "mp-1936745",
     "provenance": "mp-149",
+    "robocrys": "mp-1025395",
 }
 
 search_only_resters = [
