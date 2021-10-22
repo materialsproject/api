@@ -13,7 +13,7 @@ def general_store_resource(general_store):
         post_query_operators=[GeneralStorePostQuery()],
         get_query_operators=[GeneralStoreGetQuery()],
         enable_default_search=True,
-        include_in_schema=True,
+        include_in_schema=False,
         calculate_submission_id=True,
     )
 
