@@ -64,6 +64,8 @@ consumer_settings_store_json = os.environ.get(
     "CONSUMER_SETTINGS_STORE", "consumer_settings_store.json"
 )
 
+general_store_json = os.environ.get("GENERAL_STORE_STORE", "general_store_store.json")
+
 
 if db_uri:
     from maggma.stores import MongoURIStore, S3Store
@@ -296,6 +298,13 @@ if db_uri:
         collection_name="settings",
     )
 
+    general_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_consumers",
+        key="submission_id",
+        collection_name="general_store",
+    )
+
 else:
     materials_store = loadfn(materials_store_json)
     formula_autocomplete_store = loadfn(formula_autocomplete_store_json)
@@ -333,6 +342,7 @@ else:
 
     mpcomplete_store = loadfn(mpcomplete_store_json)
     consumer_settings_store = loadfn(consumer_settings_store_json)
+    general_store = loadfn(general_store_json)
 
 # Materials
 from mp_api.routes.materials.resources import (
@@ -525,6 +535,11 @@ resources.update({"mpcomplete": [mpcomplete_resource(mpcomplete_store)]})
 from mp_api.routes._consumer.resources import settings_resource
 
 resources.update({"_user_settings": [settings_resource(consumer_settings_store)]})
+
+# General Store
+from mp_api.routes._general_store.resources import general_store_resource
+
+resources.update({"_general_store": [general_store_resource(general_store)]})
 
 # === MAPI setup
 from mp_api.core.documentation import description, tags_meta

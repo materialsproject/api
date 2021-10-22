@@ -11,6 +11,7 @@ key_only_resters = {
     "wulff": "mp-149",
     "charge_density": "mp-1936745",
     "provenance": "mp-149",
+    "robocrys": "mp-1025395",
 }
 
 search_only_resters = [
@@ -25,7 +26,7 @@ special_resters = [
     "charge_density",
 ]
 
-ignore_generic = ["robocrys", "_user_settings"]  # temp
+ignore_generic = ["_user_settings", "_general_store"]  # temp
 
 
 mpr = MPRester()

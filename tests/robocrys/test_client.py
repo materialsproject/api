@@ -14,7 +14,7 @@ def rester():
     rester.session.close()
 
 
-@pytest.mark.xfail  # temp
+@pytest.mark.xfail  # temp until data fix
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
