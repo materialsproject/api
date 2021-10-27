@@ -754,12 +754,15 @@ class MPRester:
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
         results = self.charge_density.search(task_ids=task_ids)
-
-        latest_doc = sorted(results, key=lambda x: x.last_updated, reverse=True)[0]
+        
+        if len(results) == 0:
+            return None
+        
+        latest_doc = max(results, key=lambda x: x.last_updated, reverse=True)
 
         result = self.charge_density.get_data_by_id(latest_doc.fs_id)  # type: ignore
 
         if result:
             return result.data
         else:
-            raise MPRestError("No charge density found")
+            raise MPRestError("Charge density task_id found but no charge density fetched.")
