@@ -1,7 +1,6 @@
-from os import environ, path
+from os import environ
 import warnings
 from typing import Optional, Tuple, List, Union
-from enum import Enum, unique
 import itertools
 
 from pymatgen.core import Structure
@@ -11,7 +10,7 @@ from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.wulff import WulffShape
 from emmet.core.mpid import MPID
 from emmet.core.symmetry import CrystalSystem
-from emmet.core.vasp.calc_types import TaskType, CalcType
+from emmet.core.vasp.calc_types import CalcType
 from emmet.core.settings import EmmetSettings
 
 from mp_api.core.client import BaseRester, MPRestError
@@ -133,7 +132,9 @@ class MPRester:
             self._all_resters.append(rester)
 
             setattr(
-                self, cls.suffix.replace("/", "_"), rester,  # type: ignore
+                self,
+                cls.suffix.replace("/", "_"),  # type: ignore
+                rester,
             )
 
     def __enter__(self):
@@ -354,7 +355,9 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula, sort_by_e_above_hull=False,
+        self,
+        chemsys_formula,
+        sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
@@ -387,7 +390,9 @@ class MPRester:
 
         else:
             for doc in self.thermo.search_thermo_docs(
-                chemsys_formula=chemsys_formula, all_fields=False, fields=["entries"],
+                chemsys_formula=chemsys_formula,
+                all_fields=False,
+                fields=["entries"],
             ):
                 entries.extend(list(doc.entries.values()))
 
@@ -410,7 +415,8 @@ class MPRester:
         )
 
     def get_entries_in_chemsys(
-        self, elements,
+        self,
+        elements,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -754,10 +760,10 @@ class MPRester:
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
         results = self.charge_density.search(task_ids=task_ids)
-        
+
         if len(results) == 0:
             return None
-        
+
         latest_doc = max(results, key=lambda x: x.last_updated)
 
         result = self.charge_density.get_data_by_id(latest_doc.fs_id)  # type: ignore
@@ -765,4 +771,6 @@ class MPRester:
         if result:
             return result.data
         else:
-            raise MPRestError("Charge density task_id found but no charge density fetched.")
+            raise MPRestError(
+                "Charge density task_id found but no charge density fetched."
+            )

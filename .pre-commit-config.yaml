@@ -6,11 +6,11 @@ repos:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
     -   id: flake8
-  - repo: https://github.com/ambv/black
-    rev: stable
+  - repo: https://github.com/psf/black
+    rev: 20.8b1
     hooks:
     - id: black
-      language_version: python3.7
+      language_version: python3 # Should be a command that runs python3.6+
   - repo: git@github.com:humitos/mirrors-autoflake.git
     rev: v1.1
     hooks:
