@@ -758,7 +758,7 @@ class MPRester:
         if len(results) == 0:
             return None
         
-        latest_doc = max(results, key=lambda x: x.last_updated, reverse=True)
+        latest_doc = max(results, key=lambda x: x.last_updated)
 
         result = self.charge_density.get_data_by_id(latest_doc.fs_id)  # type: ignore
 
