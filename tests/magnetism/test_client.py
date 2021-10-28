@@ -17,7 +17,7 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = ["magnetism"]  # type: list
+sub_doc_fields = []  # type: list
 
 alt_name_dict = {}  # type: dict
 

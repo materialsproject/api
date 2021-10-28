@@ -16,7 +16,7 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = ["piezo"]  # type: list
+sub_doc_fields = []  # type: list
 
 alt_name_dict = {"piezoelectric_modulus": "e_ij_max"}  # type: dict
 
