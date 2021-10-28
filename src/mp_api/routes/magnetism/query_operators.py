@@ -59,23 +59,17 @@ class MagneticQuery(QueryOperator):
         crit = defaultdict(dict)  # type: dict
 
         d = {
-            "magnetism.total_magnetization": [
-                total_magnetization_min,
-                total_magnetization_max,
-            ],
-            "magnetism.total_magnetization_normalized_vol": [
+            "total_magnetization": [total_magnetization_min, total_magnetization_max],
+            "total_magnetization_normalized_vol": [
                 total_magnetization_normalized_vol_min,
                 total_magnetization_normalized_vol_max,
             ],
-            "magnetism.total_magnetization_normalized_formula_units": [
+            "total_magnetization_normalized_formula_units": [
                 total_magnetization_normalized_formula_units_min,
                 total_magnetization_normalized_formula_units_max,
             ],
-            "magnetism.num_magnetic_sites": [
-                num_magnetic_sites_min,
-                num_magnetic_sites_max,
-            ],
-            "magnetism.num_unique_magnetic_sites": [
+            "num_magnetic_sites": [num_magnetic_sites_min, num_magnetic_sites_max],
+            "num_unique_magnetic_sites": [
                 num_unique_magnetic_sites_min,
                 num_unique_magnetic_sites_max,
             ],
@@ -89,7 +83,7 @@ class MagneticQuery(QueryOperator):
                 crit[entry]["$lte"] = d[entry][1]
 
         if ordering:
-            crit["magnetism.ordering"] = ordering.value
+            crit["ordering"] = ordering.value
 
         return {"criteria": crit}
 
@@ -99,5 +93,5 @@ class MagneticQuery(QueryOperator):
         for key in keys:
             if "_min" in key:
                 key = key.replace("_min", "")
-                indexes.append(("magnetism." + key, False))
+                indexes.append((key, False))
         return indexes

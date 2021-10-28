@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester
-from mp_api.routes.magnetism.models import MagnetismDoc
+from emmet.core.magnetism import MagnetismDoc
 
 from pymatgen.analysis.magnetism import Ordering
 

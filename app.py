@@ -18,8 +18,9 @@ formula_autocomplete_store_json = os.environ.get(
 )
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
 thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
-dielectric_piezo_store_json = os.environ.get(
-    "DIELECTRIC_PIEZO_STORE", "dielectric_piezo_store.json"
+dielectric_store_json = os.environ.get("DIELECTRIC_STORE", "dielectric_store.json")
+piezoelectric_store_json = os.environ.get(
+    "PIEZOELECTRIC_STORE", "piezoelectric_store.json"
 )
 magnetism_store_json = os.environ.get("MAGNETISM_STORE", "magnetism_store.json")
 phonon_bs_store_json = os.environ.get("PHONON_BS_STORE", "phonon_bs_store.json")
@@ -98,18 +99,25 @@ if db_uri:
         collection_name=f"thermo_{db_version}",
     )
 
-    dielectric_piezo_store = MongoURIStore(
+    dielectric_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
-        collection_name="dielectric",
+        key="material_id",
+        collection_name="dielectric_625",
+    )
+
+    piezoelectric_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="material_id",
+        collection_name="piezoelectric_625",
     )
 
     magnetism_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
-        key="task_id",
-        collection_name="magnetism",
+        key="material_id",
+        collection_name="magnetism_625",
     )
 
     phonon_bs_store = MongoURIStore(
@@ -310,7 +318,8 @@ else:
     formula_autocomplete_store = loadfn(formula_autocomplete_store_json)
     task_store = loadfn(task_store_json)
     thermo_store = loadfn(thermo_store_json)
-    dielectric_piezo_store = loadfn(dielectric_piezo_store_json)
+    dielectric_store = loadfn(dielectric_store_json)
+    piezoelectric_store = loadfn(piezoelectric_store_json)
     magnetism_store = loadfn(magnetism_store_json)
     phonon_bs_store = loadfn(phonon_bs_store_json)
     eos_store = loadfn(eos_store_json)
@@ -388,17 +397,17 @@ resources.update({"thermo": [thermo_resource(thermo_store)]})
 # Dielectric
 from mp_api.routes.dielectric.resources import dielectric_resource
 
-resources.update({"dielectric": [dielectric_resource(dielectric_piezo_store)]})
+resources.update({"dielectric": [dielectric_resource(dielectric_store)]})
+
+# Piezoelectric
+from mp_api.routes.piezo.resources import piezo_resource
+
+resources.update({"piezoelectric": [piezo_resource(piezoelectric_store)]})
 
 # Magnetism
 from mp_api.routes.magnetism.resources import magnetism_resource
 
 resources.update({"magnetism": [magnetism_resource(magnetism_store)]})
-
-# Piezoelectric
-from mp_api.routes.piezo.resources import piezo_resource
-
-resources.update({"piezoelectric": [piezo_resource(dielectric_piezo_store)]})
 
 # Phonon
 from mp_api.routes.phonon.resources import phonon_bsdos_resource

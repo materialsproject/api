@@ -24,7 +24,7 @@ class PiezoelectricQuery(QueryOperator):
         crit = defaultdict(dict)  # type: dict
 
         d = {
-            "piezo.e_ij_max": [piezo_modulus_min, piezo_modulus_max],
+            "e_ij_max": [piezo_modulus_min, piezo_modulus_max],
         }
 
         for entry in d:
@@ -37,4 +37,4 @@ class PiezoelectricQuery(QueryOperator):
         return {"criteria": crit}
 
     def ensure_indexes(self):  # pragma: no cover
-        return [("piezo.e_ij_max", False)]
+        return [("e_ij_max", False)]

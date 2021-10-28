@@ -24,16 +24,16 @@ def test_magnetic_query():
     )
 
     fields = [
-        "magnetism.total_magnetization",
-        "magnetism.total_magnetization_normalized_vol",
-        "magnetism.total_magnetization_normalized_formula_units",
-        "magnetism.num_magnetic_sites",
-        "magnetism.num_unique_magnetic_sites",
+        "total_magnetization",
+        "total_magnetization_normalized_vol",
+        "total_magnetization_normalized_formula_units",
+        "num_magnetic_sites",
+        "num_unique_magnetic_sites",
     ]
 
     c = {field: {"$gte": 0, "$lte": 5} for field in fields}
 
-    assert q == {"criteria": {"magnetism.ordering": "FM", **c}}
+    assert q == {"criteria": {"ordering": "FM", **c}}
 
     with ScratchDir("."):
         dumpfn(op, "temp.json")
@@ -53,4 +53,4 @@ def test_magnetic_query():
         )
         c = {field: {"$gte": 0, "$lte": 5} for field in fields}
 
-        assert q == {"criteria": {"magnetism.ordering": "FM", **c}}
+        assert q == {"criteria": {"ordering": "FM", **c}}
