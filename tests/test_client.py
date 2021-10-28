@@ -26,7 +26,13 @@ special_resters = [
     "charge_density",
 ]
 
-ignore_generic = ["_user_settings", "_general_store"]  # temp
+ignore_generic = [
+    "_user_settings",
+    "_general_store",
+    "dielectric",
+    "piezoelectric",
+    "magnetism",
+]  # temp
 
 
 mpr = MPRester()
