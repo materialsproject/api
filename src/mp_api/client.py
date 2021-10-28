@@ -2,6 +2,7 @@ from os import environ
 import warnings
 from typing import Optional, Tuple, List, Union
 import itertools
+from mp_api.routes.charge_density.models import ChgcarDataDoc
 
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Chgcar
@@ -762,14 +763,14 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results = self.charge_density.search(task_ids=task_ids)
+        results: List[ChgcarDataDoc] = self.charge_density.search(task_ids=task_ids)  # type: ignore
 
         if len(results) == 0:
             return None
 
         latest_doc = max(results, key=lambda x: x.last_updated)
 
-        chg_doc = self.charge_density.get_data_by_id(latest_doc.fs_id)  # type: ignore
+        chg_doc = self.charge_density.get_data_by_id(latest_doc.fs_id)
 
         if chg_doc:
             chgcar = chg_doc.data
