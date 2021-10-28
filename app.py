@@ -103,21 +103,21 @@ if db_uri:
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
         key="material_id",
-        collection_name="dielectric_625",
+        collection_name="dielectric",
     )
 
     piezoelectric_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
         key="material_id",
-        collection_name="piezoelectric_625",
+        collection_name="piezoelectric",
     )
 
     magnetism_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database="mp_core",
         key="material_id",
-        collection_name="magnetism_625",
+        collection_name="magnetism",
     )
 
     phonon_bs_store = MongoURIStore(
