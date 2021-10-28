@@ -23,6 +23,7 @@ alt_name_dict = {"e_static": "e_ionic"}  # type: dict
 custom_field_tests = {}  # type: dict
 
 
+@pytest.mark.xfail(reason="Needs deployment")
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
