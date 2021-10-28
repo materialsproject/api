@@ -11,7 +11,7 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
 
     suffix = "piezoelectric"
     document_model = PiezoelectricDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
 
     def search_piezoelectric_docs(
         self,

@@ -11,7 +11,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
 
     suffix = "magnetism"
     document_model = MagnetismDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
 
     def search_magnetism_docs(
         self,

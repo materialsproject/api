@@ -9,7 +9,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
 
     suffix = "dielectric"
     document_model = DielectricDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
 
     def search_dielectric_docs(
         self,
