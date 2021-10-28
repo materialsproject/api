@@ -743,15 +743,18 @@ class MPRester:
         millers, energies = zip(*miller_energy_map.items())
         return WulffShape(lattice, millers, energies)
 
-    def get_charge_density_from_material_id(self, material_id: str) -> Optional[Chgcar]:
+    def get_charge_density_from_material_id(
+        self, material_id: str, inc_task_doc: bool = False
+    ) -> Optional[Chgcar]:
         """
         Get charge density data for a given Materials Project ID.
 
         Arguments:
             material_id (str): Material Project ID
+            inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            chgcar: Pymatgen CHGCAR object.
+            chgcar: Pymatgen Chgcar object.
         """
 
         # TODO: really we want a recommended task_id for charge densities here
@@ -766,10 +769,14 @@ class MPRester:
 
         latest_doc = max(results, key=lambda x: x.last_updated)
 
-        result = self.charge_density.get_data_by_id(latest_doc.fs_id)  # type: ignore
+        chg_doc = self.charge_density.get_data_by_id(latest_doc.fs_id)  # type: ignore
 
-        if result:
-            return result.data
+        if chg_doc:
+            chgcar = chg_doc.data
+            task_doc = self.tasks.get_data_by_id(latest_doc.task_id)
+            if inc_task_doc:
+                chgcar.task_doc = task_doc
+            return chgcar
         else:
             raise MPRestError(
                 "Charge density task_id found but no charge density fetched."
