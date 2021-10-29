@@ -13,6 +13,7 @@ db_version = os.environ.get("DB_VERSION", default_settings.db_version)
 debug = os.environ.get("API_DEBUG", default_settings.debug)
 
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
+bonds_store_json = os.environ.get("BONDS_STORE", "bonds_store.json")
 formula_autocomplete_store_json = os.environ.get(
     "FORMULA_AUTOCOMPLETE_STORE", "formula_autocomplete_store.json"
 )
@@ -76,6 +77,13 @@ if db_uri:
         database="mp_core",
         key="material_id",
         collection_name=f"materials.core_{db_version}",
+    )
+
+    bonds_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="material_id",
+        collection_name="bonds",
     )
 
     formula_autocomplete_store = MongoURIStore(
@@ -315,6 +323,7 @@ if db_uri:
 
 else:
     materials_store = loadfn(materials_store_json)
+    bonds_store = loadfn(bonds_store_json)
     formula_autocomplete_store = loadfn(formula_autocomplete_store_json)
     task_store = loadfn(task_store_json)
     thermo_store = loadfn(thermo_store_json)
@@ -370,7 +379,10 @@ resources.update(
     }
 )
 
-# resources.update({"find_structure": find_structure_resource(materials_store)})
+# Bonds
+from mp_api.routes.bonds.resources import bonds_resource
+
+resources.update({"bonds": [bonds_resource(bonds_store)]})
 
 # Tasks
 from mp_api.routes.tasks.resources import (
