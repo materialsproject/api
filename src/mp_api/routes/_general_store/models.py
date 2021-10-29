@@ -1,5 +1,10 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Literal
+from typing import Dict
+
+try:
+    from typing import Literal  # type: ignore
+except ImportError:
+    from typing_extensions import Literal
 from datetime import datetime
 
 
