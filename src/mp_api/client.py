@@ -2,6 +2,7 @@ from os import environ
 import warnings
 from typing import Optional, Tuple, List, Union
 import itertools
+from mp_api.routes.charge_density.models import ChgcarDataDoc
 
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Chgcar
@@ -739,15 +740,18 @@ class MPRester:
         millers, energies = zip(*miller_energy_map.items())
         return WulffShape(lattice, millers, energies)
 
-    def get_charge_density_from_material_id(self, material_id: str) -> Optional[Chgcar]:
+    def get_charge_density_from_material_id(
+        self, material_id: str, inc_task_doc: bool = False
+    ) -> Optional[Chgcar]:
         """
         Get charge density data for a given Materials Project ID.
 
         Arguments:
             material_id (str): Material Project ID
+            inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            chgcar: Pymatgen CHGCAR object.
+            chgcar: Pymatgen Chgcar object.
         """
 
         # TODO: really we want a recommended task_id for charge densities here
@@ -755,17 +759,21 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results = self.charge_density.search(task_ids=task_ids)
+        results: List[ChgcarDataDoc] = self.charge_density.search(task_ids=task_ids)  # type: ignore
 
         if len(results) == 0:
             return None
 
         latest_doc = max(results, key=lambda x: x.last_updated)
 
-        result = self.charge_density.get_data_by_id(latest_doc.fs_id)  # type: ignore
+        chg_doc = self.charge_density.get_data_by_id(latest_doc.fs_id)
 
-        if result:
-            return result.data
+        if chg_doc:
+            chgcar = chg_doc.data
+            task_doc = self.tasks.get_data_by_id(latest_doc.task_id)
+            if inc_task_doc:
+                return chgcar, task_doc
+            return chgcar
         else:
             raise MPRestError(
                 "Charge density task_id found but no charge density fetched."
