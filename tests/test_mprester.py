@@ -1,12 +1,12 @@
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
+from mp_api.routes.tasks.models import TaskDoc
 import pytest
 import random
 import os
 import typing
 from mp_api.matproj import MPRester
 from mp_api.core.settings import MAPISettings
-import requests
 
 from pymatgen.io.cif import CifParser
 from pymatgen.electronic_structure.bandstructure import (
@@ -141,6 +141,12 @@ class TestMPRester:
     def test_get_charge_density_data(self, mpr):
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
+
+        chgcar, task_doc = mpr.get_charge_density_from_material_id(
+            "mp-149", inc_task_doc=True
+        )
+        assert isinstance(chgcar, Chgcar)
+        assert isinstance(task_doc, TaskDoc)
 
     def test_get_wulff_shape(self, mpr):
         ws = mpr.get_wulff_shape("mp-126")
