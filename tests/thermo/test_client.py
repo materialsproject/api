@@ -109,7 +109,7 @@ def test_client(rester):
                 )
 
 
-# @pytest.mark.xfail(reason="Temporary until deployment")
+@pytest.mark.xfail(reason="Temporary until deployment")
 def test_get_phase_diagram_from_chemsys():
     # Test that a phase diagram is returned
     assert isinstance(
