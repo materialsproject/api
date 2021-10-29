@@ -19,6 +19,9 @@ formula_autocomplete_store_json = os.environ.get(
 )
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
 thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
+phase_diagram_store_json = os.environ.get(
+    "PHASE_DIAGRAM_STORE", "phase_diagram_store.json"
+)
 dielectric_store_json = os.environ.get("DIELECTRIC_STORE", "dielectric_store.json")
 piezoelectric_store_json = os.environ.get(
     "PIEZOELECTRIC_STORE", "piezoelectric_store.json"
@@ -105,6 +108,13 @@ if db_uri:
         database="mp_core",
         key="material_id",
         collection_name=f"thermo_{db_version}",
+    )
+
+    phase_diagram_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database="mp_core",
+        key="chemsys",
+        collection_name="phase_diagram",
     )
 
     dielectric_store = MongoURIStore(
@@ -327,6 +337,7 @@ else:
     formula_autocomplete_store = loadfn(formula_autocomplete_store_json)
     task_store = loadfn(task_store_json)
     thermo_store = loadfn(thermo_store_json)
+    phase_diagram_store = loadfn(phase_diagram_store_json)
     dielectric_store = loadfn(dielectric_store_json)
     piezoelectric_store = loadfn(piezoelectric_store_json)
     magnetism_store = loadfn(magnetism_store_json)
@@ -402,9 +413,16 @@ resources.update(
 )
 
 # Thermo
-from mp_api.routes.thermo.resources import thermo_resource
+from mp_api.routes.thermo.resources import phase_diagram_resource, thermo_resource
 
-resources.update({"thermo": [thermo_resource(thermo_store)]})
+resources.update(
+    {
+        "thermo": [
+            phase_diagram_resource(phase_diagram_store),
+            thermo_resource(thermo_store),
+        ]
+    }
+)
 
 # Dielectric
 from mp_api.routes.dielectric.resources import dielectric_resource
