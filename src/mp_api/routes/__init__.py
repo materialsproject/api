@@ -28,3 +28,4 @@ from mp_api.routes.electronic_structure.client import (
 from mp_api.routes.oxidation_states.client import OxidationStatesRester
 from mp_api.routes.provenance.client import ProvenanceRester
 from mp_api.routes._consumer.client import UserSettingsRester
+from mp_api.routes._general_store.client import GeneralStoreRester
