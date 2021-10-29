@@ -776,7 +776,7 @@ class MPRester:
             chgcar = chg_doc.data
             task_doc = self.tasks.get_data_by_id(latest_doc.task_id)
             if inc_task_doc:
-                chgcar.task_doc = task_doc
+                return chgcar, task_doc
             return chgcar
         else:
             raise MPRestError(
