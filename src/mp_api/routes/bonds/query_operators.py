@@ -74,11 +74,13 @@ class CoordinationEnvsQuery(QueryOperator):
         self,
         coordination_envs: Optional[str] = Query(
             None,
-            description="Query by coordination environments in the material composition as a comma-separated list (e.g. 'Mo-S(6),S-Mo(3)')",
+            description="Query by coordination environments in the material composition as a comma-separated list\
+ (e.g. 'Mo-S(6),S-Mo(3)')",
         ),
         coordination_envs_anonymous: Optional[str] = Query(
             None,
-            description="Query by anonymous coordination environments in the material composition as a comma-separated list (e.g. 'A-B(6),A-B(3)')",
+            description="Query by anonymous coordination environments in the material composition as a comma-separated\
+ list (e.g. 'A-B(6),A-B(3)')",
         ),
     ) -> STORE_PARAMS:
 

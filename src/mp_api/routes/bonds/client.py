@@ -29,11 +29,15 @@ class BondsRester(BaseRester[BondingDoc]):
         Query dielectric docs using a variety of search criteria.
 
         Arguments:
-            max_bond_length (Tuple[float,float]): Minimum and maximum value for the maximum bond length in the structure to consider.
-            min_bond_length (Tuple[float,float]): Minimum and maximum value for the minimum bond length in the structure to consider.
-            mean_bond_length (Tuple[float,float]):  Minimum and maximum value for the mean bond length in the structure to consider.
+            max_bond_length (Tuple[float,float]): Minimum and maximum value for the maximum bond length
+                in the structure to consider.
+            min_bond_length (Tuple[float,float]): Minimum and maximum value for the minimum bond length
+                in the structure to consider.
+            mean_bond_length (Tuple[float,float]):  Minimum and maximum value for the mean bond length
+                in the structure to consider.
             coordination_envs (List[str]): List of coordination environments to consider (e.g. ['Mo-S(6)', 'S-Mo(3)']).
-            coordination_envs_anonymous (List[str]): List of anonymous coordination environments to consider (e.g. ['A-B(6)', 'A-B(3)']).
+            coordination_envs_anonymous (List[str]): List of anonymous coordination environments to consider
+                 (e.g. ['A-B(6)', 'A-B(3)']).
             sort_field (str): Field used to sort results.
             ascending (bool): Whether sorting should be in ascending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
