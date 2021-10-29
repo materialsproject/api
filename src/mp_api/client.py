@@ -65,7 +65,8 @@ class MPRester:
     electronic_structure_dos: DosRester
     oxidation_states: OxidationStatesRester
     provenance: ProvenanceRester
-    user_settings: UserSettingsRester
+    _user_settings: UserSettingsRester
+    _general_store: GeneralStoreRester
 
     def __init__(
         self,
@@ -355,9 +356,7 @@ class MPRester:
         )
 
     def get_entries(
-        self,
-        chemsys_formula,
-        sort_by_e_above_hull=False,
+        self, chemsys_formula, sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
@@ -390,9 +389,7 @@ class MPRester:
 
         else:
             for doc in self.thermo.search_thermo_docs(
-                chemsys_formula=chemsys_formula,
-                all_fields=False,
-                fields=["entries"],
+                chemsys_formula=chemsys_formula, all_fields=False, fields=["entries"],
             ):
                 entries.extend(list(doc.entries.values()))
 
@@ -415,8 +412,7 @@ class MPRester:
         )
 
     def get_entries_in_chemsys(
-        self,
-        elements,
+        self, elements,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
