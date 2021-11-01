@@ -342,8 +342,6 @@ class DosRester(BaseRester):
             use_document_model=False,
         )
 
-        print(result)
-
         if result.get("data", None) is not None:
             return result["data"]
         else:
