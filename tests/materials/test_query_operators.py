@@ -129,7 +129,7 @@ def test_find_structure_query():
     op = FindStructureQuery()
 
     structure = Structure.from_file(
-        os.path.join(MAPISettings().test_files, "Si_mp_149.cif")
+        os.path.join(MAPISettings().TEST_FILES, "Si_mp_149.cif")
     )
     assert op.query(
         structure=structure.as_dict(), ltol=0.2, stol=0.3, angle_tol=5, limit=1

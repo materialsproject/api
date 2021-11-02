@@ -9,22 +9,24 @@ class MAPISettings(BaseSettings):
     python module
     """
 
-    app_path: str = Field(
+    APP_PATH: str = Field(
         "~/mapi.json", description="Path for the default MAPI JSON definition"
     )
 
-    debug: bool = Field(False, description="Turns on debug mode for MAPI")
+    DEBUG: bool = Field(False, description="Turns on debug mode for MAPI")
 
-    test_files: str = Field(
+    TEST_FILES: str = Field(
         os.path.join(os.path.dirname(os.path.abspath(root_dir)), "../../test_files"),
         description="Directory with test files",
     )
 
-    db_version: str = Field("2021_prerelease", description="Database version")
+    DB_VERSION: str = Field("2021_prerelease", description="Database version")
 
-    requests_per_min: int = Field(
+    DB_NAME_SUFFIX: str = Field(..., description="Database name suffix")
+
+    REQUESTS_PER_MIN: int = Field(
         100, description="Number of requests per minute to for rate limit."
     )
 
     class Config:
-        env_prefix = "mapi_"
+        env_prefix = "MAPI_"
