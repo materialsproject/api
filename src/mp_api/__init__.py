@@ -21,17 +21,17 @@ from pathlib import Path
 settings = MAPISettings()
 
 try:  # pragma: no cover
-    if Path(settings.app_path).exists():
-        mapi = loadfn(settings.app_path)
+    if Path(settings.APP_PATH).exists():
+        mapi = loadfn(settings.APP_PATH)
         app = mapi.app
     else:
         app = None
-        if settings.debug:
-            print(f"Failed loading App at {settings.app_path}")
+        if settings.DEBUG:
+            print(f"Failed loading App at {settings.APP_PATH}")
 
 except Exception as e:  # pragma: no cover
     # Something went wrong with loading default app
-    if settings.debug:
+    if settings.DEBUG:
         print("Failed loading App")
         print(e)
         app = None

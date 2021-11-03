@@ -15,7 +15,7 @@ def test_mpcomplete_post_query():
     op = MPCompletePostQuery()
 
     structure = Structure.from_file(
-        os.path.join(MAPISettings().test_files, "Si_mp_149.cif")
+        os.path.join(MAPISettings().TEST_FILES, "Si_mp_149.cif")
     )
 
     assert op.query(
