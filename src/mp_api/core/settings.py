@@ -22,7 +22,7 @@ class MAPISettings(BaseSettings):
 
     DB_VERSION: str = Field("2021_prerelease", description="Database version")
 
-    DB_NAME_SUFFIX: str = Field(..., description="Database name suffix")
+    DB_NAME_SUFFIX: str = Field(None, description="Database name suffix")
 
     REQUESTS_PER_MIN: int = Field(
         100, description="Number of requests per minute to for rate limit."
