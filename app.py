@@ -85,7 +85,7 @@ if db_uri:
 
     bonds_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database="mp_core_{db_suffix}",
         key="material_id",
         collection_name="bonds",
     )
@@ -113,28 +113,28 @@ if db_uri:
 
     phase_diagram_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database="mp_core_{db_suffix}",
         key="chemsys",
         collection_name="phase_diagram",
     )
 
     dielectric_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database="mp_core_{db_suffix}",
         key="material_id",
         collection_name="dielectric",
     )
 
     piezoelectric_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database="mp_core_{db_suffix}",
         key="material_id",
         collection_name="piezoelectric",
     )
 
     magnetism_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database="mp_core_{db_suffix}",
         key="material_id",
         collection_name="magnetism",
     )
