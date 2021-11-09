@@ -114,8 +114,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
     def get_phase_diagram_from_chemsys(self, chemsys: str) -> PhaseDiagram:
         """
-        Get a phase diagram for a given chemsys.
-
+        Get a pre-computed phase diagram for a given chemsys.
+        
         Arguments:
             material_id (str): Materials project ID
         Returns:
