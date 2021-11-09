@@ -78,6 +78,7 @@ class TestMPRester:
         structs = mpr.get_structures("Mn3O4", final=False)
         assert len(structs) > 0
 
+    @pytest.mark.xfail(reason="Until deployment")
     def test_find_structure(self, mpr):
         path = os.path.join(MAPISettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
