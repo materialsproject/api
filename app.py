@@ -80,7 +80,7 @@ if db_uri:
         uri=f"mongodb+srv://{db_uri}",
         database=f"mp_core_{db_suffix}",
         key="material_id",
-        collection_name=f"materials.core_{db_version}",
+        collection_name="materials",
     )
 
     bonds_store = MongoURIStore(
@@ -108,7 +108,7 @@ if db_uri:
         uri=f"mongodb+srv://{db_uri}",
         database=f"mp_core_{db_suffix}",
         key="material_id",
-        collection_name=f"thermo_{db_version}",
+        collection_name="thermo",
     )
 
     phase_diagram_store = MongoURIStore(
