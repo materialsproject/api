@@ -50,7 +50,7 @@ class TestMPRester:
 
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
-        assert db_version == MAPISettings().db_version
+        assert db_version == MAPISettings().DB_VERSION
 
     def test_get_materials_id_from_task_id(self, mpr):
         assert mpr.get_materials_id_from_task_id("mp-540081") == "mp-19017"
@@ -79,7 +79,7 @@ class TestMPRester:
         assert len(structs) > 0
 
     def test_find_structure(self, mpr):
-        path = os.path.join(MAPISettings().test_files, "Si_mp_149.cif")
+        path = os.path.join(MAPISettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
             data = mpr.find_structure(path)
             assert len(data) > 0

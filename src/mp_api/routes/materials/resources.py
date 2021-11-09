@@ -13,8 +13,6 @@ from maggma.api.query_operator import (
     NumericQuery,
 )
 
-from mp_api.core.settings import MAPISettings
-
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
@@ -24,8 +22,6 @@ from mp_api.routes.materials.query_operators import (
     FindStructureQuery,
     FormulaAutoCompleteQuery,
 )
-
-from pymongo import MongoClient  # type: ignore
 
 
 def find_structure_resource(materials_store):

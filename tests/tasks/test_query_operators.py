@@ -42,7 +42,7 @@ def test_trajectory_query():
             "criteria": {"task_id": {"$in": ["mp-149", "mp-13"]}}
         }
 
-    with open(os.path.join(MAPISettings().test_files, "tasks_Li_Fe_V.json")) as file:
+    with open(os.path.join(MAPISettings().TEST_FILES, "tasks_Li_Fe_V.json")) as file:
         tasks = load(file)
     docs = op.post_process(tasks)
     assert docs[0]["trajectories"][0]["@class"] == "Trajectory"

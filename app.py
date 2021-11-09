@@ -9,8 +9,9 @@ resources = {}
 default_settings = MAPISettings()
 
 db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
-db_version = os.environ.get("DB_VERSION", default_settings.db_version)
-debug = os.environ.get("API_DEBUG", default_settings.debug)
+db_version = default_settings.DB_VERSION
+db_suffix = os.environ.get("MAPI_DB_NAME_SUFFIX", db_version)
+debug = default_settings.DEBUG
 
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
 bonds_store_json = os.environ.get("BONDS_STORE", "bonds_store.json")
@@ -77,7 +78,7 @@ if db_uri:
 
     materials_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name=f"materials.core_{db_version}",
     )
@@ -105,7 +106,7 @@ if db_uri:
 
     thermo_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name=f"thermo_{db_version}",
     )
@@ -210,7 +211,7 @@ if db_uri:
 
     robo_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="robocrys",
     )
@@ -224,7 +225,7 @@ if db_uri:
 
     insertion_electrodes_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database=f"mp_core_{db_suffix}",
         key="battery_id",
         collection_name="insertion_electrodes",
     )
@@ -238,28 +239,28 @@ if db_uri:
 
     oxi_states_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="oxi_states",
     )
 
     provenance_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="provenance",
     )
 
     summary_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="summary",
     )
 
     es_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="electronic_structure",
     )

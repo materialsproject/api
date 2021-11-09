@@ -20,7 +20,7 @@ class MAPI(API):
         debug=False,
         heartbeat_meta={
             "pymatgen": pmg_version,
-            "db_version": MAPISettings().db_version,
+            "db_version": MAPISettings().DB_VERSION,
         },
         description=None,
         tags_meta=None,
