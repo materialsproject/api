@@ -11,6 +11,7 @@ default_settings = MAPISettings()
 db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 db_version = default_settings.DB_VERSION
 db_suffix = os.environ.get("MAPI_DB_NAME_SUFFIX", db_version)
+print(db_suffix)
 debug = default_settings.DEBUG
 
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
@@ -85,7 +86,7 @@ if db_uri:
 
     bonds_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core_{db_suffix}",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="bonds",
     )
@@ -113,28 +114,28 @@ if db_uri:
 
     phase_diagram_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core_{db_suffix}",
+        database=f"mp_core_{db_suffix}",
         key="chemsys",
         collection_name="phase_diagram",
     )
 
     dielectric_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core_{db_suffix}",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="dielectric",
     )
 
     piezoelectric_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core_{db_suffix}",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="piezoelectric",
     )
 
     magnetism_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
-        database="mp_core_{db_suffix}",
+        database=f"mp_core_{db_suffix}",
         key="material_id",
         collection_name="magnetism",
     )
