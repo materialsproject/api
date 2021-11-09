@@ -11,7 +11,6 @@ default_settings = MAPISettings()
 db_uri = os.environ.get("MPCONTRIBS_MONGO_HOST", None)
 db_version = default_settings.DB_VERSION
 db_suffix = os.environ.get("MAPI_DB_NAME_SUFFIX", db_version)
-print(db_suffix)
 debug = default_settings.DEBUG
 
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
