@@ -1,22 +1,28 @@
-from os import environ
-import warnings
-from typing import Optional, Tuple, List, Union
 import itertools
-from mp_api.routes.charge_density.models import ChgcarDataDoc
+import warnings
+from functools import lru_cache
+from os import environ
+from typing import List, Optional, Tuple, Union
+from typing_extensions import Literal
 
-from pymatgen.core import Structure
-from pymatgen.io.vasp import Chgcar
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.analysis.magnetism import Ordering
-from pymatgen.analysis.wulff import WulffShape
 from emmet.core.mpid import MPID
+from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from emmet.core.settings import EmmetSettings
+from mpcontribs.client import Client
+from pymatgen.analysis.magnetism import Ordering
+from pymatgen.analysis.phase_diagram import PhaseDiagram
+from pymatgen.analysis.pourbaix_diagram import IonEntry
+from pymatgen.analysis.wulff import WulffShape
+from pymatgen.core import Element, Structure
+from pymatgen.core.ion import Ion
+from pymatgen.io.vasp import Chgcar
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from mp_api.core.client import BaseRester, MPRestError
-from mp_api.routes.electronic_structure.models.core import BSPathType
 from mp_api.routes import *
+from mp_api.routes.charge_density.models import ChgcarDataDoc
+from mp_api.routes.electronic_structure.models.core import BSPathType
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -114,6 +120,7 @@ class MPRester:
         self.session = BaseRester._create_session(
             api_key=api_key, include_user_agent=include_user_agent
         )
+        self.contribs = Client(api_key)
 
         self._all_resters = []
 
@@ -357,7 +364,9 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula, sort_by_e_above_hull=False,
+        self,
+        chemsys_formula,
+        sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
@@ -390,11 +399,288 @@ class MPRester:
 
         else:
             for doc in self.thermo.search_thermo_docs(
-                chemsys_formula=chemsys_formula, all_fields=False, fields=["entries"],
+                chemsys_formula=chemsys_formula,
+                all_fields=False,
+                fields=["entries"],
             ):
                 entries.extend(list(doc.entries.values()))
 
             return entries
+
+    def get_pourbaix_entries(
+        self,
+        chemsys: Union[str, List],
+        solid_compat="MaterialsProject2020Compatibility",
+        use_gibbs: Optional[Literal[300]] = None,
+    ):
+        """
+        A helper function to get all entries necessary to generate
+        a Pourbaix diagram from the rest interface.
+
+        Args:
+            chemsys (str or [str]): Chemical system string comprising element
+                symbols separated by dashes, e.g., "Li-Fe-O" or List of element
+                symbols, e.g., ["Li", "Fe", "O"].
+            solid_compat: Compatiblity scheme used to pre-process solid DFT energies prior
+                to applying aqueous energy adjustments. May be passed as a class (e.g.
+                MaterialsProject2020Compatibility) or an instance
+                (e.g., MaterialsProject2020Compatibility()). If None, solid DFT energies
+                are used as-is. Default: MaterialsProject2020Compatibility
+            use_gibbs: Set to 300 (for 300 Kelvin) to use a machine learning model to
+                estimate solid free energy from DFT energy (see GibbsComputedStructureEntry).
+                This can slightly improve the accuracy of the Pourbaix diagram in some
+                cases. Default: None. Note that temperatures other than 300K are not
+                permitted here, because MaterialsProjectAqueousCompatibility corrections,
+                used in Pourbaix diagram construction, are calculated based on 300 K data.
+        """
+        # imports are not top-level due to expense
+        from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
+        from pymatgen.entries.compatibility import (
+            Compatibility,
+            MaterialsProject2020Compatibility,
+            MaterialsProjectAqueousCompatibility,
+            MaterialsProjectCompatibility,
+        )
+        from pymatgen.entries.computed_entries import ComputedEntry
+
+        if solid_compat == "MaterialsProjectCompatibility":
+            solid_compat = MaterialsProjectCompatibility()
+        elif solid_compat == "MaterialsProject2020Compatibility":
+            solid_compat = MaterialsProject2020Compatibility()
+        elif isinstance(solid_compat, Compatibility):
+            solid_compat = solid_compat
+        else:
+            raise ValueError(
+                "Solid compatibility can only be 'MaterialsProjectCompatibility', "
+                "'MaterialsProject2020Compatibility', or an instance of a Compatability class"
+            )
+
+        pbx_entries = []
+
+        if isinstance(chemsys, str):
+            chemsys = chemsys.split("-")
+        # capitalize and sort the elements
+        chemsys = sorted(e.capitalize() for e in chemsys)
+
+        # Get ion entries first, because certain ions have reference
+        # solids that aren't necessarily in the chemsys (Na2SO4)
+
+        # download the ion reference data from MPContribs
+        ion_data = self.get_ion_reference_data(chemsys)
+
+        # build the PhaseDiagram for get_ion_entries
+        ion_ref_comps = [Ion.from_formula(d["formula"]).composition for d in ion_data]
+        ion_ref_elts = list(
+            itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
+        )
+        # TODO - would be great if the commented line below would work
+        # However for some reason you cannot process GibbsComputedStructureEntry with
+        # MaterialsProjectAqueousCompatibility
+        ion_ref_entries = self.get_entries_in_chemsys(
+            list(set([str(e) for e in ion_ref_elts] + ["O", "H"])),
+            # use_gibbs=use_gibbs
+        )
+
+        # suppress the warning about supplying the required energies; they will be calculated from the
+        # entries we get from MPRester
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="You did not provide the required O2 and H2O energies.",
+            )
+            compat = MaterialsProjectAqueousCompatibility(solid_compat=solid_compat)
+        # suppress the warning about missing oxidation states
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", message="Failed to guess oxidation states.*"
+            )
+            ion_ref_entries = compat.process_entries(ion_ref_entries)
+        # TODO - if the commented line above would work, this conditional block
+        # could be removed
+        if use_gibbs:
+            # replace the entries with GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
+
+            ion_ref_entries = GibbsComputedStructureEntry.from_entries(
+                ion_ref_entries, temp=use_gibbs
+            )
+        ion_ref_pd = PhaseDiagram(ion_ref_entries)
+
+        ion_entries = self.get_ion_entries(ion_ref_pd, ion_ref_data=ion_data)
+        pbx_entries = [PourbaixEntry(e, f"ion-{n}") for n, e in enumerate(ion_entries)]
+
+        # Construct the solid pourbaix entries from filtered ion_ref entries
+        ion_ref_comps = [e.composition for e in ion_entries]
+        ion_ref_elts = list(
+            itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
+        )
+        extra_elts = (
+            set(ion_ref_elts)
+            - {Element(s) for s in chemsys}
+            - {Element("H"), Element("O")}
+        )
+        for entry in ion_ref_entries:
+            entry_elts = set(entry.composition.elements)
+            # Ensure no OH chemsys or extraneous elements from ion references
+            if not (
+                entry_elts <= {Element("H"), Element("O")}
+                or extra_elts.intersection(entry_elts)
+            ):
+                # Create new computed entry
+                form_e = ion_ref_pd.get_form_energy(entry)
+                new_entry = ComputedEntry(
+                    entry.composition, form_e, entry_id=entry.entry_id
+                )
+                pbx_entry = PourbaixEntry(new_entry)
+                pbx_entries.append(pbx_entry)
+
+        return pbx_entries
+
+    # TODO - @lru_cache causes this method to fail when chemsys is given as a list,
+    # with an 'unhashable type' error
+    # @lru_cache
+    def get_ion_reference_data(self, chemsys: Union[str, List]) -> List[dict]:
+        """
+        Download aqueous ion reference data used in the construction of Pourbaix diagrams.
+
+        Use this method to examine the ion reference data and to add additional
+        ions if desired. The data returned from this method can be passed to
+        get_ion_entries().
+
+        Data are retrieved from the Aqueous Ion Reference Data project
+        hosted on MPContribs. Refer to that project and its associated documentation
+        for more details about the format and meaning of the data.
+
+        Args:
+            chemsys (str or [str]): Chemical system string comprising element
+                symbols separated by dashes, e.g., "Li-Fe-O" or List of element
+                symbols, e.g., ["Li", "Fe", "O"].
+
+        Returns:
+            [dict]: Among other data, each record contains 1) the experimental ion  free energy, 2) the
+                formula of the reference solid for the ion, and 3) the experimental free energy of the
+                reference solid. All energies are given in kJ/mol. An example is given below.
+
+                {'identifier': 'Li[+]',
+                'formula': 'Li[+]',
+                'data': {'charge': {'display': '1.0', 'value': 1.0, 'unit': ''},
+                'ΔGᶠ': {'display': '-293.71 kJ/mol', 'value': -293.71, 'unit': 'kJ/mol'},
+                'MajElements': 'Li',
+                'RefSolid': 'Li2O',
+                'ΔGᶠRefSolid': {'display': '-561.2 kJ/mol',
+                    'value': -561.2,
+                    'unit': 'kJ/mol'},
+                'reference': 'H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
+                compounds and aqueous species, Wiley, New York (1978)'}}
+        """
+        if isinstance(chemsys, str):
+            chemsys = chemsys.split("-")
+        # capitalize and sort the elements
+        chemsys = sorted(e.capitalize() for e in chemsys)
+
+        # TODO - see if there is a way to avoid querying the entire collection
+        ion_data = [
+            d
+            for d in self.contribs.contributions.get_entries(
+                project="ion_ref_data",
+                fields=["identifier", "formula", "data"],
+                per_page=500,
+            ).result()["data"]
+        ]
+        ion_data = [d for d in ion_data if d["data"]["MajElements"] in chemsys]
+
+        return ion_data
+
+    def get_ion_entries(
+        self, pd: PhaseDiagram, ion_ref_data: List[dict] = None
+    ) -> List[IonEntry]:
+        """
+        Retrieve IonEntry objects that can be used in the construction of
+        Pourbaix Diagrams. The energies of the IonEntry are calculaterd from
+        the solid energies in the provided Phase Diagram to be
+        consistent with experimental free energies.
+
+        NOTE! This is an advanced method that assumes detailed understanding
+        of how to construct computational Pourbaix Diagrams. If you just want
+        to build a Pourbaix Diagram using default settings, use get_pourbaix_entries.
+
+        Args:
+            pd: Solid phase diagram on which to construct IonEntry. Note that this
+                Phase Diagram MUST include O and H in its chemical system. For example,
+                to retrieve IonEntry for Ti, the phase diagram passed here should contain
+                materials in the H-O-Ti chemical system. It is also assumed that solid
+                energies have already been corrected with MaterialsProjectAqueousCompatibility,
+                which is necessary for proper construction of Pourbaix diagrams.
+            ion_ref_data: Aqueous ion reference data. If None (default), the data
+                are downloaded from the Aqueous Ion Reference Data project hosted
+                on MPContribs. To add a custom ionic species, first download
+                data using get_ion_reference_data, then add or customize it with
+                your additional data, and pass the customized list here.
+
+        Returns:
+            [IonEntry]: IonEntry are similar to PDEntry objects. Their energies
+                are free energies in eV.
+        """
+        # determine the chemsys from the phase diagram
+        chemsys = "-".join([el.symbol for el in pd.elements])
+
+        # raise ValueError if O and H not in chemsys
+        if "O" not in chemsys or "H" not in chemsys:
+            raise ValueError(
+                "The phase diagram chemical system must contain O and H! Your"
+                f" diagram chemical system is {chemsys}."
+            )
+
+        if not ion_ref_data:
+            ion_data = self.get_ion_reference_data(chemsys)
+        else:
+            ion_data = ion_ref_data
+
+        # position the ion energies relative to most stable reference state
+        ion_entries = []
+        for n, i_d in enumerate(ion_data):
+            ion = Ion.from_formula(i_d["formula"])
+            refs = [
+                e
+                for e in pd.all_entries
+                if e.composition.reduced_formula == i_d["data"]["RefSolid"]
+            ]
+            if not refs:
+                raise ValueError("Reference solid not contained in entry list")
+            stable_ref = sorted(refs, key=lambda x: x.energy_per_atom)[0]
+            rf = stable_ref.composition.get_reduced_composition_and_factor()[1]
+
+            # TODO - need a more robust way to convert units
+            # use pint here?
+            if i_d["data"]["ΔGᶠRefSolid"]["unit"] == "kJ/mol":
+                # convert to eV/formula unit
+                ref_solid_energy = i_d["data"]["ΔGᶠRefSolid"]["value"] / 96.485
+            elif i_d["data"]["ΔGᶠRefSolid"]["unit"] == "MJ/mol":
+                # convert to eV/formula unit
+                ref_solid_energy = i_d["data"]["ΔGᶠRefSolid"]["value"] / 96485
+            else:
+                raise ValueError(
+                    f"Ion reference solid energy has incorrect unit {i_d['data']['ΔGᶠRefSolid']['unit']}"
+                )
+            solid_diff = pd.get_form_energy(stable_ref) - ref_solid_energy * rf
+            elt = i_d["data"]["MajElements"]
+            correction_factor = ion.composition[elt] / stable_ref.composition[elt]
+            # TODO - need a more robust way to convert units
+            # use pint here?
+            if i_d["data"]["ΔGᶠ"]["unit"] == "kJ/mol":
+                # convert to eV/formula unit
+                ion_free_energy = i_d["data"]["ΔGᶠ"]["value"] / 96.485
+            elif i_d["data"]["ΔGᶠ"]["unit"] == "MJ/mol":
+                # convert to eV/formula unit
+                ion_free_energy = i_d["data"]["ΔGᶠ"]["value"] / 96485
+            else:
+                raise ValueError(
+                    f"Ion free energy has incorrect unit {i_d['data']['ΔGᶠ']['unit']}"
+                )
+            energy = ion_free_energy + solid_diff * correction_factor
+            ion_entries.append(IonEntry(ion, energy))
+
+        return ion_entries
 
     def get_entry_by_material_id(self, material_id):
         """
@@ -413,7 +699,9 @@ class MPRester:
         )
 
     def get_entries_in_chemsys(
-        self, elements,
+        self,
+        elements,
+        use_gibbs: Optional[int] = None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -425,6 +713,11 @@ class MPRester:
             elements (str or [str]): Chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
                 symbols, e.g., ["Li", "Fe", "O"].
+            use_gibbs: If None (default), DFT energy is returned. If a number, return
+                the free energy of formation estimated using a machine learning model
+                (see GibbsComputedStructureEntry). The number is the temperature in
+                Kelvin at which to estimate the free energy. Must be between 300 K and
+                2000 K.
         Returns:
             List of ComputedEntries.
         """
@@ -440,6 +733,12 @@ class MPRester:
 
         for chemsys in all_chemsyses:
             entries.extend(self.get_entries(chemsys_formula=chemsys))
+
+        if use_gibbs:
+            # replace the entries with GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
+
+            entries = GibbsComputedStructureEntry.from_entries(entries, temp=use_gibbs)
 
         return entries
 
