@@ -574,7 +574,7 @@ class MPRester:
             chemsys = chemsys.split("-")
         # capitalize and sort the elements
         chemsys = sorted(e.capitalize() for e in chemsys)
-        # convert back to a str
+        # convert to a tuple which is hashable
         chemsys = tuple(chemsys)
 
         return self._get_ion_reference_data(chemsys)
