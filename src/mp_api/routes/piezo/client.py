@@ -2,16 +2,16 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester
-from mp_api.routes.piezo.models import PiezoDoc
+from emmet.core.polar import PiezoelectricDoc
 
 import warnings
 
 
-class PiezoRester(BaseRester[PiezoDoc]):
+class PiezoRester(BaseRester[PiezoelectricDoc]):
 
     suffix = "piezoelectric"
-    document_model = PiezoDoc  # type: ignore
-    primary_key = "task_id"
+    document_model = PiezoelectricDoc  # type: ignore
+    primary_key = "material_id"
 
     def search_piezoelectric_docs(
         self,

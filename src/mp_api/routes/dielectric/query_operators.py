@@ -42,10 +42,10 @@ class DielectricQuery(QueryOperator):
         crit = defaultdict(dict)  # type: dict
 
         d = {
-            "dielectric.e_total": [e_total_min, e_total_max],
-            "dielectric.e_ionic": [e_ionic_min, e_ionic_max],
-            "dielectric.e_electronic": [e_electronic_min, e_electronic_max],
-            "dielectric.n": [n_min, n_max],
+            "e_total": [e_total_min, e_total_max],
+            "e_ionic": [e_ionic_min, e_ionic_max],
+            "e_electronic": [e_electronic_min, e_electronic_max],
+            "n": [n_min, n_max],
         }
 
         for entry in d:
@@ -59,9 +59,9 @@ class DielectricQuery(QueryOperator):
 
     def ensure_indexes(self):  # pragma: no cover
         keys = [
-            "dielectric.e_total",
-            "dielectric.e_ionic",
-            "dielectric.e_electronic",
-            "dielectric.n",
+            "e_total",
+            "e_ionic",
+            "e_electronic",
+            "n",
         ]
         return [(key, False) for key in keys]

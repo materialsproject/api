@@ -1,8 +1,8 @@
 from collections import defaultdict
 from typing import Optional, List, Tuple
-from mp_api.core.client import BaseRester
+from mp_api.core.client import BaseRester, MPRestError
 from emmet.core.thermo import ThermoDoc
-from pymatgen.core.periodic_table import Element
+from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
@@ -111,3 +111,21 @@ class ThermoRester(BaseRester[ThermoDoc]):
             fields=fields,
             **query_params,
         )
+
+    def get_phase_diagram_from_chemsys(self, chemsys: str) -> PhaseDiagram:
+        """
+        Get a pre-computed phase diagram for a given chemsys.
+
+        Arguments:
+            material_id (str): Materials project ID
+        Returns:
+            phase_diagram (PhaseDiagram): Pymatgen phase diagram object.
+        """
+
+        response = self._query_resource(
+            fields=["phase_diagram"],
+            suburl=f"phase_diagram/{chemsys}",
+            use_document_model=False,
+        ).get("data")
+
+        return response[0]["phase_diagram"]  # type: ignore

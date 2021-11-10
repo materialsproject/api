@@ -1,11 +1,11 @@
 import os
 import pytest
-from mp_api.routes.piezo.client import PiezoRester
+from mp_api.routes.bonds.client import BondsRester
 
 import inspect
 import typing
 
-resters = [PiezoRester()]
+resters = [BondsRester()]
 
 excluded_params = [
     "sort_field",
@@ -18,7 +18,7 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"piezoelectric_modulus": "e_ij_max"}  # type: dict
+alt_name_dict = {}  # type: dict
 
 custom_field_tests = {}  # type: dict
 
@@ -45,7 +45,6 @@ def test_client(rester):
             if param not in excluded_params:
                 param_type = entry[1].__args__[0]
                 q = None
-
                 if param_type is typing.Tuple[int, int]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
@@ -56,7 +55,7 @@ def test_client(rester):
                 elif param_type is typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
-                        param: (-100.12, 100.12),
+                        param: (0, 100.12),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }

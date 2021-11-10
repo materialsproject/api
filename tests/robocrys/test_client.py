@@ -14,7 +14,6 @@ def rester():
     rester.session.close()
 
 
-@pytest.mark.xfail  # temp until data fix
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
@@ -27,10 +26,10 @@ def test_client(rester):
 
     if search_method is not None:
 
-        q = {"keywords": ["silicon", "process"]}
+        q = {"keywords": ["silicon"]}
 
         doc = search_method(**q)[0]
+        print(doc)
 
         assert doc.description is not None
         assert doc.condensed_structure is not None
-        assert doc.task_id is not None

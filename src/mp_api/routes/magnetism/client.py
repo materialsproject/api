@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester
-from mp_api.routes.magnetism.models import MagnetismDoc
+from emmet.core.magnetism import MagnetismDoc
 
 from pymatgen.analysis.magnetism import Ordering
 
@@ -11,7 +11,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
 
     suffix = "magnetism"
     document_model = MagnetismDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
 
     def search_magnetism_docs(
         self,

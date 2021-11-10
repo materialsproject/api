@@ -1,6 +1,7 @@
 from maggma.api.query_operator.dynamic import NumericQuery
 from maggma.api.resource import ReadOnlyResource
 from emmet.core.thermo import ThermoDoc
+from emmet.core.thermo import PhaseDiagramDoc
 
 from maggma.api.query_operator import (
     PaginationQuery,
@@ -8,8 +9,20 @@ from maggma.api.query_operator import (
     SparseFieldsQuery,
 )
 from mp_api.routes.thermo.query_operators import IsStableQuery
-
 from mp_api.routes.materials.query_operators import MultiMaterialIDQuery, FormulaQuery
+
+
+def phase_diagram_resource(phase_diagram_store):
+    resource = ReadOnlyResource(
+        phase_diagram_store,
+        PhaseDiagramDoc,
+        tags=["Thermo"],
+        sub_path="/phase_diagram/",
+        disable_validation=True,
+        enable_default_search=False,
+    )
+
+    return resource
 
 
 def thermo_resource(thermo_store):

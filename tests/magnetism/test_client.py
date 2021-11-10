@@ -17,13 +17,14 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = ["magnetism"]  # type: list
+sub_doc_fields = []  # type: list
 
 alt_name_dict = {}  # type: dict
 
 custom_field_tests = {"ordering": Ordering.FM}  # type: dict
 
 
+@pytest.mark.xfail(reason="Needs deployment")
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )

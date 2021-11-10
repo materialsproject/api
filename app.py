@@ -14,13 +14,18 @@ db_suffix = os.environ.get("MAPI_DB_NAME_SUFFIX", db_version)
 debug = default_settings.DEBUG
 
 materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
+bonds_store_json = os.environ.get("BONDS_STORE", "bonds_store.json")
 formula_autocomplete_store_json = os.environ.get(
     "FORMULA_AUTOCOMPLETE_STORE", "formula_autocomplete_store.json"
 )
 task_store_json = os.environ.get("TASK_STORE", "task_store.json")
 thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
-dielectric_piezo_store_json = os.environ.get(
-    "DIELECTRIC_PIEZO_STORE", "dielectric_piezo_store.json"
+phase_diagram_store_json = os.environ.get(
+    "PHASE_DIAGRAM_STORE", "phase_diagram_store.json"
+)
+dielectric_store_json = os.environ.get("DIELECTRIC_STORE", "dielectric_store.json")
+piezoelectric_store_json = os.environ.get(
+    "PIEZOELECTRIC_STORE", "piezoelectric_store.json"
 )
 magnetism_store_json = os.environ.get("MAGNETISM_STORE", "magnetism_store.json")
 phonon_bs_store_json = os.environ.get("PHONON_BS_STORE", "phonon_bs_store.json")
@@ -75,7 +80,14 @@ if db_uri:
         uri=f"mongodb+srv://{db_uri}",
         database=f"mp_core_{db_suffix}",
         key="material_id",
-        collection_name=f"materials.core_{db_version}",
+        collection_name="materials",
+    )
+
+    bonds_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database=f"mp_core_{db_suffix}",
+        key="material_id",
+        collection_name="bonds",
     )
 
     formula_autocomplete_store = MongoURIStore(
@@ -96,20 +108,34 @@ if db_uri:
         uri=f"mongodb+srv://{db_uri}",
         database=f"mp_core_{db_suffix}",
         key="material_id",
-        collection_name=f"thermo_{db_version}",
+        collection_name="thermo",
     )
 
-    dielectric_piezo_store = MongoURIStore(
+    phase_diagram_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database=f"mp_core_{db_suffix}",
-        key="task_id",
+        key="chemsys",
+        collection_name="phase_diagram",
+    )
+
+    dielectric_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database=f"mp_core_{db_suffix}",
+        key="material_id",
         collection_name="dielectric",
+    )
+
+    piezoelectric_store = MongoURIStore(
+        uri=f"mongodb+srv://{db_uri}",
+        database=f"mp_core_{db_suffix}",
+        key="material_id",
+        collection_name="piezoelectric",
     )
 
     magnetism_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
         database=f"mp_core_{db_suffix}",
-        key="task_id",
+        key="material_id",
         collection_name="magnetism",
     )
 
@@ -308,10 +334,13 @@ if db_uri:
 
 else:
     materials_store = loadfn(materials_store_json)
+    bonds_store = loadfn(bonds_store_json)
     formula_autocomplete_store = loadfn(formula_autocomplete_store_json)
     task_store = loadfn(task_store_json)
     thermo_store = loadfn(thermo_store_json)
-    dielectric_piezo_store = loadfn(dielectric_piezo_store_json)
+    phase_diagram_store = loadfn(phase_diagram_store_json)
+    dielectric_store = loadfn(dielectric_store_json)
+    piezoelectric_store = loadfn(piezoelectric_store_json)
     magnetism_store = loadfn(magnetism_store_json)
     phonon_bs_store = loadfn(phonon_bs_store_json)
     eos_store = loadfn(eos_store_json)
@@ -362,7 +391,10 @@ resources.update(
     }
 )
 
-# resources.update({"find_structure": find_structure_resource(materials_store)})
+# Bonds
+from mp_api.routes.bonds.resources import bonds_resource
+
+resources.update({"bonds": [bonds_resource(bonds_store)]})
 
 # Tasks
 from mp_api.routes.tasks.resources import (
@@ -382,24 +414,31 @@ resources.update(
 )
 
 # Thermo
-from mp_api.routes.thermo.resources import thermo_resource
+from mp_api.routes.thermo.resources import phase_diagram_resource, thermo_resource
 
-resources.update({"thermo": [thermo_resource(thermo_store)]})
+resources.update(
+    {
+        "thermo": [
+            phase_diagram_resource(phase_diagram_store),
+            thermo_resource(thermo_store),
+        ]
+    }
+)
 
 # Dielectric
 from mp_api.routes.dielectric.resources import dielectric_resource
 
-resources.update({"dielectric": [dielectric_resource(dielectric_piezo_store)]})
+resources.update({"dielectric": [dielectric_resource(dielectric_store)]})
+
+# Piezoelectric
+from mp_api.routes.piezo.resources import piezo_resource
+
+resources.update({"piezoelectric": [piezo_resource(piezoelectric_store)]})
 
 # Magnetism
 from mp_api.routes.magnetism.resources import magnetism_resource
 
 resources.update({"magnetism": [magnetism_resource(magnetism_store)]})
-
-# Piezoelectric
-from mp_api.routes.piezo.resources import piezo_resource
-
-resources.update({"piezoelectric": [piezo_resource(dielectric_piezo_store)]})
 
 # Phonon
 from mp_api.routes.phonon.resources import phonon_bsdos_resource

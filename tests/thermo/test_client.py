@@ -1,4 +1,5 @@
 import os
+from pymatgen.analysis.phase_diagram import PhaseDiagram
 import pytest
 from mp_api.routes.thermo.client import ThermoRester
 
@@ -106,3 +107,11 @@ def test_client(rester):
                     doc[project_field if project_field is not None else param]
                     is not None
                 )
+
+
+@pytest.mark.xfail(reason="Temporary until deployment")
+def test_get_phase_diagram_from_chemsys():
+    # Test that a phase diagram is returned
+    assert isinstance(
+        ThermoRester().get_phase_diagram_from_chemsys("Fe-Mn-Pt"), PhaseDiagram
+    )

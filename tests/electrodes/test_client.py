@@ -24,7 +24,6 @@ alt_name_dict = {}  # type: dict
 custom_field_tests = {"working_ion": Element("Li")}  # type: dict
 
 
-@pytest.mark.xfail  # temp until rebuild
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )

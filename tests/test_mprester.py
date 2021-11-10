@@ -80,6 +80,7 @@ class TestMPRester:
         structs = mpr.get_structures("Mn3O4", final=False)
         assert len(structs) > 0
 
+    @pytest.mark.xfail(reason="Until deployment")
     def test_find_structure(self, mpr):
         path = os.path.join(MAPISettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
@@ -245,7 +246,7 @@ class TestMPRester:
             "total_energy": "energy_per_atom",
             "formation_energy": "formation_energy_per_atom",
             "uncorrected_energy": "uncorrected_energy_per_atom",
-            # "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
+            "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
             "magnetic_ordering": "ordering",
             "elastic_anisotropy": "universal_anisotropy",
             "poisson_ratio": "homogeneous_poisson",
@@ -261,10 +262,10 @@ class TestMPRester:
             "crystal_system": CrystalSystem.cubic,
             "spacegroup_number": 38,
             "spacegroup_symbol": "Amm2",
-            "magnetic_ordering": Ordering.FM,
             "has_props": ["dielectric"],
             "theoretical": True,
             "has_reconstructed": False,
+            "magnetic_ordering": Ordering.FM,
         }  # type: dict
 
         search_method = mpr.query
@@ -308,7 +309,12 @@ class TestMPRester:
                         "num_chunks": 1,
                     }
 
-                doc = search_method(**q)[0].dict()
+                docs = search_method(**q)
+
+                if len(docs) > 0:
+                    doc = docs[0].dict()
+                else:
+                    raise ValueError("No documents returned")
 
                 assert (
                     doc[project_field if project_field is not None else param]

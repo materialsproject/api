@@ -20,10 +20,10 @@ def test_dielectric_query_operator():
     )
 
     fields = [
-        "dielectric.e_total",
-        "dielectric.e_ionic",
-        "dielectric.e_electronic",
-        "dielectric.n",
+        "e_total",
+        "e_ionic",
+        "e_electronic",
+        "n",
     ]
 
     assert q == {"criteria": {field: {"$gte": 0, "$lte": 5} for field in fields}}

@@ -2,14 +2,14 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester
-from mp_api.routes.dielectric.models import DielectricDoc
+from emmet.core.polar import DielectricDoc
 
 
 class DielectricRester(BaseRester[DielectricDoc]):
 
     suffix = "dielectric"
     document_model = DielectricDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
 
     def search_dielectric_docs(
         self,
