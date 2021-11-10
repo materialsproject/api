@@ -9,6 +9,7 @@ from mp_api.matproj import MPRester
 from mp_api.core.settings import MAPISettings
 
 from pymatgen.io.cif import CifParser
+from pymatgen.analysis.pourbaix_diagram import PourbaixDiagram, PourbaixEntry
 from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
@@ -130,6 +131,52 @@ class TestMPRester:
         e1 = set([i.entry_id for i in entries])
         e2 = set([i.entry_id for i in entries2])
         assert e1 == e2
+
+    def test_get_pourbaix_entries(self, mpr):
+        # test input chemsys as a list of elements
+        pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
+        for pbx_entry in pbx_entries:
+            assert isinstance(pbx_entry, PourbaixEntry)
+
+        # test input chemsys as a string
+        pbx_entries = mpr.get_pourbaix_entries("Fe-Cr")
+        for pbx_entry in pbx_entries:
+            assert isinstance(pbx_entry, PourbaixEntry)
+
+        # test use_gibbs kwarg
+        pbx_entries = mpr.get_pourbaix_entries("Li-O", use_gibbs=True)
+        for pbx_entry in pbx_entries:
+            assert isinstance(pbx_entry, PourbaixEntry)
+
+        # test solid_compat kwarg
+        with pytest.raises(ValueError, match="Solid compatibility can only be"):
+            mpr.get_pourbaix_entries("Ti-O", solid_compat=None)
+
+        # TODO - old tests copied from pymatgen. Update or delete
+        # fe_two_plus = [e for e in pbx_entries if e.entry_id == "ion-0"][0]
+        # self.assertAlmostEqual(fe_two_plus.energy, -1.12369, places=3)
+        #
+        # feo2 = [e for e in pbx_entries if e.entry_id == "mp-25332"][0]
+        # self.assertAlmostEqual(feo2.energy, 3.56356, places=3)
+        #
+        # # Test S, which has Na in reference solids
+        # pbx_entries = self.rester.get_pourbaix_entries(["S"])
+        # so4_two_minus = pbx_entries[9]
+        # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
+
+        # Ensure entries are pourbaix compatible
+        PourbaixDiagram(pbx_entries)
+
+    def test_get_ion_reference_data(self, mpr):
+        ion_data = mpr.get_ion_reference_data("Ti")
+        assert len(ion_data) == 5
+
+        ion_data = mpr.get_ion_reference_data(["Ti", "O"])
+        assert len(ion_data) == 5
+
+    @pytest.mark.skip("Not implemented yet")
+    def test_get_ion_entries(self, mpr):
+        pass
 
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
