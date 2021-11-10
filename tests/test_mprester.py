@@ -195,6 +195,12 @@ class TestMPRester:
             assert isinstance(e1, IonEntry)
             assert isinstance(e2, IonEntry)
 
+        # test an incomplete phase diagram
+        entries = mpr.get_entries_in_chemsys("Ti-O")
+        pd = PhaseDiagram(entries)
+        with pytest.raises(ValueError, match="The phase diagram chemical system"):
+            mpr.get_ion_entries(pd)
+
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
         assert isinstance(bs, PhononBandStructureSymmLine)

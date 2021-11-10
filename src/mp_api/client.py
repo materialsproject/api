@@ -415,23 +415,23 @@ class MPRester:
     ):
         """
         A helper function to get all entries necessary to generate
-        a pourbaix diagram from the rest interface.
+        a Pourbaix diagram from the rest interface.
 
         Args:
             chemsys (str or [str]): Chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
                 symbols, e.g., ["Li", "Fe", "O"].
-            solid_compat: Compatiblity scheme used to pre-process solid DFT energies prior to applying aqueous
-                energy adjustments. May be passed as a class (e.g. MaterialsProject2020Compatibility) or an instance
-                (e.g., MaterialsProject2020Compatibility()). If None, solid DFT energies are used as-is.
-                Default: MaterialsProject2020Compatibility
-            use_gibbs: Whether to use a machine learning model to estimate solid
-                free energy from DFT energy (see GibbsComputedStructureEntry). This
-                can slightly improve the accuracy of the Pourbaix diagram in some
-                cases. Default: False.
+            solid_compat: Compatiblity scheme used to pre-process solid DFT energies prior
+                to applying aqueous energy adjustments. May be passed as a class (e.g. MaterialsProject2020Compatibility) or an instance
+                (e.g., MaterialsProject2020Compatibility()). If None, solid DFT energies
+                are used as-is. Default: MaterialsProject2020Compatibility
+            use_gibbs: Set to 300 (for 300 Kelvin) to use a machine learning model to
+                estimate solid free energy from DFT energy (see GibbsComputedStructureEntry).
+                This can slightly improve the accuracy of the Pourbaix diagram in some
+                cases. Default: None. Note that temperatures other than 300K are not
+                permitted here, because MaterialsProjectAqueousCompatibility corrections,
+                used in Pourbaix diagram construction, are calculated based on 300 K data.
         """
-        # TODO - are we worried about the expense? This is a leftover from
-        # the old MPRester
         # imports are not top-level due to expense
         from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
         from pymatgen.entries.compatibility import (
@@ -540,9 +540,9 @@ class MPRester:
     # @lru_cache
     def get_ion_reference_data(self, chemsys: Union[str, List]) -> List[dict]:
         """
-        Download aqueous ion reference data used in the construction of Pourbaix Diagrams.
+        Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
-        Use this method to examine the ion data and to add additional
+        Use this method to examine the ion reference data and to add additional
         ions if desired. The data returned from this method can be passed to
         get_ion_entries().
 
@@ -601,17 +601,16 @@ class MPRester:
 
         NOTE! This is an advanced method that assumes detailed understanding
         of how to construct computational Pourbaix Diagrams. If you just want
-        to build a Pourbaix Diagram using default settings,
-        use get_pourbaix_entries.
+        to build a Pourbaix Diagram using default settings, use get_pourbaix_entries.
 
         Args:
-            pd: solid Phase Diagram on which to construct IonEntry. Note that this
+            pd: Solid phase diagram on which to construct IonEntry. Note that this
                 Phase Diagram MUST include O and H in its chemical system. For example,
                 to retrieve IonEntry for Ti, the phase diagram passed here should contain
                 materials in the H-O-Ti chemical system. It is also assumed that solid
                 energies have already been corrected with MaterialsProjectAqueousCompatibility,
                 which is necessary for proper construction of Pourbaix diagrams.
-            ion_ref_data: Aqueous ion reference data. If None (defualt), the data
+            ion_ref_data: Aqueous ion reference data. If None (default), the data
                 are downloaded from the Aqueous Ion Reference Data project hosted
                 on MPContribs. To add a custom ionic species, first download
                 data using get_ion_reference_data, then add or customize it with
