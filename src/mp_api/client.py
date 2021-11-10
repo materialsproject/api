@@ -536,9 +536,6 @@ class MPRester:
 
         return pbx_entries
 
-    # TODO - @lru_cache causes this method to fail when chemsys is given as a list,
-    # with an 'unhashable type' error
-    # @lru_cache
     def get_ion_reference_data(self, chemsys: Union[str, List]) -> List[dict]:
         """
         Download aqueous ion reference data used in the construction of Pourbaix diagrams.
@@ -577,8 +574,16 @@ class MPRester:
             chemsys = chemsys.split("-")
         # capitalize and sort the elements
         chemsys = sorted(e.capitalize() for e in chemsys)
+        # convert back to a str
+        chemsys = tuple(chemsys)
 
-        # TODO - see if there is a way to avoid querying the entire collection
+        return self._get_ion_reference_data(chemsys)
+
+    @lru_cache
+    def _get_ion_reference_data(self, chemsys: tuple):
+        """
+        Private, cacheable helper method for get_ion_reference data.
+        """
         ion_data = [
             d
             for d in self.contribs.contributions.get_entries(
