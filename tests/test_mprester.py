@@ -15,7 +15,7 @@ from pymatgen.electronic_structure.bandstructure import (
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
-from pymatgen.entries.computed_entries import ComputedEntry
+from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.core.periodic_table import Element
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import PhononDos
@@ -132,6 +132,10 @@ class TestMPRester:
         e2 = set([i.entry_id for i in entries2])
         assert e1 == e2
 
+        gibbs_entries = mpr.get_entries_in_chemsys(syms2, use_gibbs=500)
+        for e in gibbs_entries:
+            assert isinstance(e, GibbsComputedStructureEntry)
+
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements
         pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
@@ -144,7 +148,7 @@ class TestMPRester:
             assert isinstance(pbx_entry, PourbaixEntry)
 
         # test use_gibbs kwarg
-        pbx_entries = mpr.get_pourbaix_entries("Li-O", use_gibbs=True)
+        pbx_entries = mpr.get_pourbaix_entries("Li-O", use_gibbs=300)
         for pbx_entry in pbx_entries:
             assert isinstance(pbx_entry, PourbaixEntry)
 

@@ -4,7 +4,7 @@ import warnings
 from collections import defaultdict
 from functools import lru_cache
 from os import environ
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Literal
 
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
@@ -413,7 +413,7 @@ class MPRester:
         self,
         chemsys: Union[str, List],
         solid_compat="MaterialsProject2020Compatibility",
-        use_gibbs: bool = False,
+        use_gibbs: Optional[Literal[300]] = None,
     ):
         """
         A helper function to get all entries necessary to generate
@@ -475,8 +475,12 @@ class MPRester:
         ion_ref_elts = list(
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
+        # TODO - would be great if the commented line below would work
+        # However for some reason you cannot process GibbsComputedStructureEntry with
+        # MaterialsProjectAqueousCompatibility
         ion_ref_entries = self.get_entries_in_chemsys(
             list(set([str(e) for e in ion_ref_elts] + ["O", "H"])),
+            # use_gibbs=use_gibbs
         )
 
         # suppress the warning about supplying the required energies; they will be calculated from the
@@ -498,7 +502,7 @@ class MPRester:
             from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
             ion_ref_entries = GibbsComputedStructureEntry.from_entries(
-                ion_ref_entries, temp=300
+                ion_ref_entries, temp=use_gibbs
             )
         ion_ref_pd = PhaseDiagram(ion_ref_entries)
 
@@ -707,6 +711,7 @@ class MPRester:
     def get_entries_in_chemsys(
         self,
         elements,
+        use_gibbs: Optional[int] = None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -718,6 +723,11 @@ class MPRester:
             elements (str or [str]): Chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
                 symbols, e.g., ["Li", "Fe", "O"].
+            use_gibbs: If None (default), DFT energy is returned. If a number, return
+                the free energy of formation estimated using a machine learning model
+                (see GibbsComputedStructureEntry). The number is the temperature in
+                Kelvin at which to estimate the free energy. Must be between 300 K and
+                2000 K.
         Returns:
             List of ComputedEntries.
         """
@@ -733,6 +743,14 @@ class MPRester:
 
         for chemsys in all_chemsyses:
             entries.extend(self.get_entries(chemsys_formula=chemsys))
+
+        if use_gibbs:
+            # replace the entries with GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
+
+            entries = GibbsComputedStructureEntry.from_entries(
+                entries, temp=use_gibbs
+            )
 
         return entries
 
