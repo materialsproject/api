@@ -1,22 +1,20 @@
 import itertools
-import os
 import warnings
-from collections import defaultdict
 from functools import lru_cache
 from os import environ
-from typing import List, Optional, Tuple, Union, Literal
+from typing import List, Optional, Tuple, Union
+from typing_extensions import Literal
 
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from monty.serialization import loadfn
 from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
 from pymatgen.analysis.wulff import WulffShape
-from pymatgen.core import Composition, Element, Structure
+from pymatgen.core import Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -435,15 +433,14 @@ class MPRester:
         # TODO - are we worried about the expense? This is a leftover from
         # the old MPRester
         # imports are not top-level due to expense
-        from pymatgen.analysis.phase_diagram import PhaseDiagram
-        from pymatgen.analysis.pourbaix_diagram import ComputedEntry, PourbaixEntry
-        from pymatgen.core.ion import Ion
+        from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
         from pymatgen.entries.compatibility import (
             Compatibility,
             MaterialsProject2020Compatibility,
             MaterialsProjectAqueousCompatibility,
             MaterialsProjectCompatibility,
         )
+        from pymatgen.entries.computed_entries import ComputedEntry
 
         if solid_compat == "MaterialsProjectCompatibility":
             solid_compat = MaterialsProjectCompatibility()
@@ -497,6 +494,8 @@ class MPRester:
                 "ignore", message="Failed to guess oxidation states.*"
             )
             ion_ref_entries = compat.process_entries(ion_ref_entries)
+        # TODO - if the commented line above would work, this conditional block
+        # could be removed
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
             from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
@@ -587,15 +586,6 @@ class MPRester:
                 per_page=500,
             ).result()["data"]
         ]
-        # TODO - code below included if we prefer to load data from a local file
-        # ion_data = loadfn(
-        #     os.path.join(
-        #         os.path.dirname(os.path.realpath(__file__)),
-        #         "core",
-        #         "assets",
-        #         "mpcontribs_ion_data_2021_11_05.json",
-        #     )
-        # )
         ion_data = [d for d in ion_data if d["data"]["MajElements"] in chemsys]
 
         return ion_data
@@ -748,9 +738,7 @@ class MPRester:
             # replace the entries with GibbsComputedStructureEntry
             from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
-            entries = GibbsComputedStructureEntry.from_entries(
-                entries, temp=use_gibbs
-            )
+            entries = GibbsComputedStructureEntry.from_entries(entries, temp=use_gibbs)
 
         return entries
 
