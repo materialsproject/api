@@ -422,7 +422,8 @@ class MPRester:
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
                 symbols, e.g., ["Li", "Fe", "O"].
             solid_compat: Compatiblity scheme used to pre-process solid DFT energies prior
-                to applying aqueous energy adjustments. May be passed as a class (e.g. MaterialsProject2020Compatibility) or an instance
+                to applying aqueous energy adjustments. May be passed as a class (e.g. 
+                MaterialsProject2020Compatibility) or an instance
                 (e.g., MaterialsProject2020Compatibility()). If None, solid DFT energies
                 are used as-is. Default: MaterialsProject2020Compatibility
             use_gibbs: Set to 300 (for 300 Kelvin) to use a machine learning model to
