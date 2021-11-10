@@ -50,6 +50,7 @@ class TestMPRester:
         with pytest.warns(UserWarning):
             mpr.get_structure_by_material_id("mp-698856")
 
+    @pytest.mark.xfail(reason="Until deployment")
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
         assert db_version == MAPISettings().DB_VERSION
