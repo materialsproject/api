@@ -20,7 +20,7 @@ class MAPISettings(BaseSettings):
         description="Directory with test files",
     )
 
-    DB_VERSION: str = Field("2021_prerelease", description="Database version")
+    DB_VERSION: str = Field("2021.11.10", description="Database version")
 
     DB_NAME_SUFFIX: str = Field(None, description="Database name suffix")
 
