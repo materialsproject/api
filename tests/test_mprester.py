@@ -1,27 +1,28 @@
+import os
+import random
+import typing
+
+import pytest
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from mp_api.routes.tasks.models import TaskDoc
-import pytest
-import random
-import os
-import typing
-from mp_api.matproj import MPRester
 from mp_api.core.settings import MAPISettings
-
-from pymatgen.io.cif import CifParser
-from pymatgen.analysis.pourbaix_diagram import PourbaixDiagram, PourbaixEntry
+from mp_api.matproj import MPRester
+from mp_api.routes.tasks.models import TaskDoc
+from pymatgen.analysis.magnetism import Ordering
+from pymatgen.analysis.phase_diagram import PhaseDiagram
+from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
+from pymatgen.analysis.wulff import WulffShape
+from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
 from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
-from pymatgen.core.periodic_table import Element
+from pymatgen.io.cif import CifParser
+from pymatgen.io.vasp import Chgcar
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import PhononDos
-from pymatgen.io.vasp import Chgcar
-from pymatgen.analysis.magnetism import Ordering
-from pymatgen.analysis.wulff import WulffShape
 
 
 @pytest.fixture()
@@ -178,9 +179,21 @@ class TestMPRester:
         ion_data = mpr.get_ion_reference_data(["Ti", "O"])
         assert len(ion_data) == 5
 
-    @pytest.mark.skip("Not implemented yet")
     def test_get_ion_entries(self, mpr):
-        pass
+        entries = mpr.get_entries_in_chemsys("Ti-O-H")
+        pd = PhaseDiagram(entries)
+        ion_entries = mpr.get_ion_entries(pd)
+        assert len(ion_entries) == 5
+
+        # also test passing ion data as a kwarg
+        ion_data = mpr.get_ion_reference_data("Ti")
+        ion_entries2 = mpr.get_ion_entries(pd, ion_ref_data=ion_data)
+        assert len(ion_entries2) == len(ion_data)
+
+        for e1, e2 in zip(ion_entries, ion_entries2):
+            assert e1.energy == e2.energy
+            assert isinstance(e1, IonEntry)
+            assert isinstance(e2, IonEntry)
 
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")

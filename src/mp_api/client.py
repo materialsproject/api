@@ -120,7 +120,7 @@ class MPRester:
         self.session = BaseRester._create_session(
             api_key=api_key, include_user_agent=include_user_agent
         )
-        self.contribs = Client()
+        self.contribs = Client(api_key)
 
         self._all_resters = []
 
