@@ -9,7 +9,7 @@ import json
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Dict, Optional, List, Union, Generic, TypeVar
+from typing import Dict, Optional, List, Union, Generic, TypeVar, Sequence
 from urllib.parse import urljoin
 from os import environ
 import warnings
@@ -337,7 +337,7 @@ class BaseRester(Generic[T]):
         ).get("data")
 
     def get_data_by_id(
-        self, document_id: str, fields: Optional[List[str]] = None,
+        self, document_id: str, fields: Optional[Sequence[str]] = None,
     ) -> Union[T]:
         """
         Query the endpoint for a single document.
