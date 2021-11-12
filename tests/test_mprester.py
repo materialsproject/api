@@ -1,26 +1,28 @@
+import os
+import random
+import typing
+
+import pytest
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from mp_api.routes.tasks.models import TaskDoc
-import pytest
-import random
-import os
-import typing
-from mp_api.matproj import MPRester
 from mp_api.core.settings import MAPISettings
-
-from pymatgen.io.cif import CifParser
+from mp_api.matproj import MPRester
+from mp_api.routes.tasks.models import TaskDoc
+from pymatgen.analysis.magnetism import Ordering
+from pymatgen.analysis.phase_diagram import PhaseDiagram
+from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
+from pymatgen.analysis.wulff import WulffShape
+from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
-from pymatgen.entries.computed_entries import ComputedEntry
-from pymatgen.core.periodic_table import Element
+from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
+from pymatgen.io.cif import CifParser
+from pymatgen.io.vasp import Chgcar
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import PhononDos
-from pymatgen.io.vasp import Chgcar
-from pymatgen.analysis.magnetism import Ordering
-from pymatgen.analysis.wulff import WulffShape
 
 
 @pytest.fixture()
@@ -48,6 +50,7 @@ class TestMPRester:
         with pytest.warns(UserWarning):
             mpr.get_structure_by_material_id("mp-698856")
 
+    @pytest.mark.xfail(reason="Until deployment")
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
         assert db_version == MAPISettings().DB_VERSION
@@ -131,6 +134,74 @@ class TestMPRester:
         e1 = set([i.entry_id for i in entries])
         e2 = set([i.entry_id for i in entries2])
         assert e1 == e2
+
+        gibbs_entries = mpr.get_entries_in_chemsys(syms2, use_gibbs=500)
+        for e in gibbs_entries:
+            assert isinstance(e, GibbsComputedStructureEntry)
+
+    def test_get_pourbaix_entries(self, mpr):
+        # test input chemsys as a list of elements
+        pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
+        for pbx_entry in pbx_entries:
+            assert isinstance(pbx_entry, PourbaixEntry)
+
+        # test input chemsys as a string
+        pbx_entries = mpr.get_pourbaix_entries("Fe-Cr")
+        for pbx_entry in pbx_entries:
+            assert isinstance(pbx_entry, PourbaixEntry)
+
+        # test use_gibbs kwarg
+        pbx_entries = mpr.get_pourbaix_entries("Li-O", use_gibbs=300)
+        for pbx_entry in pbx_entries:
+            assert isinstance(pbx_entry, PourbaixEntry)
+
+        # test solid_compat kwarg
+        with pytest.raises(ValueError, match="Solid compatibility can only be"):
+            mpr.get_pourbaix_entries("Ti-O", solid_compat=None)
+
+        # TODO - old tests copied from pymatgen. Update or delete
+        # fe_two_plus = [e for e in pbx_entries if e.entry_id == "ion-0"][0]
+        # self.assertAlmostEqual(fe_two_plus.energy, -1.12369, places=3)
+        #
+        # feo2 = [e for e in pbx_entries if e.entry_id == "mp-25332"][0]
+        # self.assertAlmostEqual(feo2.energy, 3.56356, places=3)
+        #
+        # # Test S, which has Na in reference solids
+        # pbx_entries = self.rester.get_pourbaix_entries(["S"])
+        # so4_two_minus = pbx_entries[9]
+        # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
+
+        # Ensure entries are pourbaix compatible
+        PourbaixDiagram(pbx_entries)
+
+    def test_get_ion_reference_data(self, mpr):
+        ion_data = mpr.get_ion_reference_data("Ti")
+        assert len(ion_data) == 5
+
+        ion_data = mpr.get_ion_reference_data(["Ti", "O"])
+        assert len(ion_data) == 5
+
+    def test_get_ion_entries(self, mpr):
+        entries = mpr.get_entries_in_chemsys("Ti-O-H")
+        pd = PhaseDiagram(entries)
+        ion_entries = mpr.get_ion_entries(pd)
+        assert len(ion_entries) == 5
+
+        # also test passing ion data as a kwarg
+        ion_data = mpr.get_ion_reference_data("Ti")
+        ion_entries2 = mpr.get_ion_entries(pd, ion_ref_data=ion_data)
+        assert len(ion_entries2) == len(ion_data)
+
+        for e1, e2 in zip(ion_entries, ion_entries2):
+            assert e1.energy == e2.energy
+            assert isinstance(e1, IonEntry)
+            assert isinstance(e2, IonEntry)
+
+        # test an incomplete phase diagram
+        entries = mpr.get_entries_in_chemsys("Ti-O")
+        pd = PhaseDiagram(entries)
+        with pytest.raises(ValueError, match="The phase diagram chemical system"):
+            mpr.get_ion_entries(pd)
 
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
