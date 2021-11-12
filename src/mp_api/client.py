@@ -66,6 +66,7 @@ class MPRester:
     electronic_structure_dos: DosRester
     oxidation_states: OxidationStatesRester
     provenance: ProvenanceRester
+    bonds: BondsRester
     _user_settings: UserSettingsRester
     _general_store: GeneralStoreRester
 
