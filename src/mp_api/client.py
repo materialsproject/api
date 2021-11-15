@@ -576,7 +576,7 @@ class MPRester:
         chemsys = sorted(e.capitalize() for e in chemsys)
 
         # convert to a tuple which is hashable
-        return self._get_ion_reference_data(tuple(chemsys))
+        return self._get_ion_reference_data(tuple(chemsys))  # type: ignore
 
     @lru_cache  # type: ignore
     def _get_ion_reference_data(self, chemsys: Tuple):  # type: ignore
