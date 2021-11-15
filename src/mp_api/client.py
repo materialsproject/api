@@ -571,15 +571,15 @@ class MPRester:
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
         if isinstance(chemsys, str):
-            chemsys = chemsys.split("-")  # type: ignore
+            chemsys = chemsys.split("-")
         # capitalize and sort the elements
-        chemsys = sorted(e.capitalize() for e in chemsys)  # type: ignore
+        chemsys = sorted(e.capitalize() for e in chemsys)
 
         # convert to a tuple which is hashable
         return self._get_ion_reference_data(tuple(chemsys))
 
-    @lru_cache
-    def _get_ion_reference_data(self, chemsys: Tuple):
+    @lru_cache  # type: ignore
+    def _get_ion_reference_data(self, chemsys: Tuple):  # type: ignore
         """
         Private, cacheable helper method for get_ion_reference data.
         """
