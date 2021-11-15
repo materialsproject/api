@@ -2,7 +2,7 @@ import itertools
 import warnings
 from functools import lru_cache
 from os import environ
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Dict
 from typing_extensions import Literal
 
 from emmet.core.mpid import MPID
@@ -536,7 +536,7 @@ class MPRester:
 
         return pbx_entries
 
-    def get_ion_reference_data(self, chemsys: Union[str, List]) -> List[dict]:
+    def get_ion_reference_data(self, chemsys: Union[str, List]) -> List[Dict]:
         """
         Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
@@ -571,15 +571,15 @@ class MPRester:
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
         if isinstance(chemsys, str):
-            chemsys = chemsys.split("-")
+            chemsys = chemsys.split("-") #type: ignore
         # capitalize and sort the elements
-        chemsys = sorted(e.capitalize() for e in chemsys)
+        chemsys = sorted(e.capitalize() for e in chemsys) #type: ignore
 
         # convert to a tuple which is hashable
         return self._get_ion_reference_data(tuple(chemsys))
 
     @lru_cache
-    def _get_ion_reference_data(self, chemsys: tuple):
+    def _get_ion_reference_data(self, chemsys: Tuple):
         """
         Private, cacheable helper method for get_ion_reference data.
         """
