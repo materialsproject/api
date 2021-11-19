@@ -28,7 +28,7 @@ setup(
         "pymatgen>=2022.0.16",
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
-        "monty",
+        "monty>=2021.8.17",
         "emmet-core",
         "maggma>=0.30.4",
         "ratelimit",
