@@ -1,5 +1,5 @@
 fastapi==0.70.0
-maggma==0.31.0
+maggma==0.32.1
 uvicorn==0.15.0
 gunicorn[gevent]==20.1.0
 boto3==1.19.12

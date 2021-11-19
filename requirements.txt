@@ -1,7 +1,7 @@
 pydantic==1.8.2
 pymatgen>=2022.0.16
 typing-extensions==3.10.0.2
-maggma==0.31.0
+maggma==0.32.1
 requests==2.26.0
 monty==2021.8.17
 emmet-core==0.15.7
