@@ -13,7 +13,8 @@ class FindStructure(BaseModel):
         "This comes in the form: mp-******",
     )
     normalized_rms_displacement: float = Field(
-        None, description="Volume normalized root-mean squared displacement between the structures",
+        None,
+        description="Volume normalized root-mean squared displacement between the structures",
     )
     max_distance_paired_sites: float = Field(
         None, description="Maximum distance between paired sites",

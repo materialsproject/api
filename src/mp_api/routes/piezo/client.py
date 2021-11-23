@@ -29,7 +29,6 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
             piezoelectric_modulus (Tuple[float,float]): Minimum and maximum of the
                 piezoelectric modulus in C/m² to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
-            
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -44,14 +43,27 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
 
         if piezoelectric_modulus:
             query_params.update(
-                {"piezo_modulus_min": piezoelectric_modulus[0], "piezo_modulus_max": piezoelectric_modulus[1],}
+                {
+                    "piezo_modulus_min": piezoelectric_modulus[0],
+                    "piezo_modulus_max": piezoelectric_modulus[1],
+                }
             )
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

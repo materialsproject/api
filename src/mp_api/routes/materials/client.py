@@ -18,7 +18,9 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
     supports_versions = True
     primary_key = "material_id"
 
-    def get_structure_by_material_id(self, material_id: str, final: bool = True) -> Union[Structure, List[Structure]]:
+    def get_structure_by_material_id(
+        self, material_id: str, final: bool = True
+    ) -> Union[Structure, List[Structure]]:
         """
         Get a structure for a given Materials Project ID.
 
@@ -71,7 +73,6 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
-            
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -108,12 +109,22 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )
 
     def find_structure(
@@ -156,7 +167,10 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             raise MPRestError("Provide filename or Structure object.")
 
         results = self._post_resource(
-            body=s.as_dict(), params=params, suburl="find_structure", use_document_model=False,
+            body=s.as_dict(),
+            params=params,
+            suburl="find_structure",
+            use_document_model=False,
         ).get("data")
 
         if len(results) > 1:  # type: ignore

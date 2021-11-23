@@ -72,15 +72,26 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             query_params.update({"working_ion": str(working_ion)})
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         for param, value in locals().items():
-            if param not in ["__class__", "self", "working_ion", "query_params"] and value:
+            if (
+                param not in ["__class__", "self", "working_ion", "query_params"]
+                and value
+            ):
                 if isinstance(value, tuple):
-                    query_params.update({f"{param}_min": value[0], f"{param}_max": value[1]})
+                    query_params.update(
+                        {f"{param}_min": value[0], f"{param}_max": value[1]}
+                    )
                 else:
                     query_params.update({param: value})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(**query_params)

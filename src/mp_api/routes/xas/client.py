@@ -37,8 +37,14 @@ class XASRester(BaseRester[XASDoc]):
             query_params["elements"] = ",".join([str(el) for el in required_elements])
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params,
         )

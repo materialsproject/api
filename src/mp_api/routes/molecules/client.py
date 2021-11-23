@@ -40,7 +40,6 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
             pointgroup (str): Point group of the molecule in Schoenflies notation.
             smiles (str): The simplified molecular input line-entry system (SMILES) representation of the molecule.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
-            
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -63,7 +62,9 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
             query_params.update({"smiles": smiles})
 
         if nelements:
-            query_params.update({"nelements_min": nelements[0], "nelements_max": nelements[1]})
+            query_params.update(
+                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
+            )
 
         if EA:
             query_params.update({"EA_min": EA[0], "EA_max": EA[1]})
@@ -75,10 +76,20 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
             query_params.update({"charge_min": charge[0], "charge_max": charge[1]})
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

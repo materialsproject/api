@@ -313,4 +313,3 @@ class TestMPRester:
                     raise ValueError("No documents returned")
 
                 assert doc[project_field if project_field is not None else param] is not None
-

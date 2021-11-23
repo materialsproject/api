@@ -251,4 +251,3 @@ tags_meta = [
             submitted structure, the submitter will be credited with the submitted public name and email.",
     },
 ]
-

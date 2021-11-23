@@ -51,16 +51,31 @@ class DielectricRester(BaseRester[DielectricDoc]):
             query_params.update({"e_ionic_min": e_ionic[0], "e_ionic_max": e_ionic[1]})
 
         if e_electronic:
-            query_params.update({"e_electronic_min": e_electronic[0], "e_electronic_max": e_electronic[1]})
+            query_params.update(
+                {
+                    "e_electronic_min": e_electronic[0],
+                    "e_electronic_max": e_electronic[1],
+                }
+            )
 
         if n:
             query_params.update({"n_min": n[0], "n_max": n[1]})
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

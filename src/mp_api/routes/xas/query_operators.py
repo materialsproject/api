@@ -48,7 +48,10 @@ class XASTaskIDQuery(QueryOperator):
             crit.update(
                 {
                     "material_id": {
-                        "$in": [material_id.strip() for material_id in material_ids.split(",")]
+                        "$in": [
+                            material_id.strip()
+                            for material_id in material_ids.split(",")
+                        ]
                     }
                 }
             )

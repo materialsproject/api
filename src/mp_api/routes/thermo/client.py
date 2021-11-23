@@ -47,7 +47,6 @@ class ThermoRester(BaseRester[ThermoDoc]):
             uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
                 energy in eV/atom to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
-            
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -67,13 +66,17 @@ class ThermoRester(BaseRester[ThermoDoc]):
             query_params.update({"material_ids": ",".join(material_ids)})
 
         if nelements:
-            query_params.update({"nelements_min": nelements[0], "nelements_max": nelements[1]})
+            query_params.update(
+                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
+            )
 
         if is_stable is not None:
             query_params.update({"is_stable": is_stable})
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         name_dict = {
             "total_energy": "energy_per_atom",
@@ -86,13 +89,24 @@ class ThermoRester(BaseRester[ThermoDoc]):
         for param, value in locals().items():
             if "energy" in param and value:
                 query_params.update(
-                    {"{}_min".format(name_dict[param]): value[0], "{}_max".format(name_dict[param]): value[1],}
+                    {
+                        "{}_min".format(name_dict[param]): value[0],
+                        "{}_max".format(name_dict[param]): value[1],
+                    }
                 )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params,
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params,
         )
 
     def get_phase_diagram_from_chemsys(self, chemsys: str) -> PhaseDiagram:
@@ -106,7 +120,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
         """
 
         response = self._query_resource(
-            fields=["phase_diagram"], suburl=f"phase_diagram/{chemsys}", use_document_model=False,
+            fields=["phase_diagram"],
+            suburl=f"phase_diagram/{chemsys}",
+            use_document_model=False,
         ).get("data")
 
         return response[0]["phase_diagram"]  # type: ignore

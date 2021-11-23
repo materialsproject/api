@@ -28,7 +28,6 @@ class EOSRester(BaseRester[EOSDoc]):
             volumes (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
             energies (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
-            
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -45,13 +44,25 @@ class EOSRester(BaseRester[EOSDoc]):
             query_params.update({"volumes_min": volumes[0], "volumes_max": volumes[1]})
 
         if energies:
-            query_params.update({"energies_min": energies[0], "energies_max": energies[1]})
+            query_params.update(
+                {"energies_min": energies[0], "energies_max": energies[1]}
+            )
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

@@ -45,7 +45,6 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             chemsys (str): Dash-delimited string of elements in the material.
             pretty_formula (str): Formula of the material.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
-            
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -65,18 +64,27 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             query_params.update({"gb_plane": ",".join([str(n) for n in gb_plane])})
 
         if gb_energy:
-            query_params.update({"gb_energy_min": gb_energy[0], "gb_energy_max": gb_energy[1]})
+            query_params.update(
+                {"gb_energy_min": gb_energy[0], "gb_energy_max": gb_energy[1]}
+            )
 
         if separation_energy:
-            query_params.update({"w_sep_min": separation_energy[0], "w_sep_max": separation_energy[1]})
+            query_params.update(
+                {"w_sep_min": separation_energy[0], "w_sep_max": separation_energy[1]}
+            )
 
         if rotation_angle:
             query_params.update(
-                {"rotation_angle_min": rotation_angle[0], "rotation_angle_max": rotation_angle[1],}
+                {
+                    "rotation_angle_min": rotation_angle[0],
+                    "rotation_angle_max": rotation_angle[1],
+                }
             )
 
         if rotation_axis:
-            query_params.update({"rotation_axis": ",".join([str(n) for n in rotation_axis])})
+            query_params.update(
+                {"rotation_axis": ",".join([str(n) for n in rotation_axis])}
+            )
 
         if sigma:
             query_params.update({"sigma": sigma})
@@ -91,10 +99,20 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             query_params.update({"pretty_formula": pretty_formula})
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

@@ -51,27 +51,52 @@ class BondsRester(BaseRester[BondingDoc]):
         query_params = defaultdict(dict)  # type: dict
 
         if max_bond_length:
-            query_params.update({"max_bond_length_min": max_bond_length[0], "max_bond_length_max": max_bond_length[1]})
+            query_params.update(
+                {
+                    "max_bond_length_min": max_bond_length[0],
+                    "max_bond_length_max": max_bond_length[1],
+                }
+            )
 
         if min_bond_length:
-            query_params.update({"min_bond_length_min": min_bond_length[0], "min_bond_length_max": min_bond_length[1]})
+            query_params.update(
+                {
+                    "min_bond_length_min": min_bond_length[0],
+                    "min_bond_length_max": min_bond_length[1],
+                }
+            )
 
         if mean_bond_length:
             query_params.update(
-                {"mean_bond_length_min": mean_bond_length[0], "mean_bond_length_max": mean_bond_length[1]}
+                {
+                    "mean_bond_length_min": mean_bond_length[0],
+                    "mean_bond_length_max": mean_bond_length[1],
+                }
             )
 
         if coordination_envs is not None:
             query_params.update({"coordination_envs": ",".join(coordination_envs)})
 
         if coordination_envs_anonymous is not None:
-            query_params.update({"coordination_envs_anonymous": ",".join(coordination_envs_anonymous)})
+            query_params.update(
+                {"coordination_envs_anonymous": ",".join(coordination_envs_anonymous)}
+            )
 
         if sort_fields:
-            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super().search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

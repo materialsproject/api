@@ -16,49 +16,49 @@ class SynthesisSearchQuery(QueryOperator):
     """
 
     def query(
-            self,
-            keywords: Optional[str] = Query(
-                None,
-                description="Comma delimited string keywords to search synthesis paragraph text with.",
-            ),
-            synthesis_type: Optional[List[SynthesisTypeEnum]] = Query(
-                None, description="Type of synthesis to include."
-            ),
-            target_formula: Optional[str] = Query(
-                None, description="Chemical formula of the target material."
-            ),
-            precursor_formula: Optional[str] = Query(
-                None, description="Chemical formula of the precursor material."
-            ),
-            operations: Optional[List[OperationTypeEnum]] = Query(
-                None, description="List of operations that syntheses must have."
-            ),
-            condition_heating_temperature_min: Optional[float] = Query(
-                None, description="Minimal heating temperature."
-            ),
-            condition_heating_temperature_max: Optional[float] = Query(
-                None, description="Maximal heating temperature."
-            ),
-            condition_heating_time_min: Optional[float] = Query(
-                None, description="Minimal heating time."
-            ),
-            condition_heating_time_max: Optional[float] = Query(
-                None, description="Maximal heating time."
-            ),
-            condition_heating_atmosphere: Optional[List[str]] = Query(
-                None, description='Required heating atmosphere, such as "air", "argon".'
-            ),
-            condition_mixing_device: Optional[List[str]] = Query(
-                None, description='Required mixing device, such as "zirconia", "Al2O3".'
-            ),
-            condition_mixing_media: Optional[List[str]] = Query(
-                None, description='Required mixing media, such as "alcohol", "water".'
-            ),
-            skip: int = Query(0, description="Number of entries to skip in the search"),
-            limit: int = Query(
-                10,
-                description="Max number of entries to return in a single query. Limited to 10.",
-            ),
+        self,
+        keywords: Optional[str] = Query(
+            None,
+            description="Comma delimited string keywords to search synthesis paragraph text with.",
+        ),
+        synthesis_type: Optional[List[SynthesisTypeEnum]] = Query(
+            None, description="Type of synthesis to include."
+        ),
+        target_formula: Optional[str] = Query(
+            None, description="Chemical formula of the target material."
+        ),
+        precursor_formula: Optional[str] = Query(
+            None, description="Chemical formula of the precursor material."
+        ),
+        operations: Optional[List[OperationTypeEnum]] = Query(
+            None, description="List of operations that syntheses must have."
+        ),
+        condition_heating_temperature_min: Optional[float] = Query(
+            None, description="Minimal heating temperature."
+        ),
+        condition_heating_temperature_max: Optional[float] = Query(
+            None, description="Maximal heating temperature."
+        ),
+        condition_heating_time_min: Optional[float] = Query(
+            None, description="Minimal heating time."
+        ),
+        condition_heating_time_max: Optional[float] = Query(
+            None, description="Maximal heating time."
+        ),
+        condition_heating_atmosphere: Optional[List[str]] = Query(
+            None, description='Required heating atmosphere, such as "air", "argon".'
+        ),
+        condition_mixing_device: Optional[List[str]] = Query(
+            None, description='Required mixing device, such as "zirconia", "Al2O3".'
+        ),
+        condition_mixing_media: Optional[List[str]] = Query(
+            None, description='Required mixing media, such as "alcohol", "water".'
+        ),
+        skip: int = Query(0, description="Number of entries to skip in the search"),
+        limit: int = Query(
+            10,
+            description="Max number of entries to return in a single query. Limited to 10.",
+        ),
     ):
         project_dict: Dict[str, Union[Dict, int]] = {
             "_id": 0,
