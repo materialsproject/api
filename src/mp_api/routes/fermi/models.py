@@ -10,8 +10,7 @@ class FermiDoc(BaseModel):
     """
 
     fermi_surfaces: List[dict] = Field(
-        None,
-        description="List of IFermi FermiSurface objects.",
+        None, description="List of IFermi FermiSurface objects.",
     )
 
     surface_types: List[str] = Field(

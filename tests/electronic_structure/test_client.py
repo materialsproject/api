@@ -23,8 +23,7 @@ def es_rester():
 
 
 es_excluded_params = [
-    "sort_field",
-    "ascending",
+    "sort_fields",
     "chunk_size",
     "num_chunks",
     "all_fields",
@@ -40,9 +39,7 @@ es_custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_es_client(es_rester):
     # Get specific search method
     search_method = None
@@ -93,10 +90,7 @@ def test_es_client(es_rester):
 
                 doc = search_method(**q)[0].dict()
 
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+                assert doc[project_field if project_field is not None else param] is not None
 
 
 bs_custom_field_tests = {
@@ -119,9 +113,7 @@ def bs_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_bs_client(bs_rester):
     # Get specific search method
     search_method = None
@@ -173,9 +165,7 @@ def dos_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_dos_client(dos_rester):
     # Get specific search method
     search_method = None
@@ -200,6 +190,4 @@ def test_dos_client(dos_rester):
             if param != "projection_type" and param != "magnetic_ordering":
                 doc = doc["total"]["1"]
 
-            assert (
-                doc[project_field if project_field is not None else param] is not None
-            )
+            assert doc[project_field if project_field is not None else param] is not None

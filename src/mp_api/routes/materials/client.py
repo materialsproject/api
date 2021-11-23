@@ -51,8 +51,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         volume: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
         deprecated: Optional[bool] = False,
-        sort_field: Optional[str] = None,
-        ascending: Optional[bool] = None,
+        sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -73,8 +72,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             volume (Tuple[float,float]): Minimum and maximum volume to consider.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
-            sort_field (str): Field used to sort results.
-            ascending (bool): Whether sorting should be in ascending order.
+            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -110,11 +108,10 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         if density:
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
-        if sort_field:
-            query_params.update({"sort_field": sort_field})
-
-        if ascending is not None:
-            query_params.update({"ascending": ascending})
+        if sort_fields:
+            query_params.update(
+                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         query_params = {
             entry: query_params[entry]

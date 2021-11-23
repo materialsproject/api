@@ -7,13 +7,11 @@ class DOIDoc(BaseModel):
     """
 
     doi: str = Field(
-        None,
-        description="DOI of the material.",
+        None, description="DOI of the material.",
     )
 
     bibtex: str = Field(
-        None,
-        description="Bibtex reference of the material.",
+        None, description="Bibtex reference of the material.",
     )
 
     task_id: str = Field(

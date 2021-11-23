@@ -8,8 +8,7 @@ import typing
 resters = [ElasticityRester()]
 
 excluded_params = [
-    "sort_field",
-    "ascending",
+    "sort_fields",
     "chunk_size",
     "num_chunks",
     "all_fields",
@@ -26,9 +25,7 @@ alt_name_dict = {
 custom_field_tests = {}  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
     # Get specific search method
@@ -81,7 +78,4 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+                assert doc[project_field if project_field is not None else param] is not None

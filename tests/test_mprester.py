@@ -108,6 +108,7 @@ class TestMPRester:
         assert isinstance(e[0], ComputedEntry)
         assert e[0].composition.reduced_formula == "LiFePO4"
 
+    @pytest.mark.xfail(reason="Until deployment")
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
@@ -227,8 +228,7 @@ class TestMPRester:
     def test_query(self, mpr):
 
         excluded_params = [
-            "sort_field",
-            "ascending",
+            "sort_fields",
             "chunk_size",
             "num_chunks",
             "all_fields",

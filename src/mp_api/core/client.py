@@ -337,7 +337,7 @@ class BaseRester(Generic[T]):
         ).get("data")
 
     def get_data_by_id(
-        self, document_id: str, fields: Optional[Sequence[str]] = None,
+        self, document_id: str, fields: Optional[List[str]] = None,
     ) -> Union[T]:
         """
         Query the endpoint for a single document.
