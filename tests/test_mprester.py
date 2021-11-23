@@ -32,7 +32,9 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-149")
@@ -106,6 +108,7 @@ class TestMPRester:
         assert isinstance(e[0], ComputedEntry)
         assert e[0].composition.reduced_formula == "LiFePO4"
 
+    @pytest.mark.xfail(reason="Until deployment")
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
@@ -212,7 +215,9 @@ class TestMPRester:
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
 
-        chgcar, task_doc = mpr.get_charge_density_from_material_id("mp-149", inc_task_doc=True)
+        chgcar, task_doc = mpr.get_charge_density_from_material_id(
+            "mp-149", inc_task_doc=True
+        )
         assert isinstance(chgcar, Chgcar)
         assert isinstance(task_doc, TaskDoc)
 
@@ -312,4 +317,7 @@ class TestMPRester:
                 else:
                     raise ValueError("No documents returned")
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )
