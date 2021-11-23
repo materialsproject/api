@@ -18,8 +18,7 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
         surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
         shape_factor: Optional[Tuple[float, float]] = None,
         has_reconstructed: Optional[bool] = None,
-        sort_field: Optional[str] = None,
-        ascending: Optional[bool] = None,
+        sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -36,8 +35,8 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
                 consider.
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
-            sort_field (str): Field used to sort results.
-            ascending (bool): Whether sorting should be in ascending order.
+            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
+            
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -76,31 +75,17 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
 
         if shape_factor:
             query_params.update(
-                {
-                    "shape_factor_min": shape_factor[0],
-                    "shape_factor_max": shape_factor[1],
-                }
+                {"shape_factor_min": shape_factor[0], "shape_factor_max": shape_factor[1],}
             )
 
         if has_reconstructed is not None:
             query_params.update({"has_reconstructed": has_reconstructed})
 
-        if sort_field:
-            query_params.update({"sort_field": sort_field})
+        if sort_fields:
+            query_params.update({"sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        if ascending is not None:
-            query_params.update({"ascending": ascending})
-
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super().search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )
