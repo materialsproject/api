@@ -9,6 +9,7 @@ from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
+from emmet.core.summary import HasProps
 from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
@@ -845,7 +846,7 @@ class MPRester:
         surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
         shape_factor: Optional[Tuple[float, float]] = None,
         has_reconstructed: Optional[bool] = None,
-        has_props: Optional[List[str]] = None,
+        has_props: Optional[List[HasProps]] = None,
         theoretical: Optional[bool] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -918,7 +919,7 @@ class MPRester:
                 consider.
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
-            has_props: (List[str]): The calculated properties available for the material.
+            has_props: (List[HasProps]): The calculated properties available for the material.
             theoretical: (bool): Whether the material is theoretical.
             sort_fields (List[str]): Fields used to sort results. Prefixing with '-' will sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.

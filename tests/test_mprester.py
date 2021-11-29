@@ -5,6 +5,7 @@ import typing
 import pytest
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
+from emmet.core.summary import HasProps
 from mp_api.core.settings import MAPISettings
 from mp_api.matproj import MPRester
 from mp_api.routes.tasks.models import TaskDoc
@@ -263,7 +264,7 @@ class TestMPRester:
             "crystal_system": CrystalSystem.cubic,
             "spacegroup_number": 38,
             "spacegroup_symbol": "Amm2",
-            "has_props": ["dielectric"],
+            "has_props": [HasProps.dielectric],
             "theoretical": True,
             "has_reconstructed": False,
             "magnetic_ordering": Ordering.FM,

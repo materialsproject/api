@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from emmet.core.mpid import MPID
-from emmet.core.summary import SummaryDoc
+from emmet.core.summary import SummaryDoc, HasProps
 from emmet.core.symmetry import CrystalSystem
 from mp_api.core.client import BaseRester
 from pymatgen.analysis.magnetism import Ordering
@@ -63,7 +63,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
         shape_factor: Optional[Tuple[float, float]] = None,
         has_reconstructed: Optional[bool] = None,
-        has_props: Optional[List[str]] = None,
+        has_props: Optional[List[HasProps]] = None,
         theoretical: Optional[bool] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -136,7 +136,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
                 consider.
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
-            has_props: (List[str]): The calculated properties available for the material.
+            has_props: (List[HasProps]): The calculated properties available for the material.
             theoretical: (bool): Whether the material is theoretical.
             sort_fields (List[str]): Fields used to sort results. Prefixing with '-' will sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
@@ -234,7 +234,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
             query_params.update({"has_reconstructed": has_reconstructed})
 
         if has_props:
-            query_params.update({"has_props": ",".join(has_props)})
+            query_params.update({"has_props": ",".join([i.value for i in has_props])})
 
         if theoretical is not None:
             query_params.update({"theoretical": theoretical})
