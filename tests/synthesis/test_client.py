@@ -115,7 +115,6 @@ def test_filters_time_range(rester):
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
-@pytest.mark.xfail  # Needs fixing
 def test_filters_atmosphere(rester):
     search_method = None
     for entry in inspect.getmembers(rester, predicate=inspect.ismethod):

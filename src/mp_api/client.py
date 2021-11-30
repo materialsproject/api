@@ -575,7 +575,7 @@ class MPRester:
         # convert to a tuple which is hashable
         return self._get_ion_reference_data(tuple(chemsys))  # type: ignore
 
-    @lru_cache  # type: ignore
+    @lru_cache()  # type: ignore
     def _get_ion_reference_data(self, chemsys: Tuple):  # type: ignore
         """
         Private, cacheable helper method for get_ion_reference data.

@@ -13,6 +13,7 @@ from maggma.api.query_operator import (
     NumericQuery,
 )
 
+from mp_api.routes.materials.hint_scheme import MaterialsHintScheme
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
@@ -68,6 +69,7 @@ def materials_resource(materials_store):
                 default_fields=["material_id", "formula_pretty", "last_updated"],
             ),
         ],
+        hint_scheme=MaterialsHintScheme(),
         tags=["Materials"],
         disable_validation=True,
     )
