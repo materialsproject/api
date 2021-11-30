@@ -368,7 +368,7 @@ class BaseRester(Generic[T]):
 
         try:
             results = self._query_resource_data(
-                criteria=criteria, fields=fields, suburl=document_id,
+                criteria=criteria, fields=fields, suburl=document_id,  # type: ignore
             )
         except MPRestError:
 
@@ -388,7 +388,7 @@ class BaseRester(Generic[T]):
                     document_id = new_document_id
 
                     results = self._query_resource_data(
-                        criteria=criteria, fields=fields, suburl=document_id,
+                        criteria=criteria, fields=fields, suburl=document_id,  # type: ignore
                     )
 
         if not results:

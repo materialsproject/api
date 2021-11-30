@@ -2,7 +2,7 @@ import itertools
 import warnings
 from functools import lru_cache
 from os import environ
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Dict
 from typing_extensions import Literal
 
 from emmet.core.mpid import MPID
@@ -533,10 +533,7 @@ class MPRester:
 
         return pbx_entries
 
-    # TODO - @lru_cache causes this method to fail when chemsys is given as a list,
-    # with an 'unhashable type' error
-    # @lru_cache
-    def get_ion_reference_data(self, chemsys: Union[str, List]) -> List[dict]:
+    def get_ion_reference_data(self, chemsys: Union[str, List]) -> List[Dict]:
         """
         Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
@@ -575,7 +572,14 @@ class MPRester:
         # capitalize and sort the elements
         chemsys = sorted(e.capitalize() for e in chemsys)
 
-        # TODO - see if there is a way to avoid querying the entire collection
+        # convert to a tuple which is hashable
+        return self._get_ion_reference_data(tuple(chemsys))  # type: ignore
+
+    @lru_cache  # type: ignore
+    def _get_ion_reference_data(self, chemsys: Tuple):  # type: ignore
+        """
+        Private, cacheable helper method for get_ion_reference data.
+        """
         ion_data = [
             d
             for d in self.contribs.contributions.get_entries(
