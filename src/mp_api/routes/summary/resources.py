@@ -15,6 +15,7 @@ from mp_api.routes.materials.query_operators import (
 )
 from mp_api.routes.oxidation_states.query_operators import PossibleOxiStateQuery
 from emmet.core.summary import SummaryStats
+from mp_api.routes.summary.hint_scheme import SummaryHintScheme
 from mp_api.routes.summary.query_operators import (
     HasPropsQuery,
     MaterialIDsSearchQuery,
@@ -49,6 +50,7 @@ def summary_resource(summary_store):
             PaginationQuery(),
             SparseFieldsQuery(SummaryDoc, default_fields=["material_id"]),
         ],
+        hint_scheme=SummaryHintScheme(),
         tags=["Summary"],
         disable_validation=True,
     )
