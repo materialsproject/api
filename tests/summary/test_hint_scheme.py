@@ -6,6 +6,6 @@ def test_summary_hint_scheme():
     assert scheme.generate_hints({"criteria": {"nelements": 3}}) == {
         "hint": {"nelements": 1}
     }
-    assert scheme.generate_hints({"criteria": {"has_priops": "dos"}}) == {
+    assert scheme.generate_hints({"criteria": {"has_props": "dos"}}) == {
         "hint": {"has_props": 1}
     }

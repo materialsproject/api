@@ -17,13 +17,21 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {}  # type: dict
+alt_name_dict = {
+    "max_bond_length": "bond_length_stats",
+    "min_bond_length": "bond_length_stats",
+    "mean_bond_length": "bond_length_stats",
+}  # type: dict
 
-custom_field_tests = {}  # type: dict
+custom_field_tests = {
+    "coordination_envs": ["Mo-S(6)"],
+    "coordination_envs_anonymous": ["A-B(6)"],
+}  # type: dict
 
 
-@pytest.mark.xfail(reason="Needs deployment")
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
     # Get specific search method
@@ -76,4 +84,7 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )

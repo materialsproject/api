@@ -1,6 +1,6 @@
 from collections import defaultdict
 from typing import Optional, List, Tuple
-from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.client import BaseRester
 from emmet.core.thermo import ThermoDoc
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 

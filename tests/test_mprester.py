@@ -51,7 +51,6 @@ class TestMPRester:
         with pytest.warns(UserWarning):
             mpr.get_structure_by_material_id("mp-698856")
 
-    @pytest.mark.xfail(reason="Until deployment")
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
         assert db_version == MAPISettings().DB_VERSION
@@ -82,7 +81,6 @@ class TestMPRester:
         structs = mpr.get_structures("Mn3O4", final=False)
         assert len(structs) > 0
 
-    @pytest.mark.xfail(reason="Until deployment")
     def test_find_structure(self, mpr):
         path = os.path.join(MAPISettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
@@ -109,7 +107,6 @@ class TestMPRester:
         assert isinstance(e[0], ComputedEntry)
         assert e[0].composition.reduced_formula == "LiFePO4"
 
-    @pytest.mark.xfail(reason="Until deployment")
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
