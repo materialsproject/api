@@ -10,7 +10,6 @@ class SummaryHintScheme(HintScheme):
 
         if "nelements" in query["criteria"]:
             return {"hint": {"nelements": 1}}
-
         elif "has_props" in query["criteria"]:
             return {"hint": {"has_props": 1}}
         
