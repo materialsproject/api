@@ -10,3 +10,5 @@ class MaterialsHintScheme(HintScheme):
 
         if "nelements" in query["criteria"]:
             return {"hint": {"nelements": 1}}
+        else:
+            return {"hint": {}}

@@ -12,3 +12,5 @@ class SummaryHintScheme(HintScheme):
             return {"hint": {"nelements": 1}}
         elif "has_props" in query["criteria"]:
             return {"hint": {"has_props": 1}}
+        else:
+            return {"hint": {}}
