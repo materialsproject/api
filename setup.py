@@ -32,6 +32,7 @@ setup(
         "emmet-core",
         "maggma>=0.35.0",
         "ratelimit",
+        "mpcontribs-client"
     ],
     extras_require={
         "server": [
