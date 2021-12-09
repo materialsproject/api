@@ -30,7 +30,7 @@ setup(
         "requests>=2.23.0",
         "monty>=2021.8.17",
         "emmet-core",
-        "maggma>=0.35.0",
+        "maggma>=0.38.0",
         "ratelimit",
         "mpcontribs-client"
     ],
