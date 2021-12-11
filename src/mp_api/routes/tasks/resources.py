@@ -7,6 +7,7 @@ from mp_api.routes.tasks.query_operators import (
     TrajectoryQuery,
     DeprecationQuery,
 )
+from mp_api.routes.tasks.hint_scheme import TasksHintScheme
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
@@ -27,6 +28,7 @@ def task_resource(task_store):
                 TaskDoc, default_fields=["task_id", "formula_pretty", "last_updated"],
             ),
         ],
+        hint_scheme=TasksHintScheme(),
         tags=["Tasks"],
     )
 

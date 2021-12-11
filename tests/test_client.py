@@ -29,9 +29,8 @@ special_resters = [
 ignore_generic = [
     "_user_settings",
     "_general_store",
-    "dielectric",
-    "piezoelectric",
-    "magnetism",
+    "tasks",
+    "xas",
 ]  # temp
 
 
