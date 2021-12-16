@@ -36,6 +36,7 @@ custom_field_tests = {
 }  # type: dict
 
 
+@pytest.mark.xfail(reason="Until deployment of new API")
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
