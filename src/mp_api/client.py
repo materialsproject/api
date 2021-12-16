@@ -14,10 +14,10 @@ from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.analysis.wulff import WulffShape
 from pymatgen.core import Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.io.vasp import Chgcar
+from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from mp_api.core.client import BaseRester, MPRestError
@@ -180,7 +180,7 @@ class MPRester:
             return list(tasks.values())
 
     def get_structure_by_material_id(
-        self, material_id, final=True, conventional_unit_cell=False
+        self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
     ) -> Union[Structure, List[Structure]]:
         """
         Get a Structure corresponding to a material_id.
@@ -232,10 +232,10 @@ class MPRester:
             "db_version"
         ]
 
-    def get_materials_id_from_task_id(self, task_id):
+    def get_materials_id_from_task_id(self, task_id: str) -> Union[str, None]:
         """
         Returns the current material_id from a given task_id. The
-        materials_id should rarely change, and is usually chosen from
+        material_id should rarely change, and is usually chosen from
         among the smallest numerical id from the group of task_ids for
         that material. However, in some circumstances it might change,
         and this method is useful for finding the new material_id.
@@ -244,11 +244,11 @@ class MPRester:
             task_id (str): A task id.
 
         Returns:
-            materials_id (MPID)
+            material_id (MPID)
         """
         docs = self.materials.search(task_ids=[task_id], fields=["material_id"])
         if len(docs) == 1:  # pragma: no cover
-            return str(docs[0].material_id)
+            return str(docs[0].material_id)  # type: ignore
         elif len(docs) > 1:  # pragma: no cover
             raise ValueError(
                 f"Multiple documents return for {task_id}, this should not happen, please report it!"
@@ -259,7 +259,7 @@ class MPRester:
             )
             return None
 
-    def get_materials_id_references(self, material_id):
+    def get_materials_id_references(self, material_id: str) -> List[str]:
         """
         Returns all references for a materials id.
 
@@ -267,13 +267,13 @@ class MPRester:
             material_id (str): A material id.
 
         Returns:
-            BibTeX (str)
+            List of BibTeX references ([str])
         """
         return self.provenance.get_data_by_id(material_id).references
 
     def get_materials_ids(
         self, formula: str = None, chemsys: str = None,
-    ):
+    ) -> List[MPID]:
         """
         Get all materials ids for a formula or chemsys.
 
@@ -283,7 +283,7 @@ class MPRester:
             chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
 
         Returns:
-            ([MPID]) List of all materials ids.
+            List of all materials ids ([MPID])
         """
 
         if formula is not None:
@@ -308,7 +308,9 @@ class MPRester:
             )
         )
 
-    def get_structures(self, formula: str = None, chemsys: str = None, final=True):
+    def get_structures(
+        self, formula: str = None, chemsys: str = None, final=True
+    ) -> List[Structure]:
         """
         Get a list of Structures corresponding to a chemical system or formula.
 
@@ -320,7 +322,7 @@ class MPRester:
                 (pre-relaxation) structures. Defaults to True.
 
         Returns:
-            List of Structure objects.
+            List of Structure objects. ([Structure])
         """
 
         if formula is not None:
@@ -357,11 +359,11 @@ class MPRester:
 
     def find_structure(
         self,
-        filename_or_structure,
-        ltol=_EMMET_SETTINGS.LTOL,
-        stol=_EMMET_SETTINGS.STOL,
-        angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
-        allow_multiple_results=False,
+        filename_or_structure: Union[str, Structure],
+        ltol: float = _EMMET_SETTINGS.LTOL,
+        stol: float = _EMMET_SETTINGS.STOL,
+        angle_tol: float = _EMMET_SETTINGS.ANGLE_TOL,
+        allow_multiple_results: bool = False,
     ) -> Union[List[str], str]:
         """
         Finds matching structures from the Materials Project database.
@@ -727,7 +729,7 @@ class MPRester:
 
         return ion_entries
 
-    def get_entry_by_material_id(self, material_id):
+    def get_entry_by_material_id(self, material_id: str):
         """
         Get all ComputedEntry objects corresponding to a material_id.
 
@@ -744,7 +746,7 @@ class MPRester:
         )
 
     def get_entries_in_chemsys(
-        self, elements, use_gibbs: Optional[int] = None,
+        self, elements: Union[str, List[str]], use_gibbs: Optional[int] = None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -772,7 +774,7 @@ class MPRester:
             for els in itertools.combinations(elements, i + 1):
                 all_chemsyses.append("-".join(sorted(els)))
 
-        entries = []
+        entries = []  # type: List[ComputedEntry]
 
         for chemsys in all_chemsyses:
             entries.extend(self.get_entries(chemsys=chemsys))
@@ -820,7 +822,7 @@ class MPRester:
             material_id=material_id
         )
 
-    def get_phonon_dos_by_material_id(self, material_id):
+    def get_phonon_dos_by_material_id(self, material_id: str):
         """
         Get phonon density of states data corresponding to a material_id.
 
@@ -833,7 +835,7 @@ class MPRester:
         """
         return self.phonon.get_data_by_id(material_id, fields=["ph_dos"]).ph_dos
 
-    def get_phonon_bandstructure_by_material_id(self, material_id):
+    def get_phonon_bandstructure_by_material_id(self, material_id: str):
         """
         Get phonon dispersion data corresponding to a material_id.
 
@@ -1053,7 +1055,7 @@ class MPRester:
         # TODO: call new MPComplete endpoint
         raise NotImplementedError
 
-    def get_wulff_shape(self, material_id) -> WulffShape:
+    def get_wulff_shape(self, material_id: str):
         """
         Constructs a Wulff shape for a material.
 
