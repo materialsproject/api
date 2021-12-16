@@ -23,11 +23,14 @@ alt_name_dict = {
     "crystal_system": "symmetry",
     "spacegroup_number": "symmetry",
     "spacegroup_symbol": "symmetry",
+    "exclude_elements": "material_id",
 }  # type: dict
 
 custom_field_tests = {
     "formula": "Si",
     "chemsys": "Si-O",
+    "elements": ["Si", "O"],
+    "exclude_elements": ["Si"],
     "task_ids": ["mp-149"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,

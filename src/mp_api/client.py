@@ -122,7 +122,11 @@ class MPRester:
         self.session = BaseRester._create_session(
             api_key=api_key, include_user_agent=include_user_agent
         )
-        self.contribs = Client(api_key)
+
+        try:
+            self.contribs = Client(api_key)
+        except Exception:
+            self.contribs = None
 
         self._all_resters = []
 
@@ -626,6 +630,9 @@ class MPRester:
         """
         Private, cacheable helper method for get_ion_reference data.
         """
+        if self.contribs is None:
+            raise MPRestError("Issue connecting to MPContribs API.")
+
         ion_data = [
             d
             for d in self.contribs.contributions.get_entries(

@@ -17,7 +17,6 @@ class XASRester(BaseRester[XASDoc]):
         formula: Optional[str] = None,
         chemsys: Optional[str] = None,
         elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
         task_ids: Optional[List[str]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -30,12 +29,10 @@ class XASRester(BaseRester[XASDoc]):
 
         Arguments:
             edge (Edge): The absorption edge (e.g. K, L2, L3, L2,3).
-            absorbing_element (Element): The absorbing element.
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
             elements (List[str]): A list of elements.
-            exclude_elements (List[str]): A list of elements to exclude.
             task_ids (List[str]): List of Materials Project IDs to return data for.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
@@ -61,14 +58,11 @@ class XASRester(BaseRester[XASDoc]):
         if chemsys:
             query_params.update({"chemsys": chemsys})
 
-        if exclude_elements:
-            query_params.update({"exclude_elements": ",".join(exclude_elements)})
+        if elements:
+            query_params.update({"elements": ",".join(elements)})
 
         if task_ids is not None:
             query_params["task_ids"] = ",".join(task_ids)
-
-        if elements:
-            query_params["elements"] = ",".join([str(el) for el in elements])
 
         if sort_fields:
             query_params.update(

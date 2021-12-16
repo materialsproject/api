@@ -1,4 +1,4 @@
-from mp_api.routes.materials.utils import formula_to_criteria
+from mp_api.routes.materials.utils import formula_to_criteria, chemsys_to_criteria
 
 
 def test_formula_to_criteria():
@@ -16,7 +16,9 @@ def test_formula_to_criteria():
     # Anonymous element
     assert formula_to_criteria("A2B3") == {"formula_anonymous": "A2B3"}
 
+
+def test_chemsys_to_criteria():
     # Chemsys
-    assert formula_to_criteria("Si-O") == {"chemsys": "O-Si"}
-    assert formula_to_criteria("Si-*") == {"elements": {"$all": ["Si"]}, "nelements": 2}
-    assert formula_to_criteria("*-*-*") == {"nelements": 3}
+    assert chemsys_to_criteria("Si-O") == {"chemsys": "O-Si"}
+    assert chemsys_to_criteria("Si-*") == {"elements": {"$all": ["Si"]}, "nelements": 2}
+    assert chemsys_to_criteria("*-*-*") == {"nelements": 3}

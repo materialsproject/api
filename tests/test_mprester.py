@@ -69,16 +69,21 @@ class TestMPRester:
         assert len(data) > 5
 
     def test_get_materials_ids_doc(self, mpr):
-        mpids = mpr.get_materials_ids("Al2O3")
+        mpids = mpr.get_materials_ids(formula="Al2O3")
         random.shuffle(mpids)
         doc = mpr.materials.get_data_by_id(mpids.pop(0))
         assert doc.formula_pretty == "Al2O3"
 
+        mpids = mpr.get_materials_ids(chemsys="Al-O")
+        random.shuffle(mpids)
+        doc = mpr.materials.get_data_by_id(mpids.pop(0))
+        assert doc.chemsys == "Al-O"
+
     def test_get_structures(self, mpr):
-        structs = mpr.get_structures("Mn3O4")
+        structs = mpr.get_structures(formula="Mn3O4")
         assert len(structs) > 0
 
-        structs = mpr.get_structures("Mn3O4", final=False)
+        structs = mpr.get_structures(chemsys="Mn-O", final=False)
         assert len(structs) > 0
 
     def test_find_structure(self, mpr):
@@ -110,8 +115,8 @@ class TestMPRester:
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
-        entries = mpr.get_entries(chemsys)
-        sorted_entries = mpr.get_entries(chemsys, sort_by_e_above_hull=True)
+        entries = mpr.get_entries(chemsys=chemsys)
+        sorted_entries = mpr.get_entries(chemsys=chemsys, sort_by_e_above_hull=True)
 
         elements = set([Element(sym) for sym in syms])
         for e in entries:
@@ -119,6 +124,12 @@ class TestMPRester:
             assert set(e.composition.elements).issubset(elements)
 
         assert sorted_entries != entries
+
+        formula = "SiO2"
+        entries = mpr.get_entries(formula=formula)
+
+        for e in entries:
+            assert isinstance(e, ComputedEntry)
 
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
@@ -257,6 +268,7 @@ class TestMPRester:
             "material_ids": ["mp-149"],
             "formula": "SiO2",
             "chemsys": "Si-O",
+            "elements": ["Si", "O"],
             "exclude_elements": ["Si"],
             "possible_species": ["O2-"],
             "crystal_system": CrystalSystem.cubic,
