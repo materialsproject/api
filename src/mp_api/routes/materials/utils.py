@@ -47,7 +47,7 @@ def formula_to_criteria(formula: str) -> Dict:
         comp = Composition(formula)
         # Paranoia below about floating-point "equality"
         crit = {}
-        crit["nelements"] = len(comp)
+        crit["nelements"] = len(comp)  # type: ignore
         for el, n in comp.to_reduced_dict.items():
             crit[f"composition_reduced.{el}"] = n
 
