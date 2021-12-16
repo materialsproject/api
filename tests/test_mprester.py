@@ -68,6 +68,7 @@ class TestMPRester:
         data = mpr.get_materials_id_references("mp-123")
         assert len(data) > 5
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_materials_ids_doc(self, mpr):
         mpids = mpr.get_materials_ids(formula="Al2O3")
         random.shuffle(mpids)
@@ -79,6 +80,7 @@ class TestMPRester:
         doc = mpr.materials.get_data_by_id(mpids.pop(0))
         assert doc.chemsys == "Al-O"
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_structures(self, mpr):
         structs = mpr.get_structures(formula="Mn3O4")
         assert len(structs) > 0
@@ -112,6 +114,7 @@ class TestMPRester:
         assert isinstance(e[0], ComputedEntry)
         assert e[0].composition.reduced_formula == "LiFePO4"
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
@@ -131,6 +134,7 @@ class TestMPRester:
         for e in entries:
             assert isinstance(e, ComputedEntry)
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
         syms2 = "Li-Fe-O"
@@ -149,6 +153,7 @@ class TestMPRester:
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements
         pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
@@ -191,6 +196,7 @@ class TestMPRester:
         ion_data = mpr.get_ion_reference_data(["Ti", "O"])
         assert len(ion_data) == 5
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
@@ -234,6 +240,7 @@ class TestMPRester:
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_query(self, mpr):
 
         excluded_params = [
