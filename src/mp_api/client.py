@@ -271,34 +271,51 @@ class MPRester:
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_ids(self, chemsys_formula):
+    def get_materials_ids(
+        self, formula: str = None, chemsys: str = None,
+    ):
         """
         Get all materials ids for a formula or chemsys.
 
         Args:
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3).
+            formula (str): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
 
         Returns:
             ([MPID]) List of all materials ids.
         """
+
+        if formula is not None:
+            if chemsys is not None:
+                raise ValueError(
+                    "Please specify a formula OR a chemical system, not both."
+                )
+
+            input_params = {"formula": formula}
+        else:
+            if chemsys is None:
+                raise ValueError(
+                    "Please specify either a formula or a chemical system."
+                )
+
+            input_params = {"chemsys": chemsys}
+
         return sorted(
             doc.material_id
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula,
-                all_fields=False,
-                fields=["material_id"],
+                **input_params, all_fields=False, fields=["material_id"],  # type: ignore
             )
         )
 
-    def get_structures(self, chemsys_formula, final=True):
+    def get_structures(self, formula: str = None, chemsys: str = None, final=True):
         """
-        Get a list of Structures corresponding to a chemical system, formula,
-        or materials_id.
+        Get a list of Structures corresponding to a chemical system or formula.
 
         Args:
-            chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3).
+            formula (str): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
             final (bool): Whether to get the final structure, or the list of initial
                 (pre-relaxation) structures. Defaults to True.
 
@@ -306,22 +323,33 @@ class MPRester:
             List of Structure objects.
         """
 
+        if formula is not None:
+            if chemsys is not None:
+                raise ValueError(
+                    "Please specify a formula OR a chemical system, not both."
+                )
+
+            input_params = {"formula": formula}
+        else:
+            if chemsys is None:
+                raise ValueError(
+                    "Please specify either a formula or a chemical system."
+                )
+
+            input_params = {"chemsys": chemsys}
+
         if final:
             return [
                 doc.structure
                 for doc in self.materials.search_material_docs(
-                    chemsys_formula=chemsys_formula,
-                    all_fields=False,
-                    fields=["structure"],
+                    **input_params, all_fields=False, fields=["structure"],  # type: ignore
                 )
             ]
         else:
             structures = []
 
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula,
-                all_fields=False,
-                fields=["initial_structures"],
+                **input_params, all_fields=False, fields=["initial_structures"],  # type: ignore
             ):
                 structures.extend(doc.initial_structures)
 
@@ -366,15 +394,16 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula, sort_by_e_above_hull=False,
+        self, formula: str = None, chemsys: str = None, sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
         Args:
-            chemsys_formula (str): A chemical system
-                (e.g., Li-Fe-O), or formula (e.g., Fe2O3).
+            formula (str): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
             sort_by_e_above_hull (bool): Whether to sort the list of entries by
                 e_above_hull in ascending order.
 
@@ -382,12 +411,27 @@ class MPRester:
             List of ComputedEntry or ComputedStructureEntry objects.
         """
 
+        if formula is not None:
+            if chemsys is not None:
+                raise ValueError(
+                    "Please specify a formula OR a chemical system, not both."
+                )
+
+            input_params = {"formula": formula}
+        else:
+            if chemsys is None:
+                raise ValueError(
+                    "Please specify either a formula or a chemical system."
+                )
+
+            input_params = {"chemsys": chemsys}
+
         entries = []
 
         if sort_by_e_above_hull:
 
             for doc in self.thermo.search_thermo_docs(
-                chemsys_formula=chemsys_formula,
+                **input_params,  # type: ignore
                 all_fields=False,
                 fields=["entries"],
                 sort_fields=["energy_above_hull"],
@@ -398,7 +442,7 @@ class MPRester:
 
         else:
             for doc in self.thermo.search_thermo_docs(
-                chemsys_formula=chemsys_formula, all_fields=False, fields=["entries"],
+                **input_params, all_fields=False, fields=["entries"],  # type: ignore
             ):
                 entries.extend(list(doc.entries.values()))
 
@@ -731,7 +775,7 @@ class MPRester:
         entries = []
 
         for chemsys in all_chemsyses:
-            entries.extend(self.get_entries(chemsys_formula=chemsys))
+            entries.extend(self.get_entries(chemsys=chemsys))
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
@@ -804,7 +848,8 @@ class MPRester:
     def query(
         self,
         material_ids: Optional[List[MPID]] = None,
-        chemsys_formula: Optional[str] = None,
+        formula: Optional[str] = None,
+        chemsys: Optional[str] = None,
         exclude_elements: Optional[List[str]] = None,
         possible_species: Optional[List[str]] = None,
         nsites: Optional[Tuple[int, int]] = None,
@@ -863,9 +908,9 @@ class MPRester:
 
         Arguments:
             material_ids (List[MPID]): List of Materials Project IDs to return data for.
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
-                or formula including anonomyzed formula
+            formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
             exclude_elements (List(str)): List of elements to exclude.
             possible_species (List(str)): List of element symbols appended with oxidation states.
                 (e.g. Cr2+,O2-)
@@ -938,7 +983,8 @@ class MPRester:
 
         return self.summary.search_summary_docs(  # type: ignore
             material_ids=material_ids,
-            chemsys_formula=chemsys_formula,
+            formula=formula,
+            chemsys=chemsys,
             exclude_elements=exclude_elements,
             possible_species=possible_species,
             nsites=nsites,

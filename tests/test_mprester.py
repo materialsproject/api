@@ -236,7 +236,7 @@ class TestMPRester:
 
         alt_name_dict = {
             "material_ids": "material_id",
-            "chemsys_formula": "formula_pretty",
+            "formula": "formula_pretty",
             "exclude_elements": "formula_pretty",
             "piezoelectric_modulus": "e_ij_max",
             "crystal_system": "symmetry",
@@ -255,7 +255,8 @@ class TestMPRester:
 
         custom_field_tests = {
             "material_ids": ["mp-149"],
-            "chemsys_formula": "SiO2",
+            "formula": "SiO2",
+            "chemsys": "Si-O",
             "exclude_elements": ["Si"],
             "possible_species": ["O2-"],
             "crystal_system": CrystalSystem.cubic,

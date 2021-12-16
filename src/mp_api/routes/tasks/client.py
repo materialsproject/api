@@ -24,7 +24,8 @@ class TaskRester(BaseRester[TaskDoc]):
 
     def search_task_docs(
         self,
-        chemsys_formula: Optional[str] = None,
+        formula: Optional[str] = None,
+        chemsys: Optional[str] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -34,9 +35,9 @@ class TaskRester(BaseRester[TaskDoc]):
         Query core task docs using a variety of search criteria.
 
         Arguments:
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
-                or formula including anonomyzed formula
+            formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -49,8 +50,11 @@ class TaskRester(BaseRester[TaskDoc]):
 
         query_params = {}  # type: dict
 
-        if chemsys_formula:
-            query_params.update({"formula": chemsys_formula})
+        if formula:
+            query_params.update({"formula": formula})
+
+        if chemsys:
+            query_params.update({"chemsys": chemsys})
 
         return super().search(
             num_chunks=num_chunks,

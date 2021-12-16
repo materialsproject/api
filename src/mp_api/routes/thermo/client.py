@@ -15,7 +15,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
     def search_thermo_docs(
         self,
         material_ids: Optional[List[str]] = None,
-        chemsys_formula: Optional[str] = None,
+        formula: Optional[str] = None,
+        chemsys: Optional[str] = None,
         nelements: Optional[Tuple[int, int]] = None,
         is_stable: Optional[bool] = None,
         total_energy: Optional[Tuple[float, float]] = None,
@@ -34,9 +35,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
         Arguments:
             material_ids (List[str]): List of Materials Project IDs to return data for.
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
-                or formula including anonomyzed formula
+            formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
             nelements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
             is_stable (bool): Whether the material is stable.
             total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
@@ -59,8 +60,11 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
         query_params = defaultdict(dict)  # type: dict
 
-        if chemsys_formula:
-            query_params.update({"formula": chemsys_formula})
+        if formula:
+            query_params.update({"formula": formula})
+
+        if chemsys:
+            query_params.update({"chemsys": chemsys})
 
         if material_ids:
             query_params.update({"material_ids": ",".join(material_ids)})

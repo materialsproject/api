@@ -42,7 +42,8 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
 
     def search_material_docs(
         self,
-        chemsys_formula: Optional[str] = None,
+        formula: Optional[str] = None,
+        chemsys: Optional[str] = None,
         task_ids: Optional[List[str]] = None,
         crystal_system: Optional[CrystalSystem] = None,
         spacegroup_number: Optional[int] = None,
@@ -61,9 +62,9 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         Query core material docs using a variety of search criteria.
 
         Arguments:
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
-                or formula including anonomyzed formula
+            formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
             task_ids (List[str]): List of Materials Project IDs to return data for.
             crystal_system (CrystalSystem): Crystal system of material.
             spacegroup_number (int): Space group number of material.
@@ -85,8 +86,11 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
 
         query_params = {"deprecated": deprecated}  # type: dict
 
-        if chemsys_formula:
-            query_params.update({"formula": chemsys_formula})
+        if formula:
+            query_params.update({"formula": formula})
+
+        if chemsys:
+            query_params.update({"chemsys": chemsys})
 
         if task_ids:
             query_params.update({"task_ids": ",".join(task_ids)})
