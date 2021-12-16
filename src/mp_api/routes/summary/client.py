@@ -19,6 +19,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         material_ids: Optional[List[MPID]] = None,
         formula: Optional[str] = None,
         chemsys: Optional[str] = None,
+        elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
         possible_species: Optional[List[str]] = None,
         nsites: Optional[Tuple[int, int]] = None,
@@ -80,6 +81,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             possible_species (List(str)): List of element symbols appended with oxidation states.
                 (e.g. Cr2+,O2-)
@@ -207,6 +209,9 @@ class SummaryRester(BaseRester[SummaryDoc]):
 
         if chemsys:
             query_params.update({"chemsys": chemsys})
+
+        if elements:
+            query_params.update({"elements": ",".join(elements)})
 
         if exclude_elements is not None:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})

@@ -11,10 +11,12 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
     document_model = InsertionElectrodeDoc  # type: ignore
     primary_key = "battery_id"
 
-    # TODO: This requires a model fix to function properly
     def search_electrode_docs(  # pragma: ignore
         self,
         working_ion: Optional[Element] = None,
+        formula: Optional[str] = None,
+        elements: Optional[List[str]] = None,
+        exclude_elements: Optional[List[str]] = None,
         max_delta_volume: Optional[Tuple[float, float]] = None,
         average_voltage: Optional[Tuple[float, float]] = None,
         capacity_grav: Optional[Tuple[float, float]] = None,
@@ -38,6 +40,9 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
         Arguments:
             working_ion (Element): Element of the working ion.
+            formula (str): Chemical formula of the framework material.
+            elements (List[str]): A list of elements for the framework material.
+            exclude_elements (List[str]): A list of elements to exclude for the framework material.
             max_delta_volume (Tuple[float,float]): Minimum and maximum value of the max volume change in percent for a
                 particular voltage step.
             average_voltage (Tuple[float,float]): Minimum and maximum value of the average voltage for a particular
@@ -70,6 +75,15 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
         if working_ion:
             query_params.update({"working_ion": str(working_ion)})
+
+        if formula:
+            query_params.update({"formula": formula})
+
+        if elements:
+            query_params.update({"elements": ",".join(elements)})
+
+        if exclude_elements:
+            query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
         if sort_fields:
             query_params.update(
