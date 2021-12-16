@@ -6,6 +6,7 @@ from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQu
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
+    ChemsysQuery,
     DeprecationQuery,
 )
 
@@ -25,6 +26,7 @@ def es_resource(es_store):
         query_operators=[
             ESSummaryDataQuery(),
             FormulaQuery(),
+            ChemsysQuery(),
             ElementsQuery(),
             NumericQuery(model=ElectronicStructureDoc),
             DeprecationQuery(),

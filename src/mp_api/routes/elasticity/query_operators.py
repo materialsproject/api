@@ -150,7 +150,7 @@ class PoissonQuery(QueryOperator):
         return {"criteria": crit}
 
 
-class ChemsysQuery(QueryOperator):
+class ElasticityChemsysQuery(QueryOperator):
     """
     Method to generate a query on chemsys data
     """

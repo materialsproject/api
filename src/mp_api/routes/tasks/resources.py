@@ -11,6 +11,7 @@ from mp_api.routes.tasks.hint_scheme import TasksHintScheme
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
+    ChemsysQuery,
 )
 
 
@@ -20,6 +21,7 @@ def task_resource(task_store):
         TaskDoc,
         query_operators=[
             FormulaQuery(),
+            ChemsysQuery(),
             ElementsQuery(),
             MultipleTaskIDsQuery(),
             SortQuery(),

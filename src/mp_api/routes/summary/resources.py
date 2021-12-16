@@ -11,6 +11,7 @@ from mp_api.routes.materials.query_operators import (
     DeprecationQuery,
     ElementsQuery,
     FormulaQuery,
+    ChemsysQuery,
     SymmetryQuery,
 )
 from mp_api.routes.oxidation_states.query_operators import PossibleOxiStateQuery
@@ -35,6 +36,7 @@ def summary_resource(summary_store):
         query_operators=[
             MaterialIDsSearchQuery(),
             FormulaQuery(),
+            ChemsysQuery(),
             ElementsQuery(),
             PossibleOxiStateQuery(),
             SymmetryQuery(),

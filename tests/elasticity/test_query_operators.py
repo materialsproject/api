@@ -2,7 +2,7 @@ from mp_api.routes.elasticity.query_operators import (
     BulkModulusQuery,
     ShearModulusQuery,
     PoissonQuery,
-    ChemsysQuery,
+    ElasticityChemsysQuery,
 )
 
 from monty.tempfile import ScratchDir
@@ -96,7 +96,7 @@ def test_poisson_query():
 
 
 def test_chemsys_query():
-    op = ChemsysQuery()
+    op = ElasticityChemsysQuery()
 
     assert op.query(chemsys="Fe-Bi-O") == {"criteria": {"chemsys": "Bi-Fe-O"}}
 
