@@ -173,28 +173,14 @@ class TestMPRester:
         # Ensure entries are pourbaix compatible
         PourbaixDiagram(pbx_entries)
 
-    def test_get_ion_reference_data(self, mpr):
-        ion_data = mpr.get_ion_reference_data("Ti")
-        assert len(ion_data) == 5
-
-        ion_data = mpr.get_ion_reference_data(["Ti", "O"])
-        assert len(ion_data) == 5
-
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
-        ion_entries = mpr.get_ion_entries(pd)
+        ion_entry_data = mpr.get_ion_reference_data_for_chemsys("Ti-O-H")
+        ion_entries = mpr.get_ion_entries(pd, ion_entry_data)
         assert len(ion_entries) == 5
 
-        # also test passing ion data as a kwarg
-        ion_data = mpr.get_ion_reference_data("Ti")
-        ion_entries2 = mpr.get_ion_entries(pd, ion_ref_data=ion_data)
-        assert len(ion_entries2) == len(ion_data)
-
-        for e1, e2 in zip(ion_entries, ion_entries2):
-            assert e1.energy == e2.energy
-            assert isinstance(e1, IonEntry)
-            assert isinstance(e2, IonEntry)
+        assert isinstance(ion_entries[0], IonEntry)
 
         # test an incomplete phase diagram
         entries = mpr.get_entries_in_chemsys("Ti-O")
