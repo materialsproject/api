@@ -4,6 +4,6 @@ typing-extensions==4.0.1
 maggma==0.38.1
 requests==2.26.0
 monty==2021.12.1
-emmet-core==0.18.0
+emmet-core==0.19.1
 ratelimit==2.2.1
 mpcontribs-client>=3.14.3
