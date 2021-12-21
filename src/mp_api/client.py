@@ -533,7 +533,7 @@ class MPRester:
 
         return pbx_entries
 
-    @lru_cache
+    @lru_cache()
     def get_ion_reference_data(self) -> List[Dict]:
         """
         Download aqueous ion reference data used in the construction of Pourbaix diagrams.
@@ -575,7 +575,9 @@ class MPRester:
 
         return ion_data
 
-    def get_ion_reference_data_for_chemsys(self, chemsys: Union[str, List]) -> List[Dict]:
+    def get_ion_reference_data_for_chemsys(
+        self, chemsys: Union[str, List]
+    ) -> List[Dict]:
         """
         Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
