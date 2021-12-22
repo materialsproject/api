@@ -275,35 +275,22 @@ class MPRester:
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_ids(
-        self, formula: str = None, chemsys: str = None,
-    ) -> List[MPID]:
+    def get_materials_ids(self, chemsys_formula: str,) -> List[MPID]:
         """
         Get all materials ids for a formula or chemsys.
 
         Args:
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
+                or formula (e.g., Fe2O3, Si*).
 
         Returns:
             List of all materials ids ([MPID])
         """
 
-        if formula is not None:
-            if chemsys is not None:
-                raise ValueError(
-                    "Please specify a formula OR a chemical system, not both."
-                )
-
-            input_params = {"formula": formula}
+        if "-" in chemsys_formula:
+            input_params = {"chemsys": chemsys_formula}
         else:
-            if chemsys is None:
-                raise ValueError(
-                    "Please specify either a formula or a chemical system."
-                )
-
-            input_params = {"chemsys": chemsys}
+            input_params = {"formula": chemsys_formula}
 
         return sorted(
             doc.material_id
@@ -312,16 +299,13 @@ class MPRester:
             )
         )
 
-    def get_structures(
-        self, formula: str = None, chemsys: str = None, final=True
-    ) -> List[Structure]:
+    def get_structures(self, chemsys_formula: str, final=True) -> List[Structure]:
         """
         Get a list of Structures corresponding to a chemical system or formula.
 
         Args:
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
+                or formula (e.g., Fe2O3, Si*).
             final (bool): Whether to get the final structure, or the list of initial
                 (pre-relaxation) structures. Defaults to True.
 
@@ -329,20 +313,10 @@ class MPRester:
             List of Structure objects. ([Structure])
         """
 
-        if formula is not None:
-            if chemsys is not None:
-                raise ValueError(
-                    "Please specify a formula OR a chemical system, not both."
-                )
-
-            input_params = {"formula": formula}
+        if "-" in chemsys_formula:
+            input_params = {"chemsys": chemsys_formula}
         else:
-            if chemsys is None:
-                raise ValueError(
-                    "Please specify either a formula or a chemical system."
-                )
-
-            input_params = {"chemsys": chemsys}
+            input_params = {"formula": chemsys_formula}
 
         if final:
             return [
@@ -400,16 +374,15 @@ class MPRester:
         )
 
     def get_entries(
-        self, formula: str = None, chemsys: str = None, sort_by_e_above_hull=False,
+        self, chemsys_formula: str, sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
         Args:
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
+                or formula (e.g., Fe2O3, Si*).
             sort_by_e_above_hull (bool): Whether to sort the list of entries by
                 e_above_hull in ascending order.
 
@@ -417,20 +390,10 @@ class MPRester:
             List of ComputedEntry or ComputedStructureEntry objects.
         """
 
-        if formula is not None:
-            if chemsys is not None:
-                raise ValueError(
-                    "Please specify a formula OR a chemical system, not both."
-                )
-
-            input_params = {"formula": formula}
+        if "-" in chemsys_formula:
+            input_params = {"chemsys": chemsys_formula}
         else:
-            if chemsys is None:
-                raise ValueError(
-                    "Please specify either a formula or a chemical system."
-                )
-
-            input_params = {"chemsys": chemsys}
+            input_params = {"formula": chemsys_formula}
 
         entries = []
 
