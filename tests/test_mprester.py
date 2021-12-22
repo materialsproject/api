@@ -189,6 +189,7 @@ class TestMPRester:
         # Ensure entries are pourbaix compatible
         PourbaixDiagram(pbx_entries)
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
