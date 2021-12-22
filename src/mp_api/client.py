@@ -476,7 +476,7 @@ class MPRester:
         # solids that aren't necessarily in the chemsys (Na2SO4)
 
         # download the ion reference data from MPContribs
-        ion_data = self.get_ion_reference_data(chemsys)
+        ion_data = self.get_ion_reference_data_for_chemsys(chemsys)
 
         # build the PhaseDiagram for get_ion_entries
         ion_ref_comps = [Ion.from_formula(d["formula"]).composition for d in ion_data]
@@ -546,7 +546,51 @@ class MPRester:
 
         return pbx_entries
 
-    def get_ion_reference_data(self, chemsys: Union[str, List]) -> List[Dict]:
+    @lru_cache()
+    def get_ion_reference_data(self) -> List[Dict]:
+        """
+        Download aqueous ion reference data used in the construction of Pourbaix diagrams.
+
+        Use this method to examine the ion reference data and to add additional
+        ions if desired. The data returned from this method can be passed to
+        get_ion_entries().
+
+        Data are retrieved from the Aqueous Ion Reference Data project
+        hosted on MPContribs. Refer to that project and its associated documentation
+        for more details about the format and meaning of the data.
+
+        Returns:
+            [dict]: Among other data, each record contains 1) the experimental ion  free energy, 2) the
+                formula of the reference solid for the ion, and 3) the experimental free energy of the
+                reference solid. All energies are given in kJ/mol. An example is given below.
+
+                {'identifier': 'Li[+]',
+                'formula': 'Li[+]',
+                'data': {'charge': {'display': '1.0', 'value': 1.0, 'unit': ''},
+                'ΔGᶠ': {'display': '-293.71 kJ/mol', 'value': -293.71, 'unit': 'kJ/mol'},
+                'MajElements': 'Li',
+                'RefSolid': 'Li2O',
+                'ΔGᶠRefSolid': {'display': '-561.2 kJ/mol',
+                    'value': -561.2,
+                    'unit': 'kJ/mol'},
+                'reference': 'H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
+                compounds and aqueous species, Wiley, New York (1978)'}}
+        """
+
+        ion_data = [
+            d
+            for d in self.contribs.contributions.get_entries(
+                project="ion_ref_data",
+                fields=["identifier", "formula", "data"],
+                per_page=500,
+            ).result()["data"]
+        ]
+
+        return ion_data
+
+    def get_ion_reference_data_for_chemsys(
+        self, chemsys: Union[str, List]
+    ) -> List[Dict]:
         """
         Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
@@ -580,33 +624,10 @@ class MPRester:
                 'reference': 'H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
-        if isinstance(chemsys, str):
-            chemsys = chemsys.split("-")
-        # capitalize and sort the elements
-        chemsys = sorted(e.capitalize() for e in chemsys)
 
-        # convert to a tuple which is hashable
-        return self._get_ion_reference_data(tuple(chemsys))  # type: ignore
+        ion_data = self.get_ion_reference_data()
 
-    @lru_cache()  # type: ignore
-    def _get_ion_reference_data(self, chemsys: Tuple):  # type: ignore
-        """
-        Private, cacheable helper method for get_ion_reference data.
-        """
-        if self.contribs is None:
-            raise MPRestError("Issue connecting to MPContribs API.")
-
-        ion_data = [
-            d
-            for d in self.contribs.contributions.get_entries(
-                project="ion_ref_data",
-                fields=["identifier", "formula", "data"],
-                per_page=500,
-            ).result()["data"]
-        ]
-        ion_data = [d for d in ion_data if d["data"]["MajElements"] in chemsys]
-
-        return ion_data
+        return [d for d in ion_data if d["data"]["MajElements"] in chemsys]
 
     def get_ion_entries(
         self, pd: PhaseDiagram, ion_ref_data: List[dict] = None
@@ -649,7 +670,7 @@ class MPRester:
             )
 
         if not ion_ref_data:
-            ion_data = self.get_ion_reference_data(chemsys)
+            ion_data = self.get_ion_reference_data_for_chemsys(chemsys)
         else:
             ion_data = ion_ref_data
 
