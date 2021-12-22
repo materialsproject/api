@@ -2,7 +2,11 @@ from maggma.api.resource import ReadOnlyResource
 from emmet.core.xas import XASDoc
 
 from maggma.api.query_operator import PaginationQuery, SortQuery, SparseFieldsQuery
-from mp_api.routes.materials.query_operators import ElementsQuery, FormulaQuery
+from mp_api.routes.materials.query_operators import (
+    ElementsQuery,
+    FormulaQuery,
+    ChemsysQuery,
+)
 from mp_api.routes.xas.query_operators import XASQuery, XASTaskIDQuery
 
 
@@ -12,6 +16,7 @@ def xas_resource(xas_store):
         XASDoc,
         query_operators=[
             FormulaQuery(),
+            ChemsysQuery(),
             ElementsQuery(),
             XASQuery(),
             XASTaskIDQuery(),

@@ -3,6 +3,7 @@ import os
 from mp_api.core.settings import MAPISettings
 from mp_api.routes.materials.query_operators import (
     FormulaQuery,
+    ChemsysQuery,
     ElementsQuery,
     DeprecationQuery,
     SymmetryQuery,
@@ -38,6 +39,20 @@ def test_formula_query():
                 "nelements": 2,
             }
         }
+
+
+def test_chemsys_query():
+    op = ChemsysQuery()
+    assert op.query("Si-O") == {"criteria": {"chemsys": "O-Si"}}
+
+    assert op.query("Si-*") == {
+        "criteria": {"nelements": 2, "elements": {"$all": ["Si"]}}
+    }
+
+    with ScratchDir("."):
+        dumpfn(op, "temp.json")
+        new_op = loadfn("temp.json")
+        assert new_op.query("Si-O") == {"criteria": {"chemsys": "O-Si"}}
 
 
 def test_elements_query():

@@ -14,10 +14,10 @@ from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.analysis.wulff import WulffShape
 from pymatgen.core import Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.io.vasp import Chgcar
+from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from mp_api.core.client import BaseRester, MPRestError
@@ -122,7 +122,11 @@ class MPRester:
         self.session = BaseRester._create_session(
             api_key=api_key, include_user_agent=include_user_agent
         )
-        self.contribs = Client(api_key)
+
+        try:
+            self.contribs = Client(api_key)
+        except Exception:
+            self.contribs = None
 
         self._all_resters = []
 
@@ -180,7 +184,7 @@ class MPRester:
             return list(tasks.values())
 
     def get_structure_by_material_id(
-        self, material_id, final=True, conventional_unit_cell=False
+        self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
     ) -> Union[Structure, List[Structure]]:
         """
         Get a Structure corresponding to a material_id.
@@ -232,10 +236,10 @@ class MPRester:
             "db_version"
         ]
 
-    def get_materials_id_from_task_id(self, task_id):
+    def get_materials_id_from_task_id(self, task_id: str) -> Union[str, None]:
         """
         Returns the current material_id from a given task_id. The
-        materials_id should rarely change, and is usually chosen from
+        material_id should rarely change, and is usually chosen from
         among the smallest numerical id from the group of task_ids for
         that material. However, in some circumstances it might change,
         and this method is useful for finding the new material_id.
@@ -244,11 +248,11 @@ class MPRester:
             task_id (str): A task id.
 
         Returns:
-            materials_id (MPID)
+            material_id (MPID)
         """
         docs = self.materials.search(task_ids=[task_id], fields=["material_id"])
         if len(docs) == 1:  # pragma: no cover
-            return str(docs[0].material_id)
+            return str(docs[0].material_id)  # type: ignore
         elif len(docs) > 1:  # pragma: no cover
             raise ValueError(
                 f"Multiple documents return for {task_id}, this should not happen, please report it!"
@@ -259,7 +263,7 @@ class MPRester:
             )
             return None
 
-    def get_materials_id_references(self, material_id):
+    def get_materials_id_references(self, material_id: str) -> List[str]:
         """
         Returns all references for a materials id.
 
@@ -267,61 +271,65 @@ class MPRester:
             material_id (str): A material id.
 
         Returns:
-            BibTeX (str)
+            List of BibTeX references ([str])
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_ids(self, chemsys_formula):
+    def get_materials_ids(self, chemsys_formula: str,) -> List[MPID]:
         """
         Get all materials ids for a formula or chemsys.
 
         Args:
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3).
+            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
+                or formula (e.g., Fe2O3, Si*).
 
         Returns:
-            ([MPID]) List of all materials ids.
+            List of all materials ids ([MPID])
         """
+
+        if "-" in chemsys_formula:
+            input_params = {"chemsys": chemsys_formula}
+        else:
+            input_params = {"formula": chemsys_formula}
+
         return sorted(
             doc.material_id
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula,
-                all_fields=False,
-                fields=["material_id"],
+                **input_params, all_fields=False, fields=["material_id"],  # type: ignore
             )
         )
 
-    def get_structures(self, chemsys_formula, final=True):
+    def get_structures(self, chemsys_formula: str, final=True) -> List[Structure]:
         """
-        Get a list of Structures corresponding to a chemical system, formula,
-        or materials_id.
+        Get a list of Structures corresponding to a chemical system or formula.
 
         Args:
-            chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
-                or formula (e.g., Fe2O3).
+            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
+                or formula (e.g., Fe2O3, Si*).
             final (bool): Whether to get the final structure, or the list of initial
                 (pre-relaxation) structures. Defaults to True.
 
         Returns:
-            List of Structure objects.
+            List of Structure objects. ([Structure])
         """
+
+        if "-" in chemsys_formula:
+            input_params = {"chemsys": chemsys_formula}
+        else:
+            input_params = {"formula": chemsys_formula}
 
         if final:
             return [
                 doc.structure
                 for doc in self.materials.search_material_docs(
-                    chemsys_formula=chemsys_formula,
-                    all_fields=False,
-                    fields=["structure"],
+                    **input_params, all_fields=False, fields=["structure"],  # type: ignore
                 )
             ]
         else:
             structures = []
 
             for doc in self.materials.search_material_docs(
-                chemsys_formula=chemsys_formula,
-                all_fields=False,
-                fields=["initial_structures"],
+                **input_params, all_fields=False, fields=["initial_structures"],  # type: ignore
             ):
                 structures.extend(doc.initial_structures)
 
@@ -329,11 +337,11 @@ class MPRester:
 
     def find_structure(
         self,
-        filename_or_structure,
-        ltol=_EMMET_SETTINGS.LTOL,
-        stol=_EMMET_SETTINGS.STOL,
-        angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
-        allow_multiple_results=False,
+        filename_or_structure: Union[str, Structure],
+        ltol: float = _EMMET_SETTINGS.LTOL,
+        stol: float = _EMMET_SETTINGS.STOL,
+        angle_tol: float = _EMMET_SETTINGS.ANGLE_TOL,
+        allow_multiple_results: bool = False,
     ) -> Union[List[str], str]:
         """
         Finds matching structures from the Materials Project database.
@@ -366,15 +374,15 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula, sort_by_e_above_hull=False,
+        self, chemsys_formula: str, sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
         Args:
-            chemsys_formula (str): A chemical system
-                (e.g., Li-Fe-O), or formula (e.g., Fe2O3).
+            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
+                or formula (e.g., Fe2O3, Si*).
             sort_by_e_above_hull (bool): Whether to sort the list of entries by
                 e_above_hull in ascending order.
 
@@ -382,12 +390,17 @@ class MPRester:
             List of ComputedEntry or ComputedStructureEntry objects.
         """
 
+        if "-" in chemsys_formula:
+            input_params = {"chemsys": chemsys_formula}
+        else:
+            input_params = {"formula": chemsys_formula}
+
         entries = []
 
         if sort_by_e_above_hull:
 
             for doc in self.thermo.search_thermo_docs(
-                chemsys_formula=chemsys_formula,
+                **input_params,  # type: ignore
                 all_fields=False,
                 fields=["entries"],
                 sort_fields=["energy_above_hull"],
@@ -398,7 +411,7 @@ class MPRester:
 
         else:
             for doc in self.thermo.search_thermo_docs(
-                chemsys_formula=chemsys_formula, all_fields=False, fields=["entries"],
+                **input_params, all_fields=False, fields=["entries"],  # type: ignore
             ):
                 entries.extend(list(doc.entries.values()))
 
@@ -707,7 +720,7 @@ class MPRester:
 
         return ion_entries
 
-    def get_entry_by_material_id(self, material_id):
+    def get_entry_by_material_id(self, material_id: str):
         """
         Get all ComputedEntry objects corresponding to a material_id.
 
@@ -724,7 +737,7 @@ class MPRester:
         )
 
     def get_entries_in_chemsys(
-        self, elements, use_gibbs: Optional[int] = None,
+        self, elements: Union[str, List[str]], use_gibbs: Optional[int] = None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -752,10 +765,10 @@ class MPRester:
             for els in itertools.combinations(elements, i + 1):
                 all_chemsyses.append("-".join(sorted(els)))
 
-        entries = []
+        entries = []  # type: List[ComputedEntry]
 
         for chemsys in all_chemsyses:
-            entries.extend(self.get_entries(chemsys_formula=chemsys))
+            entries.extend(self.get_entries(chemsys))
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
@@ -800,7 +813,7 @@ class MPRester:
             material_id=material_id
         )
 
-    def get_phonon_dos_by_material_id(self, material_id):
+    def get_phonon_dos_by_material_id(self, material_id: str):
         """
         Get phonon density of states data corresponding to a material_id.
 
@@ -813,7 +826,7 @@ class MPRester:
         """
         return self.phonon.get_data_by_id(material_id, fields=["ph_dos"]).ph_dos
 
-    def get_phonon_bandstructure_by_material_id(self, material_id):
+    def get_phonon_bandstructure_by_material_id(self, material_id: str):
         """
         Get phonon dispersion data corresponding to a material_id.
 
@@ -828,7 +841,9 @@ class MPRester:
     def query(
         self,
         material_ids: Optional[List[MPID]] = None,
-        chemsys_formula: Optional[str] = None,
+        formula: Optional[str] = None,
+        chemsys: Optional[str] = None,
+        elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
         possible_species: Optional[List[str]] = None,
         nsites: Optional[Tuple[int, int]] = None,
@@ -887,9 +902,10 @@ class MPRester:
 
         Arguments:
             material_ids (List[MPID]): List of Materials Project IDs to return data for.
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
-                or formula including anonomyzed formula
+            formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             possible_species (List(str)): List of element symbols appended with oxidation states.
                 (e.g. Cr2+,O2-)
@@ -962,7 +978,9 @@ class MPRester:
 
         return self.summary.search_summary_docs(  # type: ignore
             material_ids=material_ids,
-            chemsys_formula=chemsys_formula,
+            formula=formula,
+            chemsys=chemsys,
+            elements=elements,
             exclude_elements=exclude_elements,
             possible_species=possible_species,
             nsites=nsites,
@@ -1031,7 +1049,7 @@ class MPRester:
         # TODO: call new MPComplete endpoint
         raise NotImplementedError
 
-    def get_wulff_shape(self, material_id) -> WulffShape:
+    def get_wulff_shape(self, material_id: str):
         """
         Constructs a Wulff shape for a material.
 

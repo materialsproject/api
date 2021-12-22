@@ -16,6 +16,10 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
     def search_electronic_structure_docs(
         self,
+        formula: Optional[str] = None,
+        chemsys: Optional[str] = None,
+        elements: Optional[List[str]] = None,
+        exclude_elements: Optional[List[str]] = None,
         band_gap: Optional[Tuple[float, float]] = None,
         efermi: Optional[Tuple[float, float]] = None,
         magnetic_ordering: Optional[Ordering] = None,
@@ -31,6 +35,11 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         Query electronic structure docs using a variety of search criteria.
 
         Arguments:
+            formula (str): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            elements (List[str]): A list of elements.
+            exclude_elements (List[str]): A list of elements to exclude.
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
@@ -48,6 +57,18 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if formula:
+            query_params.update({"formula": formula})
+
+        if chemsys:
+            query_params.update({"chemsys": chemsys})
+
+        if elements:
+            query_params.update({"elements": ",".join(elements)})
+
+        if exclude_elements:
+            query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
         if band_gap:
             query_params.update(

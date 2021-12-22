@@ -5,7 +5,7 @@ from emmet.core.symmetry import CrystalSystem
 from fastapi import Body, HTTPException, Query
 from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS
-from mp_api.routes.materials.utils import formula_to_criteria
+from mp_api.routes.materials.utils import formula_to_criteria, chemsys_to_criteria
 from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
 from pymatgen.core.composition import Composition, CompositionError
 from pymatgen.core.periodic_table import Element
@@ -34,7 +34,32 @@ class FormulaQuery(QueryOperator):
         return {"criteria": crit}
 
     def ensure_indexes(self):  # pragma: no cover
-        keys = ["chemsys", "formula_pretty", "formula_anonymous", "composition_reduced"]
+        keys = ["formula_pretty", "formula_anonymous", "composition_reduced"]
+        return [(key, False) for key in keys]
+
+
+class ChemsysQuery(QueryOperator):
+    """
+    Factory method to generate a dependency for querying by
+        chemical system with wild cards.
+    """
+
+    def query(
+        self,
+        chemsys: Optional[str] = Query(
+            None, description="Query by chemsys including wild cards",
+        ),
+    ) -> STORE_PARAMS:
+
+        crit = {}
+
+        if chemsys:
+            crit.update(chemsys_to_criteria(chemsys))
+
+        return {"criteria": crit}
+
+    def ensure_indexes(self):  # pragma: no cover
+        keys = ["chemsys", "elements", "nelements"]
         return [(key, False) for key in keys]
 
 

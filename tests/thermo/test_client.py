@@ -20,7 +20,7 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
-    "chemsys_formula": "formula_pretty",
+    "formula": "formula_pretty",
     "material_ids": "material_id",
     "total_energy": "energy_per_atom",
     "formation_energy": "formation_energy_per_atom",
@@ -30,10 +30,12 @@ alt_name_dict = {
 
 custom_field_tests = {
     "material_ids": ["mp-149"],
-    "chemsys_formula": "Si-O",
+    "formula": "SiO2",
+    "chemsys": "Si-O",
 }  # type: dict
 
 
+@pytest.mark.xfail(reason="Until deployment of new API")
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )

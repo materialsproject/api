@@ -17,6 +17,7 @@ from mp_api.routes.materials.hint_scheme import MaterialsHintScheme
 from mp_api.routes.materials.query_operators import (
     ElementsQuery,
     FormulaQuery,
+    ChemsysQuery,
     DeprecationQuery,
     SymmetryQuery,
     MultiTaskIDQuery,
@@ -57,6 +58,7 @@ def materials_resource(materials_store):
         MaterialsDoc,
         query_operators=[
             FormulaQuery(),
+            ChemsysQuery(),
             ElementsQuery(),
             MultiTaskIDQuery(),
             SymmetryQuery(),

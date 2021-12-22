@@ -68,17 +68,24 @@ class TestMPRester:
         data = mpr.get_materials_id_references("mp-123")
         assert len(data) > 5
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_materials_ids_doc(self, mpr):
         mpids = mpr.get_materials_ids("Al2O3")
         random.shuffle(mpids)
         doc = mpr.materials.get_data_by_id(mpids.pop(0))
         assert doc.formula_pretty == "Al2O3"
 
+        mpids = mpr.get_materials_ids(chemsys="Al-O")
+        random.shuffle(mpids)
+        doc = mpr.materials.get_data_by_id(mpids.pop(0))
+        assert doc.chemsys == "Al-O"
+
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_structures(self, mpr):
         structs = mpr.get_structures("Mn3O4")
         assert len(structs) > 0
 
-        structs = mpr.get_structures("Mn3O4", final=False)
+        structs = mpr.get_structures("Mn-O", final=False)
         assert len(structs) > 0
 
     def test_find_structure(self, mpr):
@@ -107,6 +114,7 @@ class TestMPRester:
         assert isinstance(e[0], ComputedEntry)
         assert e[0].composition.reduced_formula == "LiFePO4"
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
@@ -120,6 +128,13 @@ class TestMPRester:
 
         assert sorted_entries != entries
 
+        formula = "SiO2"
+        entries = mpr.get_entries(formula)
+
+        for e in entries:
+            assert isinstance(e, ComputedEntry)
+
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
         syms2 = "Li-Fe-O"
@@ -138,6 +153,7 @@ class TestMPRester:
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements
         pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
@@ -173,6 +189,7 @@ class TestMPRester:
         # Ensure entries are pourbaix compatible
         PourbaixDiagram(pbx_entries)
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
@@ -209,6 +226,7 @@ class TestMPRester:
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
 
+    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_query(self, mpr):
 
         excluded_params = [
@@ -222,7 +240,7 @@ class TestMPRester:
 
         alt_name_dict = {
             "material_ids": "material_id",
-            "chemsys_formula": "formula_pretty",
+            "formula": "formula_pretty",
             "exclude_elements": "formula_pretty",
             "piezoelectric_modulus": "e_ij_max",
             "crystal_system": "symmetry",
@@ -241,7 +259,9 @@ class TestMPRester:
 
         custom_field_tests = {
             "material_ids": ["mp-149"],
-            "chemsys_formula": "SiO2",
+            "formula": "SiO2",
+            "chemsys": "Si-O",
+            "elements": ["Si", "O"],
             "exclude_elements": ["Si"],
             "possible_species": ["O2-"],
             "crystal_system": CrystalSystem.cubic,

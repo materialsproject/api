@@ -17,7 +17,9 @@ class SummaryRester(BaseRester[SummaryDoc]):
     def search_summary_docs(
         self,
         material_ids: Optional[List[MPID]] = None,
-        chemsys_formula: Optional[str] = None,
+        formula: Optional[str] = None,
+        chemsys: Optional[str] = None,
+        elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
         possible_species: Optional[List[str]] = None,
         nsites: Optional[Tuple[int, int]] = None,
@@ -76,9 +78,10 @@ class SummaryRester(BaseRester[SummaryDoc]):
 
         Arguments:
             material_ids (List[MPID]): List of Materials Project IDs to return data for.
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O),
-                or formula including anonomyzed formula
+            formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
+            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             possible_species (List(str)): List of element symbols appended with oxidation states.
                 (e.g. Cr2+,O2-)
@@ -201,8 +204,14 @@ class SummaryRester(BaseRester[SummaryDoc]):
         if deprecated is not None:
             query_params.update({"deprecated": deprecated})
 
-        if chemsys_formula:
-            query_params.update({"formula": chemsys_formula})
+        if formula:
+            query_params.update({"formula": formula})
+
+        if chemsys:
+            query_params.update({"chemsys": chemsys})
+
+        if elements:
+            query_params.update({"elements": ",".join(elements)})
 
         if exclude_elements is not None:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})

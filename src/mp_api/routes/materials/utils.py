@@ -8,31 +8,14 @@ def formula_to_criteria(formula: str) -> Dict:
     Santizes formula into a dictionary to search with wild cards
 
     Arguments:
-        formula: a chemical formula with wildcards in it for unknown elements
+        formula: formula with wildcards in it for unknown elements
 
     Returns:
         Mongo style search criteria for this formula
     """
     dummies = "ADEGJLMQRXZ"
 
-    if "-" in formula:
-        crit = {}  # type: dict
-        eles = formula.split("-")
-
-        if "*" in eles:
-            crit["nelements"] = len(eles)
-            crit["elements"] = {"$all": [ele for ele in eles if ele != "*"]}
-
-            if crit["elements"]["$all"] == []:
-                del crit["elements"]
-
-            return crit
-        else:
-            chemsys = "-".join(sorted(eles))
-            crit["chemsys"] = chemsys
-            return crit
-
-    elif "*" in formula:
+    if "*" in formula:
         # Wild card in formula
         nstars = formula.count("*")
 
@@ -64,8 +47,36 @@ def formula_to_criteria(formula: str) -> Dict:
         comp = Composition(formula)
         # Paranoia below about floating-point "equality"
         crit = {}
-        crit["nelements"] = len(comp)
+        crit["nelements"] = len(comp)  # type: ignore
         for el, n in comp.to_reduced_dict.items():
             crit[f"composition_reduced.{el}"] = n
 
+        return crit
+
+
+def chemsys_to_criteria(chemsys: str) -> Dict:
+    """
+    Santizes chemsys into a dictionary to search with wild cards
+
+    Arguments:
+        formula: a chemiscal system with wildcards in it for unknown elements
+
+    Returns:
+        Mongo style search criteria for this formula
+    """
+
+    crit = {}  # type: dict
+    eles = chemsys.split("-")
+
+    if "*" in eles:
+        crit["nelements"] = len(eles)
+        crit["elements"] = {"$all": [ele for ele in eles if ele != "*"]}
+
+        if crit["elements"]["$all"] == []:
+            del crit["elements"]
+
+        return crit
+    else:
+        chemsys = "-".join(sorted(eles))
+        crit["chemsys"] = chemsys
         return crit

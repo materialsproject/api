@@ -19,14 +19,18 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
-    "chemsys_formula": "material_id",
+    "formula": "material_id",
     "crystal_system": "symmetry",
     "spacegroup_number": "symmetry",
     "spacegroup_symbol": "symmetry",
+    "exclude_elements": "material_id",
 }  # type: dict
 
 custom_field_tests = {
-    "chemsys_formula": "Si",
+    "formula": "Si",
+    "chemsys": "Si-O",
+    "elements": ["Si", "O"],
+    "exclude_elements": ["Si"],
     "task_ids": ["mp-149"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
@@ -34,7 +38,10 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.xfail(reason="Until deployment of new API")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
     # Get specific search method
@@ -88,4 +95,7 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )

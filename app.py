@@ -3,6 +3,7 @@ from monty.serialization import loadfn
 
 from mp_api.core.api import MAPI
 from mp_api.core.settings import MAPISettings
+from maggma.stores import MongoURIStore, S3Store
 
 resources = {}
 
@@ -13,68 +14,7 @@ db_version = default_settings.DB_VERSION
 db_suffix = os.environ.get("MAPI_DB_NAME_SUFFIX", db_version)
 debug = default_settings.DEBUG
 
-materials_store_json = os.environ.get("MATERIALS_STORE", "materials_store.json")
-bonds_store_json = os.environ.get("BONDS_STORE", "bonds_store.json")
-formula_autocomplete_store_json = os.environ.get(
-    "FORMULA_AUTOCOMPLETE_STORE", "formula_autocomplete_store.json"
-)
-task_store_json = os.environ.get("TASK_STORE", "task_store.json")
-thermo_store_json = os.environ.get("THERMO_STORE", "thermo_store.json")
-phase_diagram_store_json = os.environ.get(
-    "PHASE_DIAGRAM_STORE", "phase_diagram_store.json"
-)
-dielectric_store_json = os.environ.get("DIELECTRIC_STORE", "dielectric_store.json")
-piezoelectric_store_json = os.environ.get(
-    "PIEZOELECTRIC_STORE", "piezoelectric_store.json"
-)
-magnetism_store_json = os.environ.get("MAGNETISM_STORE", "magnetism_store.json")
-phonon_bs_store_json = os.environ.get("PHONON_BS_STORE", "phonon_bs_store.json")
-eos_store_json = os.environ.get("EOS_STORE", "eos_store.json")
-similarity_store_json = os.environ.get("SIMILARITY_STORE", "similarity_store.json")
-xas_store_json = os.environ.get("XAS_STORE", "xas_store.json")
-gb_store_json = os.environ.get("GB_STORE", "xas_store.json")
-fermi_store_json = os.environ.get("FERMI_STORE", "fermi_store.json")
-elasticity_store_json = os.environ.get("ELASTICITY_STORE", "elasticity_store.json")
-doi_store_json = os.environ.get("DOI_STORE", "doi_store.json")
-substrates_store_json = os.environ.get("SUBSTRATES_STORE", "substrates_store.json")
-surface_props_store_json = os.environ.get(
-    "SURFACE_PROPS_STORE", "surface_props_store.json"
-)
-robocrys_store_json = os.environ.get("ROBOCRYS_STORE", "robocrys_store.json")
-synth_store_json = os.environ.get("SYNTH_STORE", "synth_store.json")
-insertion_electrodes_store_json = os.environ.get(
-    "INSERTION_ELECTRODES_STORE", "insertion_electrodes_store.json"
-)
-molecules_store_json = os.environ.get("MOLECULES_STORE", "molecules_store.json")
-oxi_states_store_json = os.environ.get("OXI_STATES_STORE", "oxi_states_store.json")
-provenance_store_json = os.environ.get("PROVENANCE_STORE", "provenance_store.json")
-summary_store_json = os.environ.get("SUMMARY_STORE", "summary_store.json")
-
-es_store_json = os.environ.get("ES_STORE", "es_store.json")
-
-bs_store_json = os.environ.get("BS_STORE", "bs_store.json")
-dos_store_json = os.environ.get("DOS_STORE", "dos_store.json")
-
-s3_bs_index_json = os.environ.get("S3_BS_INDEX_STORE", "s3_bs_index.json")
-s3_dos_index_json = os.environ.get("S3_DOS_INDEX_STORE", "s3_dos_index.json")
-
-s3_bs_json = os.environ.get("S3_BS_STORE", "s3_bs.json")
-s3_dos_json = os.environ.get("S3_DOS_STORE", "s3_dos.json")
-
-s3_chgcar_index_json = os.environ.get("CHGCAR_INDEX_STORE", "chgcar_index_store.json")
-s3_chgcar_json = os.environ.get("S3_CHGCAR_STORE", "s3_chgcar.json")
-
-mpcomplete_store_json = os.environ.get("MPCOMPLETE_STORE", "mpcomplete_store.json")
-
-consumer_settings_store_json = os.environ.get(
-    "CONSUMER_SETTINGS_STORE", "consumer_settings_store.json"
-)
-
-general_store_json = os.environ.get("GENERAL_STORE_STORE", "general_store_store.json")
-
-
 if db_uri:
-    from maggma.stores import MongoURIStore, S3Store
 
     materials_store = MongoURIStore(
         uri=f"mongodb+srv://{db_uri}",
@@ -331,48 +271,8 @@ if db_uri:
         key="submission_id",
         collection_name="general_store",
     )
-
 else:
-    materials_store = loadfn(materials_store_json)
-    bonds_store = loadfn(bonds_store_json)
-    formula_autocomplete_store = loadfn(formula_autocomplete_store_json)
-    task_store = loadfn(task_store_json)
-    thermo_store = loadfn(thermo_store_json)
-    phase_diagram_store = loadfn(phase_diagram_store_json)
-    dielectric_store = loadfn(dielectric_store_json)
-    piezoelectric_store = loadfn(piezoelectric_store_json)
-    magnetism_store = loadfn(magnetism_store_json)
-    phonon_bs_store = loadfn(phonon_bs_store_json)
-    eos_store = loadfn(eos_store_json)
-    similarity_store = loadfn(similarity_store_json)
-    xas_store = loadfn(xas_store_json)
-    gb_store = loadfn(gb_store_json)
-    fermi_store = loadfn(fermi_store_json)
-    elasticity_store = loadfn(elasticity_store_json)
-    doi_store = loadfn(doi_store_json)
-    substrates_store = loadfn(substrates_store_json)
-    surface_props_store = loadfn(surface_props_store_json)
-    robo_store = loadfn(robocrys_store_json)
-    synth_store = loadfn(synth_store_json)
-    insertion_electrodes_store = loadfn(insertion_electrodes_store_json)
-    molecules_store = loadfn(molecules_store_json)
-    oxi_states_store = loadfn(oxi_states_store_json)
-    provenance_store = loadfn(provenance_store_json)
-    summary_store = loadfn(summary_store_json)
-
-    es_store = loadfn(es_store_json)
-
-    s3_bs_index = loadfn(s3_bs_index_json)
-    s3_dos_index = loadfn(s3_dos_index_json)
-    s3_bs = loadfn(s3_bs_json)
-    s3_dos = loadfn(s3_dos_json)
-
-    s3_chgcar_index = loadfn(s3_chgcar_index_json)
-    s3_chgcar = loadfn(s3_chgcar_json)
-
-    mpcomplete_store = loadfn(mpcomplete_store_json)
-    consumer_settings_store = loadfn(consumer_settings_store_json)
-    general_store = loadfn(general_store_json)
+    raise RuntimeError("Must specify MongoDB Atlas URI")
 
 # Materials
 from mp_api.routes.materials.resources import (

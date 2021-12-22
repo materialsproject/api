@@ -9,7 +9,11 @@ from maggma.api.query_operator import (
     SparseFieldsQuery,
 )
 from mp_api.routes.thermo.query_operators import IsStableQuery
-from mp_api.routes.materials.query_operators import MultiMaterialIDQuery, FormulaQuery
+from mp_api.routes.materials.query_operators import (
+    MultiMaterialIDQuery,
+    FormulaQuery,
+    ChemsysQuery,
+)
 
 
 def phase_diagram_resource(phase_diagram_store):
@@ -32,6 +36,7 @@ def thermo_resource(thermo_store):
         query_operators=[
             MultiMaterialIDQuery(),
             FormulaQuery(),
+            ChemsysQuery(),
             IsStableQuery(),
             NumericQuery(model=ThermoDoc),
             SortQuery(),

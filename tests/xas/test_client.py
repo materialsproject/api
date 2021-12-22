@@ -23,6 +23,7 @@ sub_doc_fields = []  # type: list
 alt_name_dict = {
     "required_elements": "elements",
     "formula": "formula_pretty",
+    "exclude_elements": "material_id",
 }  # type: dict
 
 custom_field_tests = {
@@ -30,10 +31,15 @@ custom_field_tests = {
     "absorbing_element": Element("Ce"),
     "required_elements": [Element("Ce")],
     "formula": "Ce(WO4)2",
+    "chemsys": "Ce-O-W",
+    "elements": ["Ce"],
 }  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.xfail(reason="Until deployment of new API")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
     # Get specific search method
@@ -59,7 +65,9 @@ def test_client(rester):
                         param: (-100, 100),
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [project_field if project_field is not None else param],
+                        "fields": [
+                            project_field if project_field is not None else param
+                        ],
                     }
                 elif param_type is typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
@@ -67,7 +75,9 @@ def test_client(rester):
                         param: (-100.12, 100.12),
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [project_field if project_field is not None else param],
+                        "fields": [
+                            project_field if project_field is not None else param
+                        ],
                     }
                 elif param_type is bool:
                     project_field = alt_name_dict.get(param, None)
@@ -75,7 +85,9 @@ def test_client(rester):
                         param: False,
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [project_field if project_field is not None else param],
+                        "fields": [
+                            project_field if project_field is not None else param
+                        ],
                     }
                 elif param in custom_field_tests:
                     project_field = alt_name_dict.get(param, None)
@@ -83,7 +95,9 @@ def test_client(rester):
                         param: custom_field_tests[param],
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [project_field if project_field is not None else param],
+                        "fields": [
+                            project_field if project_field is not None else param
+                        ],
                     }
 
                 doc = search_method(**q)[0].dict()
@@ -91,4 +105,7 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )
