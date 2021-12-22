@@ -768,7 +768,7 @@ class MPRester:
         entries = []  # type: List[ComputedEntry]
 
         for chemsys in all_chemsyses:
-            entries.extend(self.get_entries(chemsys=chemsys))
+            entries.extend(self.get_entries(chemsys))
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
