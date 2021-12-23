@@ -7,7 +7,7 @@ from mp_api.routes.electrodes.query_operators import (
     ElectrodeFormulaQuery,
     WorkingIonQuery,
 )
-from mp_api.routes.materials.query_operators import ElementsQuery
+from mp_api.routes.materials.query_operators import ElementsQuery, ChemsysQuery
 
 
 def insertion_electrodes_resource(insertion_electrodes_store):
@@ -16,6 +16,7 @@ def insertion_electrodes_resource(insertion_electrodes_store):
         InsertionElectrodeDoc,
         query_operators=[
             ElectrodeFormulaQuery(),
+            ChemsysQuery(),
             WorkingIonQuery(),
             ElementsQuery(),
             NumericQuery(model=InsertionElectrodeDoc),
