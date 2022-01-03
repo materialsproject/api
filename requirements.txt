@@ -2,7 +2,7 @@ pydantic==1.8.2
 pymatgen>=2022.0.16
 typing-extensions==4.0.1
 maggma==0.38.1
-requests==2.26.0
+requests==2.27.0
 monty==2021.12.1
 emmet-core==0.19.1
 ratelimit==2.2.1
