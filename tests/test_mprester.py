@@ -7,7 +7,6 @@ from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
-from emmet.api.core.settings import MAPISettings
 from mp_api.matproj import MPRester
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
