@@ -1,7 +1,7 @@
 import os
 import pytest
-from mp_api.routes.xas.xas import XASRester
-from emmet.core.xas import Edge, Type
+from mp_api.routes.xas import XASRester
+from emmet.core.xas import Edge
 from pymatgen.core.periodic_table import Element
 
 import inspect

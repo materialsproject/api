@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.tasks.tasks import TaskRester
+from mp_api.routes.tasks import TaskRester
 
 import inspect
 import typing

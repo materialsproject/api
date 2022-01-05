@@ -5,7 +5,7 @@ from typing import List
 import pytest
 
 from mp_api.routes.synthesis import SynthesisRester
-from mp_api.routes.synthesis.models import SynthesisTypeEnum, SynthesisRecipe
+from emmet.core.synthesis import SynthesisTypeEnum, SynthesisRecipe
 
 
 @pytest.fixture

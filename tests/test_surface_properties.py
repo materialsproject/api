@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.surface_properties.surface_properties import SurfacePropertiesRester
+from mp_api.routes.surface_properties import SurfacePropertiesRester
 
 import inspect
 import typing

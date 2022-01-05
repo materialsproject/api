@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.robocrys.robocrys import RobocrysRester
+from mp_api.routes.robocrys import RobocrysRester
 
 import inspect
 import typing

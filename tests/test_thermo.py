@@ -1,7 +1,7 @@
 import os
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 import pytest
-from mp_api.routes.thermo.thermo import ThermoRester
+from mp_api.routes.thermo import ThermoRester
 
 import inspect
 import typing

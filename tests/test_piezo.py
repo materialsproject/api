@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.piezo.piezo import PiezoRester
+from mp_api.routes.piezo import PiezoRester
 
 import inspect
 import typing

@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.substrates.substrates import SubstratesRester
+from mp_api.routes.substrates import SubstratesRester
 
 import inspect
 import typing
