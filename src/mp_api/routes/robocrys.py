@@ -1,13 +1,13 @@
 from typing import List
 
 from mp_api.core.client import BaseRester, MPRestError
-from emmet.core.robocrys import RobocrysDoc
+from emmet.core.robocrys import RobocrystallogapherDoc
 
 
-class RobocrysRester(BaseRester[RobocrysDoc]):
+class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
 
     suffix = "robocrys"
-    document_model = RobocrysDoc  # type: ignore
+    document_model = RobocrystallogapherDoc  # type: ignore
     primary_key = "material_id"
 
     def search_robocrys_text(self, keywords: List[str]):
@@ -18,7 +18,7 @@ class RobocrysRester(BaseRester[RobocrysDoc]):
             keywords (List[str]): List of search keywords
 
         Returns:
-            robocrys_docs (List[RobocrysDoc]): List of robocrystallographer documents
+            robocrys_docs (List[RobocrystallogapherDoc]): List of robocrystallographer documents
         """
 
         keyword_string = ",".join(keywords)
