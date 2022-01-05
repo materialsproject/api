@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from emmet.core.mpid import MPID
-from emmet.core.summary import SummaryDoc, HasProps
+from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from mp_api.core.client import BaseRester
 from pymatgen.analysis.magnetism import Ordering

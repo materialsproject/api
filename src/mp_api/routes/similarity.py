@@ -1,5 +1,5 @@
 from mp_api.core.client import BaseRester
-from mp_api.routes.similarity.models import SimilarityDoc
+from emmet.core.similarity import SimilarityDoc
 
 
 class SimilarityRester(BaseRester[SimilarityDoc]):

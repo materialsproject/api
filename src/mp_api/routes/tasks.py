@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from mp_api.routes.tasks.models import TaskDoc
+from emmet.core.tasks import TaskDoc
 from mp_api.core.client import BaseRester
 
 

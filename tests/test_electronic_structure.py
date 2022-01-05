@@ -1,15 +1,12 @@
 import os
 import pytest
-from mp_api.routes.electronic_structure.client import (
+from mp_api.routes.electronic_structure import (
     BandStructureRester,
     DosRester,
     ElectronicStructureRester,
 )
 
-from mp_api.routes.electronic_structure.models.core import BSPathType, DOSProjectionType
-
 from pymatgen.analysis.magnetism import Ordering
-from pymatgen.electronic_structure.core import Spin, OrbitalType
 
 import inspect
 import typing

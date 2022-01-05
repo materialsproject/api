@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from mp_api.core.client import BaseRester
 
-from mp_api.routes.grain_boundary.models import GBTypeEnum, GrainBoundaryDoc
+from emmet.core.grain_boundary import GBTypeEnum, GrainBoundaryDoc
 
 
 class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):

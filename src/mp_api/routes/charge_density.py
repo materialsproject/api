@@ -1,5 +1,4 @@
 from pathlib import Path
-from platform import version
 
 from typing import Union, Optional, List, Dict
 
@@ -12,10 +11,8 @@ from warnings import warn
 
 from monty.serialization import dumpfn
 
-from mp_api.core.client import BaseRester, MPRestError
-from mp_api.routes.tasks.tasks import TaskRester
-from mp_api.routes.materials.materials import MaterialsRester
-from mp_api.routes.charge_density.models import ChgcarDataDoc
+from mp_api.core.client import BaseRester
+from emmet.core.charge_density import ChgcarDataDoc
 
 
 class ChargeDensityRester(BaseRester[ChgcarDataDoc]):

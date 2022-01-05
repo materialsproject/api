@@ -1,4 +1,4 @@
-from mp_api.routes._consumer.models import UserSettingsDoc
+from emmet.core._user_settings import UserSettingsDoc
 from mp_api.core.client import BaseRester
 
 

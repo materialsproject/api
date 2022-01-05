@@ -1,10 +1,8 @@
-from typing import List, Optional, Tuple
 from collections import defaultdict
+from typing import List, Optional, Tuple
 
+from emmet.core.elasticity import ElasticityDoc
 from mp_api.core.client import BaseRester
-from mp_api.routes.elasticity.models import ElasticityDoc
-
-import warnings
 
 
 class ElasticityRester(BaseRester[ElasticityDoc]):

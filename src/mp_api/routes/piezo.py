@@ -4,8 +4,6 @@ from collections import defaultdict
 from mp_api.core.client import BaseRester
 from emmet.core.polar import PiezoelectricDoc
 
-import warnings
-
 
 class PiezoRester(BaseRester[PiezoelectricDoc]):
 

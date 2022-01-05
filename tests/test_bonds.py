@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.bonds.client import BondsRester
+from mp_api.routes.bonds import BondsRester
 
 import inspect
 import typing

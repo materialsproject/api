@@ -3,12 +3,12 @@ import random
 import typing
 
 import pytest
-from emmet.core.symmetry import CrystalSystem
-from emmet.core.vasp.calc_types import CalcType
 from emmet.core.summary import HasProps
+from emmet.core.symmetry import CrystalSystem
+from emmet.core.tasks import TaskDoc
+from emmet.core.vasp.calc_types import CalcType
 from mp_api.core.settings import MAPISettings
 from mp_api.matproj import MPRester
-from mp_api.routes.tasks.models import TaskDoc
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry

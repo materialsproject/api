@@ -1,8 +1,8 @@
-from typing import List, Optional, Tuple
 from collections import defaultdict
+from typing import List, Optional, Tuple
 
+from emmet.core.eos import EOSDoc
 from mp_api.core.client import BaseRester
-from mp_api.routes.eos.models import EOSDoc
 
 
 class EOSRester(BaseRester[EOSDoc]):

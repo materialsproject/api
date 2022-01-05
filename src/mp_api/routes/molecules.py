@@ -4,7 +4,7 @@ from collections import defaultdict
 from pymatgen.core.periodic_table import Element
 
 from mp_api.core.client import BaseRester
-from mp_api.routes.molecules.models import MoleculesDoc
+from emmet.core.molecules import MoleculesDoc
 
 
 class MoleculesRester(BaseRester[MoleculesDoc]):

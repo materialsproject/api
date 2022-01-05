@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.dielectric.client import DielectricRester
+from mp_api.routes.dielectric import DielectricRester
 
 import inspect
 import typing

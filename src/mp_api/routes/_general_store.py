@@ -1,7 +1,7 @@
 from typing import Dict
 
 from mp_api.core.client import BaseRester
-from mp_api.routes._general_store.models import GeneralStoreDoc
+from emmet.core._general_store import GeneralStoreDoc
 
 
 class GeneralStoreRester(BaseRester[GeneralStoreDoc]):  # pragma: no cover

@@ -1,9 +1,5 @@
+from emmet.core.fermi import FermiDoc
 from mp_api.core.client import BaseRester
-from mp_api.routes.fermi.models import FermiDoc
-
-from collections import defaultdict
-from typing import Optional, List
-import warnings
 
 
 class FermiRester(BaseRester[FermiDoc]):

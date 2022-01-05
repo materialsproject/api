@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from mp_api.core.client import BaseRester, MPRestError
-from mp_api.routes.synthesis.models import (
+from emmet.core.synthesis import (
     SynthesisSearchResultModel,
     SynthesisTypeEnum,
     OperationTypeEnum,

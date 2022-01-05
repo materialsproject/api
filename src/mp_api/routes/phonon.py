@@ -1,5 +1,5 @@
 from mp_api.core.client import BaseRester
-from mp_api.routes.phonon.models import PhononBSDOSDoc
+from emmet.core.phonon import PhononBSDOSDoc
 
 
 class PhononRester(BaseRester[PhononBSDOSDoc]):

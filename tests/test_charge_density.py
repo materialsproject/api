@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.charge_density.client import ChargeDensityRester
+from mp_api.routes.charge_density import ChargeDensityRester
 
 import inspect
 import typing
@@ -22,7 +22,9 @@ alt_name_dict = {}  # type: dict
 custom_field_tests = {}  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
     # Get specific search method
@@ -75,14 +77,18 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )
 
 
 def test_download_for_task_ids(tmpdir):
     rester = resters[0]
 
     n = rester.download_for_task_ids(
-        task_ids=["mp-655585", "mp-1057373", "mp-1059589", "mp-1440634", "mp-1791788"], path=tmpdir,
+        task_ids=["mp-655585", "mp-1057373", "mp-1059589", "mp-1440634", "mp-1791788"],
+        path=tmpdir,
     )
     files = [f for f in os.listdir(tmpdir)]
 

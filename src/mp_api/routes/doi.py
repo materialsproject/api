@@ -1,5 +1,5 @@
 from mp_api.core.client import BaseRester
-from mp_api.routes.dois.models import DOIDoc
+from emmet.core.dois import DOIDoc
 
 
 class DOIRester(BaseRester[DOIDoc]):

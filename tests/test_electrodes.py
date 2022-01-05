@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.electrodes.client import ElectrodeRester
+from mp_api.routes.electrodes import ElectrodeRester
 
 import inspect
 import typing

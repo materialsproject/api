@@ -1,7 +1,8 @@
 from typing import List, Optional
+
+from emmet.core.xas import Edge, XASDoc
+from mp_api.core.client import BaseRester
 from pymatgen.core.periodic_table import Element
-from mp_api.core.client import BaseRester, MPRestError
-from emmet.core.xas import Edge, Type, XASDoc
 
 
 class XASRester(BaseRester[XASDoc]):

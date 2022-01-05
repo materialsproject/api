@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.magnetism.magnetism import MagnetismRester
+from mp_api.routes.magnetism import MagnetismRester
 from pymatgen.analysis.magnetism import Ordering
 
 import inspect

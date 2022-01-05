@@ -1,7 +1,7 @@
 from typing import List
 
 from mp_api.core.client import BaseRester, MPRestError
-from mp_api.routes.robocrys.models import RobocrysDoc
+from emmet.core.robocrys import RobocrysDoc
 
 
 class RobocrysRester(BaseRester[RobocrysDoc]):

@@ -1,11 +1,15 @@
-from typing import Optional, Tuple, List
 from collections import defaultdict
+from typing import List, Optional, Tuple
+
+from emmet.core.electronic_structure import (
+    BSPathType,
+    DOSProjectionType,
+    ElectronicStructureDoc,
+)
 from mp_api.core.client import BaseRester, MPRestError
-from mp_api.routes.electronic_structure.models.core import BSPathType, DOSProjectionType
-from emmet.core.electronic_structure import ElectronicStructureDoc
 from pymatgen.analysis.magnetism.analyzer import Ordering
-from pymatgen.electronic_structure.core import Spin, OrbitalType
 from pymatgen.core.periodic_table import Element
+from pymatgen.electronic_structure.core import OrbitalType, Spin
 
 
 class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):

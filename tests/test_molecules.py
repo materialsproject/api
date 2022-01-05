@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.molecules.molecules import MoleculesRester
+from mp_api.routes.molecules import MoleculesRester
 from pymatgen.core.periodic_table import Element
 
 import inspect

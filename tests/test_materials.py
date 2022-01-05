@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.materials.materials import MaterialsRester
+from mp_api.routes.materials import MaterialsRester
 from emmet.core.symmetry import CrystalSystem
 
 import inspect

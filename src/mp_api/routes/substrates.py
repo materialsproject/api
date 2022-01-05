@@ -3,7 +3,7 @@ from collections import defaultdict
 import warnings
 
 from mp_api.core.client import BaseRester
-from mp_api.routes.substrates.models import SubstratesDoc
+from emmet.core.substrates import SubstratesDoc
 
 
 class SubstratesRester(BaseRester[SubstratesDoc]):

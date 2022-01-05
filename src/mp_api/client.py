@@ -22,8 +22,8 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from mp_api.core.client import BaseRester, MPRestError
 from mp_api.routes import *
-from mp_api.routes.charge_density.models import ChgcarDataDoc
-from mp_api.routes.electronic_structure.models.core import BSPathType
+from emmet.core.charge_density import ChgcarDataDoc
+from emmet.core.electronic_structure import BSPathType
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
