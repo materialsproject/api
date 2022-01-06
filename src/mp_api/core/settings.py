@@ -12,4 +12,3 @@ class MAPIClientSettings(BaseSettings):
     REQUESTS_PER_MIN: int = Field(
         200, description="Number of requests per minute to for rate limit."
     )
-
