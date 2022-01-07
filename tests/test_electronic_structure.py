@@ -43,7 +43,6 @@ es_custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.xfail(reason="Until deployment of new API")
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
@@ -58,7 +57,7 @@ def test_es_client(es_rester):
         # Get list of parameters
         param_tuples = list(typing.get_type_hints(search_method).items())
 
-        # Query API for each numeric and bollean parameter and check if returned
+        # Query API for each numeric and boolean parameter and check if returned
         for entry in param_tuples:
             param = entry[0]
             if param not in es_excluded_params:
@@ -73,14 +72,14 @@ def test_es_client(es_rester):
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
-                elif param_type is typing.Tuple[int, int]:
+                elif param_type == typing.Tuple[int, int]:
                     project_field = es_alt_name_dict.get(param, None)
                     q = {
                         param: (-1000, 1000),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
-                elif param_type is typing.Tuple[float, float]:
+                elif param_type == typing.Tuple[float, float]:
                     project_field = es_alt_name_dict.get(param, None)
                     q = {
                         param: (-1000.1234, 1000.1234),

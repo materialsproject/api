@@ -10,7 +10,7 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
 
     suffix = "substrates"
     document_model = SubstratesDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "film_id"
 
     def search_substrates_docs(
         self,

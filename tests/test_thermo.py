@@ -35,7 +35,6 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.xfail(reason="Until deployment of new API")
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
@@ -51,14 +50,14 @@ def test_client(rester):
         # Get list of parameters
         param_tuples = list(typing.get_type_hints(search_method).items())
 
-        # Query API for each numeric and bollean parameter and check if returned
+        # Query API for each numeric and boolean parameter and check if returned
         for entry in param_tuples:
             param = entry[0]
             if param not in excluded_params:
                 param_type = entry[1].__args__[0]
                 q = None
 
-                if param_type is typing.Tuple[int, int]:
+                if param_type == typing.Tuple[int, int]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
                         param: (-100, 100),
@@ -68,7 +67,7 @@ def test_client(rester):
                             project_field if project_field is not None else param
                         ],
                     }
-                elif param_type is typing.Tuple[float, float]:
+                elif param_type == typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
                         param: (-100.12, 100.12),

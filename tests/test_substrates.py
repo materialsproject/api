@@ -25,7 +25,7 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
-    "film_id": "mp-772125",
+    "film_id": "mp-1046",
     "substrate_id": "mp-804",
     "substrate_formula": "GaN",
     "film_orientation": [1, 0, 0],
@@ -48,21 +48,21 @@ def test_client(rester):
         # Get list of parameters
         param_tuples = list(typing.get_type_hints(search_method).items())
 
-        # Query API for each numeric and bollean parameter and check if returned
+        # Query API for each numeric and boolean parameter and check if returned
         for entry in param_tuples:
             param = entry[0]
             if param not in excluded_params:
                 param_type = entry[1].__args__[0]
                 q = None
 
-                if param_type is typing.Tuple[int, int]:
+                if param_type == typing.Tuple[int, int]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
                         param: (-100, 100),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
-                elif param_type is typing.Tuple[float, float]:
+                elif param_type == typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
                         param: (-100.12, 100.12),
@@ -88,7 +88,7 @@ def test_client(rester):
                 for sub_field in sub_doc_fields:
                     if sub_field in doc:
                         doc = doc[sub_field]
-
+                print(doc)
                 assert (
                     doc[project_field if project_field is not None else param]
                     is not None
