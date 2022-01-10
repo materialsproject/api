@@ -24,8 +24,9 @@ from tqdm import tqdm
 from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
 
-from mp_api.core.ratelimit import check_limit
 from mp_api.core.settings import MAPIClientSettings
+
+from urllib3.util.retry import Retry
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
@@ -132,7 +133,21 @@ class BaseRester(Generic[T]):
                 pymatgen_info, python_info, platform_info
             )
 
-        future_session = FuturesSession(session=session)
+        max_retries = MAPIClientSettings().MAX_RETRIES
+        adapter_kwargs = dict(
+            max_retries=Retry(
+                total=max_retries,
+                read=max_retries,
+                connect=max_retries,
+                respect_retry_after_header=True,
+                status_forcelist=[429],  # rate limiting
+            )
+        )
+        future_session = FuturesSession(
+            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS,
+            session=session,
+            adapter_kwargs=adapter_kwargs,
+        )
         return future_session
 
     def __enter__(self):  # pragma: no cover
@@ -172,8 +187,6 @@ class BaseRester(Generic[T]):
 
         if use_document_model is None:
             use_document_model = self.use_document_model
-
-        check_limit()
 
         payload = jsanitize(body)
 
@@ -250,8 +263,6 @@ class BaseRester(Generic[T]):
             "meta" containing meta information, e.g. total number of documents
             available.
         """
-
-        check_limit()
 
         if use_document_model is None:
             use_document_model = self.use_document_model

@@ -33,3 +33,5 @@ class MAPIClientSettings(BaseSettings):
     NUM_PARALLEL_REQUESTS: int = Field(
         8, description="Number of parallel requests to send.",
     )
+
+    MAX_RETRIES: int = Field(3, description="Maximum number of retries for requests.")
