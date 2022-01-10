@@ -15,6 +15,7 @@ from os import environ
 import warnings
 
 import requests
+from requests_futures.sessions import FuturesSession
 from monty.json import MontyDecoder
 from requests.exceptions import RequestException
 from pydantic import BaseModel
@@ -24,6 +25,7 @@ from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
 
 from mp_api.core.ratelimit import check_limit
+from mp_api.core.settings import MAPIClientSettings
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
@@ -129,7 +131,9 @@ class BaseRester(Generic[T]):
             session.headers["user-agent"] = "{} ({} {})".format(
                 pymatgen_info, python_info, platform_info
             )
-        return session
+
+        future_session = FuturesSession(session=session)
+        return future_session
 
     def __enter__(self):  # pragma: no cover
         """
@@ -268,7 +272,67 @@ class BaseRester(Generic[T]):
                 url = urljoin(self.endpoint, suburl)
                 if not url.endswith("/"):
                     url += "/"
-            response = self.session.get(url, verify=True, params=criteria)
+
+            data = self._submit_requests(
+                url=url, criteria=criteria, use_document_model=use_document_model
+            )
+
+            return data
+
+        except RequestException as ex:
+
+            raise MPRestError(str(ex))
+
+    def _submit_requests(self, url, criteria, use_document_model):
+        """
+        Handle submitting requests in parallel. By default, 8 threads are used.
+
+        Arguments:
+            criteria: dictionary of criteria to filter down
+            url: url used to make request
+            use_document_model: if None, will defer to the self.use_document_model attribute
+
+        Returns:
+            Dictionary containing data and metadata
+        """
+
+        len_entries = sorted(
+            [
+                (key, len(entry.split(",")))
+                for key, entry in criteria.items()
+                if isinstance(entry, str)
+                and len(entry.split(",")) > 0
+                and key not in MAPIClientSettings().QUERY_NO_PARALLEL
+            ],
+            key=lambda item: item[1],
+            reverse=True,
+        )
+
+        futures = []
+
+        if len(len_entries) == 0:
+            futures.append(self.session.get(url, verify=True, params=criteria))
+        else:
+            chosen_param, param_length = len_entries[0]
+            slice_size = (
+                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
+            )
+
+            new_param_values = [
+                criteria[chosen_param].split(",")[i : (i + slice_size)]
+                for i in range(0, param_length, slice_size)
+            ]
+
+            for list_chunk in new_param_values:
+                criteria[chosen_param] = ",".join(list_chunk)
+                futures.append(self.session.get(url, verify=True, params=criteria))
+
+        final_docs = []
+        meta_total_doc_num = 0
+
+        # Get data for all futures requests
+        for future in futures:
+            response = future.result()
 
             if response.status_code == 200:
 
@@ -282,7 +346,8 @@ class BaseRester(Generic[T]):
                 if self.document_model and use_document_model:
                     data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
-                return data
+                final_docs.extend(data["data"])
+                meta_total_doc_num += data.get("meta", {}).get("total_doc", 1)
 
             else:
                 try:
@@ -304,10 +369,11 @@ class BaseRester(Generic[T]):
                     f"REST query returned with error status code {response.status_code} "
                     f"on URL {response.url} with message:\n{message}"
                 )
-
-        except RequestException as ex:
-
-            raise MPRestError(str(ex))
+        if "meta" in data:
+            data["meta"]["total_doc"] = meta_total_doc_num
+            return {"data": final_docs, "meta": data["meta"]}
+        else:
+            return {"data": final_docs}
 
     def _query_resource_data(
         self,
