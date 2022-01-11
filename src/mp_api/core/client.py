@@ -653,7 +653,7 @@ class BaseRester(Generic[T]):
             num_chunks=num_chunks,
         )
 
-        return results
+        return results["data"]
 
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
         """
