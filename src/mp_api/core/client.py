@@ -433,7 +433,7 @@ class BaseRester(Generic[T]):
 
     def _handle_future_response(self, response, use_document_model):
         """
-        Handles from resolved futures requests.
+        Handles resolved futures requests.
 
 
         Arguments:
@@ -441,7 +441,7 @@ class BaseRester(Generic[T]):
             use_document_model: if None, will defer to the self.use_document_model attribute
 
         Returns:
-            Dictionary containing data and metadata
+            Tuple with data and total number of docs in matching the query in the database.
         """
         if response.status_code == 200:
 
