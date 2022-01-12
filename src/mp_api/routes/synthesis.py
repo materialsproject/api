@@ -26,6 +26,8 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
         condition_heating_atmosphere: Optional[List[str]] = None,
         condition_mixing_device: Optional[List[str]] = None,
         condition_mixing_media: Optional[List[str]] = None,
+        num_chunks: Optional[int] = None,
+        chunk_size: Optional[int] = 100,
     ):
         """
         Search synthesis recipe text.
@@ -42,6 +44,8 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
             condition_heating_atmosphere (Optional[List[str]]): Required heating atmosphere, such as "air", "argon"
             condition_mixing_device (Optional[List[str]]): Required mixing device, such as "zirconia", "Al2O3".
             condition_mixing_media (Optional[List[str]]): Required mixing media, such as "alcohol", "water"
+            num_chunks (Optional[int]): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (Optional[int]): Number of data entries per chunk.
         Returns:
             synthesis_docs ([SynthesisDoc]): List of synthesis documents
         """
@@ -69,7 +73,8 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
                 "condition_mixing_device": condition_mixing_device,
                 "condition_mixing_media": condition_mixing_media,
             },
-            chunk_size=10,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
         ).get("data", None)
 
         if synthesis_docs is None:

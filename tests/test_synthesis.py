@@ -62,10 +62,12 @@ def test_filters_synthesis_type(rester):
             search_method = entry[1]
 
     if search_method is not None:
-        doc = search_method(synthesis_type=[SynthesisTypeEnum.solid_state])
+        doc = search_method(
+            synthesis_type=[SynthesisTypeEnum.solid_state], num_chunks=1
+        )
         assert all(x.synthesis_type == SynthesisTypeEnum.solid_state for x in doc)
 
-        doc = search_method(synthesis_type=[SynthesisTypeEnum.sol_gel])
+        doc = search_method(synthesis_type=[SynthesisTypeEnum.sol_gel], num_chunks=1)
         assert all(x.synthesis_type == SynthesisTypeEnum.sol_gel for x in doc)
 
 

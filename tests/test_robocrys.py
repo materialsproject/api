@@ -26,7 +26,7 @@ def test_client(rester):
 
     if search_method is not None:
 
-        q = {"keywords": ["silicon"]}
+        q = {"keywords": ["silicon"], "num_chunks": 1}
 
         doc = search_method(**q)[0]
         print(doc)

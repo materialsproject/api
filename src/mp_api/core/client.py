@@ -390,8 +390,6 @@ class BaseRester(Generic[T]):
 
             crit["limit"] = chunk_size
 
-        print(total_num_docs, len(total_data["data"]))
-
         if "meta" in data:
             data["meta"]["total_doc"] = total_num_docs
             total_data["meta"] = data["meta"]
