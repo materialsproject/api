@@ -328,6 +328,8 @@ class BaseRester(Generic[T]):
             Dictionary containing data and metadata
         """
 
+        print(parallel_param)
+
         if parallel_param is not None:
             param_length = len(criteria[parallel_param])
             slice_size = (
@@ -335,8 +337,12 @@ class BaseRester(Generic[T]):
             )
 
             new_param_values = [
-                criteria[parallel_param].split(",")[i:(i + slice_size)]
-                for i in range(0, param_length, slice_size)
+                entry
+                for entry in (
+                    criteria[parallel_param].split(",")[i : (i + slice_size)]
+                    for i in range(0, param_length, slice_size)
+                )
+                if entry != []
             ]
 
             # Split list and generate multiple criteria
@@ -400,7 +406,7 @@ class BaseRester(Generic[T]):
             if num_chunks is not None
             else (int(total_num_docs / chunk_size) + 1) * len(new_criteria)
         )
-
+        print(new_criteria)
         while num_pages_retrieved < max_pages:
             for crit in new_criteria:
 
@@ -657,7 +663,7 @@ class BaseRester(Generic[T]):
             reverse=True,
         )
 
-        chosen_param = list_entries[0][0] if len(list_entries) > 1 else None
+        chosen_param = list_entries[0][0] if len(list_entries) > 0 else None
 
         results = self._query_resource(
             query_params,
