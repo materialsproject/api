@@ -26,6 +26,9 @@ class MAPIClientSettings(BaseSettings):
             "coordination_envs",
             "coordination_envs_anonymous",
             "has_props",
+            "gb_plane",
+            "rotation_axis",
+            "keywords",
         ],
         description="List API query parameters that do not support parallel requests.",
     )

@@ -390,6 +390,8 @@ class BaseRester(Generic[T]):
 
             crit["limit"] = chunk_size
 
+        print(total_num_docs, len(total_data["data"]))
+
         if "meta" in data:
             data["meta"]["total_doc"] = total_num_docs
             total_data["meta"] = data["meta"]
@@ -404,6 +406,8 @@ class BaseRester(Generic[T]):
             if num_chunks is not None
             else (int(total_num_docs / chunk_size) + 1)
         )
+
+        print(max_pages)
 
         if num_chunks is not None:
             total_num_docs = min(len(total_data["data"]) * num_chunks, total_num_docs)
@@ -427,7 +431,7 @@ class BaseRester(Generic[T]):
         params_list = []
         exit = False
 
-        for page_num in range(0, max_pages):
+        for page_num in range(0, max_pages - 1):
             for crit_num, crit in enumerate(new_criteria):
 
                 if (
