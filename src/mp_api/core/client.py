@@ -242,8 +242,8 @@ class BaseRester(Generic[T]):
         suburl: Optional[str] = None,
         use_document_model: Optional[bool] = None,
         parallel_param: Optional[str] = None,
-        num_chunks: Optional[str] = None,
-        chunk_size=None,
+        num_chunks: Optional[int] = None,
+        chunk_size: Optional[int] = None,
     ) -> Dict:
         """
         Query the endpoint for a Resource containing a list of documents
@@ -338,7 +338,7 @@ class BaseRester(Generic[T]):
             new_param_values = [
                 entry
                 for entry in (
-                    criteria[parallel_param].split(",")[i : (i + slice_size)]
+                    criteria[parallel_param].split(",")[i:(i + slice_size)]
                     for i in range(0, param_length, slice_size)
                 )
                 if entry != []
