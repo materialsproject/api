@@ -395,7 +395,7 @@ class BaseRester(Generic[T]):
             total_data["meta"] = data["meta"]
 
         # If we have all the results in a single page, return directly
-        if len(total_data["data"]) == total_num_docs:
+        if len(total_data["data"]) == total_num_docs or num_chunks == 1:
             return total_data
 
         # otherwise prepare to paginate in parallel
