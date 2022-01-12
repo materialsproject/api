@@ -556,6 +556,7 @@ class BaseRester(Generic[T]):
             fields=fields,
             suburl=suburl,
             use_document_model=use_document_model,
+            num_chunks=1,
         ).get("data")
 
     def get_data_by_id(
