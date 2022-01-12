@@ -388,7 +388,8 @@ class BaseRester(Generic[T]):
         t.update(len(total_data["data"]))
 
         # warn to select specific fields only for many results
-        if criteria["all_fields"] and (total_num_docs / chunk_size > 10):
+
+        if criteria.get("all_fields", False) and (total_num_docs / chunk_size > 10):
             warnings.warn(
                 f"Use the 'fields' argument to select only fields of interest to speed "
                 f"up data retrieval for large queries. "
@@ -396,7 +397,6 @@ class BaseRester(Generic[T]):
             )
 
         # Get all get input params for parallel requests
-
         params_list = []
 
         max_pages = (
