@@ -338,7 +338,7 @@ class BaseRester(Generic[T]):
             new_param_values = [
                 entry
                 for entry in (
-                    criteria[parallel_param].split(",")[i:(i + slice_size)]
+                    criteria[parallel_param].split(",")[i : (i + slice_size)]
                     for i in range(0, param_length, slice_size)
                 )
                 if entry != []
@@ -400,14 +400,15 @@ class BaseRester(Generic[T]):
         if len(total_data["data"]) == total_num_docs or num_chunks == 1:
             return total_data
 
+        if chunk_size is None:
+            raise ValueError("A chunk size must be provided to enable pagination")
+
         # otherwise prepare to paginate in parallel
         max_pages = (
             num_chunks
             if num_chunks is not None
             else (int(total_num_docs / chunk_size) + 1)
         )
-
-        print(max_pages)
 
         if num_chunks is not None:
             total_num_docs = min(len(total_data["data"]) * num_chunks, total_num_docs)
