@@ -77,7 +77,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
-
+          
   auto-gen-release:
     needs:
       - lint
