@@ -328,6 +328,7 @@ class BaseRester(Generic[T]):
             Dictionary containing data and metadata
         """
 
+        # Handle parallelization over specific non pagination related list parameter
         if parallel_param is not None:
             param_length = len(criteria[parallel_param])
             slice_size = (
@@ -337,26 +338,46 @@ class BaseRester(Generic[T]):
             new_param_values = [
                 entry
                 for entry in (
-                    criteria[parallel_param].split(",")[i:(i + slice_size)]
+                    criteria[parallel_param].split(",")[i : (i + slice_size)]
                     for i in range(0, param_length, slice_size)
                 )
                 if entry != []
             ]
 
+            # Get new limit values that sum to chunk_size
+            num_new_params = len(new_param_values)
+            q = int(chunk_size / num_new_params)
+            r = chunk_size % num_new_params
+            new_limits = []
+
+            for _ in range(num_new_params):
+                val = q + 1 if r > 0 else q
+                new_limits.append(val)
+                r -= 1
+
             # Split list and generate multiple criteria
             new_criteria = [
                 {
-                    **{key: criteria[key] for key in criteria if key != parallel_param},
+                    **{
+                        key: criteria[key]
+                        for key in criteria
+                        if key not in [parallel_param, "limit"]
+                    },
                     parallel_param: ",".join(list_chunk),
+                    "limit": new_limits[list_num],
                 }
-                for list_chunk in new_param_values
+                for list_num, list_chunk in enumerate(new_param_values)
             ]
 
         else:
+            # Only parallelize over pagination parameters
             new_criteria = [criteria]
+            new_limits = [chunk_size]
 
         total_num_docs = 0
         total_data = {"data": []}
+
+        # Obtain first page of results and get pagination information
         for crit in new_criteria:
 
             # Check how much pagination is needed
@@ -367,28 +388,34 @@ class BaseRester(Generic[T]):
 
             total_data["data"].extend(data["data"])
 
+            crit["limit"] = chunk_size
+
         if "meta" in data:
             data["meta"]["total_doc"] = total_num_docs
             total_data["meta"] = data["meta"]
 
-        # if we have all the results in a single page, return directly
+        # If we have all the results in a single page, return directly
         if len(total_data["data"]) == total_num_docs:
             return total_data
 
         # otherwise prepare to paginate in parallel
-        num_pages_retrieved = 1
+        max_pages = (
+            num_chunks
+            if num_chunks is not None
+            else (int(total_num_docs / chunk_size) + 1)
+        )
 
-        # progress bar
         if num_chunks is not None:
             total_num_docs = min(len(total_data["data"]) * num_chunks, total_num_docs)
+
+        # Setup progress bar
         t = tqdm(
             desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
             total=total_num_docs,
         )
         t.update(len(total_data["data"]))
 
-        # warn to select specific fields only for many results
-
+        # Warning to select specific fields only for many results
         if criteria.get("all_fields", False) and (total_num_docs / chunk_size > 10):
             warnings.warn(
                 f"Use the 'fields' argument to select only fields of interest to speed "
@@ -398,26 +425,31 @@ class BaseRester(Generic[T]):
 
         # Get all get input params for parallel requests
         params_list = []
+        exit = False
 
-        max_pages = (
-            num_chunks
-            if num_chunks is not None
-            else (int(total_num_docs / chunk_size) + 1)
-        )
+        for page_num in range(0, max_pages):
+            for crit_num, crit in enumerate(new_criteria):
 
-        while num_pages_retrieved < max_pages:
-            for crit in new_criteria:
+                if (
+                    num_chunks is not None
+                    and (((page_num + 1) * (crit_num + 1))) == num_chunks
+                ):
+                    exit = True
+                    break
 
-                skip = num_pages_retrieved * chunk_size
+                skip = new_limits[crit_num] + int(page_num * chunk_size)
 
                 params_list.append(
                     {"url": url, "verify": True, "params": {**crit, "skip": skip}}
                 )
 
-            num_pages_retrieved += 1
+            if exit:
+                break
 
-        params_gen = iter(params_list)
-        # Set up and execute parallel requests
+        params_gen = iter(
+            params_list
+        )  # Iter necessary for islice to keep track of what has been accessed
+
         with ThreadPoolExecutor(
             max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
         ) as executor:
