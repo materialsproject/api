@@ -328,8 +328,6 @@ class BaseRester(Generic[T]):
             Dictionary containing data and metadata
         """
 
-        print(parallel_param)
-
         if parallel_param is not None:
             param_length = len(criteria[parallel_param])
             slice_size = (
@@ -404,9 +402,9 @@ class BaseRester(Generic[T]):
         max_pages = (
             num_chunks
             if num_chunks is not None
-            else (int(total_num_docs / chunk_size) + 1) * len(new_criteria)
+            else (int(total_num_docs / chunk_size) + 1)
         )
-        print(new_criteria)
+
         while num_pages_retrieved < max_pages:
             for crit in new_criteria:
 
@@ -416,7 +414,7 @@ class BaseRester(Generic[T]):
                     {"url": url, "verify": True, "params": {**crit, "skip": skip}}
                 )
 
-                num_pages_retrieved += 1
+            num_pages_retrieved += 1
 
         params_gen = iter(params_list)
         # Set up and execute parallel requests
