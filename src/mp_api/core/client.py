@@ -5,27 +5,26 @@ API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
 
+import itertools
 import json
 import platform
 import sys
-from json import JSONDecodeError
-from typing import Dict, Optional, List, Union, Generic, TypeVar, Sequence
-from urllib.parse import urljoin
-from os import environ
 import warnings
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from json import JSONDecodeError
+from os import environ
+from typing import Dict, Generic, List, Optional, TypeVar, Union
+from urllib.parse import urljoin
 
 import requests
-from requests_futures.sessions import FuturesSession
-from monty.json import MontyDecoder
-from requests.exceptions import RequestException
-from pydantic import BaseModel
-from tqdm import tqdm
-
 from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
-
+from monty.json import MontyDecoder
 from mp_api.core.settings import MAPIClientSettings
-
+from pydantic import BaseModel
+from requests.adapters import HTTPAdapter
+from requests.exceptions import RequestException
+from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
 try:
@@ -134,21 +133,18 @@ class BaseRester(Generic[T]):
             )
 
         max_retry_num = MAPIClientSettings().MAX_RETRIES
-        adapter_kwargs = dict(
-            max_retries=Retry(
-                total=max_retry_num,
-                read=max_retry_num,
-                connect=max_retry_num,
-                respect_retry_after_header=True,
-                status_forcelist=[429],  # rate limiting
-            )
+        retry = Retry(
+            total=max_retry_num,
+            read=max_retry_num,
+            connect=max_retry_num,
+            respect_retry_after_header=True,
+            status_forcelist=[429],  # rate limiting
         )
-        future_session = FuturesSession(
-            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS,
-            session=session,
-            adapter_kwargs=adapter_kwargs,
-        )
-        return future_session
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+
+        return session
 
     def __enter__(self):  # pragma: no cover
         """
@@ -160,7 +156,8 @@ class BaseRester(Generic[T]):
         """
         Support for "with" context.
         """
-        self.session.close()
+        if self.session is not None:
+            self.session.close()
         self._session = None
 
     def _post_resource(
@@ -331,8 +328,6 @@ class BaseRester(Generic[T]):
             Dictionary containing data and metadata
         """
 
-        futures = []
-
         if parallel_param is not None:
             param_length = len(criteria[parallel_param])
             slice_size = (
@@ -361,10 +356,9 @@ class BaseRester(Generic[T]):
         for crit in new_criteria:
 
             # Check how much pagination is needed
-            first_future = self.session.get(url, verify=True, params=crit)
-            data, subtotal = self._handle_future_response(
-                first_future.result(), use_document_model
-            )
+            response = self.session.get(url, verify=True, params=crit)
+
+            data, subtotal = self._handle_response(response, use_document_model)
             total_num_docs += subtotal
 
             total_data["data"].extend(data["data"])
@@ -378,17 +372,16 @@ class BaseRester(Generic[T]):
             return total_data
 
         # otherwise prepare to paginate in parallel
-        all_results = total_data["data"]
         num_pages_retrieved = 1
 
         # progress bar
         if num_chunks is not None:
-            total_docs = min(len(all_results) * num_chunks, total_num_docs)
+            total_num_docs = min(len(total_data["data"]) * num_chunks, total_num_docs)
         t = tqdm(
             desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
             total=total_num_docs,
         )
-        t.update(len(all_results))
+        t.update(len(total_data["data"]))
 
         # warn to select specific fields only for many results
         if criteria["all_fields"] and (total_num_docs / chunk_size > 10):
@@ -398,43 +391,63 @@ class BaseRester(Generic[T]):
                 f"Choose from: {self.available_fields}"
             )
 
+        # Get all get input params for parallel requests
+
+        params_list = []
+
         max_pages = (
             num_chunks
             if num_chunks is not None
-            else int(total_num_docs / chunk_size) * len(new_criteria)
+            else (int(total_num_docs / chunk_size) + 1) * len(new_criteria)
         )
 
-        while num_pages_retrieved <= max_pages:
-
+        while num_pages_retrieved < max_pages:
             for crit in new_criteria:
 
-                if num_chunks is not None and num_pages_retrieved >= num_chunks:
-                    break
+                skip = num_pages_retrieved * chunk_size
 
-                crit["skip"] = num_pages_retrieved * chunk_size
-                futures.append(self.session.get(url, verify=True, params=crit))
+                params_list.append(
+                    {"url": url, "verify": True, "params": {**crit, "skip": skip}}
+                )
 
                 num_pages_retrieved += 1
 
-        # Get data for all futures requests
-        for future in futures:
-            response = future.result()
+        params_gen = iter(params_list)
+        # Set up and execute parallel requests
+        with ThreadPoolExecutor(
+            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
+        ) as executor:
 
-            data, _ = self._handle_future_response(response, use_document_model)
+            # Get list of initial futures defined by max number of parallel requests
+            futures = {
+                executor.submit(self.session.get, **params)
+                for params in itertools.islice(
+                    params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
+                )
+            }
 
-            t.update(len(data["data"]))
+            while futures:
+                # Wait for at least one future to complete and process finished
+                finished, futures = wait(futures, return_when=FIRST_COMPLETED)
 
-            total_data["data"].extend(data["data"])
+                for future in finished:
+                    response = future.result()
+                    data, _ = self._handle_response(response, use_document_model)
+                    t.update(len(data["data"]))
+                    total_data["data"].extend(data["data"])
+
+                # Populate more futures to replace finished
+                for params in itertools.islice(params_gen, len(finished)):
+                    futures.add(executor.submit(self.session.get, **params))
 
         if "meta" in data:
             total_data["meta"]["time_stamp"] = data["meta"]["time_stamp"]
 
         return total_data
 
-    def _handle_future_response(self, response, use_document_model):
+    def _handle_response(self, response, use_document_model):
         """
-        Handles resolved futures requests.
-
+        Handles resolved requests.
 
         Arguments:
             response: response from request
@@ -443,6 +456,7 @@ class BaseRester(Generic[T]):
         Returns:
             Tuple with data and total number of docs in matching the query in the database.
         """
+
         if response.status_code == 200:
 
             if self.monty_decode:
