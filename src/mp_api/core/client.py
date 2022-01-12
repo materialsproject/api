@@ -315,7 +315,7 @@ class BaseRester(Generic[T]):
         Handle submitting requests. Parallel requests supported if possible.
         Parallelization will occur either over the largest list of supported
         query parameters used, or over pagination.
-        
+
         By default, 8 threads are used for concurrent requests.
 
         Arguments:
@@ -335,7 +335,7 @@ class BaseRester(Generic[T]):
             )
 
             new_param_values = [
-                criteria[parallel_param].split(",")[i : (i + slice_size)]
+                criteria[parallel_param].split(",")[i:(i + slice_size)]
                 for i in range(0, param_length, slice_size)
             ]
 
