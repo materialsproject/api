@@ -25,7 +25,7 @@ class BondsRester(BaseRester[BondingDoc]):
         fields: Optional[List[str]] = None,
     ):
         """
-        Query dielectric docs using a variety of search criteria.
+        Query bonding docs using a variety of search criteria.
 
         Arguments:
             max_bond_length (Tuple[float,float]): Minimum and maximum value for the maximum bond length
