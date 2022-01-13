@@ -332,7 +332,7 @@ class BaseRester(Generic[T]):
 
         # Handle parallelization over specific non pagination related list parameter
         if parallel_param is not None:
-            param_length = len(criteria[parallel_param])
+            param_length = len(criteria[parallel_param].split(","))
             slice_size = (
                 int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
             )
