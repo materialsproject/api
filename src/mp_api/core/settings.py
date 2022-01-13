@@ -10,10 +10,6 @@ class MAPIClientSettings(BaseSettings):
     python module
     """
 
-    REQUESTS_PER_MIN: int = Field(
-        200, description="Number of requests per minute to for rate limit."
-    )
-
     TEST_FILES: str = Field(
         os.path.join(os.path.dirname(os.path.abspath(root_dir)), "../../test_files"),
         description="Directory with test files",
