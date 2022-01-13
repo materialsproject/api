@@ -13,7 +13,7 @@ import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from json import JSONDecodeError
 from os import environ
-from typing import Dict, Generic, List, Optional, TypeVar, Union
+from typing import Dict, Generic, List, Optional, TypeVar, Union, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -310,19 +310,21 @@ class BaseRester(Generic[T]):
         parallel_param=None,
         num_chunks=None,
         chunk_size=None,
-    ):
+    ) -> Dict:
         """
         Handle submitting requests. Parallel requests supported if possible.
         Parallelization will occur either over the largest list of supported
-        query parameters used, or over pagination.
+        query parameters used and/or over pagination.
 
-        By default, 8 threads are used for concurrent requests.
+        The number of threads is chosen by NUM_PARALLEL_REQUESTS in settings.
 
         Arguments:
             criteria: dictionary of criteria to filter down
             url: url used to make request
             use_document_model: if None, will defer to the self.use_document_model attribute
             parallel_param: parameter to parallelize requests with
+            num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size: Number of data entries per chunk.
 
         Returns:
             Dictionary containing data and metadata
@@ -375,7 +377,7 @@ class BaseRester(Generic[T]):
             new_limits = [chunk_size]
 
         total_num_docs = 0
-        total_data = {"data": []}
+        total_data = {"data": []}  # type: dict
 
         # Obtain first page of results and get pagination information
         for crit in new_criteria:
@@ -484,7 +486,9 @@ class BaseRester(Generic[T]):
 
         return total_data
 
-    def _handle_response(self, response, use_document_model):
+    def _handle_response(
+        self, response: requests.Response, use_document_model: bool
+    ) -> Tuple[Dict, int]:
         """
         Handles resolved requests.
 
@@ -564,7 +568,7 @@ class BaseRester(Generic[T]):
 
     def get_data_by_id(
         self, document_id: str, fields: Optional[List[str]] = None,
-    ) -> T:
+    ) -> Union[List[T], List[Dict]]:
         """
         Query the endpoint for a single document.
 
