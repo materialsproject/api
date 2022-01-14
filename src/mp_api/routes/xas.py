@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from emmet.core.xas import Edge, XASDoc
 from mp_api.core.client import BaseRester
@@ -16,7 +16,7 @@ class XASRester(BaseRester[XASDoc]):
         edge: Optional[Edge] = None,
         absorbing_element: Optional[Element] = None,
         formula: Optional[str] = None,
-        chemsys: Optional[str] = None,
+        chemsys: Optional[Union[str, List[str]]] = None,
         elements: Optional[List[str]] = None,
         task_ids: Optional[List[str]] = None,
         sort_fields: Optional[List[str]] = None,
@@ -32,7 +32,8 @@ class XASRester(BaseRester[XASDoc]):
             edge (Edge): The absorption edge (e.g. K, L2, L3, L2,3).
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys (str, List[str]): A chemical system or list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
             task_ids (List[str]): List of Materials Project IDs to return data for.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
@@ -57,7 +58,10 @@ class XASRester(BaseRester[XASDoc]):
             query_params.update({"formula": formula})
 
         if chemsys:
-            query_params.update({"chemsys": chemsys})
+            if isinstance(chemsys, str):
+                chemsys = [chemsys]
+
+            query_params.update({"chemsys": ",".join(chemsys)})
 
         if elements:
             query_params.update({"elements": ",".join(elements)})

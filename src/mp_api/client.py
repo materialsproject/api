@@ -274,19 +274,21 @@ class MPRester:
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_ids(self, chemsys_formula: str,) -> List[MPID]:
+    def get_materials_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
         """
         Get all materials ids for a formula or chemsys.
 
         Args:
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
-                or formula (e.g., Fe2O3, Si*).
+            chemsys_formula (str, List[str]): A chemical system, list of chemical systems
+            (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
 
         Returns:
             List of all materials ids ([MPID])
         """
 
-        if "-" in chemsys_formula:
+        if isinstance(chemsys_formula, list) or (
+            isinstance(chemsys_formula, str) and "-" in chemsys_formula
+        ):
             input_params = {"chemsys": chemsys_formula}
         else:
             input_params = {"formula": chemsys_formula}
@@ -298,13 +300,15 @@ class MPRester:
             )
         )
 
-    def get_structures(self, chemsys_formula: str, final=True) -> List[Structure]:
+    def get_structures(
+        self, chemsys_formula: Union[str, List[str]], final=True
+    ) -> List[Structure]:
         """
         Get a list of Structures corresponding to a chemical system or formula.
 
         Args:
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
-                or formula (e.g., Fe2O3, Si*).
+            chemsys_formula (str, List[str]): A chemical system, list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
             final (bool): Whether to get the final structure, or the list of initial
                 (pre-relaxation) structures. Defaults to True.
 
@@ -312,7 +316,9 @@ class MPRester:
             List of Structure objects. ([Structure])
         """
 
-        if "-" in chemsys_formula:
+        if isinstance(chemsys_formula, list) or (
+            isinstance(chemsys_formula, str) and "-" in chemsys_formula
+        ):
             input_params = {"chemsys": chemsys_formula}
         else:
             input_params = {"formula": chemsys_formula}
@@ -373,15 +379,15 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula: str, sort_by_e_above_hull=False,
+        self, chemsys_formula: Union[str, List[str]], sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
         Args:
-            chemsys_formula (str): A chemical system (e.g., Li-Fe-O, Si-*),
-                or formula (e.g., Fe2O3, Si*).
+            chemsys_formula (str): A chemical system, list of chemical systems
+            (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
             sort_by_e_above_hull (bool): Whether to sort the list of entries by
                 e_above_hull in ascending order.
 
@@ -389,7 +395,9 @@ class MPRester:
             List of ComputedEntry or ComputedStructureEntry objects.
         """
 
-        if "-" in chemsys_formula:
+        if isinstance(chemsys_formula, list) or (
+            isinstance(chemsys_formula, str) and "-" in chemsys_formula
+        ):
             input_params = {"chemsys": chemsys_formula}
         else:
             input_params = {"formula": chemsys_formula}
@@ -766,8 +774,7 @@ class MPRester:
 
         entries = []  # type: List[ComputedEntry]
 
-        for chemsys in all_chemsyses:
-            entries.extend(self.get_entries(chemsys))
+        entries.extend(self.get_entries(all_chemsyses))
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
@@ -841,7 +848,7 @@ class MPRester:
         self,
         material_ids: Optional[List[MPID]] = None,
         formula: Optional[str] = None,
-        chemsys: Optional[str] = None,
+        chemsys: Optional[Union[str, List[str]]] = None,
         elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
         possible_species: Optional[List[str]] = None,
@@ -903,7 +910,8 @@ class MPRester:
             material_ids (List[MPID]): List of Materials Project IDs to return data for.
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys (str, List[str]): A chemical system, list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
             elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             possible_species (List(str)): List of element symbols appended with oxidation states.

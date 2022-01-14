@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union
 from mp_api.core.client import BaseRester
 from emmet.core.thermo import ThermoDoc
 from pymatgen.analysis.phase_diagram import PhaseDiagram
@@ -16,7 +16,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         self,
         material_ids: Optional[List[str]] = None,
         formula: Optional[str] = None,
-        chemsys: Optional[str] = None,
+        chemsys: Optional[Union[str, List[str]]] = None,
         nelements: Optional[Tuple[int, int]] = None,
         is_stable: Optional[bool] = None,
         total_energy: Optional[Tuple[float, float]] = None,
@@ -37,7 +37,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
             material_ids (List[str]): List of Materials Project IDs to return data for.
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys (str, List[str]): A chemical system or list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             nelements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
             is_stable (bool): Whether the material is stable.
             total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
@@ -64,7 +65,10 @@ class ThermoRester(BaseRester[ThermoDoc]):
             query_params.update({"formula": formula})
 
         if chemsys:
-            query_params.update({"chemsys": chemsys})
+            if isinstance(chemsys, str):
+                chemsys = [chemsys]
+
+            query_params.update({"chemsys": ",".join(chemsys)})
 
         if material_ids:
             query_params.update({"material_ids": ",".join(material_ids)})

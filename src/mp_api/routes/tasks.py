@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from emmet.core.tasks import TaskDoc
 from mp_api.core.client import BaseRester
@@ -25,7 +25,7 @@ class TaskRester(BaseRester[TaskDoc]):
     def search_task_docs(
         self,
         formula: Optional[str] = None,
-        chemsys: Optional[str] = None,
+        chemsys: Optional[Union[str, List[str]]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -37,7 +37,8 @@ class TaskRester(BaseRester[TaskDoc]):
         Arguments:
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys (str, List[str]): A chemical system or list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -54,7 +55,10 @@ class TaskRester(BaseRester[TaskDoc]):
             query_params.update({"formula": formula})
 
         if chemsys:
-            query_params.update({"chemsys": chemsys})
+            if isinstance(chemsys, str):
+                chemsys = [chemsys]
+
+            query_params.update({"chemsys": ",".join(chemsys)})
 
         return super().search(
             num_chunks=num_chunks,

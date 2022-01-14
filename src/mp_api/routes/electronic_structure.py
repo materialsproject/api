@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from emmet.core.electronic_structure import (
     BSPathType,
@@ -21,7 +21,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
     def search_electronic_structure_docs(
         self,
         formula: Optional[str] = None,
-        chemsys: Optional[str] = None,
+        chemsys: Optional[Union[str, List[str]]] = None,
         elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
         band_gap: Optional[Tuple[float, float]] = None,
@@ -41,7 +41,8 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         Arguments:
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys (str, List[str]): A chemical system or list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
             exclude_elements (List[str]): A list of elements to exclude.
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
@@ -66,7 +67,10 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             query_params.update({"formula": formula})
 
         if chemsys:
-            query_params.update({"chemsys": chemsys})
+            if isinstance(chemsys, str):
+                chemsys = [chemsys]
+
+            query_params.update({"chemsys": ",".join(chemsys)})
 
         if elements:
             query_params.update({"elements": ",".join(elements)})

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from emmet.core.mpid import MPID
 from emmet.core.summary import HasProps, SummaryDoc
@@ -18,7 +18,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         self,
         material_ids: Optional[List[MPID]] = None,
         formula: Optional[str] = None,
-        chemsys: Optional[str] = None,
+        chemsys: Optional[Union[str, List[str]]] = None,
         elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
         possible_species: Optional[List[str]] = None,
@@ -80,7 +80,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             material_ids (List[MPID]): List of Materials Project IDs to return data for.
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str): A chemical system including wild cards (e.g., Li-Fe-O, Si-*, *-*).
+            chemsys (str, List[str]): A chemical system or list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             possible_species (List(str)): List of element symbols appended with oxidation states.
@@ -208,7 +209,10 @@ class SummaryRester(BaseRester[SummaryDoc]):
             query_params.update({"formula": formula})
 
         if chemsys:
-            query_params.update({"chemsys": chemsys})
+            if isinstance(chemsys, str):
+                chemsys = [chemsys]
+
+            query_params.update({"chemsys": ",".join(chemsys)})
 
         if elements:
             query_params.update({"elements": ",".join(elements)})
