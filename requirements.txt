@@ -5,4 +5,5 @@ maggma==0.38.1
 requests==2.27.1
 monty==2021.12.1
 emmet-core==0.21.3
-mpcontribs-client>=3.14.3
+mpcontribs-client>=4.2.2
+
