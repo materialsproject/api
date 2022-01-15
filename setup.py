@@ -28,8 +28,7 @@ setup(
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
         "monty>=2021.8.17",
-        "emmet-core",
-        "ratelimit",
+        "emmet-core>=0.21.3",
         "mpcontribs-client",
     ],
     classifiers=[
