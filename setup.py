@@ -33,13 +33,13 @@ setup(
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Development Status :: 2 - Pre-Alpha",
+        "Programming Language :: Python :: 3.8",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Information Technology",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering",
     ],
     tests_require=["pytest"],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
 )
