@@ -5,6 +5,7 @@ API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
 
+from hashlib import new
 import itertools
 import json
 import platform
@@ -15,6 +16,7 @@ from json import JSONDecodeError
 from os import environ
 from typing import Dict, Generic, List, Optional, TypeVar, Union, Tuple
 from urllib.parse import urljoin
+import operator
 
 import requests
 from emmet.core.utils import jsanitize
@@ -330,7 +332,10 @@ class BaseRester(Generic[T]):
             Dictionary containing data and metadata
         """
 
-        # Handle parallelization over specific non pagination related list parameter
+        # Generate new sets of criteria dicts to be run in parallel
+        # with new appropriate limit values. New limits obtained from
+        # trying to evenly divide num_chunks by the total number of new
+        # criteria dicts.
         if parallel_param is not None:
             param_length = len(criteria[parallel_param].split(","))
             slice_size = (
@@ -340,7 +345,7 @@ class BaseRester(Generic[T]):
             new_param_values = [
                 entry
                 for entry in (
-                    criteria[parallel_param].split(",")[i:(i + slice_size)]
+                    criteria[parallel_param].split(",")[i : (i + slice_size)]
                     for i in range(0, param_length, slice_size)
                 )
                 if entry != []
@@ -379,18 +384,64 @@ class BaseRester(Generic[T]):
         total_num_docs = 0
         total_data = {"data": []}  # type: dict
 
-        # Obtain first page of results and get pagination information
-        for crit in new_criteria:
+        # Obtain first page of results and get pagination information.
+        # Individual total document limits (subtotal) will potentially
+        # be used for rebalancing should one new of the criteria
+        # queries result in a smaller amount of docs compared to the
+        # new limit value we assigned.
+        subtotals = []
+        remaining_docs_avail = {}
+        for crit_ind, crit in enumerate(new_criteria):
 
             # Check how much pagination is needed
             response = self.session.get(url, verify=True, params=crit)
 
             data, subtotal = self._handle_response(response, use_document_model)
-            total_num_docs += subtotal
+            subtotals.append(subtotal)
+
+            sub_diff = subtotal - new_limits[crit_ind]
+
+            remaining_docs_avail[crit_ind] = sub_diff
 
             total_data["data"].extend(data["data"])
 
-            crit["limit"] = chunk_size
+        # Rebalance if some parallel queries produced too few results
+        if len(remaining_docs_avail) > 1:
+
+            remaining_docs_avail = dict(
+                sorted(remaining_docs_avail.items(), key=lambda item: item[1])
+            )
+
+            # Redistribute missing docs from initial chunk among queries
+            # which have head room with respect to remaining document number.
+            fill_docs = 0
+            for crit_ind, amount_avail in remaining_docs_avail.items():
+                if amount_avail <= 0:
+                    fill_docs += abs(amount_avail)
+                    new_limits[crit_ind] = 0
+                else:
+                    crit = new_criteria[crit_ind]
+                    crit["skip"] = crit["limit"]
+
+                    if fill_docs >= amount_avail:
+                        crit["limit"] = amount_avail
+                        new_limits[crit_ind] += amount_avail
+                        fill_docs -= amount_avail
+
+                    else:
+                        crit["limit"] = fill_docs
+                        new_limits[crit_ind] += fill_docs
+                        fill_docs = 0
+
+                    response = self.session.get(url, verify=True, params=crit)
+                    data, _ = self._handle_response(response, use_document_model)
+                    total_data["data"].extend(data["data"])
+                    new_criteria[crit_ind]["limit"] = chunk_size
+
+                if fill_docs == 0:
+                    break
+
+        total_num_docs = sum(subtotals)
 
         if "meta" in data:
             data["meta"]["total_doc"] = total_num_docs
@@ -428,12 +479,15 @@ class BaseRester(Generic[T]):
                 f"Choose from: {self.available_fields}"
             )
 
-        # Get all get input params for parallel requests
+        # Get all pagination input params for parallel requests
         params_list = []
         exit = False
 
         for page_num in range(0, max_pages - 1):
             for crit_num, crit in enumerate(new_criteria):
+
+                if new_limits[crit_num] == 0:
+                    continue
 
                 if (
                     num_chunks is not None
