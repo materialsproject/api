@@ -345,7 +345,7 @@ class BaseRester(Generic[T]):
             new_param_values = [
                 entry
                 for entry in (
-                    criteria[parallel_param].split(",")[i : (i + slice_size)]
+                    criteria[parallel_param].split(",")[i:(i + slice_size)]
                     for i in range(0, param_length, slice_size)
                 )
                 if entry != []
