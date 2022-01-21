@@ -737,6 +737,12 @@ class BaseRester(Generic[T]):
         materials endpoint for an example of this in use.
         """
 
+        if chunk_size <= 0:
+            raise MPRestError("Chunk size must be greater than zero")
+
+        if isinstance(num_chunks, int) and num_chunks <= 0:
+            raise MPRestError("Number of chunks must be greater than zero or None.")
+
         if all_fields and not fields:
             query_params["all_fields"] = True
 
