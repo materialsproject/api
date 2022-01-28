@@ -1,32 +1,46 @@
 from pydantic import BaseSettings, Field
 from mp_api import __file__ as root_dir
+from typing import List
 import os
 
 
-class MAPISettings(BaseSettings):
+class MAPIClientSettings(BaseSettings):
     """
-    Special class to store settings for MAPI
+    Special class to store settings for MAPI client
     python module
     """
-
-    APP_PATH: str = Field(
-        "~/mapi.json", description="Path for the default MAPI JSON definition"
-    )
-
-    DEBUG: bool = Field(False, description="Turns on debug mode for MAPI")
 
     TEST_FILES: str = Field(
         os.path.join(os.path.dirname(os.path.abspath(root_dir)), "../../test_files"),
         description="Directory with test files",
     )
 
-    DB_VERSION: str = Field("2021.11.10", description="Database version")
-
-    DB_NAME_SUFFIX: str = Field(None, description="Database name suffix")
-
-    REQUESTS_PER_MIN: int = Field(
-        100, description="Number of requests per minute to for rate limit."
+    QUERY_NO_PARALLEL: List[str] = Field(
+        [
+            "elements",
+            "possible_species",
+            "coordination_envs",
+            "coordination_envs_anonymous",
+            "has_props",
+            "gb_plane",
+            "rotation_axis",
+            "keywords",
+            "substrate_orientation",
+            "film_orientation",
+            "synthesis_type",
+            "operations",
+            "condition_mixing_device",
+            "condition_mixing_media",
+            "condition_heating_atmosphere",
+            "operations",
+            "sort_fields",
+            "fields",
+        ],
+        description="List API query parameters that do not support parallel requests.",
     )
 
-    class Config:
-        env_prefix = "MAPI_"
+    NUM_PARALLEL_REQUESTS: int = Field(
+        8, description="Number of parallel requests to send.",
+    )
+
+    MAX_RETRIES: int = Field(3, description="Maximum number of retries for requests.")

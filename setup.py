@@ -24,35 +24,22 @@ setup(
     zip_safe=False,
     install_requires=[
         "setuptools",
-        "pydantic>=1.4",
         "pymatgen>=2022.0.16",
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
         "monty>=2021.8.17",
-        "emmet-core",
-        "maggma>=0.38.0",
-        "ratelimit",
-        "mpcontribs-client"
+        "emmet-core>=0.21.3",
+        "mpcontribs-client",
     ],
-    extras_require={
-        "server": [
-            "fastapi>=0.46.0",
-            "uvicorn>=0.12.0",
-            "gunicorn[gevent]>=20.0.1",
-            "boto3>=1.15.0",
-            "uvloop>=0.14.0",
-            "httptools>=0.1.1",
-        ]
-    },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Development Status :: 2 - Pre-Alpha",
+        "Programming Language :: Python :: 3.8",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Information Technology",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering",
     ],
     tests_require=["pytest"],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
 )

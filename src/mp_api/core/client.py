@@ -5,25 +5,29 @@ API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
 
+from hashlib import new
+import itertools
 import json
 import platform
 import sys
-from json import JSONDecodeError
-from typing import Dict, Optional, List, Union, Generic, TypeVar, Sequence
-from urllib.parse import urljoin
-from os import environ
 import warnings
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from json import JSONDecodeError
+from os import environ
+from typing import Dict, Generic, List, Optional, TypeVar, Union, Tuple
+from urllib.parse import urljoin
+import operator
 
 import requests
-from monty.json import MontyDecoder
-from requests.exceptions import RequestException
-from pydantic import BaseModel
-from tqdm import tqdm
-
 from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
-
-from mp_api.core.ratelimit import check_limit
+from monty.json import MontyDecoder
+from mp_api.core.settings import MAPIClientSettings
+from pydantic import BaseModel
+from requests.adapters import HTTPAdapter
+from requests.exceptions import RequestException
+from tqdm.auto import tqdm
+from urllib3.util.retry import Retry
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
@@ -129,6 +133,19 @@ class BaseRester(Generic[T]):
             session.headers["user-agent"] = "{} ({} {})".format(
                 pymatgen_info, python_info, platform_info
             )
+
+        max_retry_num = MAPIClientSettings().MAX_RETRIES
+        retry = Retry(
+            total=max_retry_num,
+            read=max_retry_num,
+            connect=max_retry_num,
+            respect_retry_after_header=True,
+            status_forcelist=[429],  # rate limiting
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+
         return session
 
     def __enter__(self):  # pragma: no cover
@@ -141,7 +158,8 @@ class BaseRester(Generic[T]):
         """
         Support for "with" context.
         """
-        self.session.close()
+        if self.session is not None:
+            self.session.close()
         self._session = None
 
     def _post_resource(
@@ -168,8 +186,6 @@ class BaseRester(Generic[T]):
 
         if use_document_model is None:
             use_document_model = self.use_document_model
-
-        check_limit()
 
         payload = jsanitize(body)
 
@@ -227,6 +243,9 @@ class BaseRester(Generic[T]):
         fields: Optional[List[str]] = None,
         suburl: Optional[str] = None,
         use_document_model: Optional[bool] = None,
+        parallel_param: Optional[str] = None,
+        num_chunks: Optional[int] = None,
+        chunk_size: Optional[int] = None,
     ) -> Dict:
         """
         Query the endpoint for a Resource containing a list of documents
@@ -240,14 +259,15 @@ class BaseRester(Generic[T]):
             fields: list of fields to return
             suburl: make a request to a specified sub-url
             use_document_model: if None, will defer to the self.use_document_model attribute
+            parallel_param: parameter used to make parallel requests
+            num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size: Number of data entries per chunk.
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
             "meta" containing meta information, e.g. total number of documents
             available.
         """
-
-        check_limit()
 
         if use_document_model is None:
             use_document_model = self.use_document_model
@@ -268,46 +288,308 @@ class BaseRester(Generic[T]):
                 url = urljoin(self.endpoint, suburl)
                 if not url.endswith("/"):
                     url += "/"
-            response = self.session.get(url, verify=True, params=criteria)
 
-            if response.status_code == 200:
+            data = self._submit_requests(
+                url=url,
+                criteria=criteria,
+                use_document_model=use_document_model,
+                parallel_param=parallel_param,
+                num_chunks=num_chunks,
+                chunk_size=chunk_size,
+            )
 
-                if self.monty_decode:
-                    data = json.loads(response.text, cls=MontyDecoder)
-                else:
-                    data = json.loads(response.text)
-
-                # other sub-urls may use different document models
-                # the client does not handle this in a particularly smart way currently
-                if self.document_model and use_document_model:
-                    data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
-
-                return data
-
-            else:
-                try:
-                    data = json.loads(response.text)["detail"]
-                except (JSONDecodeError, KeyError):
-                    data = "Response {}".format(response.text)
-                if isinstance(data, str):
-                    message = data
-                else:
-                    try:
-                        message = ", ".join(
-                            "{} - {}".format(entry["loc"][1], entry["msg"])
-                            for entry in data
-                        )
-                    except (KeyError, IndexError):
-                        message = str(data)
-
-                raise MPRestError(
-                    f"REST query returned with error status code {response.status_code} "
-                    f"on URL {response.url} with message:\n{message}"
-                )
+            return data
 
         except RequestException as ex:
 
             raise MPRestError(str(ex))
+
+    def _submit_requests(
+        self,
+        url,
+        criteria,
+        use_document_model,
+        parallel_param=None,
+        num_chunks=None,
+        chunk_size=None,
+    ) -> Dict:
+        """
+        Handle submitting requests. Parallel requests supported if possible.
+        Parallelization will occur either over the largest list of supported
+        query parameters used and/or over pagination.
+
+        The number of threads is chosen by NUM_PARALLEL_REQUESTS in settings.
+
+        Arguments:
+            criteria: dictionary of criteria to filter down
+            url: url used to make request
+            use_document_model: if None, will defer to the self.use_document_model attribute
+            parallel_param: parameter to parallelize requests with
+            num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size: Number of data entries per chunk.
+
+        Returns:
+            Dictionary containing data and metadata
+        """
+
+        # Generate new sets of criteria dicts to be run in parallel
+        # with new appropriate limit values. New limits obtained from
+        # trying to evenly divide num_chunks by the total number of new
+        # criteria dicts.
+        if parallel_param is not None:
+            param_length = len(criteria[parallel_param].split(","))
+            slice_size = (
+                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
+            )
+
+            new_param_values = [
+                entry
+                for entry in (
+                    criteria[parallel_param].split(",")[i : (i + slice_size)]
+                    for i in range(0, param_length, slice_size)
+                )
+                if entry != []
+            ]
+
+            # Get new limit values that sum to chunk_size
+            num_new_params = len(new_param_values)
+            q = int(chunk_size / num_new_params)
+            r = chunk_size % num_new_params
+            new_limits = []
+
+            for _ in range(num_new_params):
+                val = q + 1 if r > 0 else q
+                new_limits.append(val)
+                r -= 1
+
+            # Split list and generate multiple criteria
+            new_criteria = [
+                {
+                    **{
+                        key: criteria[key]
+                        for key in criteria
+                        if key not in [parallel_param, "limit"]
+                    },
+                    parallel_param: ",".join(list_chunk),
+                    "limit": new_limits[list_num],
+                }
+                for list_num, list_chunk in enumerate(new_param_values)
+            ]
+
+        else:
+            # Only parallelize over pagination parameters
+            new_criteria = [criteria]
+            new_limits = [chunk_size]
+
+        total_num_docs = 0
+        total_data = {"data": []}  # type: dict
+
+        # Obtain first page of results and get pagination information.
+        # Individual total document limits (subtotal) will potentially
+        # be used for rebalancing should one new of the criteria
+        # queries result in a smaller amount of docs compared to the
+        # new limit value we assigned.
+        subtotals = []
+        remaining_docs_avail = {}
+        for crit_ind, crit in enumerate(new_criteria):
+
+            # Check how much pagination is needed
+            response = self.session.get(url, verify=True, params=crit)
+
+            data, subtotal = self._handle_response(response, use_document_model)
+            subtotals.append(subtotal)
+
+            sub_diff = subtotal - new_limits[crit_ind]
+
+            remaining_docs_avail[crit_ind] = sub_diff
+
+            total_data["data"].extend(data["data"])
+
+        # Rebalance if some parallel queries produced too few results
+        if len(remaining_docs_avail) > 1:
+
+            remaining_docs_avail = dict(
+                sorted(remaining_docs_avail.items(), key=lambda item: item[1])
+            )
+
+            # Redistribute missing docs from initial chunk among queries
+            # which have head room with respect to remaining document number.
+            fill_docs = 0
+            for crit_ind, amount_avail in remaining_docs_avail.items():
+                if amount_avail <= 0:
+                    fill_docs += abs(amount_avail)
+                    new_limits[crit_ind] = 0
+                else:
+                    crit = new_criteria[crit_ind]
+                    crit["skip"] = crit["limit"]
+
+                    if fill_docs >= amount_avail:
+                        crit["limit"] = amount_avail
+                        new_limits[crit_ind] += amount_avail
+                        fill_docs -= amount_avail
+
+                    else:
+                        crit["limit"] = fill_docs
+                        new_limits[crit_ind] += fill_docs
+                        fill_docs = 0
+
+                    response = self.session.get(url, verify=True, params=crit)
+                    data, _ = self._handle_response(response, use_document_model)
+                    total_data["data"].extend(data["data"])
+                    new_criteria[crit_ind]["limit"] = chunk_size
+
+                if fill_docs == 0:
+                    break
+
+        total_num_docs = sum(subtotals)
+
+        if "meta" in data:
+            data["meta"]["total_doc"] = total_num_docs
+            total_data["meta"] = data["meta"]
+
+        # If we have all the results in a single page, return directly
+        if len(total_data["data"]) == total_num_docs or num_chunks == 1:
+            return total_data
+
+        if chunk_size is None:
+            raise ValueError("A chunk size must be provided to enable pagination")
+
+        # otherwise prepare to paginate in parallel
+        max_pages = (
+            num_chunks
+            if num_chunks is not None
+            else (int(total_num_docs / chunk_size) + 1)
+        )
+
+        if num_chunks is not None:
+            total_num_docs = min(len(total_data["data"]) * num_chunks, total_num_docs)
+
+        # Setup progress bar
+        t = tqdm(
+            desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
+            total=total_num_docs,
+        )
+        t.update(len(total_data["data"]))
+
+        # Warning to select specific fields only for many results
+        if criteria.get("all_fields", False) and (total_num_docs / chunk_size > 10):
+            warnings.warn(
+                f"Use the 'fields' argument to select only fields of interest to speed "
+                f"up data retrieval for large queries. "
+                f"Choose from: {self.available_fields}"
+            )
+
+        # Get all pagination input params for parallel requests
+        params_list = []
+        exit = False
+
+        for page_num in range(0, max_pages - 1):
+            for crit_num, crit in enumerate(new_criteria):
+
+                if new_limits[crit_num] == 0:
+                    continue
+
+                if (
+                    num_chunks is not None
+                    and (((page_num + 1) * (crit_num + 1))) == num_chunks
+                ):
+                    exit = True
+                    break
+
+                skip = new_limits[crit_num] + int(page_num * chunk_size)
+
+                params_list.append(
+                    {"url": url, "verify": True, "params": {**crit, "skip": skip}}
+                )
+
+            if exit:
+                break
+
+        params_gen = iter(
+            params_list
+        )  # Iter necessary for islice to keep track of what has been accessed
+
+        with ThreadPoolExecutor(
+            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
+        ) as executor:
+
+            # Get list of initial futures defined by max number of parallel requests
+            futures = {
+                executor.submit(self.session.get, **params)
+                for params in itertools.islice(
+                    params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
+                )
+            }
+
+            while futures:
+                # Wait for at least one future to complete and process finished
+                finished, futures = wait(futures, return_when=FIRST_COMPLETED)
+
+                for future in finished:
+                    response = future.result()
+                    data, _ = self._handle_response(response, use_document_model)
+                    t.update(len(data["data"]))
+                    total_data["data"].extend(data["data"])
+
+                # Populate more futures to replace finished
+                for params in itertools.islice(params_gen, len(finished)):
+                    futures.add(executor.submit(self.session.get, **params))
+
+        if "meta" in data:
+            total_data["meta"]["time_stamp"] = data["meta"]["time_stamp"]
+
+        return total_data
+
+    def _handle_response(
+        self, response: requests.Response, use_document_model: bool
+    ) -> Tuple[Dict, int]:
+        """
+        Handles resolved requests.
+
+        Arguments:
+            response: response from request
+            use_document_model: if None, will defer to the self.use_document_model attribute
+
+        Returns:
+            Tuple with data and total number of docs in matching the query in the database.
+        """
+
+        if response.status_code == 200:
+
+            if self.monty_decode:
+                data = json.loads(response.text, cls=MontyDecoder)
+            else:
+                data = json.loads(response.text)
+
+            # other sub-urls may use different document models
+            # the client does not handle this in a particularly smart way currently
+            if self.document_model and use_document_model:
+                data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+
+            meta_total_doc_num = data.get("meta", {}).get("total_doc", 1)
+
+            return data, meta_total_doc_num
+
+        else:
+            try:
+                data = json.loads(response.text)["detail"]
+            except (JSONDecodeError, KeyError):
+                data = "Response {}".format(response.text)
+            if isinstance(data, str):
+                message = data
+            else:
+                try:
+                    message = ", ".join(
+                        "{} - {}".format(entry["loc"][1], entry["msg"])
+                        for entry in data
+                    )
+                except (KeyError, IndexError):
+                    message = str(data)
+
+            raise MPRestError(
+                f"REST query returned with error status code {response.status_code} "
+                f"on URL {response.url} with message:\n{message}"
+            )
 
     def _query_resource_data(
         self,
@@ -329,16 +611,19 @@ class BaseRester(Generic[T]):
         Returns:
             A list of documents
         """
+
         return self._query_resource(  # type: ignore
             criteria=criteria,
             fields=fields,
             suburl=suburl,
             use_document_model=use_document_model,
+            chunk_size=1000,
+            num_chunks=1,
         ).get("data")
 
     def get_data_by_id(
         self, document_id: str, fields: Optional[List[str]] = None,
-    ) -> Union[T]:
+    ) -> T:
         """
         Query the endpoint for a single document.
 
@@ -453,56 +738,41 @@ class BaseRester(Generic[T]):
         materials endpoint for an example of this in use.
         """
 
+        if chunk_size <= 0:
+            raise MPRestError("Chunk size must be greater than zero")
+
+        if isinstance(num_chunks, int) and num_chunks <= 0:
+            raise MPRestError("Number of chunks must be greater than zero or None.")
+
         if all_fields and not fields:
             query_params["all_fields"] = True
 
         query_params["limit"] = chunk_size
 
-        results = self._query_resource(query_params, fields=fields,)
-
-        # if we have all the results in a single page, return directly
-        if len(results["data"]) == results["meta"]["total_doc"]:
-            return results["data"]
-
-        # otherwise prepare to iterate over all pages
-        all_results = results["data"]
-        num_pages_retrieved = 1
-
-        # progress bar
-        total_docs = results["meta"]["total_doc"]
-        if num_chunks:
-            total_docs = min(len(all_results) * num_chunks, total_docs)
-        t = tqdm(
-            desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
-            total=total_docs,
+        # Check if specific parameters are present that can be parallelized over
+        list_entries = sorted(
+            [
+                (key, len(entry.split(",")))
+                for key, entry in query_params.items()
+                if isinstance(entry, str)
+                and len(entry.split(",")) > 0
+                and key not in MAPIClientSettings().QUERY_NO_PARALLEL
+            ],
+            key=lambda item: item[1],
+            reverse=True,
         )
-        t.update(len(all_results))
 
-        # warn to select specific fields only for many results
-        if (not fields) and (total_docs / chunk_size > 10):
-            warnings.warn(
-                f"Use the 'fields' argument to select only fields of interest to speed "
-                f"up data retrieval for large queries. "
-                f"Choose from: {self.available_fields}"
-            )
+        chosen_param = list_entries[0][0] if len(list_entries) > 0 else None
 
-        while True:
+        results = self._query_resource(
+            query_params,
+            fields=fields,
+            parallel_param=chosen_param,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
+        )
 
-            if num_chunks and num_pages_retrieved >= num_chunks:
-                break
-
-            query_params["skip"] = num_pages_retrieved * chunk_size
-            results = self._query_resource(query_params, fields=fields)
-
-            t.update(len(results["data"]))
-
-            if not any(results["data"]):
-                break
-
-            num_pages_retrieved += 1
-            all_results += results["data"]
-
-        return all_results
+        return results["data"]
 
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
         """
@@ -512,15 +782,14 @@ class BaseRester(Generic[T]):
         """
         try:
             criteria = criteria or {}
-            criteria[
-                "limit"
-            ] = 1  # we just want the meta information, only ask for single document
             user_preferences = self.monty_decode, self.use_document_model
             self.monty_decode, self.use_document_model = (
                 False,
                 False,
             )  # do not waste cycles decoding
-            results = self._query_resource(criteria=criteria)
+            results = self._query_resource(
+                criteria=criteria, num_chunks=1, chunk_size=1
+            )
             self.monty_decode, self.use_document_model = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover

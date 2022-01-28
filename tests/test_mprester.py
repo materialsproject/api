@@ -3,12 +3,12 @@ import random
 import typing
 
 import pytest
-from emmet.core.symmetry import CrystalSystem
-from emmet.core.vasp.calc_types import CalcType
 from emmet.core.summary import HasProps
-from mp_api.core.settings import MAPISettings
+from emmet.core.symmetry import CrystalSystem
+from emmet.core.tasks import TaskDoc
+from emmet.core.vasp.calc_types import CalcType
+from mp_api.core.settings import MAPIClientSettings
 from mp_api.matproj import MPRester
-from mp_api.routes.tasks.models import TaskDoc
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
@@ -53,7 +53,7 @@ class TestMPRester:
 
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
-        assert db_version == MAPISettings().DB_VERSION
+        assert db_version is not None
 
     def test_get_materials_id_from_task_id(self, mpr):
         assert mpr.get_materials_id_from_task_id("mp-540081") == "mp-19017"
@@ -68,19 +68,17 @@ class TestMPRester:
         data = mpr.get_materials_id_references("mp-123")
         assert len(data) > 5
 
-    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_materials_ids_doc(self, mpr):
         mpids = mpr.get_materials_ids("Al2O3")
         random.shuffle(mpids)
         doc = mpr.materials.get_data_by_id(mpids.pop(0))
         assert doc.formula_pretty == "Al2O3"
 
-        mpids = mpr.get_materials_ids(chemsys="Al-O")
+        mpids = mpr.get_materials_ids("Al-O")
         random.shuffle(mpids)
         doc = mpr.materials.get_data_by_id(mpids.pop(0))
         assert doc.chemsys == "Al-O"
 
-    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_structures(self, mpr):
         structs = mpr.get_structures("Mn3O4")
         assert len(structs) > 0
@@ -89,7 +87,7 @@ class TestMPRester:
         assert len(structs) > 0
 
     def test_find_structure(self, mpr):
-        path = os.path.join(MAPISettings().TEST_FILES, "Si_mp_149.cif")
+        path = os.path.join(MAPIClientSettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
             data = mpr.find_structure(path)
             assert len(data) > 0
@@ -114,7 +112,6 @@ class TestMPRester:
         assert isinstance(e[0], ComputedEntry)
         assert e[0].composition.reduced_formula == "LiFePO4"
 
-    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
@@ -134,7 +131,6 @@ class TestMPRester:
         for e in entries:
             assert isinstance(e, ComputedEntry)
 
-    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
         syms2 = "Li-Fe-O"
@@ -153,7 +149,6 @@ class TestMPRester:
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
-    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements
         pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
@@ -189,7 +184,6 @@ class TestMPRester:
         # Ensure entries are pourbaix compatible
         PourbaixDiagram(pbx_entries)
 
-    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
@@ -226,7 +220,6 @@ class TestMPRester:
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
 
-    @pytest.mark.xfail(reason="Until deployment of new API")
     def test_query(self, mpr):
 
         excluded_params = [
@@ -278,7 +271,7 @@ class TestMPRester:
         # Get list of parameters
         param_tuples = list(typing.get_type_hints(search_method).items())
 
-        # Query API for each numeric and bollean parameter and check if returned
+        # Query API for each numeric and boolean parameter and check if returned
         for entry in param_tuples:
             param = entry[0]
             if param not in excluded_params:
@@ -292,14 +285,14 @@ class TestMPRester:
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
-                elif param_type is typing.Tuple[int, int]:
+                elif param_type == typing.Tuple[int, int]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
                         param: (-100, 100),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
-                elif param_type is typing.Tuple[float, float]:
+                elif param_type == typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
                         param: (-100.12, 100.12),
