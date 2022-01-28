@@ -131,6 +131,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
             fields=["phase_diagram"],
             suburl=f"phase_diagram/{chemsys}",
             use_document_model=False,
+            num_chunks=1,
+            chunk_size=1,
         ).get("data")
 
         return response[0]["phase_diagram"]  # type: ignore

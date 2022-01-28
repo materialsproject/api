@@ -210,6 +210,8 @@ class BandStructureRester(BaseRester):
             criteria={"task_id": task_id, "all_fields": True},
             suburl="object",
             use_document_model=False,
+            num_chunks=1,
+            chunk_size=1,
         )
 
         if result.get("data", None) is not None:
@@ -363,6 +365,8 @@ class DosRester(BaseRester):
             criteria={"task_id": task_id, "all_fields": True},
             suburl="object",
             use_document_model=False,
+            num_chunks=1,
+            chunk_size=1,
         )
 
         if result.get("data", None) is not None:
