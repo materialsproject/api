@@ -617,6 +617,7 @@ class BaseRester(Generic[T]):
             fields=fields,
             suburl=suburl,
             use_document_model=use_document_model,
+            chunk_size=1000,
             num_chunks=1,
         ).get("data")
 
