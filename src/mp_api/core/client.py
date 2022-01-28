@@ -345,7 +345,7 @@ class BaseRester(Generic[T]):
             new_param_values = [
                 entry
                 for entry in (
-                    criteria[parallel_param].split(",")[i:(i + slice_size)]
+                    criteria[parallel_param].split(",")[i : (i + slice_size)]
                     for i in range(0, param_length, slice_size)
                 )
                 if entry != []
@@ -782,15 +782,14 @@ class BaseRester(Generic[T]):
         """
         try:
             criteria = criteria or {}
-            criteria[
-                "limit"
-            ] = 1  # we just want the meta information, only ask for single document
             user_preferences = self.monty_decode, self.use_document_model
             self.monty_decode, self.use_document_model = (
                 False,
                 False,
             )  # do not waste cycles decoding
-            results = self._query_resource(criteria=criteria)
+            results = self._query_resource(
+                criteria=criteria, num_chunks=1, chunk_size=1
+            )
             self.monty_decode, self.use_document_model = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover

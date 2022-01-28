@@ -41,7 +41,7 @@ def test_pagination(mpr):
 )
 def test_count(mpr):
     count = mpr.materials.count(
-        dict(task_ids="mp-149", all_fields=False, fields="material_id", limit=1000)
+        dict(task_ids="mp-149", all_fields=False, fields="material_id")
     )
     assert count == 1
 
