@@ -485,10 +485,8 @@ class BaseRester(Generic[T]):
 
         # If we have all the results in a single page, return directly
         if initial_data_length >= num_docs_needed or num_chunks == 1:
-            new_total_data = {
-                "meta": total_data["meta"],
-                "data": total_data["data"][:num_docs_needed],
-            }
+            new_total_data = copy(total_data)
+            new_total_data["data"] = total_data["data"][:num_docs_needed]
             pbar.update(num_docs_needed)
             pbar.close()
             return new_total_data
