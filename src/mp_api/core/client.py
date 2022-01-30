@@ -17,6 +17,7 @@ from os import environ
 from typing import Dict, Generic, List, Optional, TypeVar, Union, Tuple
 from urllib.parse import urljoin
 import operator
+from math import ceil
 from matplotlib import use
 
 import requests
@@ -408,6 +409,8 @@ class BaseRester(Generic[T]):
             remaining_docs_avail[crit_ind] = sub_diff
             total_data["data"].extend(data["data"])
 
+        last_data_entry = initial_data_tuples[-1][0]
+
         # Rebalance if some parallel queries produced too few results
         if len(remaining_docs_avail) > 1 and len(total_data["data"]) < chunk_size:
             remaining_docs_avail = dict(
@@ -452,15 +455,12 @@ class BaseRester(Generic[T]):
             for data, _, _ in rebalance_data_tuples:
                 total_data["data"].extend(data["data"])
 
-        total_num_docs = sum(subtotals)
-        data = (
-            rebalance_data_tuples[-1][0]
-            if rebalance_data_tuples
-            else initial_data_tuples[-1][0]
-        )
+            last_data_entry = rebalance_data_tuples[-1][0]
 
-        if "meta" in data:
-            data["meta"]["total_doc"] = total_num_docs
+        total_num_docs = sum(subtotals)
+
+        if "meta" in last_data_entry:
+            last_data_entry["meta"]["total_doc"] = total_num_docs
             total_data["meta"] = data["meta"]
 
         # If we have all the results in a single page, return directly
@@ -472,13 +472,13 @@ class BaseRester(Generic[T]):
 
         # otherwise prepare to paginate in parallel
         max_pages = (
-            num_chunks
-            if num_chunks is not None
-            else (int(total_num_docs / chunk_size) + 1)
+            num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
         )
 
+        num_docs_needed = min((max_pages * chunk_size), total_num_docs) - chunk_size
+
         if num_chunks is not None:
-            total_num_docs = min(len(total_data["data"]) * num_chunks, total_num_docs)
+            total_num_docs = num_docs_needed + chunk_size
 
         # Setup progress bar
         pbar = tqdm(
@@ -497,29 +497,36 @@ class BaseRester(Generic[T]):
 
         # Get all pagination input params for parallel requests
         params_list = []
-        exit = False
+        doc_counter = 0
 
-        for page_num in range(0, max_pages - 1):
-            for crit_num, crit in enumerate(new_criteria):
+        for crit_num, crit in enumerate(new_criteria):
+            remaining = remaining_docs_avail[crit_num]
+            if "skip" not in crit:
+                crit["skip"] = 0
 
-                if new_limits[crit_num] == 0:
-                    continue
-
-                if (
-                    num_chunks is not None
-                    and (((page_num + 1) * (crit_num + 1))) == num_chunks
-                ):
-                    exit = True
+            while remaining > 0:
+                if num_docs_needed == 0:
                     break
 
-                skip = new_limits[crit_num] + int(page_num * chunk_size)
+                if remaining < chunk_size:
+                    crit["limit"] = remaining
+                    doc_counter += remaining
+                else:
+                    n = chunk_size - (doc_counter % chunk_size)
+                    crit["limit"] = n
+                    doc_counter += n
 
                 params_list.append(
-                    {"url": url, "verify": True, "params": {**crit, "skip": skip}}
+                    {
+                        "url": url,
+                        "verify": True,
+                        "params": {**crit, "skip": crit["skip"]},
+                    }
                 )
 
-            if exit:
-                break
+                crit["skip"] += crit["limit"]
+                num_docs_needed -= crit["limit"]
+                remaining -= crit["limit"]
 
         data_tuples = self._multi_thread(use_document_model, params_list, pbar)
 
