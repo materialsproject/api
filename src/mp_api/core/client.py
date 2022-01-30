@@ -16,7 +16,7 @@ from json import JSONDecodeError
 from os import environ
 from typing import Dict, Generic, List, Optional, TypeVar, Union, Tuple
 from urllib.parse import urljoin
-import operator
+from copy import copy
 from math import ceil
 from matplotlib import use
 
@@ -355,12 +355,12 @@ class BaseRester(Generic[T]):
 
             # Get new limit values that sum to chunk_size
             num_new_params = len(new_param_values)
-            q = int(chunk_size / num_new_params)
-            r = chunk_size % num_new_params
+            q = int(chunk_size / num_new_params)  # quotient
+            r = chunk_size % num_new_params  # remainder
             new_limits = []
 
             for _ in range(num_new_params):
-                val = q + 1 if r > 0 else q
+                val = q + 1 if r > 0 else q if q > 0 else 1
                 new_limits.append(val)
                 r -= 1
 
@@ -395,7 +395,7 @@ class BaseRester(Generic[T]):
         remaining_docs_avail = {}
 
         initial_params_list = [
-            {"url": url, "verify": True, "params": crit} for crit in new_criteria
+            {"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria
         ]
 
         initial_data_tuples = self._multi_thread(
@@ -443,49 +443,61 @@ class BaseRester(Generic[T]):
                         fill_docs = 0
 
                     rebalance_params.append(
-                        {"url": url, "verify": True, "params": crit}
+                        {"url": url, "verify": True, "params": copy(crit)}
                     )
 
+                    new_criteria[crit_ind]["skip"] += crit["limit"]
                     new_criteria[crit_ind]["limit"] = chunk_size
 
-            rebalance_data_tuples = self._multi_thread(
-                use_document_model, rebalance_params
-            )
+            # Obtain missing initial data after rebalancing
+            if len(rebalance_params) > 0:
 
-            for data, _, _ in rebalance_data_tuples:
-                total_data["data"].extend(data["data"])
+                rebalance_data_tuples = self._multi_thread(
+                    use_document_model, rebalance_params
+                )
 
-            last_data_entry = rebalance_data_tuples[-1][0]
+                for data, _, _ in rebalance_data_tuples:
+                    total_data["data"].extend(data["data"])
+
+                last_data_entry = rebalance_data_tuples[-1][0]
 
         total_num_docs = sum(subtotals)
 
         if "meta" in last_data_entry:
             last_data_entry["meta"]["total_doc"] = total_num_docs
-            total_data["meta"] = data["meta"]
+            total_data["meta"] = last_data_entry["meta"]
 
-        # If we have all the results in a single page, return directly
-        if len(total_data["data"]) == total_num_docs or num_chunks == 1:
-            return total_data
-
-        if chunk_size is None:
-            raise ValueError("A chunk size must be provided to enable pagination")
-
-        # otherwise prepare to paginate in parallel
+        # Get max number of reponse pages
         max_pages = (
             num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
         )
 
-        num_docs_needed = min((max_pages * chunk_size), total_num_docs) - chunk_size
-
-        if num_chunks is not None:
-            total_num_docs = num_docs_needed + chunk_size
+        # Get total number of docs needed
+        num_docs_needed = min((max_pages * chunk_size), total_num_docs)
 
         # Setup progress bar
         pbar = tqdm(
             desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
-            total=total_num_docs,
+            total=num_docs_needed,
         )
-        pbar.update(len(total_data["data"]))
+
+        initial_data_length = len(total_data["data"])
+
+        # If we have all the results in a single page, return directly
+        if initial_data_length >= num_docs_needed or num_chunks == 1:
+            new_total_data = {
+                "meta": total_data["meta"],
+                "data": total_data["data"][:num_docs_needed],
+            }
+            pbar.update(num_docs_needed)
+            pbar.close()
+            return new_total_data
+
+        # otherwise, prepare to paginate in parallel
+        if chunk_size is None:
+            raise ValueError("A chunk size must be provided to enable pagination")
+
+        pbar.update(initial_data_length)
 
         # Warning to select specific fields only for many results
         if criteria.get("all_fields", False) and (total_num_docs / chunk_size > 10):
@@ -502,10 +514,10 @@ class BaseRester(Generic[T]):
         for crit_num, crit in enumerate(new_criteria):
             remaining = remaining_docs_avail[crit_num]
             if "skip" not in crit:
-                crit["skip"] = 0
+                crit["skip"] = crit["limit"]
 
             while remaining > 0:
-                if num_docs_needed == 0:
+                if doc_counter == (num_docs_needed - initial_data_length):
                     break
 
                 if remaining < chunk_size:
@@ -525,9 +537,9 @@ class BaseRester(Generic[T]):
                 )
 
                 crit["skip"] += crit["limit"]
-                num_docs_needed -= crit["limit"]
                 remaining -= crit["limit"]
 
+        # Submit requests and process data
         data_tuples = self._multi_thread(use_document_model, params_list, pbar)
 
         for data, _, _ in data_tuples:
@@ -535,6 +547,8 @@ class BaseRester(Generic[T]):
 
         if "meta" in data:
             total_data["meta"]["time_stamp"] = data["meta"]["time_stamp"]
+
+        pbar.close()
 
         return total_data
 
