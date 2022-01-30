@@ -380,6 +380,7 @@ class BaseRester(Generic[T]):
 
         else:
             # Only parallelize over pagination parameters
+            criteria["limit"] = chunk_size
             new_criteria = [criteria]
             new_limits = [chunk_size]
 
