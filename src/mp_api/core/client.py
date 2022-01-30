@@ -380,7 +380,6 @@ class BaseRester(Generic[T]):
 
         else:
             # Only parallelize over pagination parameters
-            criteria["limit"] = chunk_size
             new_criteria = [criteria]
             new_limits = [chunk_size]
 
@@ -513,7 +512,7 @@ class BaseRester(Generic[T]):
         for crit_num, crit in enumerate(new_criteria):
             remaining = remaining_docs_avail[crit_num]
             if "skip" not in crit:
-                crit["skip"] = crit["limit"]
+                crit["skip"] = chunk_size if "limit" not in crit else crit["limit"]
 
             while remaining > 0:
                 if doc_counter == (num_docs_needed - initial_data_length):
