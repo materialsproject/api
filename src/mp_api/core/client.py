@@ -391,19 +391,33 @@ class BaseRester(Generic[T]):
         # new limit value we assigned.
         subtotals = []
         remaining_docs_avail = {}
-        for crit_ind, crit in enumerate(new_criteria):
 
-            # Check how much pagination is needed
-            response = self.session.get(url, verify=True, params=crit)
+        with ThreadPoolExecutor(
+            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
+        ) as executor:
 
-            data, subtotal = self._handle_response(response, use_document_model)
-            subtotals.append(subtotal)
+            futures = set({})
 
-            sub_diff = subtotal - new_limits[crit_ind]
+            for crit_ind, crit in enumerate(new_criteria):
+                params = {"url": url, "verify": True, "params": crit}
+                future = executor.submit(self.session.get, **params)
+                setattr(future, "crit_ind", crit_ind)
+                futures.add(future)
 
-            remaining_docs_avail[crit_ind] = sub_diff
+            while futures:
+                # Wait for at least one future to complete and process finished
+                finished, futures = wait(futures, return_when=FIRST_COMPLETED)
 
-            total_data["data"].extend(data["data"])
+                for future in finished:
+                    response = future.result()
+                    data, subtotal = self._handle_response(response, use_document_model)
+                    subtotals.append(subtotal)
+
+                    sub_diff = subtotal - new_limits[future.crit_ind]  # type: ignore
+
+                    remaining_docs_avail[future.crit_ind] = sub_diff  # type: ignore
+
+                    total_data["data"].extend(data["data"])
 
         # Rebalance if some parallel queries produced too few results
         if len(remaining_docs_avail) > 1:
