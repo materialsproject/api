@@ -2,6 +2,7 @@
 """ Primary MAPI module """
 import os
 from pkg_resources import get_distribution, DistributionNotFound
+from mp_api.client import MPRester
 
 try:  # pragma: no cover
     from setuptools_scm import get_version

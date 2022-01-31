@@ -16,7 +16,9 @@ from json import JSONDecodeError
 from os import environ
 from typing import Dict, Generic, List, Optional, TypeVar, Union, Tuple
 from urllib.parse import urljoin
-import operator
+from copy import copy
+from math import ceil
+from matplotlib import use
 
 import requests
 from emmet.core.utils import jsanitize
@@ -353,12 +355,12 @@ class BaseRester(Generic[T]):
 
             # Get new limit values that sum to chunk_size
             num_new_params = len(new_param_values)
-            q = int(chunk_size / num_new_params)
-            r = chunk_size % num_new_params
+            q = int(chunk_size / num_new_params)  # quotient
+            r = chunk_size % num_new_params  # remainder
             new_limits = []
 
             for _ in range(num_new_params):
-                val = q + 1 if r > 0 else q
+                val = q + 1 if r > 0 else q if q > 0 else 1
                 new_limits.append(val)
                 r -= 1
 
@@ -391,23 +393,26 @@ class BaseRester(Generic[T]):
         # new limit value we assigned.
         subtotals = []
         remaining_docs_avail = {}
-        for crit_ind, crit in enumerate(new_criteria):
 
-            # Check how much pagination is needed
-            response = self.session.get(url, verify=True, params=crit)
+        initial_params_list = [
+            {"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria
+        ]
 
-            data, subtotal = self._handle_response(response, use_document_model)
+        initial_data_tuples = self._multi_thread(
+            use_document_model, initial_params_list
+        )
+
+        for data, subtotal, crit_ind in initial_data_tuples:
+
             subtotals.append(subtotal)
-
             sub_diff = subtotal - new_limits[crit_ind]
-
             remaining_docs_avail[crit_ind] = sub_diff
-
             total_data["data"].extend(data["data"])
 
-        # Rebalance if some parallel queries produced too few results
-        if len(remaining_docs_avail) > 1:
+        last_data_entry = initial_data_tuples[-1][0]
 
+        # Rebalance if some parallel queries produced too few results
+        if len(remaining_docs_avail) > 1 and len(total_data["data"]) < chunk_size:
             remaining_docs_avail = dict(
                 sorted(remaining_docs_avail.items(), key=lambda item: item[1])
             )
@@ -415,6 +420,7 @@ class BaseRester(Generic[T]):
             # Redistribute missing docs from initial chunk among queries
             # which have head room with respect to remaining document number.
             fill_docs = 0
+            rebalance_params = []
             for crit_ind, amount_avail in remaining_docs_avail.items():
                 if amount_avail <= 0:
                     fill_docs += abs(amount_avail)
@@ -422,6 +428,9 @@ class BaseRester(Generic[T]):
                 else:
                     crit = new_criteria[crit_ind]
                     crit["skip"] = crit["limit"]
+
+                    if fill_docs == 0:
+                        continue
 
                     if fill_docs >= amount_avail:
                         crit["limit"] = amount_avail
@@ -433,43 +442,60 @@ class BaseRester(Generic[T]):
                         new_limits[crit_ind] += fill_docs
                         fill_docs = 0
 
-                    response = self.session.get(url, verify=True, params=crit)
-                    data, _ = self._handle_response(response, use_document_model)
-                    total_data["data"].extend(data["data"])
+                    rebalance_params.append(
+                        {"url": url, "verify": True, "params": copy(crit)}
+                    )
+
+                    new_criteria[crit_ind]["skip"] += crit["limit"]
                     new_criteria[crit_ind]["limit"] = chunk_size
 
-                if fill_docs == 0:
-                    break
+            # Obtain missing initial data after rebalancing
+            if len(rebalance_params) > 0:
+
+                rebalance_data_tuples = self._multi_thread(
+                    use_document_model, rebalance_params
+                )
+
+                for data, _, _ in rebalance_data_tuples:
+                    total_data["data"].extend(data["data"])
+
+                last_data_entry = rebalance_data_tuples[-1][0]
 
         total_num_docs = sum(subtotals)
 
-        if "meta" in data:
-            data["meta"]["total_doc"] = total_num_docs
-            total_data["meta"] = data["meta"]
+        if "meta" in last_data_entry:
+            last_data_entry["meta"]["total_doc"] = total_num_docs
+            total_data["meta"] = last_data_entry["meta"]
+
+        # Get max number of reponse pages
+        max_pages = (
+            num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
+        )
+
+        # Get total number of docs needed
+        num_docs_needed = min((max_pages * chunk_size), total_num_docs)
+
+        # Setup progress bar
+        pbar = tqdm(
+            desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
+            total=num_docs_needed,
+        )
+
+        initial_data_length = len(total_data["data"])
 
         # If we have all the results in a single page, return directly
-        if len(total_data["data"]) == total_num_docs or num_chunks == 1:
-            return total_data
+        if initial_data_length >= num_docs_needed or num_chunks == 1:
+            new_total_data = copy(total_data)
+            new_total_data["data"] = total_data["data"][:num_docs_needed]
+            pbar.update(num_docs_needed)
+            pbar.close()
+            return new_total_data
 
+        # otherwise, prepare to paginate in parallel
         if chunk_size is None:
             raise ValueError("A chunk size must be provided to enable pagination")
 
-        # otherwise prepare to paginate in parallel
-        max_pages = (
-            num_chunks
-            if num_chunks is not None
-            else (int(total_num_docs / chunk_size) + 1)
-        )
-
-        if num_chunks is not None:
-            total_num_docs = min(len(total_data["data"]) * num_chunks, total_num_docs)
-
-        # Setup progress bar
-        t = tqdm(
-            desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
-            total=total_num_docs,
-        )
-        t.update(len(total_data["data"]))
+        pbar.update(initial_data_length)
 
         # Warning to select specific fields only for many results
         if criteria.get("all_fields", False) and (total_num_docs / chunk_size > 10):
@@ -481,45 +507,90 @@ class BaseRester(Generic[T]):
 
         # Get all pagination input params for parallel requests
         params_list = []
-        exit = False
+        doc_counter = 0
 
-        for page_num in range(0, max_pages - 1):
-            for crit_num, crit in enumerate(new_criteria):
+        for crit_num, crit in enumerate(new_criteria):
+            remaining = remaining_docs_avail[crit_num]
+            if "skip" not in crit:
+                crit["skip"] = chunk_size if "limit" not in crit else crit["limit"]
 
-                if new_limits[crit_num] == 0:
-                    continue
-
-                if (
-                    num_chunks is not None
-                    and (((page_num + 1) * (crit_num + 1))) == num_chunks
-                ):
-                    exit = True
+            while remaining > 0:
+                if doc_counter == (num_docs_needed - initial_data_length):
                     break
 
-                skip = new_limits[crit_num] + int(page_num * chunk_size)
+                if remaining < chunk_size:
+                    crit["limit"] = remaining
+                    doc_counter += remaining
+                else:
+                    n = chunk_size - (doc_counter % chunk_size)
+                    crit["limit"] = n
+                    doc_counter += n
 
                 params_list.append(
-                    {"url": url, "verify": True, "params": {**crit, "skip": skip}}
+                    {
+                        "url": url,
+                        "verify": True,
+                        "params": {**crit, "skip": crit["skip"]},
+                    }
                 )
 
-            if exit:
-                break
+                crit["skip"] += crit["limit"]
+                remaining -= crit["limit"]
+
+        # Submit requests and process data
+        data_tuples = self._multi_thread(use_document_model, params_list, pbar)
+
+        for data, _, _ in data_tuples:
+            total_data["data"].extend(data["data"])
+
+        if "meta" in data:
+            total_data["meta"]["time_stamp"] = data["meta"]["time_stamp"]
+
+        pbar.close()
+
+        return total_data
+
+    def _multi_thread(
+        self,
+        use_document_model: bool,
+        params_list: List[dict],
+        progress_bar: tqdm = None,
+    ):
+        """
+        Handles setting up a threadpool and sending parallel requests
+
+        Arguments:
+            use_document_model (bool): if None, will defer to the self.use_document_model attribute
+            params_list (list): list of dictionaries containing url and params for each request
+            progress_bar (tqdm): progress bar to update with progress
+
+        Returns:
+            Tuples with data, total number of docs in matching the query in the database,
+            and the index of the criteria dictionary in the provided parameter list
+        """
+
+        return_data = []
 
         params_gen = iter(
             params_list
         )  # Iter necessary for islice to keep track of what has been accessed
+
+        params_ind = 0
 
         with ThreadPoolExecutor(
             max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
         ) as executor:
 
             # Get list of initial futures defined by max number of parallel requests
-            futures = {
-                executor.submit(self.session.get, **params)
-                for params in itertools.islice(
-                    params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
-                )
-            }
+            futures = set({})
+            for params in itertools.islice(
+                params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
+            ):
+
+                future = executor.submit(self.session.get, **params)
+                setattr(future, "crit_ind", params_ind)
+                futures.add(future)
+                params_ind += 1
 
             while futures:
                 # Wait for at least one future to complete and process finished
@@ -527,18 +598,19 @@ class BaseRester(Generic[T]):
 
                 for future in finished:
                     response = future.result()
-                    data, _ = self._handle_response(response, use_document_model)
-                    t.update(len(data["data"]))
-                    total_data["data"].extend(data["data"])
+                    data, subtotal = self._handle_response(response, use_document_model)
+                    if progress_bar is not None:
+                        progress_bar.update(len(data["data"]))
+                    return_data.append((data, subtotal, future.crit_ind))  # type: ignore
 
                 # Populate more futures to replace finished
                 for params in itertools.islice(params_gen, len(finished)):
-                    futures.add(executor.submit(self.session.get, **params))
+                    new_future = executor.submit(self.session.get, **params)
+                    setattr(new_future, "crit_ind", params_ind)
+                    futures.add(new_future)
+                    params_ind += 1
 
-        if "meta" in data:
-            total_data["meta"]["time_stamp"] = data["meta"]["time_stamp"]
-
-        return total_data
+        return return_data
 
     def _handle_response(
         self, response: requests.Response, use_document_model: bool

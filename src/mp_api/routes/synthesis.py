@@ -27,7 +27,7 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
         condition_mixing_device: Optional[List[str]] = None,
         condition_mixing_media: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
+        chunk_size: Optional[int] = 10,
     ):
         """
         Search synthesis recipe text.
@@ -72,6 +72,7 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
                 "condition_heating_atmosphere": condition_heating_atmosphere,
                 "condition_mixing_device": condition_mixing_device,
                 "condition_mixing_media": condition_mixing_media,
+                "limit": chunk_size,
             },
             chunk_size=chunk_size,
             num_chunks=num_chunks,
