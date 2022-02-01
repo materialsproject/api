@@ -128,7 +128,7 @@ class MPRester:
             self.contribs = Client(api_key)
         except Exception as error:
             self.contribs = None
-            warnings.warn(f"Problem loading MPContribs client: {error}") 
+            warnings.warn(f"Problem loading MPContribs client: {error}")
 
         self._all_resters = []
 
