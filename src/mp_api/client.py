@@ -126,13 +126,17 @@ class MPRester:
 
         try:
             self.contribs = Client(api_key)
-        except Exception:
+        except Exception as error:
             self.contribs = None
+            warnings.warn(f"Problem loading MPContribs client: {error}")
 
         self._all_resters = []
 
         if notify_db_version:
             raise NotImplementedError("This has not yet been implemented.")
+
+        if not self.endpoint.endswith("/"):
+            self.endpoint += "/"
 
         for cls in BaseRester.__subclasses__():
 
