@@ -237,7 +237,7 @@ class MPRester:
 
         Returns: database version as a string
         """
-        return get(url=self.endpoint + "/heartbeat").json()["db_version"]
+        return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
     def get_materials_id_from_task_id(self, task_id: str) -> Union[str, None]:
         """
