@@ -62,7 +62,7 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             A list of ChgcarDataDoc that contain task_id references.
         """
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=False,

@@ -108,4 +108,4 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(**query_params)
+        return super()._search(**query_params)

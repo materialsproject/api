@@ -60,7 +60,7 @@ class TaskRester(BaseRester[TaskDoc]):
 
             query_params.update({"chemsys": ",".join(chemsys)})
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

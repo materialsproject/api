@@ -74,7 +74,7 @@ class XASRester(BaseRester[XASDoc]):
                 {"sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

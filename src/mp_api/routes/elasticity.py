@@ -102,7 +102,7 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

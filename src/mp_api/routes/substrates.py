@@ -92,7 +92,7 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             **query_params,
             num_chunks=num_chunks,
             chunk_size=chunk_size,

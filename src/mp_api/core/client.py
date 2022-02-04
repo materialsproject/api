@@ -757,7 +757,7 @@ class BaseRester(Generic[T]):
         else:
             return results[0]
 
-    def search(
+    def _search(
         self,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
