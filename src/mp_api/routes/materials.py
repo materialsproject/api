@@ -40,7 +40,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             response = self.get_data_by_id(material_id, fields=["initial_structures"])
             return response.initial_structures if response is not None else response  # type: ignore
 
-    def search_material_docs(
+    def search(
         self,
         formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,

@@ -12,7 +12,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_grain_boundary_docs(
+    def search(
         self,
         material_ids: Optional[List[str]] = None,
         gb_plane: Optional[List[str]] = None,

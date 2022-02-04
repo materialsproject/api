@@ -11,7 +11,7 @@ class BondsRester(BaseRester[BondingDoc]):
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_bonds_docs(
+    def search(
         self,
         max_bond_length: Optional[Tuple[float, float]] = None,
         min_bond_length: Optional[Tuple[float, float]] = None,

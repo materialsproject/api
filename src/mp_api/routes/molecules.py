@@ -13,7 +13,7 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_molecules_docs(
+    def search(
         self,
         elements: Optional[List[Element]] = None,
         nelements: Optional[Tuple[float, float]] = None,

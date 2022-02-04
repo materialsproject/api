@@ -11,7 +11,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
     document_model = InsertionElectrodeDoc  # type: ignore
     primary_key = "battery_id"
 
-    def search_electrode_docs(  # pragma: ignore
+    def search(  # pragma: ignore
         self,
         working_ion: Optional[Element] = None,
         formula: Optional[str] = None,

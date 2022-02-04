@@ -11,7 +11,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
     document_model = DielectricDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_dielectric_docs(
+    def search(
         self,
         e_total: Optional[Tuple[float, float]] = None,
         e_ionic: Optional[Tuple[float, float]] = None,

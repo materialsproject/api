@@ -18,7 +18,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
     document_model = ElectronicStructureDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_electronic_structure_docs(
+    def search(
         self,
         formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
@@ -120,7 +120,7 @@ class BandStructureRester(BaseRester):
     suffix = "electronic_structure/bandstructure"
     document_model = ElectronicStructureDoc  # type: ignore
 
-    def search_bandstructure_summary(
+    def search(
         self,
         path_type: BSPathType = BSPathType.setyawan_curtarolo,
         band_gap: Optional[Tuple[float, float]] = None,
@@ -279,7 +279,7 @@ class DosRester(BaseRester):
     suffix = "electronic_structure/dos"
     document_model = ElectronicStructureDoc  # type: ignore
 
-    def search_dos_summary(
+    def search(
         self,
         projection_type: DOSProjectionType = DOSProjectionType.total,
         spin: Spin = Spin.up,

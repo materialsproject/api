@@ -295,7 +295,7 @@ class MPRester:
 
         return sorted(
             doc.material_id
-            for doc in self.materials.search_material_docs(
+            for doc in self.materials.search(
                 **input_params, all_fields=False, fields=["material_id"],  # type: ignore
             )
         )
@@ -326,14 +326,14 @@ class MPRester:
         if final:
             return [
                 doc.structure
-                for doc in self.materials.search_material_docs(
+                for doc in self.materials.search(
                     **input_params, all_fields=False, fields=["structure"],  # type: ignore
                 )
             ]
         else:
             structures = []
 
-            for doc in self.materials.search_material_docs(
+            for doc in self.materials.search(
                 **input_params, all_fields=False, fields=["initial_structures"],  # type: ignore
             ):
                 structures.extend(doc.initial_structures)
@@ -406,7 +406,7 @@ class MPRester:
 
         if sort_by_e_above_hull:
 
-            for doc in self.thermo.search_thermo_docs(
+            for doc in self.thermo.search(
                 **input_params,  # type: ignore
                 all_fields=False,
                 fields=["entries"],
@@ -417,7 +417,7 @@ class MPRester:
             return entries
 
         else:
-            for doc in self.thermo.search_thermo_docs(
+            for doc in self.thermo.search(
                 **input_params, all_fields=False, fields=["entries"],  # type: ignore
             ):
                 entries.extend(list(doc.entries.values()))

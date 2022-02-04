@@ -30,7 +30,7 @@ def test_post_fail(rester):
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_pagination(mpr):
-    mpids = mpr.materials.search_material_docs(
+    mpids = mpr.materials.search(
         all_fields=False, fields=["material_id"], num_chunks=2, chunk_size=1000
     )
     assert len(mpids) > 1000

@@ -22,7 +22,7 @@ class TaskRester(BaseRester[TaskDoc]):
 
         pass
 
-    def search_task_docs(
+    def search(
         self,
         formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,

@@ -11,7 +11,7 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
     document_model = PiezoelectricDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_piezoelectric_docs(
+    def search(
         self,
         piezoelectric_modulus: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,

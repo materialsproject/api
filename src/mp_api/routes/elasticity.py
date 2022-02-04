@@ -11,7 +11,7 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
     document_model = ElasticityDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_elasticity_docs(
+    def search(
         self,
         k_voigt: Optional[Tuple[float, float]] = None,
         k_reuss: Optional[Tuple[float, float]] = None,

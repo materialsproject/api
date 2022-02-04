@@ -12,7 +12,7 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
     suffix = "synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
 
-    def search_synthesis_text(
+    def search(
         self,
         keywords: Optional[List[str]] = None,
         synthesis_type: Optional[List[SynthesisTypeEnum]] = None,

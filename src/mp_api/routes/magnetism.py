@@ -13,7 +13,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_magnetism_docs(
+    def search(
         self,
         ordering: Optional[Ordering] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,

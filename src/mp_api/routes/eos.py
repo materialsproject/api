@@ -11,7 +11,7 @@ class EOSRester(BaseRester[EOSDoc]):
     document_model = EOSDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_eos_docs(
+    def search(
         self,
         volumes: Optional[Tuple[float, float]] = None,
         energies: Optional[Tuple[float, float]] = None,

@@ -12,7 +12,7 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
     document_model = SubstratesDoc  # type: ignore
     primary_key = "film_id"
 
-    def search_substrates_docs(
+    def search(
         self,
         film_id: Optional[str] = None,
         substrate_id: Optional[str] = None,

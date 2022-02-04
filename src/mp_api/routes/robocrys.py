@@ -10,7 +10,7 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
     document_model = RobocrystallogapherDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_robocrys_text(
+    def search(
         self,
         keywords: List[str],
         num_chunks: Optional[int] = None,

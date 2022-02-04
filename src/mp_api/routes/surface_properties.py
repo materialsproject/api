@@ -11,7 +11,7 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_surface_properties_docs(
+    def search(
         self,
         weighted_surface_energy: Optional[Tuple[float, float]] = None,
         weighted_work_function: Optional[Tuple[float, float]] = None,

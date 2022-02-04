@@ -12,7 +12,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
     supports_versions = True
     primary_key = "material_id"
 
-    def search_thermo_docs(
+    def search(
         self,
         material_ids: Optional[List[str]] = None,
         formula: Optional[str] = None,
