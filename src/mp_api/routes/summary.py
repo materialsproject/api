@@ -14,59 +14,59 @@ class SummaryRester(BaseRester[SummaryDoc]):
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_summary_docs(
+    def search(
         self,
-        material_ids: Optional[List[MPID]] = None,
-        formula: Optional[str] = None,
+        band_gap: Optional[Tuple[float, float]] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        possible_species: Optional[List[str]] = None,
-        nsites: Optional[Tuple[int, int]] = None,
-        volume: Optional[Tuple[float, float]] = None,
-        density: Optional[Tuple[float, float]] = None,
         crystal_system: Optional[CrystalSystem] = None,
-        spacegroup_number: Optional[int] = None,
-        spacegroup_symbol: Optional[str] = None,
+        density: Optional[Tuple[float, float]] = None,
         deprecated: Optional[bool] = None,
-        total_energy: Optional[Tuple[float, float]] = None,
-        formation_energy: Optional[Tuple[float, float]] = None,
+        e_electronic: Optional[Tuple[float, float]] = None,
+        e_ionic: Optional[Tuple[float, float]] = None,
+        e_total: Optional[Tuple[float, float]] = None,
+        efermi: Optional[Tuple[float, float]] = None,
+        elastic_anisotropy: Optional[Tuple[float, float]] = None,
+        elements: Optional[List[str]] = None,
         energy_above_hull: Optional[Tuple[float, float]] = None,
         equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
-        uncorrected_energy: Optional[Tuple[float, float]] = None,
-        is_stable: Optional[bool] = None,
-        band_gap: Optional[Tuple[float, float]] = None,
-        efermi: Optional[Tuple[float, float]] = None,
+        exclude_elements: Optional[List[str]] = None,
+        formation_energy: Optional[Tuple[float, float]] = None,
+        formula: Optional[str] = None,
+        g_reuss: Optional[Tuple[float, float]] = None,
+        g_voigt: Optional[Tuple[float, float]] = None,
+        g_vrh: Optional[Tuple[float, float]] = None,
+        has_props: Optional[List[HasProps]] = None,
+        has_reconstructed: Optional[bool] = None,
         is_gap_direct: Optional[bool] = None,
         is_metal: Optional[bool] = None,
+        is_stable: Optional[bool] = None,
+        k_reuss: Optional[Tuple[float, float]] = None,
+        k_voigt: Optional[Tuple[float, float]] = None,
+        k_vrh: Optional[Tuple[float, float]] = None,
         magnetic_ordering: Optional[Ordering] = None,
+        material_ids: Optional[List[MPID]] = None,
+        n: Optional[Tuple[float, float]] = None,
+        nsites: Optional[Tuple[int, int]] = None,
+        num_magnetic_sites: Optional[Tuple[int, int]] = None,
+        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
+        piezoelectric_modulus: Optional[Tuple[float, float]] = None,
+        poisson_ratio: Optional[Tuple[float, float]] = None,
+        possible_species: Optional[List[str]] = None,
+        shape_factor: Optional[Tuple[float, float]] = None,
+        spacegroup_number: Optional[int] = None,
+        spacegroup_symbol: Optional[str] = None,
+        surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
+        theoretical: Optional[bool] = None,
+        total_energy: Optional[Tuple[float, float]] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_formula_units: Optional[
             Tuple[float, float]
         ] = None,
-        num_magnetic_sites: Optional[Tuple[int, int]] = None,
-        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
-        k_voigt: Optional[Tuple[float, float]] = None,
-        k_reuss: Optional[Tuple[float, float]] = None,
-        k_vrh: Optional[Tuple[float, float]] = None,
-        g_voigt: Optional[Tuple[float, float]] = None,
-        g_reuss: Optional[Tuple[float, float]] = None,
-        g_vrh: Optional[Tuple[float, float]] = None,
-        elastic_anisotropy: Optional[Tuple[float, float]] = None,
-        poisson_ratio: Optional[Tuple[float, float]] = None,
-        e_total: Optional[Tuple[float, float]] = None,
-        e_ionic: Optional[Tuple[float, float]] = None,
-        e_electronic: Optional[Tuple[float, float]] = None,
-        n: Optional[Tuple[float, float]] = None,
-        piezoelectric_modulus: Optional[Tuple[float, float]] = None,
+        total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
+        uncorrected_energy: Optional[Tuple[float, float]] = None,
+        volume: Optional[Tuple[float, float]] = None,
         weighted_surface_energy: Optional[Tuple[float, float]] = None,
         weighted_work_function: Optional[Tuple[float, float]] = None,
-        surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
-        shape_factor: Optional[Tuple[float, float]] = None,
-        has_reconstructed: Optional[bool] = None,
-        has_props: Optional[List[HasProps]] = None,
-        theoretical: Optional[bool] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -77,71 +77,66 @@ class SummaryRester(BaseRester[SummaryDoc]):
         Query core data using a variety of search criteria.
 
         Arguments:
-            material_ids (List[MPID]): List of Materials Project IDs to return data for.
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str, List[str]): A chemical system or list of chemical systems
-                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            elements (List[str]): A list of elements.
-            exclude_elements (List(str)): List of elements to exclude.
-            possible_species (List(str)): List of element symbols appended with oxidation states.
-                (e.g. Cr2+,O2-)
+            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
+            chemsys (str, List[str]): A chemical system, list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
             crystal_system (CrystalSystem): Crystal system of material.
-            spacegroup_number (int): Space group number of material.
-            spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
-            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider.
-            volume (Tuple[float,float]): Minimum and maximum volume to consider.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
-            total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
-            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
-                in eV/atom to consider.
-            formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
-            energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
-            uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
+            e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
+            e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
+            e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
+            elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for the elastic anisotropy.
+            elements (List[str]): A list of elements.
+            energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
+            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy in
+                eV/atom to consider.
+            exclude_elements (List(str)): List of elements to exclude.
+            formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
+            formula (str): A formula including anonomyzed formula or wild cards (e.g., Fe2O3, ABO3, Si*).
+            g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average
+                of the shear modulus.
+            g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt average
+                of the shear modulus.
+            g_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill
+                average of the shear modulus.
+            has_props: (List[HasProps]): The calculated properties available for the material.
+            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
+            k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average
+                of the bulk modulus.
+            k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt average
+                of the bulk modulus.
+            k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill
+                average of the bulk modulus.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
+            material_ids (List[MPID]): List of Materials Project IDs to return data for.
+            n (Tuple[float,float]): Minimum and maximum refractive index to consider.
+            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider.
+            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites to consider.
+            piezoelectric_modulus (Tuple[float,float]): Minimum and maximum piezoelectric modulus to consider.
+            poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for Poisson's ratio.
+            possible_species (List(str)): List of element symbols appended with oxidation states. (e.g. Cr2+,O2-)
+            shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
+            spacegroup_number (int): Space group number of material.
+            spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
+            surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values
+                to consider.
+            theoretical: (bool): Whether the material is theoretical.
+            total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
             total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.
-            total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values
-                normalized by volume to consider.
             total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
-            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
-            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
-                to consider.
-            k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Voigt average of the bulk modulus.
-            k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Reuss average of the bulk modulus.
-            k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Voigt-Reuss-Hill average of the bulk modulus.
-            g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Voigt average of the shear modulus.
-            g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Reuss average of the shear modulus.
-            g_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Voigt-Reuss-Hill average of the shear modulus.
-            elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for
-                the elastic anisotropy.
-            poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for
-                Poisson's ratio.
-            e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.
-            e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
-            e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
-            n (Tuple[float,float]): Minimum and maximum refractive index to consider.
-            piezoelectric_modulus (Tuple[float,float]): Minimum and maximum piezoelectric modulus to consider.
-            weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy in J/m² to
-                consider.
+            total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values
+                normalized by volume to consider.
+            uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
+            volume (Tuple[float,float]): Minimum and maximum volume to consider.
+            weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy
+                in J/m² to consider.
             weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.
-            surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values to
-                consider.
-            shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
-            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
-            has_props: (List[HasProps]): The calculated properties available for the material.
-            theoretical: (bool): Whether the material is theoretical.
             sort_fields (List[str]): Fields used to sort results. Prefixing with '-' will sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
