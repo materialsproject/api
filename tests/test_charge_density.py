@@ -37,7 +37,6 @@ def test_client(rester):
     if search_method is not None:
         # Get list of parameters
         param_tuples = list(typing.get_type_hints(search_method).items())
-        print(param_tuples)
 
         # Query API for each numeric and boolean parameter and check if returned
         for entry in param_tuples:

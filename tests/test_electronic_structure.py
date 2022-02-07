@@ -134,17 +134,13 @@ def test_bs_client(bs_rester):
             "num_chunks": 1,
         }
         doc = search_method(**q)[0].dict()
-        print(q)
-        print(doc)
+
         for sub_field in bs_sub_doc_fields:
             if sub_field in doc:
                 doc = doc[sub_field]
 
         if param != "path_type":
             doc = doc["setyawan_curtarolo"]
-
-        print("=====")
-        print(doc)
 
         assert doc[project_field if project_field is not None else param] is not None
 

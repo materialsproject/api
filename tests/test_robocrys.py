@@ -23,7 +23,6 @@ def test_client(rester):
         q = {"keywords": ["silicon"], "num_chunks": 1}
 
         doc = search_method(**q)[0]
-        print(doc)
 
         assert doc.description is not None
         assert doc.condensed_structure is not None
