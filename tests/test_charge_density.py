@@ -2,10 +2,15 @@ import os
 import pytest
 from mp_api.routes.charge_density import ChargeDensityRester
 
-import inspect
 import typing
 
-resters = [ChargeDensityRester()]
+
+@pytest.fixture
+def rester():
+    rester = ChargeDensityRester()
+    yield rester
+    rester.session.close()
+
 
 excluded_params = [
     "sort_fields",
@@ -13,6 +18,7 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
+    "return",
 ]
 
 sub_doc_fields = []  # type: list
@@ -25,17 +31,13 @@ custom_field_tests = {}  # type: dict
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
-@pytest.mark.parametrize("rester", resters)
 def test_client(rester):
-    # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         # Get list of parameters
         param_tuples = list(typing.get_type_hints(search_method).items())
+        print(param_tuples)
 
         # Query API for each numeric and boolean parameter and check if returned
         for entry in param_tuples:
@@ -83,8 +85,7 @@ def test_client(rester):
                 )
 
 
-def test_download_for_task_ids(tmpdir):
-    rester = resters[0]
+def test_download_for_task_ids(tmpdir, rester):
 
     n = rester.download_for_task_ids(
         task_ids=["mp-655585", "mp-1057373", "mp-1059589", "mp-1440634", "mp-1791788"],

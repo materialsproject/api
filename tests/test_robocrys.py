@@ -2,8 +2,6 @@ import os
 import pytest
 from mp_api.routes.robocrys import RobocrysRester
 
-import inspect
-import typing
 from pymatgen.core.periodic_table import Element
 
 
@@ -18,11 +16,7 @@ def rester():
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_client(rester):
-    # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
 

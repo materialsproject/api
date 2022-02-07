@@ -47,11 +47,7 @@ es_custom_field_tests = {
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_es_client(es_rester):
-    # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(es_rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = es_rester.search
 
     if search_method is not None:
         # Get list of parameters
@@ -127,10 +123,7 @@ def bs_rester():
 )
 def test_bs_client(bs_rester):
     # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(bs_rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = bs_rester.search
 
     # Query fields
     for param in bs_custom_field_tests:
@@ -180,11 +173,7 @@ def dos_rester():
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_dos_client(dos_rester):
-    # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(dos_rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = dos_rester.search
 
     # Query fields
     for param in dos_custom_field_tests:
