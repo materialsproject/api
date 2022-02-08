@@ -926,3 +926,15 @@ class MPRester:
             raise MPRestError(
                 "Charge density task_id found but no charge density fetched."
             )
+
+    def query(*args, **kwargs):
+        """
+            The MPRester().query method has been replaced with the MPRester().summary.search method.
+            Note this method also no longer supports direct MongoDB-type queries.
+        """
+        raise NotImplementedError(
+            """
+            The MPRester().query method has been replaced with the MPRester().summary.search method.
+            Note this method also no longer supports direct MongoDB-type queries.
+            """
+        )
