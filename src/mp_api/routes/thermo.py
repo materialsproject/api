@@ -14,15 +14,15 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
     def search(
         self,
-        material_ids: Optional[List[str]] = None,
-        formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
-        nelements: Optional[Tuple[int, int]] = None,
-        is_stable: Optional[bool] = None,
-        total_energy: Optional[Tuple[float, float]] = None,
-        formation_energy: Optional[Tuple[float, float]] = None,
         energy_above_hull: Optional[Tuple[float, float]] = None,
         equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
+        formation_energy: Optional[Tuple[float, float]] = None,
+        formula: Optional[str] = None,
+        is_stable: Optional[bool] = None,
+        material_ids: Optional[List[str]] = None,
+        nelements: Optional[Tuple[int, int]] = None,
+        total_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -34,18 +34,18 @@ class ThermoRester(BaseRester[ThermoDoc]):
         Query core material docs using a variety of search criteria.
 
         Arguments:
-            material_ids (List[str]): List of Materials Project IDs to return data for.
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            nelements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
-            is_stable (bool): Whether the material is stable.
-            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
-            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
             energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
             equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
+            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
+            formula (str): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            is_stable (bool): Whether the material is stable.
+            material_ids (List[str]): List of Materials Project IDs to return data for.
+            nelements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
+            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
             uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
                 energy in eV/atom to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.

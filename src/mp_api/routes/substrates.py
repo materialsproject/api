@@ -14,13 +14,13 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
 
     def search(
         self,
-        film_id: Optional[str] = None,
-        substrate_id: Optional[str] = None,
-        substrate_formula: Optional[str] = None,
-        film_orientation: Optional[List[int]] = None,
-        substrate_orientation: Optional[List[int]] = None,
         area: Optional[Tuple[float, float]] = None,
         energy: Optional[Tuple[float, float]] = None,
+        film_id: Optional[str] = None,
+        film_orientation: Optional[List[int]] = None,
+        substrate_id: Optional[str] = None,
+        substrate_formula: Optional[str] = None,
+        substrate_orientation: Optional[List[int]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -31,14 +31,14 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
         Query equations of state docs using a variety of search criteria.
 
         Arguments:
-            film_id (str): Materials Project ID of the film material.
-            substrate_id (str): Materials Project ID of the substrate material.
-            substrate_formula (str): Reduced formula of the substrate material.
-            film_orientation (List[int]): Vector indicating the surface orientation of the film material.
-            substrate_orientation (List[int]): Vector indicating the surface orientation of the substrate material.
             area (Tuple[float,float]): Minimum and maximum volume in Å² to consider for the minimim coincident
                 interface area range.
             energy (Tuple[float,float]): Minimum and maximum energy in meV to consider for the elastic energy range.
+            film_id (str): Materials Project ID of the film material.
+            film_orientation (List[int]): Vector indicating the surface orientation of the film material.
+            substrate_id (str): Materials Project ID of the substrate material.
+            substrate_formula (str): Reduced formula of the substrate material.
+            substrate_orientation (List[int]): Vector indicating the surface orientation of the substrate material.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.

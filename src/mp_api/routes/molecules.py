@@ -15,11 +15,11 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
 
     def search(
         self,
+        charge: Optional[Tuple[float, float]] = None,
         elements: Optional[List[Element]] = None,
-        nelements: Optional[Tuple[float, float]] = None,
         EA: Optional[Tuple[float, float]] = None,
         IE: Optional[Tuple[float, float]] = None,
-        charge: Optional[Tuple[float, float]] = None,
+        nelements: Optional[Tuple[float, float]] = None,
         pointgroup: Optional[str] = None,
         smiles: Optional[str] = None,
         sort_fields: Optional[List[str]] = None,
@@ -32,11 +32,12 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
         Query equations of state docs using a variety of search criteria.
 
         Arguments:
+            charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
+            elements (List[Element]): A list of elements.
             film_orientation (List[Elements]): List of elements that are in the molecule.
-            nelements (Tuple[float,float]): Minimum and maximum number of elements in the molecule to consider.
             EA (Tuple[float,float]): Minimum and maximum value of the electron affinity in eV to consider.
             IE (Tuple[float,float]): Minimum and maximum value of the ionization energy in eV to consider.
-            charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
+            nelements (Tuple[float,float]): Minimum and maximum number of elements in the molecule to consider.
             pointgroup (str): Point group of the molecule in Schoenflies notation.
             smiles (str): The simplified molecular input line-entry system (SMILES) representation of the molecule.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.

@@ -15,14 +15,14 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
 
     def search(
         self,
+        num_magnetic_sites: Optional[Tuple[int, int]] = None,
+        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         ordering: Optional[Ordering] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_formula_units: Optional[
             Tuple[float, float]
         ] = None,
-        num_magnetic_sites: Optional[Tuple[int, int]] = None,
-        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -33,15 +33,15 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         Query magnetism docs using a variety of search criteria.
 
         Arguments:
+            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
+                to consider.
             ordering (Ordering]): The magnetic ordering of the material.
             total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.
             total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values
                 normalized by volume to consider.
             total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
-            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
-            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
-                to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.

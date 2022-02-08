@@ -24,8 +24,8 @@ class TaskRester(BaseRester[TaskDoc]):
 
     def search(
         self,
-        formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
+        formula: Optional[str] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,

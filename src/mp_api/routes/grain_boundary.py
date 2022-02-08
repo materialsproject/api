@@ -14,16 +14,16 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
 
     def search(
         self,
-        material_ids: Optional[List[str]] = None,
+        chemsys: Optional[str] = None,
         gb_plane: Optional[List[str]] = None,
         gb_energy: Optional[Tuple[float, float]] = None,
-        separation_energy: Optional[Tuple[float, float]] = None,
+        material_ids: Optional[List[str]] = None,
+        pretty_formula: Optional[str] = None,
         rotation_axis: Optional[List[str]] = None,
         rotation_angle: Optional[Tuple[float, float]] = None,
+        separation_energy: Optional[Tuple[float, float]] = None,
         sigma: Optional[int] = None,
         type: Optional[GBTypeEnum] = None,
-        chemsys: Optional[str] = None,
-        pretty_formula: Optional[str] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -34,16 +34,17 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         Query grain boundary docs using a variety of search criteria.
 
         Arguments:
-            material_ids (List[str]): List of Materials Project IDs to query with.
+            chemsys (str): Dash-delimited string of elements in the material.
             gb_plane(List[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]
             gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.
-            separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.
+            material_ids (List[str]): List of Materials Project IDs to query with.
+            pretty_formula (str): Formula of the material.
             rotation_angle (Tuple[float,float]): Minimum and maximum rotation angle in degrees to consider.
             rotation_axis(List[str]): The Miller index of rotation axis. e.g., [1, 0, 0], [1, 1, 0], and [1, 1, 1]
                 sigma (int): Sigma value of grain boundary.
+            separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.
+            sigma (int): Sigma value of the boundary.
             type (GBTypeEnum): Grain boundary type.
-            chemsys (str): Dash-delimited string of elements in the material.
-            pretty_formula (str): Formula of the material.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.

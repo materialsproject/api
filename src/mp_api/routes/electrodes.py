@@ -13,22 +13,22 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
     def search(  # pragma: ignore
         self,
-        working_ion: Optional[Element] = None,
-        formula: Optional[str] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        max_delta_volume: Optional[Tuple[float, float]] = None,
         average_voltage: Optional[Tuple[float, float]] = None,
         capacity_grav: Optional[Tuple[float, float]] = None,
         capacity_vol: Optional[Tuple[float, float]] = None,
+        elements: Optional[List[str]] = None,
         energy_grav: Optional[Tuple[float, float]] = None,
         energy_vol: Optional[Tuple[float, float]] = None,
+        exclude_elements: Optional[List[str]] = None,
+        formula: Optional[str] = None,
         fracA_charge: Optional[Tuple[float, float]] = None,
         fracA_discharge: Optional[Tuple[float, float]] = None,
+        max_delta_volume: Optional[Tuple[float, float]] = None,
+        max_voltage_step: Optional[Tuple[float, float]] = None,
+        num_steps: Optional[Tuple[int, int]] = None,
         stability_charge: Optional[Tuple[float, float]] = None,
         stability_discharge: Optional[Tuple[float, float]] = None,
-        num_steps: Optional[Tuple[int, int]] = None,
-        max_voltage_step: Optional[Tuple[float, float]] = None,
+        working_ion: Optional[Element] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -39,28 +39,31 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         Query equations of state docs using a variety of search criteria.
 
         Arguments:
-            working_ion (Element): Element of the working ion.
-            formula (str): Chemical formula of the framework material.
-            elements (List[str]): A list of elements for the framework material.
-            exclude_elements (List[str]): A list of elements to exclude for the framework material.
-            max_delta_volume (Tuple[float,float]): Minimum and maximum value of the max volume change in percent for a
-                particular voltage step.
             average_voltage (Tuple[float,float]): Minimum and maximum value of the average voltage for a particular
-                voltage step in V.
-            max_voltage_step (Tuple[float,float]): Minimum and maximum value of the maximum voltage for a particular
                 voltage step in V.
             capacity_grav (Tuple[float,float]): Minimum and maximum value of the gravimetric capacity in maH/g.
             capacity_vol (Tuple[float,float]): Minimum and maximum value of the volumetric capacity in maH/cc.
+            elements (List[str]): A list of elements for the framework material.
             energy_grav (Tuple[float,float]): Minimum and maximum value of the gravimetric energy (specific energy)
                 in Wh/kg.
+            energy_vol (Tuple[float,float]): Minimum and maximum value of the volumetric energy (energy density)
+                in Wh/l.
+            exclude_elements (List[str]): A list of elements to exclude for the framework material.
+            formula (str): Chemical formula of the framework material.
             fracA_charge (Tuple[float,float]): Minimum and maximum value of the atomic fraction of the working ion
                 in the charged state.
             fracA_discharge (Tuple[float,float]): Minimum and maximum value of the atomic fraction of the working ion
                 in the discharged state.
+            max_delta_volume (Tuple[float,float]): Minimum and maximum value of the max volume change in percent for a
+                particular voltage step.
+            max_voltage_step (Tuple[float,float]): Minimum and maximum value of the maximum voltage for a particular
+                voltage step in V.
+            num_steps (int): Number of distinct voltage steps from charged to discharged based on stable intermediates.
             stability_charge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the charged
                 material.
             stability_discharge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the
                 discharged material.
+            working_ion (Element): Element of the working ion.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.

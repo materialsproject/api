@@ -42,18 +42,18 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
 
     def search(
         self,
-        formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        task_ids: Optional[List[str]] = None,
         crystal_system: Optional[CrystalSystem] = None,
-        spacegroup_number: Optional[int] = None,
-        spacegroup_symbol: Optional[str] = None,
-        nsites: Optional[Tuple[int, int]] = None,
-        volume: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
         deprecated: Optional[bool] = False,
+        elements: Optional[List[str]] = None,
+        exclude_elements: Optional[List[str]] = None,
+        formula: Optional[str] = None,
+        nsites: Optional[Tuple[int, int]] = None,
+        spacegroup_number: Optional[int] = None,
+        spacegroup_symbol: Optional[str] = None,
+        task_ids: Optional[List[str]] = None,
+        volume: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -64,20 +64,20 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         Query core material docs using a variety of search criteria.
 
         Arguments:
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            elements (List[str]): A list of elements.
-            exclude_elements (List[str]): A list of elements to exclude.
-            task_ids (List[str]): List of Materials Project IDs to return data for.
             crystal_system (CrystalSystem): Crystal system of material.
-            spacegroup_number (int): Space group number of material.
-            spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
-            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider.
-            volume (Tuple[float,float]): Minimum and maximum volume to consider.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
+            elements (List[str]): A list of elements.
+            exclude_elements (List[str]): A list of elements to exclude.
+            formula (str): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider.
+            spacegroup_number (int): Space group number of material.
+            spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
+            task_ids (List[str]): List of Materials Project IDs to return data for.
+            volume (Tuple[float,float]): Minimum and maximum volume to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.

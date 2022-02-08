@@ -13,8 +13,8 @@ class EOSRester(BaseRester[EOSDoc]):
 
     def search(
         self,
-        volumes: Optional[Tuple[float, float]] = None,
         energies: Optional[Tuple[float, float]] = None,
+        volumes: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -25,8 +25,8 @@ class EOSRester(BaseRester[EOSDoc]):
         Query equations of state docs using a variety of search criteria.
 
         Arguments:
-            volumes (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
             energies (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
+            volumes (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.

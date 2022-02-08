@@ -350,7 +350,7 @@ class BaseRester(Generic[T]):
                     criteria[parallel_param].split(",")[i : (i + slice_size)]
                     for i in range(0, param_length, slice_size)
                 )
-                if entry != []
+                if not entry
             ]
 
             # Get new limit values that sum to chunk_size
@@ -582,7 +582,7 @@ class BaseRester(Generic[T]):
         ) as executor:
 
             # Get list of initial futures defined by max number of parallel requests
-            futures = set({})
+            futures = set()
             for params in itertools.islice(
                 params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
             ):

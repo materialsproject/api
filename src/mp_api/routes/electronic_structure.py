@@ -20,15 +20,15 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
     def search(
         self,
-        formula: Optional[str] = None,
+        band_gap: Optional[Tuple[float, float]] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
+        efermi: Optional[Tuple[float, float]] = None,
         elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
-        band_gap: Optional[Tuple[float, float]] = None,
-        efermi: Optional[Tuple[float, float]] = None,
-        magnetic_ordering: Optional[Ordering] = None,
+        formula: Optional[str] = None,
         is_gap_direct: bool = None,
         is_metal: bool = None,
+        magnetic_ordering: Optional[Ordering] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -39,17 +39,17 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         Query electronic structure docs using a variety of search criteria.
 
         Arguments:
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
+            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
             elements (List[str]): A list of elements.
             exclude_elements (List[str]): A list of elements to exclude.
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
-            magnetic_ordering (Ordering): Magnetic ordering of the material.
+            formula (str): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*).
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
+            magnetic_ordering (Ordering): Magnetic ordering of the material.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -122,12 +122,12 @@ class BandStructureRester(BaseRester):
 
     def search(
         self,
-        path_type: BSPathType = BSPathType.setyawan_curtarolo,
         band_gap: Optional[Tuple[float, float]] = None,
         efermi: Optional[Tuple[float, float]] = None,
-        magnetic_ordering: Optional[Ordering] = None,
         is_gap_direct: bool = None,
         is_metal: bool = None,
+        magnetic_ordering: Optional[Ordering] = None,
+        path_type: BSPathType = BSPathType.setyawan_curtarolo,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -138,12 +138,12 @@ class BandStructureRester(BaseRester):
         Query band structure summary data in electronic structure docs using a variety of search criteria.
 
         Arguments:
-            path_type (BSPathType): k-path selection convention for the band structure.
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
-            magnetic_ordering (Ordering): Magnetic ordering of the material.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
+            magnetic_ordering (Ordering): Magnetic ordering of the material.
+            path_type (BSPathType): k-path selection convention for the band structure.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -281,13 +281,13 @@ class DosRester(BaseRester):
 
     def search(
         self,
-        projection_type: DOSProjectionType = DOSProjectionType.total,
-        spin: Spin = Spin.up,
-        element: Optional[Element] = None,
-        orbital: Optional[OrbitalType] = None,
         band_gap: Optional[Tuple[float, float]] = None,
         efermi: Optional[Tuple[float, float]] = None,
+        element: Optional[Element] = None,
         magnetic_ordering: Optional[Ordering] = None,
+        orbital: Optional[OrbitalType] = None,
+        projection_type: DOSProjectionType = DOSProjectionType.total,
+        spin: Spin = Spin.up,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -297,13 +297,13 @@ class DosRester(BaseRester):
         Query density of states summary data in electronic structure docs using a variety of search criteria.
 
         Arguments:
-            projection_type (DOSProjectionType): Projection type of dos data. Default is the total dos.
-            spin (Spin): Spin channel of dos data. If non spin-polarized data is stored in Spin.up
-            element (Element): Element for element-projected dos data.
-            orbital (OrbitalType): Orbital for orbital-projected dos data.
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
+            element (Element): Element for element-projected dos data.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
+            orbital (OrbitalType): Orbital for orbital-projected dos data.
+            projection_type (DOSProjectionType): Projection type of dos data. Default is the total dos.
+            spin (Spin): Spin channel of dos data. If non spin-polarized data is stored in Spin.up
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
