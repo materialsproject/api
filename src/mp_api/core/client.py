@@ -25,7 +25,7 @@ from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
 from monty.json import MontyDecoder
 from mp_api.core.settings import MAPIClientSettings
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 from tqdm.auto import tqdm
@@ -636,7 +636,8 @@ class BaseRester(Generic[T]):
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-                data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+                raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+                data["data"] = self._generate_returned_model(raw_doc_list)
 
             meta_total_doc_num = data.get("meta", {}).get("total_doc", 1)
 
@@ -662,6 +663,40 @@ class BaseRester(Generic[T]):
                 f"REST query returned with error status code {response.status_code} "
                 f"on URL {response.url} with message:\n{message}"
             )
+
+    def _generate_returned_model(self, data):
+
+        new_data = []
+
+        for doc in data:
+            set_data = {
+                field: value
+                for field, value in doc
+                if field in doc.dict(exclude_unset=True)
+            }
+            unset_fields = [field for field in doc.__fields__ if field not in set_data]
+            endpoint = self.suffix
+
+            data_model = create_model(
+                "MPDataEntry",
+                endpoint=endpoint,
+                fields_not_requested=unset_fields,
+                __base__=self.document_model,
+            )
+
+            data_model.__fields__ = {
+                "endpoint": data_model.__fields__["endpoint"],
+                **{
+                    name: description
+                    for name, description in data_model.__fields__.items()
+                    if name in set_data
+                },
+                "fields_not_requested": data_model.__fields__["fields_not_requested"],
+            }
+
+            new_data.append(data_model(**set_data))
+
+        return new_data
 
     def _query_resource_data(
         self,
