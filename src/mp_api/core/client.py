@@ -350,7 +350,7 @@ class BaseRester(Generic[T]):
                     criteria[parallel_param].split(",")[i : (i + slice_size)]
                     for i in range(0, param_length, slice_size)
                 )
-                if not entry
+                if entry != []
             ]
 
             # Get new limit values that sum to chunk_size
