@@ -44,3 +44,7 @@ class MAPIClientSettings(BaseSettings):
     )
 
     MAX_RETRIES: int = Field(3, description="Maximum number of retries for requests.")
+
+    MUTE_PROGRESS_BARS: bool = Field(
+        False, description="Whether to mute progress bars when data is retrieved.",
+    )
