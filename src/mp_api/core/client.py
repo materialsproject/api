@@ -683,11 +683,9 @@ class BaseRester(Generic[T]):
                 if field in doc.dict(exclude_unset=True)
             }
             unset_fields = [field for field in doc.__fields__ if field not in set_data]
-            endpoint = self.suffix
 
             data_model = create_model(
                 "MPDataEntry",
-                endpoint=endpoint,
                 fields_not_requested=unset_fields,
                 __base__=self.document_model,
             )
@@ -701,6 +699,16 @@ class BaseRester(Generic[T]):
                 },
                 "fields_not_requested": data_model.__fields__["fields_not_requested"],
             }
+
+            def new_repr(self) -> str:
+                extra = ", ".join(
+                    f"{n}={getattr(self, n)!r}"
+                    for n in self.__fields__
+                    if getattr(self, n) is not None
+                )
+                return f"{self.__class__.__name__}<{self.__class__.__base__.__name__}>({extra})"
+
+            data_model.__repr__ = new_repr
 
             new_data.append(data_model(**set_data))
 
