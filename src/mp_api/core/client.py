@@ -691,7 +691,6 @@ class BaseRester(Generic[T]):
             )
 
             data_model.__fields__ = {
-                "endpoint": data_model.__fields__["endpoint"],
                 **{
                     name: description
                     for name, description in data_model.__fields__.items()
