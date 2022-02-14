@@ -49,7 +49,8 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
         formula: Optional[str] = None,
-        nsites: Optional[Tuple[int, int]] = None,
+        num_elements: Optional[Tuple[int, int]] = None,
+        num_sites: Optional[Tuple[int, int]] = None,
         spacegroup_number: Optional[int] = None,
         spacegroup_symbol: Optional[str] = None,
         task_ids: Optional[List[str]] = None,
@@ -73,7 +74,8 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             exclude_elements (List[str]): A list of elements to exclude.
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider.
+            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
             spacegroup_number (int): Space group number of material.
             spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
             task_ids (List[str]): List of Materials Project IDs to return data for.
@@ -117,8 +119,15 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             }
         )
 
-        if nsites:
-            query_params.update({"nsites_min": nsites[0], "nsites_max": nsites[1]})
+        if num_sites:
+            query_params.update(
+                {"nsites_min": num_sites[0], "nsites_max": num_sites[1]}
+            )
+
+        if num_elements:
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})

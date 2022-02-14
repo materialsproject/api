@@ -29,6 +29,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         is_gap_direct: bool = None,
         is_metal: bool = None,
         magnetic_ordering: Optional[Ordering] = None,
+        num_elements: Optional[Tuple[int, int]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -50,6 +51,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
+            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -88,6 +90,11 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
         if magnetic_ordering:
             query_params.update({"magnetic_ordering": magnetic_ordering.value})
+
+        if num_elements:
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if is_gap_direct is not None:
             query_params.update({"is_gap_direct": is_gap_direct})

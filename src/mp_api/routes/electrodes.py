@@ -25,6 +25,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         fracA_discharge: Optional[Tuple[float, float]] = None,
         max_delta_volume: Optional[Tuple[float, float]] = None,
         max_voltage_step: Optional[Tuple[float, float]] = None,
+        num_elements: Optional[Tuple[int, int]] = None,
         num_steps: Optional[Tuple[int, int]] = None,
         stability_charge: Optional[Tuple[float, float]] = None,
         stability_discharge: Optional[Tuple[float, float]] = None,
@@ -58,6 +59,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
                 particular voltage step.
             max_voltage_step (Tuple[float,float]): Minimum and maximum value of the maximum voltage for a particular
                 voltage step in V.
+            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
             num_steps (int): Number of distinct voltage steps from charged to discharged based on stable intermediates.
             stability_charge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the charged
                 material.
@@ -84,6 +86,11 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
         if elements:
             query_params.update({"elements": ",".join(elements)})
+
+        if num_elements:
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if exclude_elements:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})

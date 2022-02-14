@@ -21,7 +21,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         formula: Optional[str] = None,
         is_stable: Optional[bool] = None,
         material_ids: Optional[List[str]] = None,
-        nelements: Optional[Tuple[int, int]] = None,
+        num_elements: Optional[Tuple[int, int]] = None,
         total_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
@@ -44,7 +44,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             is_stable (bool): Whether the material is stable.
             material_ids (List[str]): List of Materials Project IDs to return data for.
-            nelements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
+            num_elements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
             total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
             uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
                 energy in eV/atom to consider.
@@ -73,9 +73,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
         if material_ids:
             query_params.update({"material_ids": ",".join(material_ids)})
 
-        if nelements:
+        if num_elements:
             query_params.update(
-                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
             )
 
         if is_stable is not None:

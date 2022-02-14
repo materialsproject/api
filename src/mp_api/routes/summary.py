@@ -46,7 +46,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
         magnetic_ordering: Optional[Ordering] = None,
         material_ids: Optional[List[MPID]] = None,
         n: Optional[Tuple[float, float]] = None,
-        nsites: Optional[Tuple[int, int]] = None,
+        num_elements: Optional[Tuple[int, int]] = None,
+        num_sites: Optional[Tuple[int, int]] = None,
         num_magnetic_sites: Optional[Tuple[int, int]] = None,
         num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         piezoelectric_modulus: Optional[Tuple[float, float]] = None,
@@ -114,7 +115,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             magnetic_ordering (Ordering): Magnetic ordering of the material.
             material_ids (List[MPID]): List of Materials Project IDs to return data for.
             n (Tuple[float,float]): Minimum and maximum refractive index to consider.
-            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider.
+            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
             num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
             num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites to consider.
             piezoelectric_modulus (Tuple[float,float]): Minimum and maximum piezoelectric modulus to consider.
@@ -178,6 +180,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             "e_ionic": "e_ionic",
             "e_electronic": "e_electronic",
             "n": "n",
+            "num_sites": "nsites",
+            "num_elements": "nelements",
             "piezoelectric_modulus": "e_ij_max",
             "weighted_surface_energy": "weighted_surface_energy",
             "weighted_work_function": "weighted_work_function",
