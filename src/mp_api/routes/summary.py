@@ -31,7 +31,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
         exclude_elements: Optional[List[str]] = None,
         formation_energy: Optional[Tuple[float, float]] = None,
-        formula: Optional[str] = None,
+        formula: Optional[Union[str, List[str]]] = None,
         g_reuss: Optional[Tuple[float, float]] = None,
         g_voigt: Optional[Tuple[float, float]] = None,
         g_vrh: Optional[Tuple[float, float]] = None,
@@ -95,7 +95,9 @@ class SummaryRester(BaseRester[SummaryDoc]):
                 eV/atom to consider.
             exclude_elements (List(str)): List of elements to exclude.
             formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
-            formula (str): A formula including anonomyzed formula or wild cards (e.g., Fe2O3, ABO3, Si*).
+            formula (str, List[str]): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
+                (e.g., [Fe2O3, ABO3]).
             g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average
                 of the shear modulus.
             g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt average
@@ -205,7 +207,10 @@ class SummaryRester(BaseRester[SummaryDoc]):
             query_params.update({"deprecated": deprecated})
 
         if formula:
-            query_params.update({"formula": formula})
+            if isinstance(formula, str):
+                formula = [formula]
+
+            query_params.update({"formula": ",".join(formula)})
 
         if chemsys:
             if isinstance(chemsys, str):

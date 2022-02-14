@@ -25,7 +25,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         efermi: Optional[Tuple[float, float]] = None,
         elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
-        formula: Optional[str] = None,
+        formula: Optional[Union[str, List[str]]] = None,
         is_gap_direct: bool = None,
         is_metal: bool = None,
         magnetic_ordering: Optional[Ordering] = None,
@@ -46,8 +46,9 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
             elements (List[str]): A list of elements.
             exclude_elements (List[str]): A list of elements to exclude.
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            formula (str, List[str]): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
+                (e.g., [Fe2O3, ABO3]).
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
@@ -66,7 +67,10 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         query_params = defaultdict(dict)  # type: dict
 
         if formula:
-            query_params.update({"formula": formula})
+            if isinstance(formula, str):
+                formula = [formula]
+
+            query_params.update({"formula": ",".join(formula)})
 
         if chemsys:
             if isinstance(chemsys, str):

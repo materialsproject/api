@@ -48,7 +48,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         deprecated: Optional[bool] = False,
         elements: Optional[List[str]] = None,
         exclude_elements: Optional[List[str]] = None,
-        formula: Optional[str] = None,
+        formula: Optional[Union[str, List[str]]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
         num_sites: Optional[Tuple[int, int]] = None,
         spacegroup_number: Optional[int] = None,
@@ -72,8 +72,9 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             deprecated (bool): Whether the material is tagged as deprecated.
             elements (List[str]): A list of elements.
             exclude_elements (List[str]): A list of elements to exclude.
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            formula (str, List[str]): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
+                (e.g., [Fe2O3, ABO3]).
             num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
             num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
             spacegroup_number (int): Space group number of material.
@@ -94,7 +95,10 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         query_params = {"deprecated": deprecated}  # type: dict
 
         if formula:
-            query_params.update({"formula": formula})
+            if isinstance(formula, str):
+                formula = [formula]
+
+            query_params.update({"formula": ",".join(formula)})
 
         if chemsys:
             if isinstance(chemsys, str):
