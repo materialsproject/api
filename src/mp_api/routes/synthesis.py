@@ -58,6 +58,9 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
         condition_mixing_device = condition_mixing_device or None
         condition_mixing_media = condition_mixing_media or None
 
+        if keywords:
+            keywords = ",".join([word.strip() for word in keywords])  # type: ignore
+
         synthesis_docs = self._query_resource(
             criteria={
                 "keywords": keywords,
