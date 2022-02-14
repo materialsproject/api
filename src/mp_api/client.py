@@ -186,7 +186,7 @@ class MPRester:
                 task for task, calc_type in tasks.items() if calc_type in calc_types
             ]
         else:
-            return list(tasks.values())
+            return list(tasks.keys())
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
