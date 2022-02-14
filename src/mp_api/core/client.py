@@ -701,9 +701,7 @@ class BaseRester(Generic[T]):
 
             def new_repr(self) -> str:
                 extra = ", ".join(
-                    f"{n}={getattr(self, n)!r}"
-                    for n in self.__fields__
-                    if getattr(self, n) is not None
+                    f"{n}={getattr(self, n)!r}" for n in data_model.__fields__
                 )
                 return f"{self.__class__.__name__}<{self.__class__.__base__.__name__}>({extra})"
 
