@@ -235,7 +235,7 @@ class MPRester:
         """
         return get(url=self.endpoint + "/heartbeat").json()["db_version"]
 
-    def get_materials_id_from_task_id(self, task_id: str) -> Union[str, None]:
+    def get_material_id_from_task_id(self, task_id: str) -> Union[str, None]:
         """
         Returns the current material_id from a given task_id. The
         material_id should rarely change, and is usually chosen from
@@ -262,9 +262,16 @@ class MPRester:
             )
             return None
 
-    def get_materials_id_references(self, material_id: str) -> List[str]:
+    def get_materials_id_from_task_id(self, task_id: str) -> Union[str, None]:
+        warnings.warn(
+            "This method is deprecated, please use get_material_id_from_task_id.",
+            DeprecationWarning,
+        )
+        return self.get_material_id_from_task_id(task_id)
+
+    def get_material_id_references(self, material_id: str) -> List[str]:
         """
-        Returns all references for a materials id.
+        Returns all references for a material id.
 
         Args:
             material_id (str): A material id.
@@ -274,7 +281,14 @@ class MPRester:
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
+    def get_materials_id_references(self, material_id: str) -> List[str]:
+        warnings.warn(
+            "This method is deprecated, please use get_material_id_references instead.",
+            DeprecationWarning,
+        )
+        return self.get_materials_id_references(material_id)
+
+    def get_material_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
         """
         Get all materials ids for a formula or chemsys.
 
@@ -299,6 +313,13 @@ class MPRester:
                 **input_params, all_fields=False, fields=["material_id"],  # type: ignore
             )
         )
+
+    def get_materials_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
+        warnings.warn(
+            "This method is deprecated, please use get_material_ids.",
+            DeprecationWarning,
+        )
+        return self.get_material_ids(chemsys_formula)
 
     def get_structures(
         self, chemsys_formula: Union[str, List[str]], final=True
