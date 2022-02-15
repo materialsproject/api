@@ -1,7 +1,7 @@
 from pymatgen.core.periodic_table import Element
 from mp_api.core.client import BaseRester
 from emmet.core.electrode import InsertionElectrodeDoc
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union
 from collections import defaultdict
 
 
@@ -20,7 +20,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         energy_grav: Optional[Tuple[float, float]] = None,
         energy_vol: Optional[Tuple[float, float]] = None,
         exclude_elements: Optional[List[str]] = None,
-        formula: Optional[str] = None,
+        formula: Optional[Union[str, List[str]]] = None,
         fracA_charge: Optional[Tuple[float, float]] = None,
         fracA_discharge: Optional[Tuple[float, float]] = None,
         max_delta_volume: Optional[Tuple[float, float]] = None,
@@ -50,7 +50,8 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             energy_vol (Tuple[float,float]): Minimum and maximum value of the volumetric energy (energy density)
                 in Wh/l.
             exclude_elements (List[str]): A list of elements to exclude for the framework material.
-            formula (str): Chemical formula of the framework material.
+            formula (str, List[str]): Chemical formula or list of chemical formulas of any of the materials associated with
+                the electrode system. This includes materials partially along the charge-discharge path.
             fracA_charge (Tuple[float,float]): Minimum and maximum value of the atomic fraction of the working ion
                 in the charged state.
             fracA_discharge (Tuple[float,float]): Minimum and maximum value of the atomic fraction of the working ion
@@ -65,7 +66,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
                 material.
             stability_discharge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the
                 discharged material.
-            working_ion (Element): Element of the working ion.
+            working_ion (Element, List[Element]): Element or list of elements of the working ion.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -79,10 +80,18 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         query_params = defaultdict(dict)  # type: dict
 
         if working_ion:
-            query_params.update({"working_ion": str(working_ion)})
+            if isinstance(working_ion, str) or isinstance(working_ion, Element):
+                working_ion = [working_ion]  # type: ignore
+
+            query_params.update(
+                {"working_ion": ",".join([str(ele) for ele in working_ion])}  # type: ignore
+            )
 
         if formula:
-            query_params.update({"formula": formula})
+            if isinstance(formula, str):
+                formula = [formula]
+
+            query_params.update({"formula": ",".join(formula)})
 
         if elements:
             query_params.update({"elements": ",".join(elements)})

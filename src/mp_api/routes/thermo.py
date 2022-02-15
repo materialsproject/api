@@ -18,7 +18,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         energy_above_hull: Optional[Tuple[float, float]] = None,
         equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
         formation_energy: Optional[Tuple[float, float]] = None,
-        formula: Optional[str] = None,
+        formula: Optional[Union[str, List[str]]] = None,
         is_stable: Optional[bool] = None,
         material_ids: Optional[List[str]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
@@ -40,8 +40,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
             equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
             formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
+            formula (str, List[str]): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
+                (e.g., [Fe2O3, ABO3]).
             is_stable (bool): Whether the material is stable.
             material_ids (List[str]): List of Materials Project IDs to return data for.
             num_elements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
@@ -62,7 +63,10 @@ class ThermoRester(BaseRester[ThermoDoc]):
         query_params = defaultdict(dict)  # type: dict
 
         if formula:
-            query_params.update({"formula": formula})
+            if isinstance(formula, str):
+                formula = [formula]
+
+            query_params.update({"formula": ",".join(formula)})
 
         if chemsys:
             if isinstance(chemsys, str):
