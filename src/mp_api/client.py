@@ -960,11 +960,13 @@ class MPRester:
     def query(*args, **kwargs):
         """
             The MPRester().query method has been replaced with the MPRester().summary.search method.
-            Note this method also no longer supports direct MongoDB-type queries.
+            Note this method also no longer supports direct MongoDB-type queries. For more information,
+            please see the new documentation.
         """
         raise NotImplementedError(
             """
             The MPRester().query method has been replaced with the MPRester().summary.search method.
-            Note this method also no longer supports direct MongoDB-type queries.
+            Note this method also no longer supports direct MongoDB-type queries. For more information,
+            please see the new documentation.
             """
         )
