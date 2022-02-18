@@ -490,7 +490,7 @@ class MPRester:
         ion_data = self.get_ion_reference_data_for_chemsys(chemsys)
 
         # build the PhaseDiagram for get_ion_entries
-        ion_ref_comps = [Ion.from_formula(d["formula"]).composition for d in ion_data]
+        ion_ref_comps = [Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data]
         ion_ref_elts = list(
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
