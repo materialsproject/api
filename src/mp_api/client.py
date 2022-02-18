@@ -263,6 +263,9 @@ class MPRester:
             return None
 
     def get_materials_id_from_task_id(self, task_id: str) -> Union[str, None]:
+        """
+        This method is deprecated, please use get_material_id_from_task_id.
+        """
         warnings.warn(
             "This method is deprecated, please use get_material_id_from_task_id.",
             DeprecationWarning,
@@ -282,6 +285,9 @@ class MPRester:
         return self.provenance.get_data_by_id(material_id).references
 
     def get_materials_id_references(self, material_id: str) -> List[str]:
+        """
+        This method is deprecated, please use get_material_id_references.
+        """
         warnings.warn(
             "This method is deprecated, please use get_material_id_references instead.",
             DeprecationWarning,
@@ -315,6 +321,9 @@ class MPRester:
         )
 
     def get_materials_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
+        """
+        This method is deprecated, please use get_material_ids.
+        """
         warnings.warn(
             "This method is deprecated, please use get_material_ids.",
             DeprecationWarning,
