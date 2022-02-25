@@ -587,7 +587,11 @@ class BaseRester(Generic[T]):
                 params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
             ):
 
-                future = executor.submit(self._submit_request_and_process, use_document_model=use_document_model, **params)
+                future = executor.submit(
+                    self._submit_request_and_process,
+                    use_document_model=use_document_model,
+                    **params,
+                )
                 setattr(future, "crit_ind", params_ind)
                 futures.add(future)
                 params_ind += 1
@@ -604,7 +608,11 @@ class BaseRester(Generic[T]):
 
                 # Populate more futures to replace finished
                 for params in itertools.islice(params_gen, len(finished)):
-                    new_future = executor.submit(self._submit_request_and_process, use_document_model=use_document_model, **params)
+                    new_future = executor.submit(
+                        self._submit_request_and_process,
+                        use_document_model=use_document_model,
+                        **params,
+                    )
                     setattr(new_future, "crit_ind", params_ind)
                     futures.add(new_future)
                     params_ind += 1
@@ -626,7 +634,7 @@ class BaseRester(Generic[T]):
         Returns:
             Tuple with data and total number of docs in matching the query in the database.
         """
-        
+
         response = self.session.get(url=url, verify=verify, params=params)
 
         if response.status_code == 200:
