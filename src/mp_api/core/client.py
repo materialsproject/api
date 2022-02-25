@@ -587,7 +587,7 @@ class BaseRester(Generic[T]):
                 params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
             ):
 
-                future = executor.submit(self.session.get, **params)
+                future = executor.submit(self._submit_request_and_process, use_document_model=use_document_model, **params)
                 setattr(future, "crit_ind", params_ind)
                 futures.add(future)
                 params_ind += 1
@@ -597,34 +597,37 @@ class BaseRester(Generic[T]):
                 finished, futures = wait(futures, return_when=FIRST_COMPLETED)
 
                 for future in finished:
-                    response = future.result()
-                    data, subtotal = self._handle_response(response, use_document_model)
+                    data, subtotal = future.result()
                     if progress_bar is not None:
                         progress_bar.update(len(data["data"]))
                     return_data.append((data, subtotal, future.crit_ind))  # type: ignore
 
                 # Populate more futures to replace finished
                 for params in itertools.islice(params_gen, len(finished)):
-                    new_future = executor.submit(self.session.get, **params)
+                    new_future = executor.submit(self._submit_request_and_process, use_document_model=use_document_model, **params)
                     setattr(new_future, "crit_ind", params_ind)
                     futures.add(new_future)
                     params_ind += 1
 
         return return_data
 
-    def _handle_response(
-        self, response: requests.Response, use_document_model: bool
+    def _submit_request_and_process(
+        self, url: str, verify: bool, params: dict, use_document_model: bool
     ) -> Tuple[Dict, int]:
         """
-        Handles resolved requests.
+        Submits GET request and handles the response.
 
         Arguments:
-            response: response from request
+            url: URL to send request to
+            verify: whether to verify the server's TLS certificate
+            params: dictionary of parameters to send in the request
             use_document_model: if None, will defer to the self.use_document_model attribute
 
         Returns:
             Tuple with data and total number of docs in matching the query in the database.
         """
+        
+        response = self.session.get(url=url, verify=verify, params=params)
 
         if response.status_code == 200:
 
