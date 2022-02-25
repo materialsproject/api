@@ -85,6 +85,7 @@ def test_filters_temperature_range(rester):
         docs: List[SynthesisRecipe] = search_method(
             condition_heating_temperature_min=700,
             condition_heating_temperature_max=1000,
+            num_chunks=5,
         )
         for doc in docs:
             for op in doc.operations:
@@ -105,7 +106,7 @@ def test_filters_time_range(rester):
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_heating_time_min=7, condition_heating_time_max=11,
+            condition_heating_time_min=7, condition_heating_time_max=11, num_chunks=5
         )
         for doc in docs:
             for op in doc.operations:
@@ -125,7 +126,7 @@ def test_filters_atmosphere(rester):
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_heating_atmosphere=["air", "O2"],
+            condition_heating_atmosphere=["air", "O2"], num_chunks=5,
         )
         for doc in docs:
             found = False
@@ -147,7 +148,7 @@ def test_filters_mixing_device(rester):
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_mixing_device=["zirconia", "Al2O3"],
+            condition_mixing_device=["zirconia", "Al2O3"], num_chunks=5,
         )
         for doc in docs:
             found = False
@@ -168,7 +169,7 @@ def test_filters_mixing_media(rester):
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_mixing_media=["water", "alcohol"],
+            condition_mixing_media=["water", "alcohol"], num_chunks=5,
         )
         for doc in docs:
             found = False
