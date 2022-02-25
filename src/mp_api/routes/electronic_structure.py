@@ -244,7 +244,16 @@ class BandStructureRester(BaseRester):
         if line_mode:
             bs_data = es_rester.get_data_by_id(
                 document_id=material_id, fields=["bandstructure"]
-            ).bandstructure.dict()
+            ).bandstructure
+
+            if bs_data is None:
+                raise MPRestError(
+                    "No {} band structure data found for {}".format(
+                        path_type.value, material_id
+                    )
+                )
+            else:
+                bs_data = bs_data.dict()
 
             if bs_data.get(path_type.value, None):
                 bs_task_id = bs_data[path_type.value]["task_id"]
@@ -257,7 +266,14 @@ class BandStructureRester(BaseRester):
         else:
             bs_data = es_rester.get_data_by_id(
                 document_id=material_id, fields=["dos"]
-            ).dos.dict()
+            ).dos
+
+            if bs_data is None:
+                raise MPRestError(
+                    "No uniform band structure data found for {}".format(material_id)
+                )
+            else:
+                bs_data = bs_data.dict()
 
             if bs_data.get("total", None):
                 bs_task_id = bs_data["total"]["1"]["task_id"]
