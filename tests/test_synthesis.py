@@ -106,7 +106,7 @@ def test_filters_time_range(rester):
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_heating_time_min=7, condition_heating_time_max=11, num_chunks=5,
+            condition_heating_time_min=7, condition_heating_time_max=11, num_chunks=5
         )
         for doc in docs:
             for op in doc.operations:
