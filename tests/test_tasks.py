@@ -97,7 +97,7 @@ def test_client(rester):
                 )
 
 
-def test_get_trajectories(resters):
+def test_get_trajectories():
 
     trajectories = resters[0].get_trajectory("mp-149")
 
