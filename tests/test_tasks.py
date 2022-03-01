@@ -97,9 +97,9 @@ def test_client(rester):
                 )
 
 
-def test_get_trajectories(rester):
+def test_get_trajectories(resters):
 
-    trajectories = rester.get_trajectory("mp-149")
+    trajectories = resters[0].get_trajectory("mp-149")
 
     for traj in trajectories:
         assert isinstance(traj, Trajectory)
