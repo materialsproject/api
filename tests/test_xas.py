@@ -15,7 +15,7 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
-    "task_ids",
+    "material_ids",
 ]
 
 sub_doc_fields = []  # type: list
