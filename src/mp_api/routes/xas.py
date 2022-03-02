@@ -18,7 +18,7 @@ class XASRester(BaseRester[XASDoc]):
         formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
         elements: Optional[List[str]] = None,
-        task_ids: Optional[List[str]] = None,
+        material_ids: Optional[List[str]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -35,7 +35,7 @@ class XASRester(BaseRester[XASDoc]):
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
-            task_ids (List[str]): List of Materials Project IDs to return data for.
+            material_ids (List[str]): List of Materials Project IDs to return data for.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -66,8 +66,8 @@ class XASRester(BaseRester[XASDoc]):
         if elements:
             query_params.update({"elements": ",".join(elements)})
 
-        if task_ids is not None:
-            query_params["task_ids"] = ",".join(task_ids)
+        if material_ids is not None:
+            query_params["material_ids"] = ",".join(material_ids)
 
         if sort_fields:
             query_params.update(
