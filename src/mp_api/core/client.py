@@ -476,9 +476,13 @@ class BaseRester(Generic[T]):
         num_docs_needed = min((max_pages * chunk_size), total_num_docs)
 
         # Setup progress bar
-        pbar = tqdm(
-            desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
-            total=num_docs_needed,
+        pbar = (
+            tqdm(
+                desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
+                total=num_docs_needed,
+            )
+            if not MAPIClientSettings().MUTE_PROGRESS_BARS
+            else None
         )
 
         initial_data_length = len(total_data["data"])
@@ -487,15 +491,18 @@ class BaseRester(Generic[T]):
         if initial_data_length >= num_docs_needed or num_chunks == 1:
             new_total_data = copy(total_data)
             new_total_data["data"] = total_data["data"][:num_docs_needed]
-            pbar.update(num_docs_needed)
-            pbar.close()
+
+            if pbar is not None:
+                pbar.update(num_docs_needed)
+                pbar.close()
             return new_total_data
 
         # otherwise, prepare to paginate in parallel
         if chunk_size is None:
             raise ValueError("A chunk size must be provided to enable pagination")
 
-        pbar.update(initial_data_length)
+        if pbar is not None:
+            pbar.update(initial_data_length)
 
         # Warning to select specific fields only for many results
         if criteria.get("all_fields", False) and (total_num_docs / chunk_size > 10):
@@ -546,7 +553,8 @@ class BaseRester(Generic[T]):
         if "meta" in data:
             total_data["meta"]["time_stamp"] = data["meta"]["time_stamp"]
 
-        pbar.close()
+        if pbar is not None:
+            pbar.close()
 
         return total_data
 
@@ -780,6 +788,7 @@ class BaseRester(Generic[T]):
         A generic search method to retrieve documents matching specific parameters.
 
         Arguments:
+            mute (bool): Whether to mute progress bars.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Set to False to only return specific fields of interest. This will
