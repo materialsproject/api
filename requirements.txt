@@ -4,6 +4,6 @@ typing-extensions==4.0.1
 maggma==0.40.0
 requests==2.27.1
 monty==2022.1.19
-emmet-core==0.21.19
+emmet-core==0.21.20
 mpcontribs-client>=4.2.9
 
