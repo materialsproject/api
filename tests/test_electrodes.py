@@ -37,11 +37,7 @@ custom_field_tests = {
 )
 @pytest.mark.parametrize("rester", resters)
 def test_client(rester):
-    # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search_electrode_docs
 
     if search_method is not None:
         # Get list of parameters
