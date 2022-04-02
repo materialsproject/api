@@ -48,29 +48,6 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             num_downloads += 1
         return num_downloads
 
-    def get_charge_density_from_task_id(self, task_id: str):
-        """
-        Get the charge density pymatgen object associated with a given calculation ID.
-
-        Arguments:
-            task_id (str): Task ID for the charge density calculation
-
-        Returns:
-            charge_density (chgcar): CHGCAR object
-        """
-        result = self._query_resource(
-            criteria={"task_id": task_id, "all_fields": True},
-            suburl="object",
-            use_document_model=False,
-            num_chunks=1,
-            chunk_size=1,
-        )
-
-        if result.get("data", None) is not None:
-            return result["data"]
-        else:
-            raise MPRestError("No object found")
-
     def search(  # type: ignore
         self, num_chunks: Optional[int] = 1, chunk_size: int = 10, **kwargs
     ) -> Union[List[ChgcarDataDoc], List[Dict]]:  # type: ignore
