@@ -274,10 +274,7 @@ class MPRester:
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_ids(
-        self,
-        chemsys_formula: Union[str, List[str]],
-    ) -> List[MPID]:
+    def get_materials_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
         """
         Get all materials ids for a formula or chemsys.
 
@@ -297,9 +294,7 @@ class MPRester:
         return sorted(
             doc.material_id
             for doc in self.materials.search_material_docs(
-                **input_params,
-                all_fields=False,
-                fields=["material_id"],  # type: ignore
+                **input_params, all_fields=False, fields=["material_id"],  # type: ignore
             )
         )
 
@@ -326,18 +321,14 @@ class MPRester:
             return [
                 doc.structure
                 for doc in self.materials.search_material_docs(
-                    **input_params,
-                    all_fields=False,
-                    fields=["structure"],  # type: ignore
+                    **input_params, all_fields=False, fields=["structure"],  # type: ignore
                 )
             ]
         else:
             structures = []
 
             for doc in self.materials.search_material_docs(
-                **input_params,
-                all_fields=False,
-                fields=["initial_structures"],  # type: ignore
+                **input_params, all_fields=False, fields=["initial_structures"],  # type: ignore
             ):
                 structures.extend(doc.initial_structures)
 
@@ -382,9 +373,7 @@ class MPRester:
         )
 
     def get_entries(
-        self,
-        chemsys_formula: Union[str, List[str]],
-        sort_by_e_above_hull=False,
+        self, chemsys_formula: Union[str, List[str]], sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
@@ -421,9 +410,7 @@ class MPRester:
 
         else:
             for doc in self.thermo.search_thermo_docs(
-                **input_params,
-                all_fields=False,
-                fields=["entries"],  # type: ignore
+                **input_params, all_fields=False, fields=["entries"],  # type: ignore
             ):
                 entries.extend(list(doc.entries.values()))
 
@@ -505,8 +492,7 @@ class MPRester:
         # entries we get from MPRester
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                "ignore",
-                message="You did not provide the required O2 and H2O energies.",
+                "ignore", message="You did not provide the required O2 and H2O energies.",
             )
             compat = MaterialsProjectAqueousCompatibility(solid_compat=solid_compat)
         # suppress the warning about missing oxidation states
@@ -575,9 +561,7 @@ class MPRester:
         ion_data = [
             d
             for d in self.contribs.contributions.get_entries(
-                project="ion_ref_data",
-                fields=["identifier", "formula", "data"],
-                per_page=500,
+                project="ion_ref_data", fields=["identifier", "formula", "data"], per_page=500,
             ).result()["data"]
         ]
 
@@ -715,9 +699,7 @@ class MPRester:
         return list(self.thermo.get_data_by_id(document_id=material_id, fields=["entries"]).entries.values())
 
     def get_entries_in_chemsys(
-        self,
-        elements: Union[str, List[str]],
-        use_gibbs: Optional[int] = None,
+        self, elements: Union[str, List[str]], use_gibbs: Optional[int] = None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -758,10 +740,7 @@ class MPRester:
         return entries
 
     def get_bandstructure_by_material_id(
-        self,
-        material_id: str,
-        path_type: BSPathType = BSPathType.setyawan_curtarolo,
-        line_mode=True,
+        self, material_id: str, path_type: BSPathType = BSPathType.setyawan_curtarolo, line_mode=True,
     ):
         """
         Get the band structure pymatgen object associated with a Materials Project ID.
@@ -1073,11 +1052,14 @@ class MPRester:
 
         latest_doc = max(results, key=lambda x: x.last_updated)
 
-        chg_obj = self.charge_density.get_charge_density_from_task_id(latest_doc.task_id)
+        url_doc = self.charge_density.get_data_by_id(latest_doc.fs_id)
 
-        if chg_obj:
-            b64_bytes = base64.b64decode(chg_obj[0], validate=True)
-            packed_bytes = zlib.decompress(b64_bytes)
+        if url_doc:
+
+            r = get(url_doc.url, stream=True)
+            packed_bytes = r.raw.data
+
+            packed_bytes = zlib.decompress(packed_bytes)
             json_data = msgpack.unpackb(packed_bytes, raw=False)
             chgcar = MontyDecoder().process_decoded(json_data["data"])
 
