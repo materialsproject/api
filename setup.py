@@ -24,11 +24,12 @@ setup(
     zip_safe=False,
     install_requires=[
         "setuptools",
-        "pymatgen>=2022.0.16",
+        "pymatgen>=2022.3.7",
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
-        "monty>=2021.8.17",
-        "emmet-core>=0.21.3",
+        "monty>=2021.3.12",
+        "emmet-core>=0.21.19",
+        "maggma>=0.39.1",
         "mpcontribs-client",
     ],
     classifiers=[

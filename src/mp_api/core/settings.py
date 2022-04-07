@@ -48,3 +48,7 @@ class MAPIClientSettings(BaseSettings):
     MUTE_PROGRESS_BARS: bool = Field(
         False, description="Whether to mute progress bars when data is retrieved.",
     )
+
+
+    class Config:
+        env_prefix = "MPRESTER_"

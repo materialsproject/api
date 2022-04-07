@@ -1,9 +1,9 @@
 pydantic>=1.8.2
-pymatgen>=2022.0.16
-typing-extensions==4.0.1
-maggma==0.39.1
+pymatgen>=2022.3.7
+typing-extensions==4.1.1
+maggma==0.44.1
 requests==2.27.1
-monty==2021.12.1
-emmet-core==0.21.18
-mpcontribs-client>=4.2.2
+monty==2022.3.12
+emmet-core==0.21.20
+mpcontribs-client>=4.2.9
 

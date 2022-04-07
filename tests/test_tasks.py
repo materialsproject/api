@@ -1,5 +1,6 @@
 import os
 import pytest
+from pymatgen.core.trajectory import Trajectory
 from mp_api.routes.tasks import TaskRester
 
 import typing
@@ -94,3 +95,11 @@ def test_client(rester):
                     doc[project_field if project_field is not None else param]
                     is not None
                 )
+
+
+def test_get_trajectories():
+
+    trajectories = resters[0].get_trajectory("mp-149")
+
+    for traj in trajectories:
+        assert isinstance(traj, Trajectory)

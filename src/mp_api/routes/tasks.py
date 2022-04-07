@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from emmet.core.tasks import TaskDoc
-from mp_api.core.client import BaseRester
+from mp_api.core.client import BaseRester, MPRestError
 
 
 class TaskRester(BaseRester[TaskDoc]):
@@ -17,10 +17,17 @@ class TaskRester(BaseRester[TaskDoc]):
         observing how a material relaxes during a geometry optimization.
 
         :param task_id: A specified task_id
-        :return: Trajectory object
+        :return: List of trajectory objects
         """
 
-        pass
+        traj_data = self._query_resource_data(
+            suburl=f"trajectory/{task_id}/", use_document_model=False
+        )[0].get("trajectories", None)
+
+        if traj_data is None:
+            raise MPRestError(f"No trajectory data for {task_id} found")
+
+        return traj_data
 
     def search(
         self,
@@ -66,5 +73,5 @@ class TaskRester(BaseRester[TaskDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )

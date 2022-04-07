@@ -126,13 +126,17 @@ class MPRester:
 
         try:
             self.contribs = Client(api_key)
-        except Exception:
+        except Exception as error:
             self.contribs = None
+            warnings.warn(f"Problem loading MPContribs client: {error}")
 
         self._all_resters = []
 
         if notify_db_version:
             raise NotImplementedError("This has not yet been implemented.")
+
+        if not self.endpoint.endswith("/"):
+            self.endpoint += "/"
 
         for cls in BaseRester.__subclasses__():
 
@@ -182,7 +186,7 @@ class MPRester:
                 task for task, calc_type in tasks.items() if calc_type in calc_types
             ]
         else:
-            return list(tasks.values())
+            return list(tasks.keys())
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
@@ -233,7 +237,7 @@ class MPRester:
 
         Returns: database version as a string
         """
-        return get(url=self.endpoint + "/heartbeat").json()["db_version"]
+        return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
     def get_material_id_from_task_id(self, task_id: str) -> Union[str, None]:
         """
@@ -516,7 +520,7 @@ class MPRester:
         ion_data = self.get_ion_reference_data_for_chemsys(chemsys)
 
         # build the PhaseDiagram for get_ion_entries
-        ion_ref_comps = [Ion.from_formula(d["formula"]).composition for d in ion_data]
+        ion_ref_comps = [Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data]
         ion_ref_elts = list(
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
