@@ -29,6 +29,8 @@ alt_name_dict = {
     "magnetic_ordering": "ordering",
     "elastic_anisotropy": "universal_anisotropy",
     "poisson_ratio": "homogeneous_poisson",
+    "num_sites": "nsites",
+    "num_elements": "nelements",
     "piezoelectric_modulus": "e_ij_max",
     "surface_energy_anisotropy": "surface_anisotropy",
 }  # type: dict
