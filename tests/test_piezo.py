@@ -4,11 +4,13 @@ from mp_api.routes.piezo import PiezoRester
 
 import typing
 
+
 @pytest.fixture
 def rester():
     rester = PiezoRester()
     yield rester
     rester.session.close()
+
 
 excluded_params = [
     "sort_fields",

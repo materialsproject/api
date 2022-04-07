@@ -516,7 +516,6 @@ class BaseRester(Generic[T]):
         params_list = []
         doc_counter = 0
 
-
         for crit_num, crit in enumerate(new_criteria):
             remaining = remaining_docs_avail[crit_num]
             if "skip" not in crit:
@@ -602,7 +601,7 @@ class BaseRester(Generic[T]):
                     use_document_model=use_document_model,
                     **params,
                 )
-                
+
                 setattr(future, "crit_ind", params_ind)
                 futures.add(future)
                 params_ind += 1
