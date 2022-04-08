@@ -33,9 +33,7 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-149")
@@ -64,7 +62,7 @@ class TestMPRester:
         )
         assert len(results) > 0
 
-    def test_get_materials_id_references(self, mpr):
+    def test_get_materials_ids_references(self, mpr):
         data = mpr.get_materials_id_references("mp-123")
         assert len(data) > 5
 
@@ -211,9 +209,7 @@ class TestMPRester:
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
 
-        chgcar, task_doc = mpr.get_charge_density_from_material_id(
-            "mp-149", inc_task_doc=True
-        )
+        chgcar, task_doc = mpr.get_charge_density_from_material_id("mp-149", inc_task_doc=True)
         assert isinstance(chgcar, Chgcar)
         assert isinstance(task_doc, TaskDoc)
 
