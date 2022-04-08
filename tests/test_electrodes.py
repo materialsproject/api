@@ -5,11 +5,13 @@ from mp_api.routes.electrodes import ElectrodeRester
 import typing
 from pymatgen.core.periodic_table import Element
 
+
 @pytest.fixture
 def rester():
     rester = ElectrodeRester()
     yield rester
     rester.session.close()
+
 
 excluded_params = [
     "sort_fields",
@@ -24,6 +26,8 @@ sub_doc_fields = []  # type: list
 alt_name_dict = {
     "formula": "battery_id",
     "exclude_elements": "battery_id",
+    "num_elements": "nelements",
+    "num_sites": "nsites",
 }  # type: dict
 
 custom_field_tests = {
