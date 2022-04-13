@@ -63,7 +63,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
 
         if sort_fields:
             query_params.update(
-                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         query_params = {

@@ -282,7 +282,7 @@ class BaseRester(Generic[T]):
         if fields:
             if isinstance(fields, str):
                 fields = [fields]
-            criteria["fields"] = ",".join(fields)
+            criteria["_fields"] = ",".join(fields)
 
         try:
             url = self.endpoint
@@ -370,10 +370,10 @@ class BaseRester(Generic[T]):
                     **{
                         key: criteria[key]
                         for key in criteria
-                        if key not in [parallel_param, "limit"]
+                        if key not in [parallel_param, "_limit"]
                     },
                     parallel_param: ",".join(list_chunk),
-                    "limit": new_limits[list_num],
+                    "_limit": new_limits[list_num],
                 }
                 for list_num, list_chunk in enumerate(new_param_values)
             ]
@@ -427,18 +427,18 @@ class BaseRester(Generic[T]):
                     new_limits[crit_ind] = 0
                 else:
                     crit = new_criteria[crit_ind]
-                    crit["skip"] = crit["limit"]
+                    crit["_skip"] = crit["_limit"]
 
                     if fill_docs == 0:
                         continue
 
                     if fill_docs >= amount_avail:
-                        crit["limit"] = amount_avail
+                        crit["_limit"] = amount_avail
                         new_limits[crit_ind] += amount_avail
                         fill_docs -= amount_avail
 
                     else:
-                        crit["limit"] = fill_docs
+                        crit["_limit"] = fill_docs
                         new_limits[crit_ind] += fill_docs
                         fill_docs = 0
 
@@ -446,8 +446,8 @@ class BaseRester(Generic[T]):
                         {"url": url, "verify": True, "params": copy(crit)}
                     )
 
-                    new_criteria[crit_ind]["skip"] += crit["limit"]
-                    new_criteria[crit_ind]["limit"] = chunk_size
+                    new_criteria[crit_ind]["_skip"] += crit["_limit"]
+                    new_criteria[crit_ind]["_limit"] = chunk_size
 
             # Obtain missing initial data after rebalancing
             if len(rebalance_params) > 0:
@@ -505,7 +505,7 @@ class BaseRester(Generic[T]):
             pbar.update(initial_data_length)
 
         # Warning to select specific fields only for many results
-        if criteria.get("all_fields", False) and (total_num_docs / chunk_size > 10):
+        if criteria.get("_all_fields", False) and (total_num_docs / chunk_size > 10):
             warnings.warn(
                 f"Use the 'fields' argument to select only fields of interest to speed "
                 f"up data retrieval for large queries. "
@@ -518,31 +518,31 @@ class BaseRester(Generic[T]):
 
         for crit_num, crit in enumerate(new_criteria):
             remaining = remaining_docs_avail[crit_num]
-            if "skip" not in crit:
-                crit["skip"] = chunk_size if "limit" not in crit else crit["limit"]
+            if "_skip" not in crit:
+                crit["_skip"] = chunk_size if "_limit" not in crit else crit["_limit"]
 
             while remaining > 0:
                 if doc_counter == (num_docs_needed - initial_data_length):
                     break
 
                 if remaining < chunk_size:
-                    crit["limit"] = remaining
+                    crit["_limit"] = remaining
                     doc_counter += remaining
                 else:
                     n = chunk_size - (doc_counter % chunk_size)
-                    crit["limit"] = n
+                    crit["_limit"] = n
                     doc_counter += n
 
                 params_list.append(
                     {
                         "url": url,
                         "verify": True,
-                        "params": {**crit, "skip": crit["skip"]},
+                        "params": {**crit, "_skip": crit["_skip"]},
                     }
                 )
 
-                crit["skip"] += crit["limit"]
-                remaining -= crit["limit"]
+                crit["_skip"] += crit["_limit"]
+                remaining -= crit["_limit"]
 
         # Submit requests and process data
         data_tuples = self._multi_thread(use_document_model, params_list, pbar)
@@ -733,9 +733,9 @@ class BaseRester(Generic[T]):
             )
 
         if fields is None:
-            criteria = {"all_fields": True, "limit": 1}  # type: dict
+            criteria = {"_all_fields": True, "_limit": 1}  # type: dict
         else:
-            criteria = {"limit": 1}
+            criteria = {"_limit": 1}
 
         if isinstance(fields, str):  # pragma: no cover
             fields = (fields,)
@@ -837,9 +837,9 @@ class BaseRester(Generic[T]):
             raise MPRestError("Number of chunks must be greater than zero or None.")
 
         if all_fields and not fields:
-            query_params["all_fields"] = True
+            query_params["_all_fields"] = True
 
-        query_params["limit"] = chunk_size
+        query_params["_limit"] = chunk_size
 
         # Check if specific parameters are present that can be parallelized over
         list_entries = sorted(

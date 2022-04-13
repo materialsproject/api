@@ -97,7 +97,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
         if sort_fields:
             query_params.update(
-                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         query_params = {
@@ -178,7 +178,7 @@ class BandStructureRester(BaseRester):
 
         if sort_fields:
             query_params.update(
-                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         query_params = {
@@ -207,7 +207,7 @@ class BandStructureRester(BaseRester):
         """
 
         result = self._query_resource(
-            criteria={"task_id": task_id, "all_fields": True},
+            criteria={"task_id": task_id, "_all_fields": True},
             suburl="object",
             use_document_model=False,
             num_chunks=1,
@@ -378,7 +378,7 @@ class DosRester(BaseRester):
         """
 
         result = self._query_resource(
-            criteria={"task_id": task_id, "all_fields": True},
+            criteria={"task_id": task_id, "_all_fields": True},
             suburl="object",
             use_document_model=False,
             num_chunks=1,
