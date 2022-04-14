@@ -304,6 +304,7 @@ class DosRester(BaseRester):
         band_gap: Optional[Tuple[float, float]] = None,
         efermi: Optional[Tuple[float, float]] = None,
         magnetic_ordering: Optional[Ordering] = None,
+        sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -320,6 +321,7 @@ class DosRester(BaseRester):
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
+            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -351,6 +353,11 @@ class DosRester(BaseRester):
 
         if magnetic_ordering:
             query_params.update({"magnetic_ordering": magnetic_ordering.value})
+
+        if sort_fields:
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         query_params = {
             entry: query_params[entry]
