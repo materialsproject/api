@@ -72,7 +72,7 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
                 "condition_heating_atmosphere": condition_heating_atmosphere,
                 "condition_mixing_device": condition_mixing_device,
                 "condition_mixing_media": condition_mixing_media,
-                "limit": chunk_size,
+                "_limit": chunk_size,
             },
             chunk_size=chunk_size,
             num_chunks=num_chunks,

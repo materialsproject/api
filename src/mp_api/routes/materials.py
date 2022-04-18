@@ -128,7 +128,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
 
         if sort_fields:
             query_params.update(
-                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         query_params = {
@@ -175,7 +175,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             MPRestError
         """
 
-        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "limit": 1}
+        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "_limit": 1}
 
         if isinstance(filename_or_structure, str):
             s = Structure.from_file(filename_or_structure)
