@@ -123,9 +123,11 @@ class MPRester:
         """
 
         if api_key and len(api_key) == 16:
-            raise ValueError("Please use a new API key from https://next-gen.materialsproject.org/api "
-                             "Keys for the new API are 32 characters, whereas keys for the legacy "
-                             "API are 16 characters.")
+            raise ValueError(
+                "Please use a new API key from https://next-gen.materialsproject.org/api "
+                "Keys for the new API are 32 characters, whereas keys for the legacy "
+                "API are 16 characters."
+            )
 
         self.api_key = api_key
         self.endpoint = endpoint
