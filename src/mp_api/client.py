@@ -1059,6 +1059,10 @@ class MPRester:
         if url_doc:
 
             r = get(url_doc.url, stream=True)
+
+            if r.status_code != 200:
+                r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True)
+
             packed_bytes = r.raw.data
 
             packed_bytes = zlib.decompress(packed_bytes)
