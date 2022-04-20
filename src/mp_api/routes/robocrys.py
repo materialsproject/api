@@ -31,7 +31,7 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
         keyword_string = ",".join(keywords)
 
         robocrys_docs = self._query_resource(
-            criteria={"keywords": keyword_string, "limit": chunk_size},
+            criteria={"keywords": keyword_string, "_limit": chunk_size},
             suburl="text_search",
             use_document_model=True,
             chunk_size=100,
