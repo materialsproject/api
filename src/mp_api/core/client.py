@@ -110,9 +110,7 @@ class BaseRester(Generic[T]):
             self._session = None  # type: ignore
 
         self.document_model = (
-            api_sanitize(self.document_model)  # type: ignore
-            if self.document_model is not None
-            else None
+            api_sanitize(self.document_model) if self.document_model is not None else None  # type: ignore
         )
 
     @property
@@ -476,11 +474,13 @@ class BaseRester(Generic[T]):
         num_docs_needed = min((max_pages * chunk_size), total_num_docs)
 
         # Setup progress bar
+        pbar_message = (  # type: ignore
+            f"Retrieving {self.document_model.__name__} documents"  # type: ignore
+            if self.document_model is not None
+            else "Retrieving documents"
+        )
         pbar = (
-            tqdm(
-                desc=f"Retrieving {self.document_model.__name__} documents",  # type: ignore
-                total=num_docs_needed,
-            )
+            tqdm(desc=pbar_message, total=num_docs_needed,)
             if not MAPIClientSettings().MUTE_PROGRESS_BARS
             else None
         )
@@ -764,7 +764,9 @@ class BaseRester(Generic[T]):
                     document_id = new_document_id
 
                     results = self._query_resource_data(
-                        criteria=criteria, fields=fields, suburl=document_id,  # type: ignore
+                        criteria=criteria,
+                        fields=fields,
+                        suburl=document_id,  # type: ignore
                     )
 
         if not results:
