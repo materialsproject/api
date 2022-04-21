@@ -1,4 +1,3 @@
-import base64
 import itertools
 import warnings
 import msgpack
@@ -1058,13 +1057,17 @@ class MPRester:
 
         if url_doc:
 
-            r = get(url_doc.url, stream=True)
-
-            if r.status_code != 200:
+            if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
                 r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True)
 
+            else:
+                r = get(url_doc.url, stream=True)
+
                 if r.status_code != 200:
-                    raise MPRestError(f"Cannot retrieve charge density for {material_id}.")
+                    r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True)
+
+            if r.status_code != 200:
+                raise MPRestError(f"Cannot retrieve charge density for {material_id}.")
 
             packed_bytes = r.raw.data
 
