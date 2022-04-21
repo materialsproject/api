@@ -23,7 +23,7 @@ from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from requests import get
+from requests import get, ConnectTimeout
 from typing_extensions import Literal
 
 from mp_api.core.client import BaseRester, MPRestError
@@ -1057,14 +1057,18 @@ class MPRester:
 
         if url_doc:
 
+            # The check below is performed to see if the client is being
+            # used by our internal AWS deployment. If it is, we pull charge
+            # density data from a private S3 bucket. Else, we pull data
+            # from public MinIO buckets.
             if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
-                r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True)
+                r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True, timeout=1)
 
             else:
-                r = get(url_doc.url, stream=True)
-
-                if r.status_code != 200:
-                    r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True)
+                try:
+                    r = get(url_doc.url, stream=True, timeout=1)
+                except ConnectTimeout:
+                    r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True, timeout=1)
 
             if r.status_code != 200:
                 raise MPRestError(f"Cannot retrieve charge density for {material_id}.")
