@@ -93,3 +93,26 @@ def test_download_for_task_ids(tmpdir):
     files = [f for f in os.listdir(tmpdir)]
 
     assert "mp-1791788.json.gz" in files
+
+
+def test_extract_s3_url_info():
+    rester = resters[0]
+
+    url_doc = {
+        "task_id": "mp-1896591",
+        "url": "https://minio.materialsproject.org/phuck/atomate_chgcar_fs/6021584c12afbe14911d1b8e",
+        "s3_url_prefix": "https://mp-volumetric.s3.amazonaws.com/atomate_chgcar_fs/",
+        "fs_id": "6021584c12afbe14911d1b8e",
+        "requested_datetime": {"$date": {"$numberLong": "1650389943209"}},
+        "expiry_datetime": None,
+    }
+
+    bucket, prefix = rester._extract_s3_url_info(url_doc)
+
+    assert bucket == "phuck"
+    assert prefix == "atomate_chgcar_fs"
+
+    bucket, prefix = rester._extract_s3_url_info(url_doc, use_minio=False)
+
+    assert bucket == "mp-volumetric"
+    assert prefix == "atomate_chgcar_fs"
