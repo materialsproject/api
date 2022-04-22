@@ -1062,13 +1062,13 @@ class MPRester:
             # density data from a private S3 bucket. Else, we pull data
             # from public MinIO buckets.
             if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
-                r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True, timeout=1)
+                r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True, timeout=30)
 
             else:
                 try:
-                    r = get(url_doc.url, stream=True, timeout=1)
+                    r = get(url_doc.url, stream=True, timeout=5)
                 except ConnectTimeout:
-                    r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True, timeout=1)
+                    r = get(url_doc.s3_url_prefix + url_doc.fs_id, stream=True, timeout=30)
 
             if r.status_code != 200:
                 raise MPRestError(f"Cannot retrieve charge density for {material_id}.")
