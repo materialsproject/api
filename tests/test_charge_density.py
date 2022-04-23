@@ -1,5 +1,6 @@
 import os
 import pytest
+from emmet.core.charge_density import ChgcarDataDoc
 from mp_api.routes.charge_density import ChargeDensityRester
 
 import inspect
@@ -98,7 +99,7 @@ def test_download_for_task_ids(tmpdir):
 def test_extract_s3_url_info():
     rester = resters[0]
 
-    url_doc = {
+    url_doc_dict = {
         "task_id": "mp-1896591",
         "url": "https://minio.materialsproject.org/phuck/atomate_chgcar_fs/6021584c12afbe14911d1b8e",
         "s3_url_prefix": "https://mp-volumetric.s3.amazonaws.com/atomate_chgcar_fs/",
@@ -106,6 +107,8 @@ def test_extract_s3_url_info():
         "requested_datetime": {"$date": {"$numberLong": "1650389943209"}},
         "expiry_datetime": None,
     }
+
+    url_doc = ChgcarDataDoc(**url_doc_dict)
 
     bucket, prefix = rester._extract_s3_url_info(url_doc)
 
