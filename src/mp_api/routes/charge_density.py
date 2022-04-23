@@ -87,10 +87,11 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
 
                 if self.boto_resource is None:
-                    self.boto_resource = self._get_s3_resource(use_minio=False)
-                    bucket, obj_prefix = self._extract_s3_url_info(
-                        url_doc, use_minio=False
-                    )
+                    self.boto_resource = self._get_s3_resource(use_minio=False, unsigned=False)
+                    
+                bucket, obj_prefix = self._extract_s3_url_info(
+                    url_doc, use_minio=False
+                )
 
             else:
                 try:
@@ -134,15 +135,12 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
 
         return (bucket, obj_prefix)
 
-    def _get_s3_resource(self, use_minio: bool = True):
+    def _get_s3_resource(self, use_minio: bool = True, unsigned: bool = True):
 
-        if use_minio:
-            resource = boto3.resource(
-                "s3",
-                endpoint_url="https://minio.materialsproject.org",
-                config=Config(signature_version=UNSIGNED),
-            )
-        else:
-            resource = boto3.resource("s3", config=Config(signature_version=UNSIGNED))
+        resource = boto3.resource(
+            "s3",
+            endpoint_url="https://minio.materialsproject.org" if use_minio else None,
+            config=Config(signature_version=UNSIGNED) if unsigned else None,
+        )
 
         return resource
