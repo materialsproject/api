@@ -88,7 +88,7 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
 
                 if self.boto_resource is None:
                     self.boto_resource = self._get_s3_resource(use_minio=False, unsigned=False)
-                    
+
                 bucket, obj_prefix = self._extract_s3_url_info(
                     url_doc, use_minio=False
                 )
