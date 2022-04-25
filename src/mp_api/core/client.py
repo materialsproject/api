@@ -25,6 +25,7 @@ from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
 from monty.json import MontyDecoder
 from mp_api.core.settings import MAPIClientSettings
+from mp_api import __version__ as mp_api_version
 from pydantic import BaseModel
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
@@ -125,13 +126,14 @@ class BaseRester(Generic[T]):
         session.trust_env = False
         session.headers = {"x-api-key": api_key}
         if include_user_agent:
+            mp_api_info = "mp-api/" + mp_api_version
             pymatgen_info = "pymatgen/" + pmg_version
             python_info = "Python/{}.{}.{}".format(
                 sys.version_info.major, sys.version_info.minor, sys.version_info.micro
             )
             platform_info = "{}/{}".format(platform.system(), platform.release())
-            session.headers["user-agent"] = "{} ({} {})".format(
-                pymatgen_info, python_info, platform_info
+            session.headers["user-agent"] = "{} {} ({} {})".format(
+                mp_api_info, pymatgen_info, python_info, platform_info
             )
 
         max_retry_num = MAPIClientSettings().MAX_RETRIES
