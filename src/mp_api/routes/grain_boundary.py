@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.core.client import BaseRester
+from mp_api.core.utils import validate_ids
 
 from emmet.core.grain_boundary import GBTypeEnum, GrainBoundaryDoc
 
@@ -58,7 +59,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:
-            query_params.update({"task_ids": ",".join(material_ids)})
+            query_params.update({"task_ids": ",".join(validate_ids(material_ids))})
 
         if gb_plane:
             query_params.update({"gb_plane": ",".join([str(n) for n in gb_plane])})

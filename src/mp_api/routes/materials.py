@@ -7,6 +7,7 @@ from emmet.core.utils import jsanitize
 from emmet.core.settings import EmmetSettings
 
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.utils import validate_ids
 
 _EMMET_SETTINGS = EmmetSettings()
 
@@ -107,7 +108,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
         if task_ids:
-            query_params.update({"task_ids": ",".join(task_ids)})
+            query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         query_params.update(
             {

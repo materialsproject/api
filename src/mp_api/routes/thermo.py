@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import Optional, List, Tuple, Union
 from mp_api.core.client import BaseRester
+from mp_api.core.utils import validate_ids
 from emmet.core.thermo import ThermoDoc
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
@@ -71,7 +72,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
             query_params.update({"chemsys": ",".join(chemsys)})
 
         if material_ids:
-            query_params.update({"material_ids": ",".join(material_ids)})
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if nelements:
             query_params.update(

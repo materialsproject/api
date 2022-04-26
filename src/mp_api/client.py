@@ -285,7 +285,10 @@ class MPRester:
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
+    def get_materials_ids(
+        self,
+        chemsys_formula: Union[str, List[str]],
+    ) -> List[MPID]:
         """
         Get all materials ids for a formula or chemsys.
 
@@ -307,7 +310,9 @@ class MPRester:
         return sorted(
             doc.material_id
             for doc in self.materials.search_material_docs(
-                **input_params, all_fields=False, fields=["material_id"],  # type: ignore
+                **input_params,
+                all_fields=False,
+                fields=["material_id"],  # type: ignore
             )
         )
 
@@ -338,14 +343,18 @@ class MPRester:
             return [
                 doc.structure
                 for doc in self.materials.search_material_docs(
-                    **input_params, all_fields=False, fields=["structure"],  # type: ignore
+                    **input_params,
+                    all_fields=False,
+                    fields=["structure"],  # type: ignore
                 )
             ]
         else:
             structures = []
 
             for doc in self.materials.search_material_docs(
-                **input_params, all_fields=False, fields=["initial_structures"],  # type: ignore
+                **input_params,
+                all_fields=False,
+                fields=["initial_structures"],  # type: ignore
             ):
                 structures.extend(doc.initial_structures)
 
@@ -390,7 +399,9 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula: Union[str, List[str]], sort_by_e_above_hull=False,
+        self,
+        chemsys_formula: Union[str, List[str]],
+        sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
@@ -429,7 +440,9 @@ class MPRester:
 
         else:
             for doc in self.thermo.search_thermo_docs(
-                **input_params, all_fields=False, fields=["entries"],  # type: ignore
+                **input_params,
+                all_fields=False,
+                fields=["entries"],  # type: ignore
             ):
                 entries.extend(list(doc.entries.values()))
 
@@ -757,7 +770,9 @@ class MPRester:
         )
 
     def get_entries_in_chemsys(
-        self, elements: Union[str, List[str]], use_gibbs: Optional[int] = None,
+        self,
+        elements: Union[str, List[str]],
+        use_gibbs: Optional[int] = None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.

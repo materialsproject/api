@@ -5,26 +5,27 @@ API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
 
-from hashlib import new
 import itertools
 import json
 import platform
 import sys
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
-from json import JSONDecodeError
-from os import environ
-from typing import Dict, Generic, List, Optional, TypeVar, Union, Tuple
-from urllib.parse import urljoin
 from copy import copy
+from hashlib import new
+from json import JSONDecodeError
 from math import ceil
-from matplotlib import use
+from os import environ
+from typing import Dict, Generic, List, Optional, Tuple, TypeVar, Union
+from urllib.parse import urljoin
 
 import requests
 from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
+from matplotlib import use
 from monty.json import MontyDecoder
 from mp_api.core.settings import MAPIClientSettings
+from mp_api.core.utils import validate_ids
 from pydantic import BaseModel
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
@@ -130,9 +131,7 @@ class BaseRester(Generic[T]):
                 sys.version_info.major, sys.version_info.minor, sys.version_info.micro
             )
             platform_info = "{}/{}".format(platform.system(), platform.release())
-            session.headers["user-agent"] = "{} ({} {})".format(
-                pymatgen_info, python_info, platform_info
-            )
+            session.headers["user-agent"] = "{} ({} {})".format(pymatgen_info, python_info, platform_info)
 
         max_retry_num = MAPIClientSettings().MAX_RETRIES
         retry = Retry(
@@ -221,10 +220,7 @@ class BaseRester(Generic[T]):
                     message = data
                 else:
                     try:
-                        message = ", ".join(
-                            "{} - {}".format(entry["loc"][1], entry["msg"])
-                            for entry in data
-                        )
+                        message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
                     except (KeyError, IndexError):
                         message = str(data)
 
@@ -338,9 +334,7 @@ class BaseRester(Generic[T]):
         # criteria dicts.
         if parallel_param is not None:
             param_length = len(criteria[parallel_param].split(","))
-            slice_size = (
-                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
-            )
+            slice_size = int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
 
             new_param_values = [
                 entry
@@ -365,11 +359,7 @@ class BaseRester(Generic[T]):
             # Split list and generate multiple criteria
             new_criteria = [
                 {
-                    **{
-                        key: criteria[key]
-                        for key in criteria
-                        if key not in [parallel_param, "_limit"]
-                    },
+                    **{key: criteria[key] for key in criteria if key not in [parallel_param, "_limit"]},
                     parallel_param: ",".join(list_chunk),
                     "_limit": new_limits[list_num],
                 }
@@ -392,13 +382,9 @@ class BaseRester(Generic[T]):
         subtotals = []
         remaining_docs_avail = {}
 
-        initial_params_list = [
-            {"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria
-        ]
+        initial_params_list = [{"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria]
 
-        initial_data_tuples = self._multi_thread(
-            use_document_model, initial_params_list
-        )
+        initial_data_tuples = self._multi_thread(use_document_model, initial_params_list)
 
         for data, subtotal, crit_ind in initial_data_tuples:
 
@@ -411,9 +397,7 @@ class BaseRester(Generic[T]):
 
         # Rebalance if some parallel queries produced too few results
         if len(remaining_docs_avail) > 1 and len(total_data["data"]) < chunk_size:
-            remaining_docs_avail = dict(
-                sorted(remaining_docs_avail.items(), key=lambda item: item[1])
-            )
+            remaining_docs_avail = dict(sorted(remaining_docs_avail.items(), key=lambda item: item[1]))
 
             # Redistribute missing docs from initial chunk among queries
             # which have head room with respect to remaining document number.
@@ -440,9 +424,7 @@ class BaseRester(Generic[T]):
                         new_limits[crit_ind] += fill_docs
                         fill_docs = 0
 
-                    rebalance_params.append(
-                        {"url": url, "verify": True, "params": copy(crit)}
-                    )
+                    rebalance_params.append({"url": url, "verify": True, "params": copy(crit)})
 
                     new_criteria[crit_ind]["_skip"] += crit["_limit"]
                     new_criteria[crit_ind]["_limit"] = chunk_size
@@ -450,9 +432,7 @@ class BaseRester(Generic[T]):
             # Obtain missing initial data after rebalancing
             if len(rebalance_params) > 0:
 
-                rebalance_data_tuples = self._multi_thread(
-                    use_document_model, rebalance_params
-                )
+                rebalance_data_tuples = self._multi_thread(use_document_model, rebalance_params)
 
                 for data, _, _ in rebalance_data_tuples:
                     total_data["data"].extend(data["data"])
@@ -466,9 +446,7 @@ class BaseRester(Generic[T]):
             total_data["meta"] = last_data_entry["meta"]
 
         # Get max number of reponse pages
-        max_pages = (
-            num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
-        )
+        max_pages = num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
 
         # Get total number of docs needed
         num_docs_needed = min((max_pages * chunk_size), total_num_docs)
@@ -480,7 +458,10 @@ class BaseRester(Generic[T]):
             else "Retrieving documents"
         )
         pbar = (
-            tqdm(desc=pbar_message, total=num_docs_needed,)
+            tqdm(
+                desc=pbar_message,
+                total=num_docs_needed,
+            )
             if not MAPIClientSettings().MUTE_PROGRESS_BARS
             else None
         )
@@ -579,21 +560,15 @@ class BaseRester(Generic[T]):
 
         return_data = []
 
-        params_gen = iter(
-            params_list
-        )  # Iter necessary for islice to keep track of what has been accessed
+        params_gen = iter(params_list)  # Iter necessary for islice to keep track of what has been accessed
 
         params_ind = 0
 
-        with ThreadPoolExecutor(
-            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
-        ) as executor:
+        with ThreadPoolExecutor(max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS) as executor:
 
             # Get list of initial futures defined by max number of parallel requests
             futures = set({})
-            for params in itertools.islice(
-                params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
-            ):
+            for params in itertools.islice(params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS):
 
                 future = executor.submit(
                     self._submit_request_and_process,
@@ -670,10 +645,7 @@ class BaseRester(Generic[T]):
                 message = data
             else:
                 try:
-                    message = ", ".join(
-                        "{} - {}".format(entry["loc"][1], entry["msg"])
-                        for entry in data
-                    )
+                    message = ", ".join("{} - {}".format(entry["loc"][1], entry["msg"]) for entry in data)
                 except (KeyError, IndexError):
                     message = str(data)
 
@@ -713,7 +685,9 @@ class BaseRester(Generic[T]):
         ).get("data")
 
     def get_data_by_id(
-        self, document_id: str, fields: Optional[List[str]] = None,
+        self,
+        document_id: str,
+        fields: Optional[List[str]] = None,
     ) -> T:
         """
         Query the endpoint for a single document.
@@ -727,10 +701,10 @@ class BaseRester(Generic[T]):
         """
 
         if document_id is None:
-            raise ValueError(
-                "Please supply a specific id. You can use the query method to find "
-                "ids of interest."
-            )
+            raise ValueError("Please supply a specific ID. You can use the query method to find " "ids of interest.")
+
+        if self.primary_key in ["material_id", "task_id"]:
+            validate_ids([document_id])
 
         if fields is None:
             criteria = {"_all_fields": True, "_limit": 1}  # type: dict
@@ -744,7 +718,9 @@ class BaseRester(Generic[T]):
 
         try:
             results = self._query_resource_data(
-                criteria=criteria, fields=fields, suburl=document_id,  # type: ignore
+                criteria=criteria,
+                fields=fields,
+                suburl=document_id,  # type: ignore
             )
         except MPRestError:
 
@@ -772,9 +748,7 @@ class BaseRester(Generic[T]):
         if not results:
             raise MPRestError(f"No result for record {document_id}.")
         elif len(results) > 1:  # pragma: no cover
-            raise ValueError(
-                f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
-            )
+            raise ValueError(f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug.")
         else:
             return results[0]
 
@@ -881,9 +855,7 @@ class BaseRester(Generic[T]):
                 False,
                 False,
             )  # do not waste cycles decoding
-            results = self._query_resource(
-                criteria=criteria, num_chunks=1, chunk_size=1
-            )
+            results = self._query_resource(criteria=criteria, num_chunks=1, chunk_size=1)
             self.monty_decode, self.use_document_model = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover
