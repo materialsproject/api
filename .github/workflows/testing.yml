@@ -78,7 +78,7 @@ jobs:
       - name: Test with pytest
         env:
           MP_API_KEY: ${{ secrets.MP_API_KEY }}
-          MP_API_ENDPOINT: https://api-preview.materialsproject.org/
+          #MP_API_ENDPOINT: https://api-preview.materialsproject.org/
         run: |
           pip install -e .
           pytest --cov=mp_api --cov-report=xml
