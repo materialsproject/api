@@ -343,9 +343,9 @@ class MPRester:
             return [
                 doc.structure
                 for doc in self.materials.search_material_docs(
-                    **input_params,
+                    **input_params,  # type: ignore
                     all_fields=False,
-                    fields=["structure"],  # type: ignore
+                    fields=["structure"],
                 )
             ]
         else:
