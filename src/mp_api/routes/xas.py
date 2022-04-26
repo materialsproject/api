@@ -2,6 +2,7 @@ from typing import List, Optional, Union
 
 from emmet.core.xas import Edge, XASDoc
 from mp_api.core.client import BaseRester
+from mp_api.core.utils import validate_ids
 from pymatgen.core.periodic_table import Element
 
 
@@ -67,7 +68,7 @@ class XASRester(BaseRester[XASDoc]):
             query_params.update({"elements": ",".join(elements)})
 
         if material_ids is not None:
-            query_params["material_ids"] = ",".join(material_ids)
+            query_params["material_ids"] = ",".join(validate_ids(material_ids))
 
         if sort_fields:
             query_params.update(
