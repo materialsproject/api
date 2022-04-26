@@ -22,7 +22,7 @@ from mp_api.core.client import BaseRester
 class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
 
     suffix = "charge_density"
-    primary_key = "task_id"
+    primary_key = "fs_id"
     document_model = ChgcarDataDoc  # type: ignore
     boto_resource = None
 
@@ -87,11 +87,11 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
 
                 if self.boto_resource is None:
-                    self.boto_resource = self._get_s3_resource(use_minio=False, unsigned=False)
+                    self.boto_resource = self._get_s3_resource(
+                        use_minio=False, unsigned=False
+                    )
 
-                bucket, obj_prefix = self._extract_s3_url_info(
-                    url_doc, use_minio=False
-                )
+                bucket, obj_prefix = self._extract_s3_url_info(url_doc, use_minio=False)
 
             else:
                 try:
