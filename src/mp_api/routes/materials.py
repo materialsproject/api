@@ -1,9 +1,8 @@
 from typing import List, Optional, Tuple, Union
 from pymatgen.core.structure import Structure
 
-from emmet.core.material import MaterialsDoc
+from emmet.core.vasp.material import MaterialsDoc
 from emmet.core.symmetry import CrystalSystem
-from emmet.core.utils import jsanitize
 from emmet.core.settings import EmmetSettings
 
 from mp_api.core.client import BaseRester, MPRestError
