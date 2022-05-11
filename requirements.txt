@@ -1,4 +1,4 @@
-emmet-core==0.24.2
+emmet-core==0.26.2
 pydantic>=1.8.2
 pymatgen>=2022.3.7
 typing-extensions==4.1.1
