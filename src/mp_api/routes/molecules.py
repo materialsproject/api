@@ -6,7 +6,6 @@ from pymatgen.core.periodic_table import Element
 from mp_api.core.client import BaseRester
 from emmet.core.molecules_old import MoleculesDoc
 
-
 class MoleculesRester(BaseRester[MoleculesDoc]):
 
     suffix = "molecules"
