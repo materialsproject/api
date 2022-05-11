@@ -2,7 +2,7 @@ emmet-core==0.26.2
 pydantic>=1.8.2
 pymatgen>=2022.3.7
 typing-extensions==4.1.1
-maggma==0.46.0
+maggma==0.46.1
 requests==2.27.1
 monty==2022.3.12
 mpcontribs-client>=4.2.9
