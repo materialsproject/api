@@ -28,7 +28,7 @@ setup(
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
         "monty>=2021.3.12",
-        "emmet-core>=0.24.1",
+        "emmet-core>=0.26.2",
         "maggma>=0.46.0",
         "mpcontribs-client",
     ],
