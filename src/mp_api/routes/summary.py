@@ -5,6 +5,7 @@ from emmet.core.mpid import MPID
 from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from mp_api.core.client import BaseRester
+from mp_api.core.utils import validate_ids
 from pymatgen.analysis.magnetism import Ordering
 
 
@@ -201,7 +202,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
                 )
 
         if material_ids:
-            query_params.update({"material_ids": ",".join(material_ids)})
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if deprecated is not None:
             query_params.update({"deprecated": deprecated})
@@ -257,15 +258,9 @@ class SummaryRester(BaseRester[SummaryDoc]):
             query_params.update({"theoretical": theoretical})
 
         if sort_fields:
-            query_params.update(
-                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
             num_chunks=num_chunks,

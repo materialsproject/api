@@ -1,12 +1,12 @@
 from typing import List, Optional, Tuple, Union
 from pymatgen.core.structure import Structure
 
-from emmet.core.material import MaterialsDoc
+from emmet.core.vasp.material import MaterialsDoc
 from emmet.core.symmetry import CrystalSystem
-from emmet.core.utils import jsanitize
 from emmet.core.settings import EmmetSettings
 
 from mp_api.core.client import BaseRester, MPRestError
+from mp_api.core.utils import validate_ids
 
 _EMMET_SETTINGS = EmmetSettings()
 
@@ -113,7 +113,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
         if task_ids:
-            query_params.update({"task_ids": ",".join(task_ids)})
+            query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         query_params.update(
             {
@@ -141,7 +141,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
 
         if sort_fields:
             query_params.update(
-                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         query_params = {
@@ -188,7 +188,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             MPRestError
         """
 
-        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "limit": 1}
+        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "_limit": 1}
 
         if isinstance(filename_or_structure, str):
             s = Structure.from_file(filename_or_structure)

@@ -4,7 +4,7 @@ from collections import defaultdict
 from pymatgen.core.periodic_table import Element
 
 from mp_api.core.client import BaseRester
-from emmet.core.molecules import MoleculesDoc
+from emmet.core.molecules_old import MoleculesDoc
 
 
 class MoleculesRester(BaseRester[MoleculesDoc]):
@@ -78,7 +78,7 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
 
         if sort_fields:
             query_params.update(
-                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         query_params = {

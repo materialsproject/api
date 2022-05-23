@@ -106,7 +106,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
         if sort_fields:
             query_params.update(
-                {"sort_fields": ",".join([s.strip() for s in sort_fields])}
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         for param, value in locals().items():

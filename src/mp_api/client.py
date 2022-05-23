@@ -2,29 +2,29 @@ import itertools
 import warnings
 from functools import lru_cache
 from os import environ
-from requests import get
-from typing import List, Optional, Tuple, Union, Dict
-from typing_extensions import Literal
+from typing import Dict, List, Optional, Tuple, Union
 
+from emmet.core.charge_density import ChgcarDataDoc
+from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
+from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from emmet.core.summary import HasProps
 from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
 from pymatgen.core import Element, Structure
 from pymatgen.core.ion import Ion
-from pymatgen.io.vasp import Chgcar
 from pymatgen.entries.computed_entries import ComputedEntry
+from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from requests import get
+from typing_extensions import Literal
 
 from mp_api.core.client import BaseRester, MPRestError
 from mp_api.routes import *
-from emmet.core.charge_density import ChgcarDataDoc
-from emmet.core.electronic_structure import BSPathType
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -117,6 +117,13 @@ class MPRester:
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
         """
+
+        if api_key and len(api_key) == 16:
+            raise ValueError(
+                "Please use a new API key from https://next-gen.materialsproject.org/api "
+                "Keys for the new API are 32 characters, whereas keys for the legacy "
+                "API are 16 characters."
+            )
 
         self.api_key = api_key
         self.endpoint = endpoint
@@ -413,7 +420,9 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula: Union[str, List[str]], sort_by_e_above_hull=False,
+        self,
+        chemsys_formula: Union[str, List[str]],
+        sort_by_e_above_hull=False,
     ):
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
@@ -780,7 +789,9 @@ class MPRester:
         )
 
     def get_entries_in_chemsys(
-        self, elements: Union[str, List[str]], use_gibbs: Optional[int] = None,
+        self,
+        elements: Union[str, List[str]],
+        use_gibbs: Optional[int] = None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -851,9 +862,7 @@ class MPRester:
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-        return self.electronic_structure_dos.get_dos_from_material_id(  # type: ignore
-            material_id=material_id
-        )
+        return self.electronic_structure_dos.get_dos_from_material_id(material_id=material_id)  # type: ignore
 
     def get_phonon_dos_by_material_id(self, material_id: str):
         """
@@ -950,18 +959,16 @@ class MPRester:
 
         latest_doc = max(results, key=lambda x: x.last_updated)
 
-        chg_doc = self.charge_density.get_data_by_id(latest_doc.fs_id)
+        chgcar = self.charge_density.get_charge_density_from_file_id(latest_doc.fs_id)
 
-        if chg_doc:
-            chgcar = chg_doc.data
+        if chgcar is None:
+            raise MPRestError(f"No charge density fetched for {material_id}.")
+
+        if inc_task_doc:
             task_doc = self.tasks.get_data_by_id(latest_doc.task_id)
-            if inc_task_doc:
-                return chgcar, task_doc
-            return chgcar
-        else:
-            raise MPRestError(
-                "Charge density task_id found but no charge density fetched."
-            )
+            return chgcar, task_doc
+
+        return chgcar
 
     def query(*args, **kwargs):
         """
