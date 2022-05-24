@@ -513,14 +513,14 @@ class MPRester:
         ion_ref_comps = [
             Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data
         ]
-        ion_ref_elts = list(
+        ion_ref_elts = set(
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
         # TODO - would be great if the commented line below would work
         # However for some reason you cannot process GibbsComputedStructureEntry with
         # MaterialsProjectAqueousCompatibility
         ion_ref_entries = self.get_entries_in_chemsys(
-            list(set([str(e) for e in ion_ref_elts] + ["O", "H"])),
+            list([str(e) for e in ion_ref_elts] + ["O", "H"]),
             # use_gibbs=use_gibbs
         )
 

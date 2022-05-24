@@ -1,6 +1,8 @@
 import os
 import random
 import typing
+import numpy as np
+import itertools
 
 import pytest
 from emmet.core.summary import HasProps
@@ -14,12 +16,14 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
 from pymatgen.analysis.wulff import WulffShape
 from pymatgen.core.periodic_table import Element
+from pymatgen.core.ion import Ion
 from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
 from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
+from pymatgen.entries.compatibility import MaterialsProjectAqueousCompatibility
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
@@ -175,6 +179,9 @@ class TestMPRester:
         pbx_entries = mpr.get_pourbaix_entries("Li-Zn-S")
         assert not any([e for e in pbx_entries if 'Na' in e.composition])
 
+        # Ensure entries are pourbaix compatible
+        PourbaixDiagram(pbx_entries)
+
         # TODO - old tests copied from pymatgen with specific energy values. Update or delete
         # fe_two_plus = [e for e in pbx_entries if e.entry_id == "ion-0"][0]
         # self.assertAlmostEqual(fe_two_plus.energy, -1.12369, places=3)
@@ -187,8 +194,6 @@ class TestMPRester:
         # so4_two_minus = pbx_entries[9]
         # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
 
-        # Ensure entries are pourbaix compatible
-        PourbaixDiagram(pbx_entries)
 
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
@@ -196,14 +201,43 @@ class TestMPRester:
         ion_entry_data = mpr.get_ion_reference_data_for_chemsys("Ti-O-H")
         ion_entries = mpr.get_ion_entries(pd, ion_entry_data)
         assert len(ion_entries) == 5
-
-        assert isinstance(ion_entries[0], IonEntry)
+        assert all([isinstance(i, IonEntry) for i in ion_entries])
 
         # test an incomplete phase diagram
         entries = mpr.get_entries_in_chemsys("Ti-O")
         pd = PhaseDiagram(entries)
         with pytest.raises(ValueError, match="The phase diagram chemical system"):
             mpr.get_ion_entries(pd)
+
+        # test ion energy calculation
+        ion_data = mpr.get_ion_reference_data_for_chemsys('S')
+        ion_ref_comps = [
+            Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data
+        ]
+        ion_ref_elts = set(
+            itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
+        )
+        ion_ref_entries = mpr.get_entries_in_chemsys(
+            list([str(e) for e in ion_ref_elts] + ["O", "H"])
+        )
+        mpc = MaterialsProjectAqueousCompatibility()
+        ion_ref_entries = mpc.process_entries(ion_ref_entries)
+        ion_ref_pd = PhaseDiagram(ion_ref_entries)
+        ion_entries = mpr.get_ion_entries(ion_ref_pd, ion_ref_data=ion_data)
+
+        # In ion ref data, SO4-2 is -744.27 kJ/mol; ref solid is -1,279.0 kJ/mol
+        # so the ion entry should have an energy (-744.27 +1279) = 534.73 kJ/mol
+        # or 5.542 eV/f.u. above the energy of Na2SO4
+        so4_two_minus = [e for e in ion_entries if e.ion.reduced_formula == "SO4[-2]"][0]
+
+        # the ref solid is Na2SO4, ground state mp-4770
+        # the rf factor correction is necessary to make sure the composition
+        # of the reference solid is normalized to a single formula unit
+        ref_solid_entry = [e for e in ion_ref_entries if e.entry_id == 'mp-4770'][0]
+        rf = ref_solid_entry.composition.get_reduced_composition_and_factor()[1]
+        solid_energy = ion_ref_pd.get_form_energy(ref_solid_entry) / rf
+
+        assert np.allclose(so4_two_minus.energy, solid_energy + 5.542, atol=1e-3)
 
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
