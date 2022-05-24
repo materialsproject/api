@@ -553,10 +553,6 @@ class MPRester:
         pbx_entries = [PourbaixEntry(e, f"ion-{n}") for n, e in enumerate(ion_entries)]
 
         # Construct the solid pourbaix entries from filtered ion_ref entries
-        ion_ref_comps = [Composition(d["data"]["RefSolid"]) for d in ion_data]
-        ion_ref_elts = list(
-            itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
-        )
         extra_elts = (
             set(ion_ref_elts)
             - {Element(s) for s in chemsys}
