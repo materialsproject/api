@@ -170,7 +170,12 @@ class TestMPRester:
         with pytest.raises(ValueError, match="Solid compatibility can only be"):
             mpr.get_pourbaix_entries("Ti-O", solid_compat=None)
 
-        # TODO - old tests copied from pymatgen. Update or delete
+        # test removal of extra elements from reference solids
+        # Li-Zn-S has Na in reference solids
+        pbx_entries = mpr.get_pourbaix_entries("Li-Zn-S")
+        assert not any([e for e in pbx_entries if 'Na' in e.composition])
+
+        # TODO - old tests copied from pymatgen with specific energy values. Update or delete
         # fe_two_plus = [e for e in pbx_entries if e.entry_id == "ion-0"][0]
         # self.assertAlmostEqual(fe_two_plus.energy, -1.12369, places=3)
         #

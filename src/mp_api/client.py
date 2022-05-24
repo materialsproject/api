@@ -15,7 +15,7 @@ from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import Element, Structure
+from pymatgen.core import Element, Structure, Composition
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.io.vasp import Chgcar
@@ -553,7 +553,7 @@ class MPRester:
         pbx_entries = [PourbaixEntry(e, f"ion-{n}") for n, e in enumerate(ion_entries)]
 
         # Construct the solid pourbaix entries from filtered ion_ref entries
-        ion_ref_comps = [e.composition for e in ion_entries]
+        ion_ref_comps = [Composition(d["data"]["RefSolid"]) for d in ion_data]
         ion_ref_elts = list(
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
