@@ -96,8 +96,7 @@ def test_download_for_task_ids(tmpdir, rester):
     assert "mp-1791788.json.gz" in files
 
 
-def test_extract_s3_url_info():
-    rester = resters[0]
+def test_extract_s3_url_info(rester):
 
     url_doc_dict = {
         "task_id": "mp-1896591",
