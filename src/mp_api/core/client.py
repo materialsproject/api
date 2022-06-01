@@ -639,7 +639,10 @@ class BaseRester(Generic[T]):
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
                 raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
-                #data["data"] = self._generate_returned_model(raw_doc_list) # Temp until user-testing
+
+                #Temporarily removed until user-testing completed
+                #data["data"] = self._generate_returned_model(raw_doc_list)
+
                 data["data"] = raw_doc_list
 
             meta_total_doc_num = data.get("meta", {}).get("total_doc", 1)
