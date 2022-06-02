@@ -15,7 +15,7 @@ from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import Element, Structure
+from pymatgen.core import Element, Structure, Composition
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.io.vasp import Chgcar
@@ -532,14 +532,14 @@ class MPRester:
         ion_ref_comps = [
             Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data
         ]
-        ion_ref_elts = list(
+        ion_ref_elts = set(
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
         # TODO - would be great if the commented line below would work
         # However for some reason you cannot process GibbsComputedStructureEntry with
         # MaterialsProjectAqueousCompatibility
         ion_ref_entries = self.get_entries_in_chemsys(
-            list(set([str(e) for e in ion_ref_elts] + ["O", "H"])),
+            list([str(e) for e in ion_ref_elts] + ["O", "H"]),
             # use_gibbs=use_gibbs
         )
 
@@ -572,10 +572,6 @@ class MPRester:
         pbx_entries = [PourbaixEntry(e, f"ion-{n}") for n, e in enumerate(ion_entries)]
 
         # Construct the solid pourbaix entries from filtered ion_ref entries
-        ion_ref_comps = [e.composition for e in ion_entries]
-        ion_ref_elts = list(
-            itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
-        )
         extra_elts = (
             set(ion_ref_elts)
             - {Element(s) for s in chemsys}
