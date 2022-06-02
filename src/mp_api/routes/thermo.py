@@ -7,6 +7,7 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 import warnings
 
+
 class ThermoRester(BaseRester[ThermoDoc]):
 
     suffix = "thermo"

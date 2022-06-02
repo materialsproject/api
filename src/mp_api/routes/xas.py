@@ -7,6 +7,7 @@ from pymatgen.core.periodic_table import Element
 
 import warnings
 
+
 class XASRester(BaseRester[XASDoc]):
 
     suffix = "xas"
