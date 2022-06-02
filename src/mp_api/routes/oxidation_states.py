@@ -57,7 +57,7 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
             query_params.update({"chemsys": ",".join(chemsys)})
 
         if possible_species:
-            query_params.update({"task_ids": ",".join(possible_species)})
+            query_params.update({"possible_species": ",".join(possible_species)})
 
         if sort_fields:
             query_params.update(
