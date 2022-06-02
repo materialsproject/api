@@ -15,7 +15,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_magnetism_docs(self, *args, **kwargs):
+    def search_magnetism_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

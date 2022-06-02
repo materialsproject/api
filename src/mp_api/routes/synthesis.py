@@ -14,7 +14,7 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
     suffix = "synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
 
-    def search_synthesis_text(self, *args, **kwargs):
+    def search_synthesis_text(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

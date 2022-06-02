@@ -13,7 +13,7 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_surface_properties_docs(self, *args, **kwargs):
+    def search_surface_properties_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

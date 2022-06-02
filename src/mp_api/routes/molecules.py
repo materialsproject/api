@@ -15,7 +15,7 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_molecules_docs(self, *args, **kwargs):
+    def search_molecules_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

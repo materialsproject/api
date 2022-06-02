@@ -13,7 +13,7 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
     document_model = PiezoelectricDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_piezoelectric_docs(self, *args, **kwargs):
+    def search_piezoelectric_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

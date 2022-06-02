@@ -31,7 +31,7 @@ class TaskRester(BaseRester[TaskDoc]):
 
         return traj_data
 
-    def search_task_docs(self, *args, **kwargs):
+    def search_task_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

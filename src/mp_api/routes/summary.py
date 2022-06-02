@@ -17,7 +17,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_summary_docs(self, *args, **kwargs):
+    def search_summary_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

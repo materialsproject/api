@@ -13,7 +13,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
     document_model = DielectricDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_dielectric_docs(self, *args, **kwargs):
+    def search_dielectric_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

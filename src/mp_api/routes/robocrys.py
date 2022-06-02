@@ -12,7 +12,7 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
     document_model = RobocrystallogapherDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_robocrys_text(self, *args, **kwargs):
+    def search_robocrys_text(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

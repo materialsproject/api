@@ -15,7 +15,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
     supports_versions = True
     primary_key = "material_id"
 
-    def search_thermo_docs(self, *args, **kwargs):
+    def search_thermo_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

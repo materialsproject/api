@@ -8,7 +8,7 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
     document_model = PhononBSDOSDoc  # type: ignore
     primary_key = "material_id"
 
-    def search(*args, **kwargs):
+    def search(*args, **kwargs):  # pragma: no cover
         raise NotImplementedError(
             """
             The PhononRester.search method does not exist as no search endpoint is present.

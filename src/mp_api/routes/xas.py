@@ -14,7 +14,7 @@ class XASRester(BaseRester[XASDoc]):
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
 
-    def search_xas_docs(self, *args, **kwargs):
+    def search_xas_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

@@ -15,7 +15,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_grain_boundary_docs(self, *args, **kwargs):
+    def search_grain_boundary_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

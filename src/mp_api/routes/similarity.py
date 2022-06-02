@@ -8,7 +8,7 @@ class SimilarityRester(BaseRester[SimilarityDoc]):
     document_model = SimilarityDoc  # type: ignore
     primary_key = "material_id"
 
-    def search(*args, **kwargs):
+    def search(*args, **kwargs):  # pragma: no cover
         raise NotImplementedError(
             """
             The SimilarityRester.search method does not exist as no search endpoint is present.

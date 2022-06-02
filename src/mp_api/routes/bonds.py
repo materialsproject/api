@@ -13,7 +13,7 @@ class BondsRester(BaseRester[BondingDoc]):
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_bonds_docs(self, *args, **kwargs):
+    def search_bonds_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

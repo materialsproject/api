@@ -24,7 +24,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
     document_model = ElectronicStructureDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_electronic_structure_docs(self, *args, **kwargs):
+    def search_electronic_structure_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """
@@ -151,7 +151,7 @@ class BandStructureRester(BaseRester):
     suffix = "electronic_structure/bandstructure"
     document_model = ElectronicStructureDoc  # type: ignore
 
-    def search_bandstructure_summary(self, *args, **kwargs):
+    def search_bandstructure_summary(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """
@@ -345,7 +345,7 @@ class DosRester(BaseRester):
     suffix = "electronic_structure/dos"
     document_model = ElectronicStructureDoc  # type: ignore
 
-    def search_dos_summary(self, *args, **kwargs):
+    def search_dos_summary(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

@@ -13,7 +13,7 @@ class EOSRester(BaseRester[EOSDoc]):
     document_model = EOSDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_eos_docs(self, *args, **kwargs):
+    def search_eos_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

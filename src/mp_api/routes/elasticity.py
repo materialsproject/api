@@ -13,7 +13,7 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
     document_model = ElasticityDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_elasticity_docs(self, *args, **kwargs):
+    def search_elasticity_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """

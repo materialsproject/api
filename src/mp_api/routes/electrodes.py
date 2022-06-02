@@ -13,7 +13,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
     document_model = InsertionElectrodeDoc  # type: ignore
     primary_key = "battery_id"
 
-    def search_electrode_docs(self, *args, **kwargs):
+    def search_electrode_docs(self, *args, **kwargs):  # pragma: no cover
         """
         Deprecated
         """
