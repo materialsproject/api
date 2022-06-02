@@ -5,12 +5,27 @@ from mp_api.core.client import BaseRester
 from mp_api.core.utils import validate_ids
 from pymatgen.core.periodic_table import Element
 
+import warnings
 
 class XASRester(BaseRester[XASDoc]):
 
     suffix = "xas"
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
+
+    def search_xas_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.xas.search_xas_docs is deprecated. "
+            "Please use MPRester.xas.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

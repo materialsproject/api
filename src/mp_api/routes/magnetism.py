@@ -6,12 +6,28 @@ from emmet.core.magnetism import MagnetismDoc
 
 from pymatgen.analysis.magnetism import Ordering
 
+import warnings
+
 
 class MagnetismRester(BaseRester[MagnetismDoc]):
 
     suffix = "magnetism"
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"
+
+    def search_magnetism_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.magnetism.search_magnetism_docs is deprecated. "
+            "Please use MPRester.magnetism.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

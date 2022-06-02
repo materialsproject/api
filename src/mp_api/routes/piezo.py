@@ -4,12 +4,28 @@ from collections import defaultdict
 from mp_api.core.client import BaseRester
 from emmet.core.polar import PiezoelectricDoc
 
+import warnings
+
 
 class PiezoRester(BaseRester[PiezoelectricDoc]):
 
     suffix = "piezoelectric"
     document_model = PiezoelectricDoc  # type: ignore
     primary_key = "material_id"
+
+    def search_piezoelectric_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.piezoelectric.search_piezoelectric_docs is deprecated. "
+            "Please use MPRester.piezoelectric.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

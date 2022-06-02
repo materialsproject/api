@@ -8,6 +8,8 @@ from emmet.core.settings import EmmetSettings
 from mp_api.core.client import BaseRester, MPRestError
 from mp_api.core.utils import validate_ids
 
+import warnings
+
 _EMMET_SETTINGS = EmmetSettings()
 
 
@@ -39,6 +41,20 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         else:
             response = self.get_data_by_id(material_id, fields=["initial_structures"])
             return response.initial_structures if response is not None else response  # type: ignore
+
+    def search_material_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.materials.search_material_docs is deprecated. "
+            "Please use MPRester.materials.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

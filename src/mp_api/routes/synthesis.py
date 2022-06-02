@@ -7,10 +7,25 @@ from emmet.core.synthesis import (
     OperationTypeEnum,
 )
 
+import warnings
+
 
 class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
     suffix = "synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
+
+    def search_synthesis_text(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "search_synthesis_text is deprecated. " "Please use search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

@@ -7,3 +7,11 @@ class SimilarityRester(BaseRester[SimilarityDoc]):
     suffix = "similarity"
     document_model = SimilarityDoc  # type: ignore
     primary_key = "material_id"
+
+    def search(*args, **kwargs):
+        raise NotImplementedError(
+            """
+            The SimilarityRester.search method does not exist as no search endpoint is present.
+            Use get_data_by_id instead.
+            """
+        )

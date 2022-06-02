@@ -8,12 +8,28 @@ from mp_api.core.client import BaseRester
 from mp_api.core.utils import validate_ids
 from pymatgen.analysis.magnetism import Ordering
 
+import warnings
+
 
 class SummaryRester(BaseRester[SummaryDoc]):
 
     suffix = "summary"
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
+
+    def search_summary_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.summary.search_summary_docs is deprecated. "
+            "Please use MPRester.summary.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

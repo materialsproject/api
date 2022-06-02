@@ -6,12 +6,28 @@ from pymatgen.core.periodic_table import Element
 from mp_api.core.client import BaseRester
 from emmet.core.molecules_jcesr import MoleculesDoc
 
+import warnings
+
 
 class MoleculesRester(BaseRester[MoleculesDoc]):
 
     suffix = "molecules"
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
+
+    def search_molecules_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.molecules.search_molecules_docs is deprecated. "
+            "Please use MPRester.molecules.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

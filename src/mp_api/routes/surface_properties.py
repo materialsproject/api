@@ -4,12 +4,28 @@ from collections import defaultdict
 from mp_api.core.client import BaseRester
 from emmet.core.surface_properties import SurfacePropDoc
 
+import warnings
+
 
 class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
 
     suffix = "surface_properties"
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "task_id"
+
+    def search_surface_properties_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.surface_properties.search_surface_properties_docs is deprecated. "
+            "Please use MPRester.surface_properties.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

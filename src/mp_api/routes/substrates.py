@@ -12,6 +12,20 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
     document_model = SubstratesDoc  # type: ignore
     primary_key = "film_id"
 
+    def search_substrates_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.substrates.search_substrates_docs is deprecated. "
+            "Please use MPRester.substrates.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
     def search(
         self,
         area: Optional[Tuple[float, float]] = None,

@@ -4,12 +4,27 @@ from emmet.core.electrode import InsertionElectrodeDoc
 from typing import Optional, Tuple, List, Union
 from collections import defaultdict
 
+import warnings
+
 
 class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
     suffix = "insertion_electrodes"
     document_model = InsertionElectrodeDoc  # type: ignore
     primary_key = "battery_id"
+
+    def search_electrode_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.electrode.search_electrode_docs is deprecated. Please use MPRester.electrode.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(  # pragma: ignore
         self,

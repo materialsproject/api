@@ -4,12 +4,27 @@ from typing import List, Optional, Tuple
 from emmet.core.elasticity import ElasticityDoc
 from mp_api.core.client import BaseRester
 
+import warnings
+
 
 class ElasticityRester(BaseRester[ElasticityDoc]):
 
     suffix = "elasticity"
     document_model = ElasticityDoc  # type: ignore
     primary_key = "task_id"
+
+    def search_elasticity_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.elasticity.search_elasticity_docs is deprecated. Please use MPRester.elasticity.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

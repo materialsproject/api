@@ -4,12 +4,27 @@ from collections import defaultdict
 from mp_api.core.client import BaseRester
 from emmet.core.bonds import BondingDoc
 
+import warnings
+
 
 class BondsRester(BaseRester[BondingDoc]):
 
     suffix = "bonds"
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
+
+    def search_bonds_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.bonds.search_bonds_docs is deprecated. Please use MPRester.bonds.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,

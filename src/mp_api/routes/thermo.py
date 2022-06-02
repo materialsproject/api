@@ -5,6 +5,7 @@ from mp_api.core.utils import validate_ids
 from emmet.core.thermo import ThermoDoc
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
+import warnings
 
 class ThermoRester(BaseRester[ThermoDoc]):
 
@@ -12,6 +13,20 @@ class ThermoRester(BaseRester[ThermoDoc]):
     document_model = ThermoDoc  # type: ignore
     supports_versions = True
     primary_key = "material_id"
+
+    def search_thermo_docs(self, *args, **kwargs):
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.thermo.search_thermo_docs is deprecated. "
+            "Please use MPRester.thermo.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
 
     def search(
         self,
