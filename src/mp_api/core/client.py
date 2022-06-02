@@ -640,8 +640,8 @@ class BaseRester(Generic[T]):
             if self.document_model and use_document_model:
                 raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
-                #Temporarily removed until user-testing completed
-                #data["data"] = self._generate_returned_model(raw_doc_list)
+                # Temporarily removed until user-testing completed
+                # data["data"] = self._generate_returned_model(raw_doc_list)
 
                 data["data"] = raw_doc_list
 
