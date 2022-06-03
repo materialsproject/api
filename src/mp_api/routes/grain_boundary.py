@@ -6,6 +6,8 @@ from mp_api.core.utils import validate_ids
 
 from emmet.core.grain_boundary import GBTypeEnum, GrainBoundaryDoc
 
+import warnings
+
 
 class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
 
@@ -13,18 +15,32 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_grain_boundary_docs(
+    def search_grain_boundary_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.grain_boundary.search_grain_boundary_docs is deprecated. "
+            "Please use MPRester.grain_boundary.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
-        material_ids: Optional[List[str]] = None,
+        chemsys: Optional[str] = None,
         gb_plane: Optional[List[str]] = None,
         gb_energy: Optional[Tuple[float, float]] = None,
-        separation_energy: Optional[Tuple[float, float]] = None,
+        material_ids: Optional[List[str]] = None,
+        pretty_formula: Optional[str] = None,
         rotation_axis: Optional[List[str]] = None,
         rotation_angle: Optional[Tuple[float, float]] = None,
+        separation_energy: Optional[Tuple[float, float]] = None,
         sigma: Optional[int] = None,
         type: Optional[GBTypeEnum] = None,
-        chemsys: Optional[str] = None,
-        pretty_formula: Optional[str] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -32,28 +48,29 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         fields: Optional[List[str]] = None,
     ):
         """
-        Query grain boundary docs using a variety of search criteria.
+         Query grain boundary docs using a variety of search criteria.
 
-        Arguments:
-            material_ids (List[str]): List of Materials Project IDs to query with.
-            gb_plane(List[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]
-            gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.
-            separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.
-            rotation_angle (Tuple[float,float]): Minimum and maximum rotation angle in degrees to consider.
-            rotation_axis(List[str]): The Miller index of rotation axis. e.g., [1, 0, 0], [1, 1, 0], and [1, 1, 1]
-                sigma (int): Sigma value of grain boundary.
-            type (GBTypeEnum): Grain boundary type.
-            chemsys (str): Dash-delimited string of elements in the material.
-            pretty_formula (str): Formula of the material.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
-            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
-            chunk_size (int): Number of data entries per chunk.
-            all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in GrainBoundaryDoc to return data for.
-                Default is material_id and last_updated if all_fields is False.
+         Arguments:
+             chemsys (str): Dash-delimited string of elements in the material.
+             gb_plane(List[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]
+             gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.
+             material_ids (List[str]): List of Materials Project IDs to query with.
+             pretty_formula (str): Formula of the material.
+             rotation_angle (Tuple[float,float]): Minimum and maximum rotation angle in degrees to consider.
+             rotation_axis(List[str]): The Miller index of rotation axis. e.g., [1, 0, 0], [1, 1, 0], and [1, 1, 1]
+                 sigma (int): Sigma value of grain boundary.
+             separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.
+             sigma (int): Sigma value of the boundary.
+             type (GBTypeEnum): Grain boundary type.
+             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
+             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
+             chunk_size (int): Number of data entries per chunk.
+             all_fields (bool): Whether to return all fields in the document. Defaults to True.
+             fields (List[str]): List of fields in GrainBoundaryDoc to return data for.
+                 Default is material_id and last_updated if all_fields is False.
 
-       Returns:
-            ([GrainBoundaryDoc]) List of grain boundary documents
+        Returns:
+             ([GrainBoundaryDoc]) List of grain boundary documents
         """
 
         query_params = defaultdict(dict)  # type: dict
@@ -110,7 +127,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

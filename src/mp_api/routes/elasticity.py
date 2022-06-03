@@ -4,6 +4,8 @@ from typing import List, Optional, Tuple
 from emmet.core.elasticity import ElasticityDoc
 from mp_api.core.client import BaseRester
 
+import warnings
+
 
 class ElasticityRester(BaseRester[ElasticityDoc]):
 
@@ -11,15 +13,28 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
     document_model = ElasticityDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_elasticity_docs(
+    def search_elasticity_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.elasticity.search_elasticity_docs is deprecated. Please use MPRester.elasticity.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
-        k_voigt: Optional[Tuple[float, float]] = None,
-        k_reuss: Optional[Tuple[float, float]] = None,
-        k_vrh: Optional[Tuple[float, float]] = None,
+        elastic_anisotropy: Optional[Tuple[float, float]] = None,
         g_voigt: Optional[Tuple[float, float]] = None,
         g_reuss: Optional[Tuple[float, float]] = None,
         g_vrh: Optional[Tuple[float, float]] = None,
-        elastic_anisotropy: Optional[Tuple[float, float]] = None,
+        k_voigt: Optional[Tuple[float, float]] = None,
+        k_reuss: Optional[Tuple[float, float]] = None,
+        k_vrh: Optional[Tuple[float, float]] = None,
         poisson_ratio: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -31,20 +46,20 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
         Query elasticity docs using a variety of search criteria.
 
         Arguments:
-            k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Voigt average of the bulk modulus.
-            k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Reuss average of the bulk modulus.
-            k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for
-                the Voigt-Reuss-Hill average of the bulk modulus.
+            elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for
+                the elastic anisotropy.
             g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
                 the Voigt average of the shear modulus.
             g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
                 the Reuss average of the shear modulus.
             g_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for
                 the Voigt-Reuss-Hill average of the shear modulus.
-            elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for
-                the elastic anisotropy.
+            k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+                the Voigt average of the bulk modulus.
+            k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+                the Reuss average of the bulk modulus.
+            k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+                the Voigt-Reuss-Hill average of the bulk modulus.
             poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for
                 Poisson's ratio.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
@@ -102,7 +117,7 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

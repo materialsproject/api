@@ -3,10 +3,15 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 import pytest
 from mp_api.routes.thermo import ThermoRester
 
-import inspect
 import typing
 
-resters = [ThermoRester()]
+
+@pytest.fixture
+def rester():
+    rester = ThermoRester()
+    yield rester
+    rester.session.close()
+
 
 excluded_params = [
     "sort_fields",
@@ -26,6 +31,8 @@ alt_name_dict = {
     "formation_energy": "formation_energy_per_atom",
     "uncorrected_energy": "uncorrected_energy_per_atom",
     "equilibirum_reaction_energy": "equilibirum_reaction_energy_per_atom",
+    "num_elements": "nelements",
+    "num_sites": "nsites",
 }  # type: dict
 
 custom_field_tests = {
@@ -35,16 +42,9 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
-@pytest.mark.parametrize("rester", resters)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
-    # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         # Get list of parameters
@@ -63,9 +63,7 @@ def test_client(rester):
                         param: (-100, 100),
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [
-                            project_field if project_field is not None else param
-                        ],
+                        "fields": [project_field if project_field is not None else param],
                     }
                 elif param_type == typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
@@ -73,9 +71,7 @@ def test_client(rester):
                         param: (-100.12, 100.12),
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [
-                            project_field if project_field is not None else param
-                        ],
+                        "fields": [project_field if project_field is not None else param],
                     }
                 elif param_type is bool:
                     project_field = alt_name_dict.get(param, None)
@@ -83,9 +79,7 @@ def test_client(rester):
                         param: False,
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [
-                            project_field if project_field is not None else param
-                        ],
+                        "fields": [project_field if project_field is not None else param],
                     }
                 elif param in custom_field_tests:
                     project_field = alt_name_dict.get(param, None)
@@ -93,9 +87,7 @@ def test_client(rester):
                         param: custom_field_tests[param],
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [
-                            project_field if project_field is not None else param
-                        ],
+                        "fields": [project_field if project_field is not None else param],
                     }
 
                 doc = search_method(**q)[0].dict()
@@ -103,16 +95,11 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+                assert doc[project_field if project_field is not None else param] is not None
 
 
 @pytest.mark.xfail(reason="Monty decode issue with phase diagram")
 def test_get_phase_diagram_from_chemsys():
     # Test that a phase diagram is returned
 
-    assert isinstance(
-        ThermoRester().get_phase_diagram_from_chemsys("Hf-Pm"), PhaseDiagram
-    )
+    assert isinstance(ThermoRester().get_phase_diagram_from_chemsys("Hf-Pm"), PhaseDiagram)

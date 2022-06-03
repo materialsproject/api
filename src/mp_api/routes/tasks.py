@@ -3,6 +3,8 @@ from typing import List, Optional, Union
 from emmet.core.tasks import TaskDoc
 from mp_api.core.client import BaseRester, MPRestError
 
+import warnings
+
 
 class TaskRester(BaseRester[TaskDoc]):
 
@@ -29,10 +31,24 @@ class TaskRester(BaseRester[TaskDoc]):
 
         return traj_data
 
-    def search_task_docs(
+    def search_task_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.tasks.search_task_docs is deprecated. "
+            "Please use MPRester.tasks.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
-        formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
+        formula: Optional[Union[str, List[str]]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -42,10 +58,11 @@ class TaskRester(BaseRester[TaskDoc]):
         Query core task docs using a variety of search criteria.
 
         Arguments:
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
+            formula (str, List[str]): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
+                (e.g., [Fe2O3, ABO3]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -67,7 +84,7 @@ class TaskRester(BaseRester[TaskDoc]):
 
             query_params.update({"chemsys": ",".join(chemsys)})
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

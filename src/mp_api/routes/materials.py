@@ -8,6 +8,8 @@ from emmet.core.settings import EmmetSettings
 from mp_api.core.client import BaseRester, MPRestError
 from mp_api.core.utils import validate_ids
 
+import warnings
+
 _EMMET_SETTINGS = EmmetSettings()
 
 
@@ -40,20 +42,35 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             response = self.get_data_by_id(material_id, fields=["initial_structures"])
             return response.initial_structures if response is not None else response  # type: ignore
 
-    def search_material_docs(
+    def search_material_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.materials.search_material_docs is deprecated. "
+            "Please use MPRester.materials.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
-        formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        task_ids: Optional[List[str]] = None,
         crystal_system: Optional[CrystalSystem] = None,
-        spacegroup_number: Optional[int] = None,
-        spacegroup_symbol: Optional[str] = None,
-        nsites: Optional[Tuple[int, int]] = None,
-        volume: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
         deprecated: Optional[bool] = False,
+        elements: Optional[List[str]] = None,
+        exclude_elements: Optional[List[str]] = None,
+        formula: Optional[Union[str, List[str]]] = None,
+        num_elements: Optional[Tuple[int, int]] = None,
+        num_sites: Optional[Tuple[int, int]] = None,
+        spacegroup_number: Optional[int] = None,
+        spacegroup_symbol: Optional[str] = None,
+        task_ids: Optional[List[str]] = None,
+        volume: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -64,20 +81,22 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         Query core material docs using a variety of search criteria.
 
         Arguments:
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            elements (List[str]): A list of elements.
-            exclude_elements (List[str]): A list of elements to exclude.
-            task_ids (List[str]): List of Materials Project IDs to return data for.
             crystal_system (CrystalSystem): Crystal system of material.
-            spacegroup_number (int): Space group number of material.
-            spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
-            nsites (Tuple[int,int]): Minimum and maximum number of sites to consider.
-            volume (Tuple[float,float]): Minimum and maximum volume to consider.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
+            elements (List[str]): A list of elements.
+            exclude_elements (List[str]): A list of elements to exclude.
+            formula (str, List[str]): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
+                (e.g., [Fe2O3, ABO3]).
+            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
+            spacegroup_number (int): Space group number of material.
+            spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
+            task_ids (List[str]): List of Materials Project IDs to return data for.
+            volume (Tuple[float,float]): Minimum and maximum volume to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -92,7 +111,10 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         query_params = {"deprecated": deprecated}  # type: dict
 
         if formula:
-            query_params.update({"formula": formula})
+            if isinstance(formula, str):
+                formula = [formula]
+
+            query_params.update({"formula": ",".join(formula)})
 
         if chemsys:
             if isinstance(chemsys, str):
@@ -117,8 +139,15 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             }
         )
 
-        if nsites:
-            query_params.update({"nsites_min": nsites[0], "nsites_max": nsites[1]})
+        if num_sites:
+            query_params.update(
+                {"nsites_min": num_sites[0], "nsites_max": num_sites[1]}
+            )
+
+        if num_elements:
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
@@ -137,7 +166,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

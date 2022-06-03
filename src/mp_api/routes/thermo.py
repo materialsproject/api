@@ -5,6 +5,8 @@ from mp_api.core.utils import validate_ids
 from emmet.core.thermo import ThermoDoc
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
+import warnings
+
 
 class ThermoRester(BaseRester[ThermoDoc]):
 
@@ -13,17 +15,31 @@ class ThermoRester(BaseRester[ThermoDoc]):
     supports_versions = True
     primary_key = "material_id"
 
-    def search_thermo_docs(
+    def search_thermo_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.thermo.search_thermo_docs is deprecated. "
+            "Please use MPRester.thermo.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
-        material_ids: Optional[List[str]] = None,
-        formula: Optional[str] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
-        nelements: Optional[Tuple[int, int]] = None,
-        is_stable: Optional[bool] = None,
-        total_energy: Optional[Tuple[float, float]] = None,
-        formation_energy: Optional[Tuple[float, float]] = None,
         energy_above_hull: Optional[Tuple[float, float]] = None,
         equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
+        formation_energy: Optional[Tuple[float, float]] = None,
+        formula: Optional[Union[str, List[str]]] = None,
+        is_stable: Optional[bool] = None,
+        material_ids: Optional[List[str]] = None,
+        num_elements: Optional[Tuple[int, int]] = None,
+        total_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -35,18 +51,19 @@ class ThermoRester(BaseRester[ThermoDoc]):
         Query core material docs using a variety of search criteria.
 
         Arguments:
-            material_ids (List[str]): List of Materials Project IDs to return data for.
-            formula (str): A formula including anonomyzed formula
-                or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            nelements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
-            is_stable (bool): Whether the material is stable.
-            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
-            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
             energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
             equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
+            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
+            formula (str, List[str]): A formula including anonomyzed formula
+                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
+                (e.g., [Fe2O3, ABO3]).
+            is_stable (bool): Whether the material is stable.
+            material_ids (List[str]): List of Materials Project IDs to return data for.
+            num_elements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
+            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
             uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
                 energy in eV/atom to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
@@ -63,7 +80,10 @@ class ThermoRester(BaseRester[ThermoDoc]):
         query_params = defaultdict(dict)  # type: dict
 
         if formula:
-            query_params.update({"formula": formula})
+            if isinstance(formula, str):
+                formula = [formula]
+
+            query_params.update({"formula": ",".join(formula)})
 
         if chemsys:
             if isinstance(chemsys, str):
@@ -74,9 +94,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
         if material_ids:
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
-        if nelements:
+        if num_elements:
             query_params.update(
-                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
             )
 
         if is_stable is not None:
@@ -110,7 +130,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

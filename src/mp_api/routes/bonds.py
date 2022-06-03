@@ -4,6 +4,8 @@ from collections import defaultdict
 from mp_api.core.client import BaseRester
 from emmet.core.bonds import BondingDoc
 
+import warnings
+
 
 class BondsRester(BaseRester[BondingDoc]):
 
@@ -11,13 +13,26 @@ class BondsRester(BaseRester[BondingDoc]):
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_bonds_docs(
+    def search_bonds_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.bonds.search_bonds_docs is deprecated. Please use MPRester.bonds.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
-        max_bond_length: Optional[Tuple[float, float]] = None,
-        min_bond_length: Optional[Tuple[float, float]] = None,
-        mean_bond_length: Optional[Tuple[float, float]] = None,
         coordination_envs: Optional[List[str]] = None,
         coordination_envs_anonymous: Optional[List[str]] = None,
+        max_bond_length: Optional[Tuple[float, float]] = None,
+        mean_bond_length: Optional[Tuple[float, float]] = None,
+        min_bond_length: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -28,15 +43,15 @@ class BondsRester(BaseRester[BondingDoc]):
         Query bonding docs using a variety of search criteria.
 
         Arguments:
-            max_bond_length (Tuple[float,float]): Minimum and maximum value for the maximum bond length
-                in the structure to consider.
-            min_bond_length (Tuple[float,float]): Minimum and maximum value for the minimum bond length
-                in the structure to consider.
-            mean_bond_length (Tuple[float,float]):  Minimum and maximum value for the mean bond length
-                in the structure to consider.
             coordination_envs (List[str]): List of coordination environments to consider (e.g. ['Mo-S(6)', 'S-Mo(3)']).
             coordination_envs_anonymous (List[str]): List of anonymous coordination environments to consider
                  (e.g. ['A-B(6)', 'A-B(3)']).
+            max_bond_length (Tuple[float,float]): Minimum and maximum value for the maximum bond length
+                in the structure to consider.
+            mean_bond_length (Tuple[float,float]):  Minimum and maximum value for the mean bond length
+                in the structure to consider.
+            min_bond_length (Tuple[float,float]): Minimum and maximum value for the minimum bond length
+                in the structure to consider.
             sort_fields (List[str]): Fields used to sort results. Prefixing with '-' will sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -93,7 +108,7 @@ class BondsRester(BaseRester[BondingDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

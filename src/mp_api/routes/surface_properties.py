@@ -4,6 +4,8 @@ from collections import defaultdict
 from mp_api.core.client import BaseRester
 from emmet.core.surface_properties import SurfacePropDoc
 
+import warnings
+
 
 class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
 
@@ -11,13 +13,27 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_surface_properties_docs(
+    def search_surface_properties_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.surface_properties.search_surface_properties_docs is deprecated. "
+            "Please use MPRester.surface_properties.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
+        has_reconstructed: Optional[bool] = None,
+        shape_factor: Optional[Tuple[float, float]] = None,
+        surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
         weighted_surface_energy: Optional[Tuple[float, float]] = None,
         weighted_work_function: Optional[Tuple[float, float]] = None,
-        surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
-        shape_factor: Optional[Tuple[float, float]] = None,
-        has_reconstructed: Optional[bool] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -28,13 +44,13 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
         Query surface properties docs using a variety of search criteria.
 
         Arguments:
+            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
+            shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
+            surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values to
+                consider.
             weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy in J/m² to
                 consider.
             weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.
-            surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values to
-                consider.
-            shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
-            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -94,7 +110,7 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

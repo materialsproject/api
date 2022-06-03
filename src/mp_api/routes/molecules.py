@@ -6,6 +6,8 @@ from pymatgen.core.periodic_table import Element
 from mp_api.core.client import BaseRester
 from emmet.core.molecules_jcesr import MoleculesDoc
 
+import warnings
+
 
 class MoleculesRester(BaseRester[MoleculesDoc]):
 
@@ -13,13 +15,27 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_molecules_docs(
+    def search_molecules_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.molecules.search_molecules_docs is deprecated. "
+            "Please use MPRester.molecules.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
+        charge: Optional[Tuple[float, float]] = None,
         elements: Optional[List[Element]] = None,
-        nelements: Optional[Tuple[float, float]] = None,
         EA: Optional[Tuple[float, float]] = None,
         IE: Optional[Tuple[float, float]] = None,
-        charge: Optional[Tuple[float, float]] = None,
+        nelements: Optional[Tuple[float, float]] = None,
         pointgroup: Optional[str] = None,
         smiles: Optional[str] = None,
         sort_fields: Optional[List[str]] = None,
@@ -32,11 +48,12 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
         Query equations of state docs using a variety of search criteria.
 
         Arguments:
+            charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
+            elements (List[Element]): A list of elements.
             film_orientation (List[Elements]): List of elements that are in the molecule.
-            nelements (Tuple[float,float]): Minimum and maximum number of elements in the molecule to consider.
             EA (Tuple[float,float]): Minimum and maximum value of the electron affinity in eV to consider.
             IE (Tuple[float,float]): Minimum and maximum value of the ionization energy in eV to consider.
-            charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
+            nelements (Tuple[float,float]): Minimum and maximum number of elements in the molecule to consider.
             pointgroup (str): Point group of the molecule in Schoenflies notation.
             smiles (str): The simplified molecular input line-entry system (SMILES) representation of the molecule.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
@@ -86,7 +103,7 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

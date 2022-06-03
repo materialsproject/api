@@ -2,11 +2,16 @@ import os
 import pytest
 from mp_api.routes.electrodes import ElectrodeRester
 
-import inspect
 import typing
 from pymatgen.core.periodic_table import Element
 
-resters = [ElectrodeRester()]
+
+@pytest.fixture
+def rester():
+    rester = ElectrodeRester()
+    yield rester
+    rester.session.close()
+
 
 excluded_params = [
     "sort_fields",
@@ -21,6 +26,8 @@ sub_doc_fields = []  # type: list
 alt_name_dict = {
     "formula": "battery_id",
     "exclude_elements": "battery_id",
+    "num_elements": "nelements",
+    "num_sites": "nsites",
 }  # type: dict
 
 custom_field_tests = {
@@ -35,9 +42,8 @@ custom_field_tests = {
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
-@pytest.mark.parametrize("rester", resters)
 def test_client(rester):
-    search_method = rester.search_electrode_docs
+    search_method = rester.search
 
     if search_method is not None:
         # Get list of parameters

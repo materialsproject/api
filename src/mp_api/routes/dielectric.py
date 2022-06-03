@@ -4,6 +4,8 @@ from typing import List, Optional, Tuple
 from emmet.core.polar import DielectricDoc
 from mp_api.core.client import BaseRester
 
+import warnings
+
 
 class DielectricRester(BaseRester[DielectricDoc]):
 
@@ -11,7 +13,20 @@ class DielectricRester(BaseRester[DielectricDoc]):
     document_model = DielectricDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_dielectric_docs(
+    def search_dielectric_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.dielectric.search_dielectric_docs is deprecated. Please use MPRester.dielectric.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
         e_total: Optional[Tuple[float, float]] = None,
         e_ionic: Optional[Tuple[float, float]] = None,
@@ -72,7 +87,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

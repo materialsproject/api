@@ -25,8 +25,8 @@ from maggma.api.utils import api_sanitize
 from matplotlib import use
 from monty.json import MontyDecoder
 from mp_api.core.settings import MAPIClientSettings
+from pydantic import BaseModel, create_model
 from mp_api.core.utils import validate_ids
-from pydantic import BaseModel
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 from tqdm.auto import tqdm
@@ -567,14 +567,18 @@ class BaseRester(Generic[T]):
         with ThreadPoolExecutor(max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS) as executor:
 
             # Get list of initial futures defined by max number of parallel requests
-            futures = set({})
-            for params in itertools.islice(params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS):
+            futures = set()
+
+            for params in itertools.islice(
+                params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
+            ):
 
                 future = executor.submit(
                     self._submit_request_and_process,
                     use_document_model=use_document_model,
                     **params,
                 )
+
                 setattr(future, "crit_ind", params_ind)
                 futures.add(future)
                 params_ind += 1
@@ -584,18 +588,22 @@ class BaseRester(Generic[T]):
                 finished, futures = wait(futures, return_when=FIRST_COMPLETED)
 
                 for future in finished:
+
                     data, subtotal = future.result()
+
                     if progress_bar is not None:
                         progress_bar.update(len(data["data"]))
                     return_data.append((data, subtotal, future.crit_ind))  # type: ignore
 
                 # Populate more futures to replace finished
                 for params in itertools.islice(params_gen, len(finished)):
+
                     new_future = executor.submit(
                         self._submit_request_and_process,
                         use_document_model=use_document_model,
                         **params,
                     )
+
                     setattr(new_future, "crit_ind", params_ind)
                     futures.add(new_future)
                     params_ind += 1
@@ -630,7 +638,12 @@ class BaseRester(Generic[T]):
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-                data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+                raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+
+                # Temporarily removed until user-testing completed
+                # data["data"] = self._generate_returned_model(raw_doc_list)
+
+                data["data"] = raw_doc_list
 
             meta_total_doc_num = data.get("meta", {}).get("total_doc", 1)
 
@@ -653,6 +666,45 @@ class BaseRester(Generic[T]):
                 f"REST query returned with error status code {response.status_code} "
                 f"on URL {response.url} with message:\n{message}"
             )
+
+    def _generate_returned_model(self, data):
+
+        new_data = []
+
+        for doc in data:
+            set_data = {
+                field: value
+                for field, value in doc
+                if field in doc.dict(exclude_unset=True)
+            }
+            unset_fields = [field for field in doc.__fields__ if field not in set_data]
+
+            data_model = create_model(
+                "MPDataEntry",
+                fields_not_requested=unset_fields,
+                __base__=self.document_model,
+            )
+
+            data_model.__fields__ = {
+                **{
+                    name: description
+                    for name, description in data_model.__fields__.items()
+                    if name in set_data
+                },
+                "fields_not_requested": data_model.__fields__["fields_not_requested"],
+            }
+
+            def new_repr(self) -> str:
+                extra = ", ".join(
+                    f"{n}={getattr(self, n)!r}" for n in data_model.__fields__
+                )
+                return f"{self.__class__.__name__}<{self.__class__.__base__.__name__}>({extra})"
+
+            data_model.__repr__ = new_repr
+
+            new_data.append(data_model(**set_data))
+
+        return new_data
 
     def _query_resource_data(
         self,
@@ -752,7 +804,7 @@ class BaseRester(Generic[T]):
         else:
             return results[0]
 
-    def search(
+    def _search(
         self,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,

@@ -1,13 +1,13 @@
 import os
 import pytest
-from mp_api.routes.surface_properties import SurfacePropertiesRester
+from mp_api.routes.provenance import ProvenanceRester
 
 import typing
 
 
 @pytest.fixture
 def rester():
-    rester = SurfacePropertiesRester()
+    rester = ProvenanceRester()
     yield rester
     rester.session.close()
 
@@ -22,7 +22,7 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"surface_energy_anisotropy": "surface_anisotropy"}  # type: dict
+alt_name_dict = {}  # type: dict
 
 custom_field_tests = {}  # type: dict
 

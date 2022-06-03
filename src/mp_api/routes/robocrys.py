@@ -3,6 +3,8 @@ from typing import List, Optional
 from mp_api.core.client import BaseRester, MPRestError
 from emmet.core.robocrys import RobocrystallogapherDoc
 
+import warnings
+
 
 class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
 
@@ -10,7 +12,20 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
     document_model = RobocrystallogapherDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_robocrys_text(
+    def search_robocrys_text(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "search_robocrys_text is deprecated. " "Please use search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
         keywords: List[str],
         num_chunks: Optional[int] = None,

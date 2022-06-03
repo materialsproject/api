@@ -1,13 +1,14 @@
 import os
 import pytest
-from mp_api.routes.surface_properties import SurfacePropertiesRester
+from mp_api.routes.oxidation_states import OxidationStatesRester
+from pymatgen.analysis.magnetism import Ordering
 
 import typing
 
 
 @pytest.fixture
 def rester():
-    rester = SurfacePropertiesRester()
+    rester = OxidationStatesRester()
     yield rester
     rester.session.close()
 
@@ -22,9 +23,13 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"surface_energy_anisotropy": "surface_anisotropy"}  # type: dict
+alt_name_dict = {"formula": "material_id"}  # type: dict
 
-custom_field_tests = {}  # type: dict
+custom_field_tests = {
+    "formula": "Si",
+    "chemsys": "Si-O",
+    "possible_species": ["Cr2+", "O2-"],
+}  # type: dict
 
 
 @pytest.mark.skipif(
@@ -41,6 +46,7 @@ def test_client(rester):
         for entry in param_tuples:
             param = entry[0]
             if param not in excluded_params:
+
                 param_type = entry[1].__args__[0]
                 q = None
 
@@ -72,6 +78,8 @@ def test_client(rester):
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
+
+                print(q)
 
                 doc = search_method(**q)[0].dict()
                 for sub_field in sub_doc_fields:

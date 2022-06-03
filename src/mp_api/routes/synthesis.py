@@ -7,12 +7,27 @@ from emmet.core.synthesis import (
     OperationTypeEnum,
 )
 
+import warnings
+
 
 class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
     suffix = "synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
 
-    def search_synthesis_text(
+    def search_synthesis_text(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "search_synthesis_text is deprecated. " "Please use search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
         keywords: Optional[List[str]] = None,
         synthesis_type: Optional[List[SynthesisTypeEnum]] = None,
@@ -57,6 +72,9 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
         condition_heating_atmosphere = condition_heating_atmosphere or None
         condition_mixing_device = condition_mixing_device or None
         condition_mixing_media = condition_mixing_media or None
+
+        if keywords:
+            keywords = ",".join([word.strip() for word in keywords])  # type: ignore
 
         synthesis_docs = self._query_resource(
             criteria={

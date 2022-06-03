@@ -19,11 +19,7 @@ def rester():
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_client(rester):
-    # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         q = {"keywords": ["silicon"]}
@@ -39,10 +35,7 @@ def test_client(rester):
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_filters_keywords(rester):
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         doc = search_method(keywords=["silicon"])[0]
@@ -56,10 +49,7 @@ def test_filters_keywords(rester):
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_filters_synthesis_type(rester):
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         doc = search_method(
@@ -76,10 +66,7 @@ def test_filters_synthesis_type(rester):
 )
 @pytest.mark.xfail  # Needs fixing
 def test_filters_temperature_range(rester):
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
@@ -99,10 +86,7 @@ def test_filters_temperature_range(rester):
 )
 @pytest.mark.xfail  # Needs fixing
 def test_filters_time_range(rester):
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
@@ -119,10 +103,7 @@ def test_filters_time_range(rester):
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_filters_atmosphere(rester):
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
@@ -141,10 +122,7 @@ def test_filters_atmosphere(rester):
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_filters_mixing_device(rester):
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
@@ -162,10 +140,7 @@ def test_filters_mixing_device(rester):
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
 def test_filters_mixing_media(rester):
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(

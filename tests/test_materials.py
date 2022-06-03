@@ -3,10 +3,15 @@ import pytest
 from mp_api.routes.materials import MaterialsRester
 from emmet.core.symmetry import CrystalSystem
 
-import inspect
 import typing
 
-resters = [MaterialsRester()]
+
+@pytest.fixture
+def rester():
+    rester = MaterialsRester()
+    yield rester
+    rester.session.close()
+
 
 excluded_params = [
     "sort_fields",
@@ -24,6 +29,8 @@ alt_name_dict = {
     "spacegroup_number": "symmetry",
     "spacegroup_symbol": "symmetry",
     "exclude_elements": "material_id",
+    "num_elements": "nelements",
+    "num_sites": "nsites",
 }  # type: dict
 
 custom_field_tests = {
@@ -38,16 +45,9 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
-@pytest.mark.parametrize("rester", resters)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
-    # Get specific search method
-    search_method = None
-    for entry in inspect.getmembers(rester, predicate=inspect.ismethod):
-        if "search" in entry[0] and entry[0] != "search":
-            search_method = entry[1]
+    search_method = rester.search
 
     if search_method is not None:
         # Get list of parameters
@@ -94,7 +94,4 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+                assert doc[project_field if project_field is not None else param] is not None

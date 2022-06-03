@@ -5,6 +5,8 @@ from mp_api.core.client import BaseRester
 from mp_api.core.utils import validate_ids
 from pymatgen.core.periodic_table import Element
 
+import warnings
+
 
 class XASRester(BaseRester[XASDoc]):
 
@@ -12,7 +14,21 @@ class XASRester(BaseRester[XASDoc]):
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
 
-    def search_xas_docs(
+    def search_xas_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.xas.search_xas_docs is deprecated. "
+            "Please use MPRester.xas.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
         edge: Optional[Edge] = None,
         absorbing_element: Optional[Element] = None,
@@ -75,7 +91,7 @@ class XASRester(BaseRester[XASDoc]):
                 {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

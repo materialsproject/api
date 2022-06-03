@@ -6,6 +6,8 @@ from emmet.core.magnetism import MagnetismDoc
 
 from pymatgen.analysis.magnetism import Ordering
 
+import warnings
+
 
 class MagnetismRester(BaseRester[MagnetismDoc]):
 
@@ -13,16 +15,30 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_magnetism_docs(
+    def search_magnetism_docs(self, *args, **kwargs):  # pragma: no cover
+        """
+        Deprecated
+        """
+
+        warnings.warn(
+            "MPRester.magnetism.search_magnetism_docs is deprecated. "
+            "Please use MPRester.magnetism.search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.search(*args, **kwargs)
+
+    def search(
         self,
+        num_magnetic_sites: Optional[Tuple[int, int]] = None,
+        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         ordering: Optional[Ordering] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_formula_units: Optional[
             Tuple[float, float]
         ] = None,
-        num_magnetic_sites: Optional[Tuple[int, int]] = None,
-        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -33,15 +49,15 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         Query magnetism docs using a variety of search criteria.
 
         Arguments:
+            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
+                to consider.
             ordering (Ordering]): The magnetic ordering of the material.
             total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.
             total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values
                 normalized by volume to consider.
             total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
-            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
-            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
-                to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -117,7 +133,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
             if query_params[entry] is not None
         }
 
-        return super().search(
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,
