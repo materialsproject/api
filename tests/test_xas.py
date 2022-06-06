@@ -1,7 +1,7 @@
 import os
 import pytest
 from mp_api.routes.xas import XASRester
-from emmet.core.xas import Edge
+from emmet.core.xas import Edge, Type
 from pymatgen.core.periodic_table import Element
 
 import typing
@@ -32,7 +32,8 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
-    "edge": Edge.K,
+    "edge": Edge.L2_3,
+    "spectrum_type": Type.EXAFS,
     "absorbing_element": Element("Ce"),
     "required_elements": [Element("Ce")],
     "formula": "Ce(WO4)2",

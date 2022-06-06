@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from emmet.core.xas import Edge, XASDoc
+from emmet.core.xas import Edge, XASDoc, Type
 from mp_api.core.client import BaseRester
 from mp_api.core.utils import validate_ids
 from pymatgen.core.periodic_table import Element
@@ -36,6 +36,7 @@ class XASRester(BaseRester[XASDoc]):
         chemsys: Optional[Union[str, List[str]]] = None,
         elements: Optional[List[str]] = None,
         material_ids: Optional[List[str]] = None,
+        spectrum_type: Optional[Type] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -47,12 +48,14 @@ class XASRester(BaseRester[XASDoc]):
 
         Arguments:
             edge (Edge): The absorption edge (e.g. K, L2, L3, L2,3).
+            absorbing_element (Element): The absorbing element.
             formula (str): A formula including anonomyzed formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
             material_ids (List[str]): List of Materials Project IDs to return data for.
+            spectrum_type (Type): Spectrum type (e.g. EXAFS, XAFS, or XANES).
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -66,10 +69,19 @@ class XASRester(BaseRester[XASDoc]):
         query_params = {}
 
         if edge:
-            query_params.update({"edge": str(edge.value)})
+            query_params.update({"edge": edge})
 
         if absorbing_element:
-            query_params.update({"absorbing_element": str(absorbing_element.symbol)})
+            query_params.update(
+                {
+                    "absorbing_element": str(absorbing_element.symbol)
+                    if type(absorbing_element) == Element
+                    else absorbing_element
+                }
+            )
+
+        if spectrum_type:
+            query_params.update({"spectrum_type": spectrum_type})
 
         if formula:
             query_params.update({"formula": formula})
