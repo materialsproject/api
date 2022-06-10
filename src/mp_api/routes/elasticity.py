@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List, Optional, Tuple
 
-from emmet.core.elasticity import ElasticityDoc
+from emmet.core.elasticity_legacy import ElasticityDoc
 from mp_api.core.client import BaseRester
 
 import warnings
