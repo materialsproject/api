@@ -2,6 +2,7 @@ from emmet.core.symmetry import CrystalSystem
 from emmet.core.summary import HasProps
 from pymatgen.analysis.magnetism import Ordering
 from mp_api.routes.summary import SummaryRester
+import pytest
 
 import typing
 
