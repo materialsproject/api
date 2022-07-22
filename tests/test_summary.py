@@ -51,52 +51,58 @@ custom_field_tests = {
     "magnetic_ordering": Ordering.FM,
 }  # type: dict
 
-search_method = SummaryRester().search
+@pytest.skip(reason="Temporary until deployment")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
+def test_client():
 
-# Get list of parameters
-param_tuples = list(typing.get_type_hints(search_method).items())
+    search_method = SummaryRester().search
 
-# Query API for each numeric and boolean parameter and check if returned
-for entry in param_tuples:
-    param = entry[0]
-    if param not in excluded_params:
-        param_type = entry[1].__args__[0]
-        q = None
+    # Get list of parameters
+    param_tuples = list(typing.get_type_hints(search_method).items())
 
-        if param in custom_field_tests:
-            project_field = alt_name_dict.get(param, None)
-            q = {
-                param: custom_field_tests[param],
-                "chunk_size": 1,
-                "num_chunks": 1,
-            }
-        elif param_type == typing.Tuple[int, int]:
-            project_field = alt_name_dict.get(param, None)
-            q = {
-                param: (-100, 100),
-                "chunk_size": 1,
-                "num_chunks": 1,
-            }
-        elif param_type == typing.Tuple[float, float]:
-            project_field = alt_name_dict.get(param, None)
-            q = {
-                param: (-100.12, 100.12),
-                "chunk_size": 1,
-                "num_chunks": 1,
-            }
-        elif param_type is bool:
-            project_field = alt_name_dict.get(param, None)
-            q = {
-                param: False,
-                "chunk_size": 1,
-                "num_chunks": 1,
-            }
+    # Query API for each numeric and boolean parameter and check if returned
+    for entry in param_tuples:
+        param = entry[0]
+        if param not in excluded_params:
+            param_type = entry[1].__args__[0]
+            q = None
 
-        docs = search_method(**q)
+            if param in custom_field_tests:
+                project_field = alt_name_dict.get(param, None)
+                q = {
+                    param: custom_field_tests[param],
+                    "chunk_size": 1,
+                    "num_chunks": 1,
+                }
+            elif param_type == typing.Tuple[int, int]:
+                project_field = alt_name_dict.get(param, None)
+                q = {
+                    param: (-100, 100),
+                    "chunk_size": 1,
+                    "num_chunks": 1,
+                }
+            elif param_type == typing.Tuple[float, float]:
+                project_field = alt_name_dict.get(param, None)
+                q = {
+                    param: (-100.12, 100.12),
+                    "chunk_size": 1,
+                    "num_chunks": 1,
+                }
+            elif param_type is bool:
+                project_field = alt_name_dict.get(param, None)
+                q = {
+                    param: False,
+                    "chunk_size": 1,
+                    "num_chunks": 1,
+                }
 
-        if len(docs) > 0:
-            doc = docs[0].dict()
-        else:
-            raise ValueError("No documents returned")
+            docs = search_method(**q)
 
-        assert doc[project_field if project_field is not None else param] is not None
+            if len(docs) > 0:
+                doc = docs[0].dict()
+            else:
+                raise ValueError("No documents returned")
+
+            assert doc[project_field if project_field is not None else param] is not None
