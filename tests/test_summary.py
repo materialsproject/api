@@ -52,7 +52,7 @@ custom_field_tests = {
     "magnetic_ordering": Ordering.FM,
 }  # type: dict
 
-@pytest.skip(reason="Temporary until deployment")
+@pytest.mark.skip(reason="Temporary until deployment")
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
