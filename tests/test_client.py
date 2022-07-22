@@ -32,6 +32,7 @@ ignore_generic = [
     "tasks",
     "xas",
     "elasticity"
+    "summary"
 ]  # temp
 
 
