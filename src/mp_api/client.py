@@ -75,6 +75,7 @@ class MPRester:
     oxidation_states: OxidationStatesRester
     provenance: ProvenanceRester
     bonds: BondsRester
+    alloys: AlloysRester
     _user_settings: UserSettingsRester
     _general_store: GeneralStoreRester
 

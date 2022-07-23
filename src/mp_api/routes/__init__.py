@@ -30,3 +30,4 @@ from mp_api.routes.provenance import ProvenanceRester
 from mp_api.routes._user_settings import UserSettingsRester
 from mp_api.routes._general_store import GeneralStoreRester
 from mp_api.routes.bonds import BondsRester
+from mp_api.routes.alloys import AlloysRester
