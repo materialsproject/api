@@ -12,4 +12,3 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
     suffix = "alloys"
     document_model = AlloyPairDoc  # type: ignore
     primary_key = "material_id"
-
