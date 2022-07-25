@@ -31,7 +31,7 @@ ignore_generic = [
     "_general_store",
     "tasks",
     "xas",
-    "elasticity"
+    "elasticity",
     "alloys",
     "summary"
 ]  # temp
