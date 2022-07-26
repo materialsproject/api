@@ -64,6 +64,7 @@ class BaseRester(Generic[T]):
         debug: bool = False,
         monty_decode: bool = True,
         use_document_model: bool = True,
+        timeout: int = 20,
     ):
         """
         Args:
@@ -90,6 +91,7 @@ class BaseRester(Generic[T]):
             use_document_model: If False, skip the creating the document model and return data
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
+            timeout: Time in seconds to wait until a request timeout error is thrown
         """
 
         self.api_key = api_key
@@ -99,6 +101,7 @@ class BaseRester(Generic[T]):
         self.include_user_agent = include_user_agent
         self.monty_decode = monty_decode
         self.use_document_model = use_document_model
+        self.timeout = timeout
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
@@ -242,6 +245,7 @@ class BaseRester(Generic[T]):
         parallel_param: Optional[str] = None,
         num_chunks: Optional[int] = None,
         chunk_size: Optional[int] = None,
+        timeout: Optional[int] = None,
     ) -> Dict:
         """
         Query the endpoint for a Resource containing a list of documents
@@ -258,6 +262,7 @@ class BaseRester(Generic[T]):
             parallel_param: parameter used to make parallel requests
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
+            timeout : Time in seconds to wait until a request timeout error is thrown
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -267,6 +272,9 @@ class BaseRester(Generic[T]):
 
         if use_document_model is None:
             use_document_model = self.use_document_model
+
+        if timeout is None:
+            timeout = self.timeout
 
         if criteria:
             criteria = {k: v for k, v in criteria.items() if v is not None}
@@ -292,6 +300,7 @@ class BaseRester(Generic[T]):
                 parallel_param=parallel_param,
                 num_chunks=num_chunks,
                 chunk_size=chunk_size,
+                timeout=timeout,
             )
 
             return data
@@ -301,13 +310,7 @@ class BaseRester(Generic[T]):
             raise MPRestError(str(ex))
 
     def _submit_requests(
-        self,
-        url,
-        criteria,
-        use_document_model,
-        parallel_param=None,
-        num_chunks=None,
-        chunk_size=None,
+        self, url, criteria, use_document_model, parallel_param=None, num_chunks=None, chunk_size=None, timeout=None
     ) -> Dict:
         """
         Handle submitting requests. Parallel requests supported if possible.
@@ -323,6 +326,7 @@ class BaseRester(Generic[T]):
             parallel_param: parameter to parallelize requests with
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
+            timeout: Time in seconds to wait until a request timeout error is thrown
 
         Returns:
             Dictionary containing data and metadata
@@ -526,7 +530,7 @@ class BaseRester(Generic[T]):
                 remaining -= crit["_limit"]
 
         # Submit requests and process data
-        data_tuples = self._multi_thread(use_document_model, params_list, pbar)
+        data_tuples = self._multi_thread(use_document_model, params_list, pbar, timeout)
 
         for data, _, _ in data_tuples:
             total_data["data"].extend(data["data"])
@@ -540,10 +544,7 @@ class BaseRester(Generic[T]):
         return total_data
 
     def _multi_thread(
-        self,
-        use_document_model: bool,
-        params_list: List[dict],
-        progress_bar: tqdm = None,
+        self, use_document_model: bool, params_list: List[dict], progress_bar: tqdm = None, timeout: int = None
     ):
         """
         Handles setting up a threadpool and sending parallel requests
@@ -552,6 +553,7 @@ class BaseRester(Generic[T]):
             use_document_model (bool): if None, will defer to the self.use_document_model attribute
             params_list (list): list of dictionaries containing url and params for each request
             progress_bar (tqdm): progress bar to update with progress
+            timeout (int): Time in seconds to wait until a request timeout error is thrown
 
         Returns:
             Tuples with data, total number of docs in matching the query in the database,
@@ -569,9 +571,7 @@ class BaseRester(Generic[T]):
             # Get list of initial futures defined by max number of parallel requests
             futures = set()
 
-            for params in itertools.islice(
-                params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
-            ):
+            for params in itertools.islice(params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS):
 
                 future = executor.submit(
                     self._submit_request_and_process,
@@ -601,6 +601,7 @@ class BaseRester(Generic[T]):
                     new_future = executor.submit(
                         self._submit_request_and_process,
                         use_document_model=use_document_model,
+                        timeout=timeout,
                         **params,
                     )
 
@@ -611,7 +612,12 @@ class BaseRester(Generic[T]):
         return return_data
 
     def _submit_request_and_process(
-        self, url: str, verify: bool, params: dict, use_document_model: bool
+        self,
+        url: str,
+        verify: bool,
+        params: dict,
+        use_document_model: bool,
+        timeout: int = None,
     ) -> Tuple[Dict, int]:
         """
         Submits GET request and handles the response.
@@ -621,12 +627,15 @@ class BaseRester(Generic[T]):
             verify: whether to verify the server's TLS certificate
             params: dictionary of parameters to send in the request
             use_document_model: if None, will defer to the self.use_document_model attribute
+            timeout: Time in seconds to wait until a request timeout error is thrown
 
         Returns:
             Tuple with data and total number of docs in matching the query in the database.
         """
-
-        response = self.session.get(url=url, verify=verify, params=params)
+        try:
+            response = self.session.get(url=url, verify=verify, params=params, timeout=timeout)
+        except requests.exceptions.ConnectTimeout:
+            raise MPRestError(f"REST query timed out on URL {url}. Try again with a smaller request.")
 
         if response.status_code == 200:
 
@@ -672,11 +681,7 @@ class BaseRester(Generic[T]):
         new_data = []
 
         for doc in data:
-            set_data = {
-                field: value
-                for field, value in doc
-                if field in doc.dict(exclude_unset=True)
-            }
+            set_data = {field: value for field, value in doc if field in doc.dict(exclude_unset=True)}
             unset_fields = [field for field in doc.__fields__ if field not in set_data]
 
             data_model = create_model(
@@ -686,18 +691,12 @@ class BaseRester(Generic[T]):
             )
 
             data_model.__fields__ = {
-                **{
-                    name: description
-                    for name, description in data_model.__fields__.items()
-                    if name in set_data
-                },
+                **{name: description for name, description in data_model.__fields__.items() if name in set_data},
                 "fields_not_requested": data_model.__fields__["fields_not_requested"],
             }
 
             def new_repr(self) -> str:
-                extra = ", ".join(
-                    f"{n}={getattr(self, n)!r}" for n in data_model.__fields__
-                )
+                extra = ", ".join(f"{n}={getattr(self, n)!r}" for n in data_model.__fields__)
                 return f"{self.__class__.__name__}<{self.__class__.__base__.__name__}>({extra})"
 
             data_model.__repr__ = new_repr
@@ -712,6 +711,7 @@ class BaseRester(Generic[T]):
         fields: Optional[List[str]] = None,
         suburl: Optional[str] = None,
         use_document_model: Optional[bool] = None,
+        timeout: Optional[int] = None,
     ) -> Union[List[T], List[Dict]]:
         """
         Query the endpoint for a list of documents without associated meta information. Only
@@ -722,6 +722,7 @@ class BaseRester(Generic[T]):
             fields: list of fields to return
             suburl: make a request to a specified sub-url
             use_document_model: if None, will defer to the self.use_document_model attribute
+            timeout: Time in seconds to wait until a request timeout error is thrown
 
         Returns:
             A list of documents
@@ -769,11 +770,7 @@ class BaseRester(Generic[T]):
         results = []  # type: List
 
         try:
-            results = self._query_resource_data(
-                criteria=criteria,
-                fields=fields,
-                suburl=document_id,  # type: ignore
-            )
+            results = self._query_resource_data(criteria=criteria, fields=fields, suburl=document_id)  # type: ignore
         except MPRestError:
 
             if self.primary_key == "material_id":
@@ -792,9 +789,7 @@ class BaseRester(Generic[T]):
                     document_id = new_document_id
 
                     results = self._query_resource_data(
-                        criteria=criteria,
-                        fields=fields,
-                        suburl=document_id,  # type: ignore
+                        criteria=criteria, fields=fields, suburl=document_id  # type: ignore
                     )
 
         if not results:
