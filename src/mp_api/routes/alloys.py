@@ -22,7 +22,7 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
-    ):
+    ) -> List[AlloyPairDoc]:
         """
         Query for hypothetical alloys formed between two commensurate
         crystal structures, following the methodology in

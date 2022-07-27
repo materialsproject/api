@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.matproj import MPRester
+from mp_api import MPRester
 
 # -- Rester name data for generic tests
 
@@ -31,7 +31,8 @@ ignore_generic = [
     "_general_store",
     "tasks",
     "xas",
-    "elasticity"
+    "elasticity",
+    "alloys",
     "summary"
 ]  # temp
 
