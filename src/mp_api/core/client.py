@@ -126,7 +126,6 @@ class BaseRester(Generic[T]):
     @staticmethod
     def _create_session(api_key, include_user_agent):
         session = requests.Session()
-        session.trust_env = False
         session.headers = {"x-api-key": api_key}
         if include_user_agent:
             pymatgen_info = "pymatgen/" + pmg_version
