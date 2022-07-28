@@ -18,6 +18,7 @@ class MAPIClientSettings(BaseSettings):
     QUERY_NO_PARALLEL: List[str] = Field(
         [
             "elements",
+            "exclude_elements",
             "possible_species",
             "coordination_envs",
             "coordination_envs_anonymous",
