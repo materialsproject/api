@@ -732,7 +732,7 @@ class BaseRester(Generic[T]):
             unset_fields = [field for field in doc.__fields__ if field not in set_data]
 
             data_model = create_model(
-                "MPDataEntry",
+                "MPDataDoc",
                 fields_not_requested=unset_fields,
                 __base__=self.document_model,
             )
