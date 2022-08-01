@@ -752,7 +752,7 @@ class BaseRester(Generic[T]):
                     for n in data_model.__fields__
                     if n != "fields_not_requested"
                 )
-                s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m\n{extra}\n\n\n\033[1mFields not requested:\033[0;0m\n{unset_fields}"
+                s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m\n{extra}\n\n\033[1mFields not requested:\033[0;0m\n{unset_fields}"
                 return s
 
             def new_str(self) -> str:
