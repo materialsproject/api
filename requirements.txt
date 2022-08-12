@@ -7,4 +7,5 @@ maggma==0.47.4
 requests==2.27.1
 monty==2022.3.12
 mpcontribs-client>=4.2.9
+custodian>=2022.5.26
 
