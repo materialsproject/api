@@ -477,7 +477,7 @@ class BaseRester(Generic[T]):
             last_data_entry["meta"]["total_doc"] = total_num_docs
             total_data["meta"] = last_data_entry["meta"]
 
-        # Get max number of reponse pages
+        # Get max number of response pages
         max_pages = (
             num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
         )

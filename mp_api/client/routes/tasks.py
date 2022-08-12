@@ -60,7 +60,7 @@ class TaskRester(BaseRester[TaskDoc]):
         Arguments:
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            formula (str, List[str]): A formula including anonomyzed formula
+            formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.

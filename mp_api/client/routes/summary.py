@@ -112,7 +112,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
                 eV/atom to consider.
             exclude_elements (List(str)): List of elements to exclude.
             formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
-            formula (str, List[str]): A formula including anonomyzed formula
+            formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average

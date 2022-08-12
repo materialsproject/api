@@ -57,7 +57,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
             equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
             formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
-            formula (str, List[str]): A formula including anonomyzed formula
+            formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             is_stable (bool): Whether the material is stable.

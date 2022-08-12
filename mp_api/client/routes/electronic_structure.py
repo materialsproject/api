@@ -70,7 +70,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
             elements (List[str]): A list of elements.
             exclude_elements (List[str]): A list of elements to exclude.
-            formula (str, List[str]): A formula including anonomyzed formula
+            formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             is_gap_direct (bool): Whether the material has a direct band gap.

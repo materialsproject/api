@@ -49,7 +49,7 @@ class XASRester(BaseRester[XASDoc]):
         Arguments:
             edge (Edge): The absorption edge (e.g. K, L2, L3, L2,3).
             absorbing_element (Element): The absorbing element.
-            formula (str): A formula including anonomyzed formula
+            formula (str): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).

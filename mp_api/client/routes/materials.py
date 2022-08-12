@@ -91,7 +91,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             deprecated (bool): Whether the material is tagged as deprecated.
             elements (List[str]): A list of elements.
             exclude_elements (List[str]): A list of elements to exclude.
-            formula (str, List[str]): A formula including anonomyzed formula
+            formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.

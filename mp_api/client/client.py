@@ -15,7 +15,7 @@ from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import Element, Structure, Composition
+from pymatgen.core import Composition, Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.io.vasp import Chgcar
@@ -480,7 +480,7 @@ class MPRester:
             chemsys (str or [str]): Chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
                 symbols, e.g., ["Li", "Fe", "O"].
-            solid_compat: Compatiblity scheme used to pre-process solid DFT energies prior
+            solid_compat: Compatibility scheme used to pre-process solid DFT energies prior
                 to applying aqueous energy adjustments. May be passed as a class (e.g.
                 MaterialsProject2020Compatibility) or an instance
                 (e.g., MaterialsProject2020Compatibility()). If None, solid DFT energies
@@ -495,11 +495,9 @@ class MPRester:
         # imports are not top-level due to expense
         from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
         from pymatgen.entries.compatibility import (
-            Compatibility,
-            MaterialsProject2020Compatibility,
+            Compatibility, MaterialsProject2020Compatibility,
             MaterialsProjectAqueousCompatibility,
-            MaterialsProjectCompatibility,
-        )
+            MaterialsProjectCompatibility)
         from pymatgen.entries.computed_entries import ComputedEntry
 
         if solid_compat == "MaterialsProjectCompatibility":
@@ -511,7 +509,7 @@ class MPRester:
         else:
             raise ValueError(
                 "Solid compatibility can only be 'MaterialsProjectCompatibility', "
-                "'MaterialsProject2020Compatibility', or an instance of a Compatability class"
+                "'MaterialsProject2020Compatibility', or an instance of a Compatibility class"
             )
 
         pbx_entries = []
@@ -560,7 +558,8 @@ class MPRester:
         # could be removed
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
-            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import \
+                GibbsComputedStructureEntry
 
             ion_ref_entries = GibbsComputedStructureEntry.from_entries(
                 ion_ref_entries, temp=use_gibbs
@@ -818,7 +817,8 @@ class MPRester:
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
-            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import \
+                GibbsComputedStructureEntry
 
             entries = GibbsComputedStructureEntry.from_entries(entries, temp=use_gibbs)
 
