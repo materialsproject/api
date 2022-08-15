@@ -30,6 +30,7 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
+    "material_ids": ["mp-149"],
     "coordination_envs": ["Mo-S(6)"],
     "coordination_envs_anonymous": ["A-B(6)"],
 }  # type: dict

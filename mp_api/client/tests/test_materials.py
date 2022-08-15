@@ -35,6 +35,7 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
+    "material_ids": ["mp-149"],
     "formula": "Si",
     "chemsys": "Si-O",
     "elements": ["Si", "O"],

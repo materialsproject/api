@@ -25,7 +25,7 @@ sub_doc_fields = []  # type: list
 
 alt_name_dict = {"material_ids": "material_id"}  # type: dict
 
-custom_field_tests = {"ordering": Ordering.FM}  # type: dict
+custom_field_tests = {"material_ids": ["mp-149"], "ordering": Ordering.FM}  # type: dict
 
 
 @pytest.mark.skipif(

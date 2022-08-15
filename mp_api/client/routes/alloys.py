@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Union
 from collections import defaultdict
 
 from mp_api.client.core import BaseRester

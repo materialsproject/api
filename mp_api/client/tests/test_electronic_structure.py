@@ -30,6 +30,7 @@ es_excluded_params = [
 sub_doc_fields = []  # type: list
 
 es_alt_name_dict = {
+    "material_ids": "material_id",
     "exclude_elements": "material_id",
     "formula": "material_id",
     "num_elements": "nelements",
@@ -37,6 +38,7 @@ es_alt_name_dict = {
 }  # type: dict
 
 es_custom_field_tests = {
+    "material_ids": ["mp-149"],
     "magnetic_ordering": Ordering.FM,
     "formula": "CoO2",
     "chemsys": "Co-O",

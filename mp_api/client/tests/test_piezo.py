@@ -27,7 +27,7 @@ alt_name_dict = {
     "material_ids": "material_id",
 }  # type: dict
 
-custom_field_tests = {}  # type: dict
+custom_field_tests = {"material_ids": ["mp-9900"]}  # type: dict
 
 
 @pytest.mark.skipif(

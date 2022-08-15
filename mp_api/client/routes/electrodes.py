@@ -108,10 +108,10 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if battery_ids:
-            if isinstance(material_ids, str):
-                material_ids = [material_ids]
+            if isinstance(battery_ids, str):
+                material_ids = [battery_ids]
 
-            query_params.update({"battery_ids": ",".join(validate_ids(material_ids))})
+            query_params.update({"battery_ids": ",".join(validate_ids(battery_ids))})
 
         if working_ion:
             if isinstance(working_ion, str) or isinstance(working_ion, Element):
