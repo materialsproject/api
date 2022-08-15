@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 from pathlib import Path
 
 module_dir = Path(__file__).resolve().parent
@@ -19,8 +19,7 @@ setup(
     author="The Materials Project",
     author_email="feedback@materialsproject.org",
     license="modified BSD",
-    packages=find_packages("src"),
-    package_dir={"": "src"},
+    packages=find_namespace_packages("mp_api.*"),
     zip_safe=False,
     install_requires=[
         "setuptools",
