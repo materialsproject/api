@@ -58,6 +58,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
 
     def search(
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
         crystal_system: Optional[CrystalSystem] = None,
         density: Optional[Tuple[float, float]] = None,
@@ -81,6 +82,8 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         Query core material docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             crystal_system (CrystalSystem): Crystal system of material.
@@ -109,6 +112,12 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         """
 
         query_params = {"deprecated": deprecated}  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if formula:
             if isinstance(formula, str):

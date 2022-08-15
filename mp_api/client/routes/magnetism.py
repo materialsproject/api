@@ -1,7 +1,8 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 from collections import defaultdict
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 from emmet.core.magnetism import MagnetismDoc
 
 from pymatgen.analysis.magnetism import Ordering
@@ -31,6 +32,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
 
     def search(
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
         num_magnetic_sites: Optional[Tuple[int, int]] = None,
         num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
         ordering: Optional[Ordering] = None,
@@ -49,6 +51,8 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         Query magnetism docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
             num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
                 to consider.
@@ -70,6 +74,12 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if total_magnetization:
             query_params.update(

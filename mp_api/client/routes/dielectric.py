@@ -1,8 +1,9 @@
 from collections import defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from emmet.core.polar import DielectricDoc
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 import warnings
 
@@ -28,6 +29,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
 
     def search(
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
         e_total: Optional[Tuple[float, float]] = None,
         e_ionic: Optional[Tuple[float, float]] = None,
         e_electronic: Optional[Tuple[float, float]] = None,
@@ -42,6 +44,8 @@ class DielectricRester(BaseRester[DielectricDoc]):
         Query dielectric docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.
             e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
             e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
@@ -58,6 +62,12 @@ class DielectricRester(BaseRester[DielectricDoc]):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if e_total:
             query_params.update({"e_total_min": e_total[0], "e_total_max": e_total[1]})

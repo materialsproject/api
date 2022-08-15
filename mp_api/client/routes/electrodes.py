@@ -1,10 +1,11 @@
-from pymatgen.core.periodic_table import Element
-from mp_api.client.core import BaseRester
-from emmet.core.electrode import InsertionElectrodeDoc
-from typing import Optional, Tuple, List, Union
-from collections import defaultdict
-
 import warnings
+from collections import defaultdict
+from typing import List, Optional, Tuple, Union
+
+from emmet.core.electrode import InsertionElectrodeDoc
+from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
+from pymatgen.core.periodic_table import Element
 
 
 class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
@@ -28,6 +29,8 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
     def search(  # pragma: ignore
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
+        battery_ids: Optional[Union[str, List[str]]] = None,
         average_voltage: Optional[Tuple[float, float]] = None,
         capacity_grav: Optional[Tuple[float, float]] = None,
         capacity_vol: Optional[Tuple[float, float]] = None,
@@ -55,6 +58,10 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         Query equations of state docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
+            battery_ids (str, List[str]): A single battery ID string or list of strings
+                (e.g., mp-22526_Li, [mp-22526_Li, mp-22526_Ca]).
             average_voltage (Tuple[float,float]): Minimum and maximum value of the average voltage for a particular
                 voltage step in V.
             capacity_grav (Tuple[float,float]): Minimum and maximum value of the gravimetric capacity in maH/g.
@@ -93,6 +100,18 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             ([InsertionElectrodeDoc]) List of insertion electrode documents.
         """
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+
+        if battery_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"battery_ids": ",".join(validate_ids(material_ids))})
 
         if working_ion:
             if isinstance(working_ion, str) or isinstance(working_ion, Element):

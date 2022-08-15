@@ -1,6 +1,7 @@
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 from emmet.core.provenance import ProvenanceDoc
-from typing import Optional, List
+from typing import Optional, List, Union
 
 
 class ProvenanceRester(BaseRester[ProvenanceDoc]):
@@ -11,6 +12,7 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
 
     def search(
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
         deprecated: Optional[bool] = False,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -21,6 +23,8 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
         Query provenance docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             deprecated (bool): Whether the material is tagged as deprecated.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -33,6 +37,12 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
         """
 
         query_params = {"deprecated": deprecated}  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         return super()._search(
             num_chunks=num_chunks,

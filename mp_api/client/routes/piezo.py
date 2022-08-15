@@ -1,7 +1,8 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 from collections import defaultdict
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 from emmet.core.polar import PiezoelectricDoc
 
 import warnings
@@ -29,6 +30,7 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
 
     def search(
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
         piezoelectric_modulus: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -40,6 +42,8 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
         Query equations of state docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             piezoelectric_modulus (Tuple[float,float]): Minimum and maximum of the
                 piezoelectric modulus in C/m² to consider.
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
@@ -54,6 +58,12 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if piezoelectric_modulus:
             query_params.update(

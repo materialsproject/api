@@ -11,6 +11,7 @@ from emmet.core.electronic_structure import (
 )
 from monty.serialization import MontyDecoder
 from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.utils import validate_ids
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType, Spin
@@ -40,6 +41,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
     def search(
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
         band_gap: Optional[Tuple[float, float]] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
         efermi: Optional[Tuple[float, float]] = None,
@@ -60,6 +62,8 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         Query electronic structure docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
@@ -85,6 +89,12 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if formula:
             if isinstance(formula, str):

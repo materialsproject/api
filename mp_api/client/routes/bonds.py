@@ -1,7 +1,8 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 from collections import defaultdict
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 from emmet.core.bonds import BondingDoc
 
 import warnings
@@ -28,6 +29,7 @@ class BondsRester(BaseRester[BondingDoc]):
 
     def search(
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
         coordination_envs: Optional[List[str]] = None,
         coordination_envs_anonymous: Optional[List[str]] = None,
         max_bond_length: Optional[Tuple[float, float]] = None,
@@ -43,6 +45,7 @@ class BondsRester(BaseRester[BondingDoc]):
         Query bonding docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): Search for bonding data for the specified Material IDs
             coordination_envs (List[str]): List of coordination environments to consider (e.g. ['Mo-S(6)', 'S-Mo(3)']).
             coordination_envs_anonymous (List[str]): List of anonymous coordination environments to consider
                  (e.g. ['A-B(6)', 'A-B(3)']).
@@ -64,6 +67,12 @@ class BondsRester(BaseRester[BondingDoc]):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if max_bond_length:
             query_params.update(

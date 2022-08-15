@@ -1,5 +1,6 @@
 from mp_api.client.core import BaseRester
 from emmet.core.oxidation_states import OxidationStateDoc
+from mp_api.client.core.utils import validate_ids
 from typing import Optional, Union, List
 from collections import defaultdict
 
@@ -12,6 +13,7 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
 
     def search(
         self,
+        material_ids: Optional[Union[str, List[str]]] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
         formula: Optional[Union[str, List[str]]] = None,
         possible_species: Optional[Union[str, List[str]]] = None,
@@ -25,6 +27,8 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
         Query oxidation state docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             formula (str, List[str]): A formula including anonomyzed formula
@@ -43,6 +47,12 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
         """
 
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if formula:
             if isinstance(formula, str):

@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 from collections import defaultdict
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 from emmet.core.alloys import AlloyPairDoc
 
 import warnings
@@ -15,7 +16,7 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
 
     def search(
         self,
-        material_ids: Optional[List[str]] = None,
+        material_ids: Optional[Union[str, List[str]]] = None,
         formulae: Optional[List[str]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -32,7 +33,7 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
         endpoint is useful.
 
         Arguments:
-            material_ids (List[str]): Search for alloys containing the specified Material IDs
+            material_ids (str, List[str]): Search for alloys containing the specified Material IDs
             formulae (List[str]): Search for alloys containing the specified formulae
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
@@ -52,8 +53,13 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
             if query_params[entry] is not None
         }
 
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+
         return super()._search(
-            material_ids=material_ids,
             formulae=formulae,
             num_chunks=num_chunks,
             chunk_size=chunk_size,
