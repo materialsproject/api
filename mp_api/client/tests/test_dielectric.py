@@ -22,7 +22,10 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"e_static": "e_ionic"}  # type: dict
+alt_name_dict = {
+    "e_static": "e_ionic",
+    "material_ids": "material_id",
+}  # type: dict
 
 custom_field_tests = {}  # type: dict
 

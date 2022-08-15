@@ -24,6 +24,7 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
+    "material_ids": "material_id",
     "formula": "material_id",
     "crystal_system": "symmetry",
     "spacegroup_number": "symmetry",

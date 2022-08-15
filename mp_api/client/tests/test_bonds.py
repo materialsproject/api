@@ -23,6 +23,7 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
+    "material_ids": "material_id",
     "max_bond_length": "bond_length_stats",
     "min_bond_length": "bond_length_stats",
     "mean_bond_length": "bond_length_stats",

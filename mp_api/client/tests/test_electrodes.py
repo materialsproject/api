@@ -24,6 +24,7 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
+    "battery_ids": "battery_id",
     "formula": "battery_id",
     "exclude_elements": "battery_id",
     "num_elements": "nelements",

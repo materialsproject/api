@@ -23,7 +23,7 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"formula": "material_id"}  # type: dict
+alt_name_dict = {"formula": "material_id", "material_ids": "material_id"}  # type: dict
 
 custom_field_tests = {
     "formula": "Si",
