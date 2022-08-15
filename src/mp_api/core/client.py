@@ -767,7 +767,7 @@ class BaseRester(Generic[T]):
 
             def new_getattr(self, attr) -> str:
                 if attr in unset_fields:
-                    raise MPRestError(
+                    raise AttributeError(
                         f"'{attr}' data is available but has not been requested in 'fields'."
                         " A full list of unrequested fields can be found in `fields_not_requested`."
                     )
