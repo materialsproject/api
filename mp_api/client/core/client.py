@@ -857,7 +857,7 @@ class BaseRester(Generic[T]):
             if self.primary_key == "material_id":
                 # see if the material_id has changed, perhaps a task_id was supplied
                 # this should likely be re-thought
-                from mp_api import MPRester
+                from mp_api.client import MPRester
 
                 with MPRester(api_key=self.api_key, endpoint=self.base_endpoint) as mpr:
                     new_document_id = mpr.get_materials_id_from_task_id(document_id)
