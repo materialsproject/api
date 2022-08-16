@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.oxidation_states import OxidationStatesRester
+from mp_api.client.routes.oxidation_states import OxidationStatesRester
 from pymatgen.analysis.magnetism import Ordering
 
 import typing
@@ -23,9 +23,10 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"formula": "material_id"}  # type: dict
+alt_name_dict = {"formula": "material_id", "material_ids": "material_id"}  # type: dict
 
 custom_field_tests = {
+    "material_ids": ["mp-149"],
     "formula": "Si",
     "chemsys": "Si-O",
     "possible_species": ["Cr2+", "O2-"],

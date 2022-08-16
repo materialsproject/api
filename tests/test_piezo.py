@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.piezo import PiezoRester
+from mp_api.client.routes.piezo import PiezoRester
 
 import typing
 
@@ -22,9 +22,12 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"piezoelectric_modulus": "e_ij_max"}  # type: dict
+alt_name_dict = {
+    "piezoelectric_modulus": "e_ij_max",
+    "material_ids": "material_id",
+}  # type: dict
 
-custom_field_tests = {}  # type: dict
+custom_field_tests = {"material_ids": ["mp-9900"]}  # type: dict
 
 
 @pytest.mark.skipif(

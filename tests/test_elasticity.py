@@ -1,14 +1,16 @@
 import os
 import pytest
-from mp_api.routes.elasticity import ElasticityRester
+from mp_api.client.routes.elasticity import ElasticityRester
 
 import typing
+
 
 @pytest.fixture
 def rester():
     rester = ElasticityRester()
     yield rester
     rester.session.close()
+
 
 excluded_params = [
     "sort_fields",
@@ -26,6 +28,7 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {}  # type: dict
+
 
 @pytest.mark.xfail(reason="Temporary xfail until deployment")
 @pytest.mark.skipif(

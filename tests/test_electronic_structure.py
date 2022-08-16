@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.electronic_structure import (
+from mp_api.client.routes.electronic_structure import (
     BandStructureRester,
     DosRester,
     ElectronicStructureRester,
@@ -30,6 +30,7 @@ es_excluded_params = [
 sub_doc_fields = []  # type: list
 
 es_alt_name_dict = {
+    "material_ids": "material_id",
     "exclude_elements": "material_id",
     "formula": "material_id",
     "num_elements": "nelements",
@@ -37,6 +38,7 @@ es_alt_name_dict = {
 }  # type: dict
 
 es_custom_field_tests = {
+    "material_ids": ["mp-149"],
     "magnetic_ordering": Ordering.FM,
     "formula": "CoO2",
     "chemsys": "Co-O",
@@ -45,7 +47,9 @@ es_custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_es_client(es_rester):
     search_method = es_rester.search
 
@@ -92,7 +96,10 @@ def test_es_client(es_rester):
 
                 doc = search_method(**q)[0].dict()
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )
 
 
 bs_custom_field_tests = {
@@ -115,7 +122,9 @@ def bs_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_bs_client(bs_rester):
     # Get specific search method
     search_method = bs_rester.search
@@ -160,7 +169,9 @@ def dos_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_dos_client(dos_rester):
     search_method = dos_rester.search
 
@@ -181,5 +192,6 @@ def test_dos_client(dos_rester):
             if param != "projection_type" and param != "magnetic_ordering":
                 doc = doc["total"]["1"]
 
-            assert doc[project_field if project_field is not None else param] is not None
-
+            assert (
+                doc[project_field if project_field is not None else param] is not None
+            )

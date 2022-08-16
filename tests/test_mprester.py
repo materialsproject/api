@@ -9,8 +9,8 @@ from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
-from mp_api.core.settings import MAPIClientSettings
-from mp_api.matproj import MPRester
+from mp_api.client.core.settings import MAPIClientSettings
+from mp_api.client import MPRester
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
@@ -37,7 +37,9 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-149")
@@ -151,8 +153,8 @@ class TestMPRester:
         gibbs_entries = mpr.get_entries_in_chemsys(syms2, use_gibbs=500)
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
-    
-    @pytest.mark.skip(reason="Temporary until SSL fix")
+
+    @pytest.mark.skip(reason="Until SSL issue fix")
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements
         pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
@@ -176,7 +178,7 @@ class TestMPRester:
         # test removal of extra elements from reference solids
         # Li-Zn-S has Na in reference solids
         pbx_entries = mpr.get_pourbaix_entries("Li-Zn-S")
-        assert not any([e for e in pbx_entries if 'Na' in e.composition])
+        assert not any([e for e in pbx_entries if "Na" in e.composition])
 
         # Ensure entries are pourbaix compatible
         PourbaixDiagram(pbx_entries)
@@ -193,8 +195,7 @@ class TestMPRester:
         # so4_two_minus = pbx_entries[9]
         # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
 
-    
-    @pytest.mark.skip(reason="Temporary until SSL fix")
+    @pytest.mark.skip(reason="Until SSL issue fix")
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
@@ -210,7 +211,7 @@ class TestMPRester:
             mpr.get_ion_entries(pd)
 
         # test ion energy calculation
-        ion_data = mpr.get_ion_reference_data_for_chemsys('S')
+        ion_data = mpr.get_ion_reference_data_for_chemsys("S")
         ion_ref_comps = [
             Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data
         ]
@@ -228,12 +229,14 @@ class TestMPRester:
         # In ion ref data, SO4-2 is -744.27 kJ/mol; ref solid is -1,279.0 kJ/mol
         # so the ion entry should have an energy (-744.27 +1279) = 534.73 kJ/mol
         # or 5.542 eV/f.u. above the energy of Na2SO4
-        so4_two_minus = [e for e in ion_entries if e.ion.reduced_formula == "SO4[-2]"][0]
+        so4_two_minus = [e for e in ion_entries if e.ion.reduced_formula == "SO4[-2]"][
+            0
+        ]
 
         # the ref solid is Na2SO4, ground state mp-4770
         # the rf factor correction is necessary to make sure the composition
         # of the reference solid is normalized to a single formula unit
-        ref_solid_entry = [e for e in ion_ref_entries if e.entry_id == 'mp-4770'][0]
+        ref_solid_entry = [e for e in ion_ref_entries if e.entry_id == "mp-4770"][0]
         rf = ref_solid_entry.composition.get_reduced_composition_and_factor()[1]
         solid_energy = ion_ref_pd.get_form_energy(ref_solid_entry) / rf
 
@@ -251,7 +254,9 @@ class TestMPRester:
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
 
-        chgcar, task_doc = mpr.get_charge_density_from_material_id("mp-149", inc_task_doc=True)
+        chgcar, task_doc = mpr.get_charge_density_from_material_id(
+            "mp-149", inc_task_doc=True
+        )
         assert isinstance(chgcar, Chgcar)
         assert isinstance(task_doc, TaskDoc)
 

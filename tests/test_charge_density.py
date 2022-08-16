@@ -1,7 +1,7 @@
 import os
 import pytest
 from emmet.core.charge_density import ChgcarDataDoc
-from mp_api.routes.charge_density import ChargeDensityRester
+from mp_api.client.routes.charge_density import ChargeDensityRester
 
 import typing
 

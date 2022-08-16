@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.electrodes import ElectrodeRester
+from mp_api.client.routes.electrodes import ElectrodeRester
 
 import typing
 from pymatgen.core.periodic_table import Element
@@ -24,6 +24,7 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
+    "battery_ids": "battery_id",
     "formula": "battery_id",
     "exclude_elements": "battery_id",
     "num_elements": "nelements",
@@ -31,6 +32,8 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
+    "material_ids": ["mp-22526"],
+    "battery_ids": ["mp-22526_Li"],
     "working_ion": Element("Li"),
     "formula": "CoO2",
     "chemsys": "Co-O",

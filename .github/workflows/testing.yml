@@ -30,19 +30,19 @@ jobs:
       - name: Lint with pycodestyle
         run: |
           pip install pycodestyle
-          pycodestyle src/mp_api
+          pycodestyle mp_api
 
       - name: Lint with mypy
         run: |
-          mypy src/mp_api
+          mypy --namespace-packages --explicit-package-bases mp_api
 
       - name: Lint with flake8
         run: |
           pip install flake8
           # stop the build if there are Python syntax errors or undefined names
-          flake8 --count --show-source --statistics src/mp_api
+          flake8 --count --show-source --statistics mp_api
           # exit-zero treats all errors as warnings.
-          flake8 --count --exit-zero --max-complexity=20 --statistics src/mp_api
+          flake8 --count --exit-zero --max-complexity=20 --statistics mp_api
 
   test:
     strategy:

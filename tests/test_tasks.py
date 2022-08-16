@@ -1,7 +1,7 @@
 import os
 import pytest
 from pymatgen.core.trajectory import Trajectory
-from mp_api.routes.tasks import TaskRester
+from mp_api.client.routes.tasks import TaskRester
 
 import typing
 
@@ -28,7 +28,9 @@ alt_name_dict = {"formula": "task_id"}  # type: dict
 custom_field_tests = {"formula": "Si", "chemsys": "Si-O"}  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client(rester):
     search_method = rester.search
 
@@ -49,7 +51,9 @@ def test_client(rester):
                         param: (-100, 100),
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [project_field if project_field is not None else param],
+                        "fields": [
+                            project_field if project_field is not None else param
+                        ],
                     }
                 elif param_type == typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
@@ -57,7 +61,9 @@ def test_client(rester):
                         param: (-100.12, 100.12),
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [project_field if project_field is not None else param],
+                        "fields": [
+                            project_field if project_field is not None else param
+                        ],
                     }
                 elif param_type is bool:
                     project_field = alt_name_dict.get(param, None)
@@ -65,7 +71,9 @@ def test_client(rester):
                         param: False,
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [project_field if project_field is not None else param],
+                        "fields": [
+                            project_field if project_field is not None else param
+                        ],
                     }
                 elif param in custom_field_tests:
                     project_field = alt_name_dict.get(param, None)
@@ -73,7 +81,9 @@ def test_client(rester):
                         param: custom_field_tests[param],
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [project_field if project_field is not None else param],
+                        "fields": [
+                            project_field if project_field is not None else param
+                        ],
                     }
 
                 doc = search_method(**q)[0].dict()
@@ -81,7 +91,10 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )
 
 
 def test_get_trajectories(rester):

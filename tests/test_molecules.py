@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.molecules import MoleculesRester
+from mp_api.client.routes.molecules import MoleculesRester
 from pymatgen.core.periodic_table import Element
 
 import typing
@@ -11,6 +11,7 @@ def rester():
     rester = MoleculesRester()
     yield rester
     rester.session.close()
+
 
 excluded_params = [
     "sort_fields",

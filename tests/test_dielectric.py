@@ -1,14 +1,16 @@
 import os
 import pytest
-from mp_api.routes.dielectric import DielectricRester
+from mp_api.client.routes.dielectric import DielectricRester
 
 import typing
+
 
 @pytest.fixture
 def rester():
     rester = DielectricRester()
     yield rester
     rester.session.close()
+
 
 excluded_params = [
     "sort_fields",
@@ -20,9 +22,14 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"e_static": "e_ionic"}  # type: dict
+alt_name_dict = {
+    "e_static": "e_ionic",
+    "material_ids": "material_id",
+}  # type: dict
 
-custom_field_tests = {}  # type: dict
+custom_field_tests = {
+    "material_ids": ["mp-149"],
+}  # type: dict
 
 
 @pytest.mark.skipif(

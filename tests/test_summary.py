@@ -1,7 +1,7 @@
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.summary import HasProps
 from pymatgen.analysis.magnetism import Ordering
-from mp_api.routes.summary import SummaryRester
+from mp_api.client.routes.summary import SummaryRester
 import os
 import pytest
 
@@ -53,7 +53,7 @@ custom_field_tests = {
     "magnetic_ordering": Ordering.FM,
 }  # type: dict
 
-@pytest.mark.skip(reason="Temporary until deployment")
+
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
@@ -107,4 +107,6 @@ def test_client():
             else:
                 raise ValueError("No documents returned")
 
-            assert doc[project_field if project_field is not None else param] is not None
+            assert (
+                doc[project_field if project_field is not None else param] is not None
+            )

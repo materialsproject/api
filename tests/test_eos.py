@@ -1,14 +1,16 @@
 import os
 import pytest
-from mp_api.routes.eos import EOSRester
+from mp_api.client.routes.eos import EOSRester
 
 import typing
+
 
 @pytest.fixture
 def rester():
     rester = EOSRester()
     yield rester
     rester.session.close()
+
 
 excluded_params = [
     "sort_fields",

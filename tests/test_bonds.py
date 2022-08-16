@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.bonds import BondsRester
+from mp_api.client.routes.bonds import BondsRester
 
 import typing
 
@@ -23,12 +23,14 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
+    "material_ids": "material_id",
     "max_bond_length": "bond_length_stats",
     "min_bond_length": "bond_length_stats",
     "mean_bond_length": "bond_length_stats",
 }  # type: dict
 
 custom_field_tests = {
+    "material_ids": ["mp-149"],
     "coordination_envs": ["Mo-S(6)"],
     "coordination_envs_anonymous": ["A-B(6)"],
 }  # type: dict

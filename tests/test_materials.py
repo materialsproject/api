@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.materials import MaterialsRester
+from mp_api.client.routes.materials import MaterialsRester
 from emmet.core.symmetry import CrystalSystem
 
 import typing
@@ -24,6 +24,7 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
+    "material_ids": "material_id",
     "formula": "material_id",
     "crystal_system": "symmetry",
     "spacegroup_number": "symmetry",
@@ -34,6 +35,7 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
+    "material_ids": ["mp-149"],
     "formula": "Si",
     "chemsys": "Si-O",
     "elements": ["Si", "O"],
@@ -45,7 +47,9 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client(rester):
     search_method = rester.search
 
@@ -94,4 +98,7 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )

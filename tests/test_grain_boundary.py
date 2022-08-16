@@ -1,15 +1,17 @@
 import os
 import pytest
-from mp_api.routes.grain_boundary import GrainBoundaryRester
+from mp_api.client.routes.grain_boundary import GrainBoundaryRester
 from emmet.core.grain_boundary import GBTypeEnum
 
 import typing
+
 
 @pytest.fixture
 def rester():
     rester = GrainBoundaryRester()
     yield rester
     rester.session.close()
+
 
 excluded_params = [
     "sort_fields",

@@ -1,6 +1,6 @@
 import os
 import pytest
-from mp_api.routes.robocrys import RobocrysRester
+from mp_api.client.routes.robocrys import RobocrysRester
 
 from pymatgen.core.periodic_table import Element
 
