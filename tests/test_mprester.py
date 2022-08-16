@@ -90,7 +90,7 @@ class TestMPRester:
         structs = mpr.get_structures("Mn-O", final=False)
         assert len(structs) > 0
 
-    # @pytest.mark.skip(reason="endpoint issues")
+    @pytest.mark.skip(reason="endpoint issues")
     def test_find_structure(self, mpr):
         path = os.path.join(MAPIClientSettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
