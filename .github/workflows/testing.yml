@@ -34,7 +34,7 @@ jobs:
 
       - name: Lint with mypy
         run: |
-          mypy mp_api
+          mypy --namespace-packages --explicit-package-bases mp_api
 
       - name: Lint with flake8
         run: |
