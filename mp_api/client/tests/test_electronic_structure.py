@@ -195,4 +195,3 @@ def test_dos_client(dos_rester):
             assert (
                 doc[project_field if project_field is not None else param] is not None
             )
-
