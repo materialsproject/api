@@ -19,7 +19,7 @@ setup(
     author="The Materials Project",
     author_email="feedback@materialsproject.org",
     license="modified BSD",
-    packages=find_namespace_packages("mp_api.*"),
+    packages=find_namespace_packages(include=["mp_api.*"]),
     zip_safe=False,
     install_requires=[
         "setuptools",
