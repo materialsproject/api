@@ -212,8 +212,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             if param in min_max_name_dict and value:
                 query_params.update(
                     {
-                        "{}_min".format(min_max_name_dict[param]): value[0],
-                        "{}_max".format(min_max_name_dict[param]): value[1],
+                        f"{min_max_name_dict[param]}_min": value[0],
+                        f"{min_max_name_dict[param]}_max": value[1],
                     }
                 )
 

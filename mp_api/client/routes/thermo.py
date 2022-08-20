@@ -119,8 +119,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
             if "energy" in param and value:
                 query_params.update(
                     {
-                        "{}_min".format(name_dict[param]): value[0],
-                        "{}_max".format(name_dict[param]): value[1],
+                        f"{name_dict[param]}_min": value[0],
+                        f"{name_dict[param]}_max": value[1],
                     }
                 )
 

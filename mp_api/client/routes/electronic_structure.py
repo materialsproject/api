@@ -325,7 +325,7 @@ class BandStructureRester(BaseRester):
 
             if bs_data is None:
                 raise MPRestError(
-                    "No uniform band structure data found for {}".format(material_id)
+                    f"No uniform band structure data found for {material_id}"
                 )
             else:
                 bs_data = bs_data.dict()
@@ -334,7 +334,7 @@ class BandStructureRester(BaseRester):
                 bs_task_id = bs_data["total"]["1"]["task_id"]
             else:
                 raise MPRestError(
-                    "No uniform band structure data found for {}".format(material_id)
+                    f"No uniform band structure data found for {material_id}"
                 )
 
         bs_obj = self.get_bandstructure_from_task_id(bs_task_id)
@@ -494,7 +494,7 @@ class DosRester(BaseRester):
             dos_task_id = dos_data["dos"]["total"]["1"]["task_id"]
         else:
             raise MPRestError(
-                "No density of states data found for {}".format(material_id)
+                f"No density of states data found for {material_id}"
             )
 
         dos_obj = self.get_dos_from_task_id(dos_task_id)

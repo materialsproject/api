@@ -1,21 +1,16 @@
 import zlib
 from os import environ
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import boto3
 import msgpack
 from botocore import UNSIGNED
 from botocore.client import Config
 from botocore.exceptions import ConnectionError
-
-try:
-    from typing import Literal  # type: ignore
-except ImportError:
-    from typing_extensions import Literal  # type: ignore
-
 from emmet.core.charge_density import ChgcarDataDoc
 from monty.serialization import MontyDecoder, dumpfn
+
 from mp_api.client.core import BaseRester
 
 
@@ -108,7 +103,7 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
                     )
 
             r = self.boto_resource.Object(  # type: ignore
-                bucket, "{}/{}".format(obj_prefix, url_doc.fs_id)
+                bucket, f"{obj_prefix}/{url_doc.fs_id}"
             ).get()["Body"]
 
             packed_bytes = r.read()

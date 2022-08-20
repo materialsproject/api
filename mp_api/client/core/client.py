@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module provides classes to interface with the Materials Project REST
 API v3 to enable the creation of data structures and pymatgen objects using
@@ -133,7 +132,7 @@ class BaseRester(Generic[T]):
             python_info = "Python/{}.{}.{}".format(
                 sys.version_info.major, sys.version_info.minor, sys.version_info.micro
             )
-            platform_info = "{}/{}".format(platform.system(), platform.release())
+            platform_info = f"{platform.system()}/{platform.release()}"
             session.headers["user-agent"] = "{} ({} {})".format(
                 pymatgen_info, python_info, platform_info
             )
@@ -220,7 +219,7 @@ class BaseRester(Generic[T]):
                 try:
                     data = json.loads(response.text)["detail"]
                 except (JSONDecodeError, KeyError):
-                    data = "Response {}".format(response.text)
+                    data = f"Response {response.text}"
                 if isinstance(data, str):
                     message = data
                 else:
@@ -702,7 +701,7 @@ class BaseRester(Generic[T]):
             try:
                 data = json.loads(response.text)["detail"]
             except (JSONDecodeError, KeyError):
-                data = "Response {}".format(response.text)
+                data = f"Response {response.text}"
             if isinstance(data, str):
                 message = data
             else:
@@ -949,13 +948,13 @@ class BaseRester(Generic[T]):
 
         # Check if specific parameters are present that can be parallelized over
         list_entries = sorted(
-            [
+            (
                 (key, len(entry.split(",")))
                 for key, entry in query_params.items()
                 if isinstance(entry, str)
                 and len(entry.split(",")) > 0
                 and key not in MAPIClientSettings().QUERY_NO_PARALLEL
-            ],
+            ),
             key=lambda item: item[1],
             reverse=True,
         )
