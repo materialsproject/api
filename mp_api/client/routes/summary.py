@@ -112,7 +112,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
                 eV/atom to consider.
             exclude_elements (List(str)): List of elements to exclude.
             formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
-            formula (str, List[str]): A formula including anonomyzed formula
+            formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average
@@ -212,8 +212,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             if param in min_max_name_dict and value:
                 query_params.update(
                     {
-                        "{}_min".format(min_max_name_dict[param]): value[0],
-                        "{}_max".format(min_max_name_dict[param]): value[1],
+                        f"{min_max_name_dict[param]}_min": value[0],
+                        f"{min_max_name_dict[param]}_max": value[1],
                     }
                 )
 

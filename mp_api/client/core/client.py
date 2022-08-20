@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module provides classes to interface with the Materials Project REST
 API v3 to enable the creation of data structures and pymatgen objects using
@@ -12,7 +11,6 @@ import sys
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
-from hashlib import new
 from json import JSONDecodeError
 from math import ceil
 from os import environ
@@ -22,16 +20,15 @@ from urllib.parse import urljoin
 import requests
 from emmet.core.utils import jsanitize
 from maggma.api.utils import api_sanitize
-from matplotlib import use
 from monty.json import MontyDecoder
-from mp_api.client.core.settings import MAPIClientSettings
 from pydantic import BaseModel, create_model
-from mp_api.client.core.utils import validate_ids
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
-from inspect import cleandoc
+
+from mp_api.client.core.settings import MAPIClientSettings
+from mp_api.client.core.utils import validate_ids
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
@@ -130,13 +127,11 @@ class BaseRester(Generic[T]):
         session.headers = {"x-api-key": api_key}
         if include_user_agent:
             pymatgen_info = "pymatgen/" + pmg_version
-            python_info = "Python/{}.{}.{}".format(
-                sys.version_info.major, sys.version_info.minor, sys.version_info.micro
-            )
-            platform_info = "{}/{}".format(platform.system(), platform.release())
-            session.headers["user-agent"] = "{} ({} {})".format(
-                pymatgen_info, python_info, platform_info
-            )
+            python_info = f"Python/{sys.version.split()[0]}"
+            platform_info = f"{platform.system()}/{platform.release()}"
+            session.headers[
+                "user-agent"
+            ] = f"{pymatgen_info} ({python_info} {platform_info})"
 
         max_retry_num = MAPIClientSettings().MAX_RETRIES
         retry = Retry(
@@ -220,14 +215,13 @@ class BaseRester(Generic[T]):
                 try:
                     data = json.loads(response.text)["detail"]
                 except (JSONDecodeError, KeyError):
-                    data = "Response {}".format(response.text)
+                    data = f"Response {response.text}"
                 if isinstance(data, str):
                     message = data
                 else:
                     try:
                         message = ", ".join(
-                            "{} - {}".format(entry["loc"][1], entry["msg"])
-                            for entry in data
+                            f"{entry['loc'][1]} - {entry['msg']}" for entry in data
                         )
                     except (KeyError, IndexError):
                         message = str(data)
@@ -477,7 +471,7 @@ class BaseRester(Generic[T]):
             last_data_entry["meta"]["total_doc"] = total_num_docs
             total_data["meta"] = last_data_entry["meta"]
 
-        # Get max number of reponse pages
+        # Get max number of response pages
         max_pages = (
             num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
         )
@@ -492,7 +486,10 @@ class BaseRester(Generic[T]):
             else "Retrieving documents"
         )
         pbar = (
-            tqdm(desc=pbar_message, total=num_docs_needed,)
+            tqdm(
+                desc=pbar_message,
+                total=num_docs_needed,
+            )
             if not MAPIClientSettings().MUTE_PROGRESS_BARS
             else None
         )
@@ -702,14 +699,13 @@ class BaseRester(Generic[T]):
             try:
                 data = json.loads(response.text)["detail"]
             except (JSONDecodeError, KeyError):
-                data = "Response {}".format(response.text)
+                data = f"Response {response.text}"
             if isinstance(data, str):
                 message = data
             else:
                 try:
                     message = ", ".join(
-                        "{} - {}".format(entry["loc"][1], entry["msg"])
-                        for entry in data
+                        f"{entry['loc'][1]} - {entry['msg']}" for entry in data
                     )
                 except (KeyError, IndexError):
                     message = str(data)
@@ -773,8 +769,7 @@ class BaseRester(Generic[T]):
                     )
                 else:
                     raise AttributeError(
-                        "%r object has no attribute %r"
-                        % (self.__class__.__name__, attr)
+                        f"{self.__class__.__name__!r} object has no attribute {attr!r}"
                     )
 
             data_model.__repr__ = new_repr
@@ -818,7 +813,9 @@ class BaseRester(Generic[T]):
         ).get("data")
 
     def get_data_by_id(
-        self, document_id: str, fields: Optional[List[str]] = None,
+        self,
+        document_id: str,
+        fields: Optional[List[str]] = None,
     ) -> T:
         """
         Query the endpoint for a single document.
@@ -949,13 +946,13 @@ class BaseRester(Generic[T]):
 
         # Check if specific parameters are present that can be parallelized over
         list_entries = sorted(
-            [
+            (
                 (key, len(entry.split(",")))
                 for key, entry in query_params.items()
                 if isinstance(entry, str)
                 and len(entry.split(",")) > 0
                 and key not in MAPIClientSettings().QUERY_NO_PARALLEL
-            ],
+            ),
             key=lambda item: item[1],
             reverse=True,
         )

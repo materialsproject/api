@@ -41,7 +41,7 @@ def test_filters_keywords(rester):
         doc = search_method(keywords=["silicon"])[0]
 
         assert isinstance(doc.search_score, float)
-        highlighted = sum([x["texts"] for x in doc.highlights], [])
+        highlighted = sum((x["texts"] for x in doc.highlights), [])
         assert "silicon" in " ".join([x["value"] for x in highlighted]).lower()
 
 

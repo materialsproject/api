@@ -1,4 +1,3 @@
-# coding: utf-8
 """ Primary MAPI module """
 import os
 from pkg_resources import get_distribution, DistributionNotFound

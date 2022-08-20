@@ -123,7 +123,7 @@ class TestMPRester:
         entries = mpr.get_entries(chemsys)
         sorted_entries = mpr.get_entries(chemsys, sort_by_e_above_hull=True)
 
-        elements = set([Element(sym) for sym in syms])
+        elements = {Element(sym) for sym in syms}
         for e in entries:
             assert isinstance(e, ComputedEntry)
             assert set(e.composition.elements).issubset(elements)
@@ -141,13 +141,13 @@ class TestMPRester:
         syms2 = "Li-Fe-O"
         entries = mpr.get_entries_in_chemsys(syms)
         entries2 = mpr.get_entries_in_chemsys(syms2)
-        elements = set([Element(sym) for sym in syms])
+        elements = {Element(sym) for sym in syms}
         for e in entries:
             assert isinstance(e, ComputedEntry)
             assert set(e.composition.elements).issubset(elements)
 
-        e1 = set([i.entry_id for i in entries])
-        e2 = set([i.entry_id for i in entries2])
+        e1 = {i.entry_id for i in entries}
+        e2 = {i.entry_id for i in entries2}
         assert e1 == e2
 
         gibbs_entries = mpr.get_entries_in_chemsys(syms2, use_gibbs=500)
