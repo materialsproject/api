@@ -152,7 +152,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )
 
 
@@ -247,7 +247,7 @@ class BandStructureRester(BaseRester):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )
 
     def get_bandstructure_from_task_id(self, task_id: str):
@@ -303,9 +303,7 @@ class BandStructureRester(BaseRester):
 
             if bs_data is None:
                 raise MPRestError(
-                    "No {} band structure data found for {}".format(
-                        path_type.value, material_id
-                    )
+                    f"No {path_type.value} band structure data found for {material_id}"
                 )
             else:
                 bs_data = bs_data.dict()
@@ -314,9 +312,7 @@ class BandStructureRester(BaseRester):
                 bs_task_id = bs_data[path_type.value]["task_id"]
             else:
                 raise MPRestError(
-                    "No {} band structure data found for {}".format(
-                        path_type.value, material_id
-                    )
+                    f"No {path_type.value} band structure data found for {material_id}"
                 )
         else:
             bs_data = es_rester.get_data_by_id(
@@ -444,7 +440,7 @@ class DosRester(BaseRester):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )
 
     def get_dos_from_task_id(self, task_id: str):
@@ -493,9 +489,7 @@ class DosRester(BaseRester):
         if dos_data["dos"]:
             dos_task_id = dos_data["dos"]["total"]["1"]["task_id"]
         else:
-            raise MPRestError(
-                f"No density of states data found for {material_id}"
-            )
+            raise MPRestError(f"No density of states data found for {material_id}")
 
         dos_obj = self.get_dos_from_task_id(dos_task_id)
         if dos_obj:
