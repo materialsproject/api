@@ -688,22 +688,23 @@ class BaseRester(Generic[T]):
 
                 raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
-                data_model, set_fields, _ = self._generate_returned_model(
-                    raw_doc_list[0]
-                )
-
-                data["data"] = [
-                    data_model(
-                        **{
-                            field: value
-                            for field, value in raw_doc.dict().items()
-                            if field in set_fields
-                        }
+                if len(raw_doc_list) > 0:
+                    data_model, set_fields, _ = self._generate_returned_model(
+                        raw_doc_list[0]
                     )
-                    for raw_doc in raw_doc_list
-                ]
 
-                # data["data"] = raw_doc_list
+                    data["data"] = [
+                        data_model(
+                            **{
+                                field: value
+                                for field, value in raw_doc.dict().items()
+                                if field in set_fields
+                            }
+                        )
+                        for raw_doc in raw_doc_list
+                    ]
+
+                    # data["data"] = raw_doc_list
 
             meta_total_doc_num = data.get("meta", {}).get("total_doc", 1)
 
