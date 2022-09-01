@@ -19,7 +19,6 @@ from urllib.parse import urljoin
 
 import requests
 from emmet.core.utils import jsanitize
-from maggma.api.utils import api_sanitize
 from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
@@ -28,7 +27,7 @@ from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.utils import validate_ids, api_sanitize
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore

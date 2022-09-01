@@ -11,7 +11,6 @@ from emmet.core.settings import EmmetSettings
 from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
@@ -133,6 +132,7 @@ class MPRester:
         )
 
         try:
+            from mpcontribs.client import Client
             self.contribs = Client(api_key)
         except Exception as error:
             self.contribs = None
