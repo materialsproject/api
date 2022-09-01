@@ -1,9 +1,8 @@
-emmet-core==0.32.3
+emmet-core[all]==0.35.0
 pydantic>=1.8.2
 pymatgen>=2022.3.7
 pymatgen-analysis-alloys>=0.0.3
 typing-extensions==4.1.1
-maggma==0.47.4
 requests==2.27.1
 monty==2022.3.12
 mpcontribs-client>=4.2.9
