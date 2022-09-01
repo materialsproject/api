@@ -111,4 +111,3 @@ def allow_msonable_dict(monty_cls: Type[MSONable]):
     setattr(monty_cls, "validate_monty", classmethod(validate_monty))
 
     return monty_cls
-
