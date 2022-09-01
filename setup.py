@@ -32,6 +32,7 @@ setup(
     ],
     extras_require={
         "all": [
+            "emmet-core[all]>=0.35.0"
             "custodian",
             "mpcontribs-client",
         ],
