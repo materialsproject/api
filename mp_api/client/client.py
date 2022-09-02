@@ -177,6 +177,18 @@ class MPRester:
         """
         self.session.close()
 
+    def __getattr__(self, attr):
+        if attr == "alloys":
+            raise MPRestError("Alloy addon package not installed. "
+                              "To query alloy data install the pymatgen-analysis-alloys package.")
+        elif attr == "charge_density":
+            raise MPRestError("boto3 not installed. "
+                              "To query charge density data install the boto3 package.")
+        else:
+            raise AttributeError(
+                    f"{self.__class__.__name__!r} object has no attribute {attr!r}"
+                )
+
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: Optional[List[CalcType]] = None
     ) -> List[str]:
