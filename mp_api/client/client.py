@@ -939,6 +939,10 @@ class MPRester:
         Returns:
             chgcar: Pymatgen Chgcar object.
         """
+        
+        if not hasattr(self, "charge_density"):
+            raise MPRestError("boto3 not installed. "
+                  "To query charge density data install the boto3 package.")
 
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
