@@ -35,6 +35,7 @@ setup(
             "emmet-core[all]>=0.35.1"
             "custodian",
             "mpcontribs-client",
+            "boto3"
         ],
     },
     classifiers=[
