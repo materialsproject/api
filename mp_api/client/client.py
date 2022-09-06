@@ -137,7 +137,8 @@ class MPRester:
         except ImportError:
             self.contribs = None
             warnings.warn("mpcontribs-client not installed. "
-                          "Install the package o query MPContribs data, or construct pourbaix diagrams.")
+                          "Install the package to query MPContribs data, or construct pourbaix diagrams: "
+                          "'pip install mpcontribs-client'")
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
