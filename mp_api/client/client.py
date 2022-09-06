@@ -134,6 +134,10 @@ class MPRester:
         try:
             from mpcontribs.client import Client
             self.contribs = Client(api_key)
+        except ImportError:
+            self.contribs = None
+            warnings.warn("mpcontribs-client not installed. "
+                          "Install the package o query MPContribs data, or construct pourbaix diagrams.")
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
@@ -180,10 +184,10 @@ class MPRester:
     def __getattr__(self, attr):
         if attr == "alloys":
             raise MPRestError("Alloy addon package not installed. "
-                              "To query alloy data install the pymatgen-analysis-alloys package.")
+                              "To query alloy data first install with: 'pip install pymatgen-analysis-alloys'")
         elif attr == "charge_density":
             raise MPRestError("boto3 not installed. "
-                              "To query charge density data install the boto3 package.")
+                              "To query charge density data first install with: 'pip install boto3'")
         else:
             raise AttributeError(
                     f"{self.__class__.__name__!r} object has no attribute {attr!r}"
