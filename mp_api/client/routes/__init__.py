@@ -34,15 +34,9 @@ from .robocrys import RobocrysRester
 try:
     from .alloys import AlloysRester
 except ImportError:
-    import warnings
-    warnings.warn("Alloy addon package not installed. "
-                  "To query alloy data install the pymatgen-analysis-alloys package.")
     AlloysRester = None  # type: ignore
 
 try:
     from .charge_density import ChargeDensityRester
 except ImportError:
-    import warnings
-    warnings.warn("boto3 not installed. "
-                  "To query charge density data install the boto3 package.")
     ChargeDensityRester = None  # type: ignore
