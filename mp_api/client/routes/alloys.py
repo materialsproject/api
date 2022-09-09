@@ -5,8 +5,6 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 from emmet.core.alloys import AlloyPairDoc
 
-import warnings
-
 
 class AlloysRester(BaseRester[AlloyPairDoc]):
 

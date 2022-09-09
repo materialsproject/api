@@ -11,7 +11,6 @@ from emmet.core.settings import EmmetSettings
 from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from mpcontribs.client import Client
 from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
@@ -133,7 +132,13 @@ class MPRester:
         )
 
         try:
+            from mpcontribs.client import Client
             self.contribs = Client(api_key)
+        except ImportError:
+            self.contribs = None
+            warnings.warn("mpcontribs-client not installed. "
+                          "Install the package to query MPContribs data, or construct pourbaix diagrams: "
+                          "'pip install mpcontribs-client'")
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
@@ -176,6 +181,18 @@ class MPRester:
         Support for "with" context.
         """
         self.session.close()
+
+    def __getattr__(self, attr):
+        if attr == "alloys":
+            raise MPRestError("Alloy addon package not installed. "
+                              "To query alloy data first install with: 'pip install pymatgen-analysis-alloys'")
+        elif attr == "charge_density":
+            raise MPRestError("boto3 not installed. "
+                              "To query charge density data first install with: 'pip install boto3'")
+        else:
+            raise AttributeError(
+                    f"{self.__class__.__name__!r} object has no attribute {attr!r}"
+                )
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: Optional[List[CalcType]] = None
@@ -939,6 +956,10 @@ class MPRester:
         Returns:
             chgcar: Pymatgen Chgcar object.
         """
+
+        if not hasattr(self, "charge_density"):
+            raise MPRestError("boto3 not installed. "
+                  "To query charge density data install the boto3 package.")
 
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity

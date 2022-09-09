@@ -28,11 +28,16 @@ setup(
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
         "monty>=2021.3.12",
-        "emmet-core>=0.32.3",
-        "maggma>=0.47.4",
-        "custodian",
-        "mpcontribs-client",
+        "emmet-core>=0.35.1",
     ],
+    extras_require={
+        "all": [
+            "emmet-core[all]>=0.35.1"
+            "custodian",
+            "mpcontribs-client",
+            "boto3"
+        ],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
