@@ -28,11 +28,11 @@ setup(
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
         "monty>=2021.3.12",
-        "emmet-core>=0.35.1",
+        "emmet-core>=0.35.3",
     ],
     extras_require={
         "all": [
-            "emmet-core[all]>=0.35.1"
+            "emmet-core[all]>=0.35.3"
             "custodian",
             "mpcontribs-client",
             "boto3"
