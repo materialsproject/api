@@ -96,7 +96,7 @@ def test_client(rester):
                     is not None
                 )
 
-
+@pytest.mark.xfail(reason="Temporary until redeploy")
 def test_get_trajectories(rester):
 
     trajectories = rester.get_trajectory("mp-149")
