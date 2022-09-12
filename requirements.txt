@@ -8,4 +8,4 @@ monty==2022.3.12
 mpcontribs-client>=4.2.9
 custodian
 boto3
-
+msgpack
