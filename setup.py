@@ -25,19 +25,14 @@ setup(
     install_requires=[
         "setuptools",
         "msgpack",
-        "pymatgen>=2022.3.7",
+        "pymatgen",
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
         "monty>=2021.3.12",
-        "emmet-core>=0.35.3",
+        "emmet-core",
     ],
     extras_require={
-        "all": [
-            "emmet-core[all]>=0.35.3"
-            "custodian",
-            "mpcontribs-client",
-            "boto3"
-        ],
+        "all": ["emmet-core[all]>=0.35.3" "custodian", "mpcontribs-client", "boto3"],
     },
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -49,5 +44,5 @@ setup(
         "Topic :: Scientific/Engineering",
     ],
     tests_require=["pytest"],
-    python_requires=">=3.8",
+    python_requires=">=3.7",
 )
