@@ -1,4 +1,5 @@
 import base64
+import warnings
 import zlib
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
@@ -10,13 +11,12 @@ from emmet.core.electronic_structure import (
     ElectronicStructureDoc,
 )
 from monty.serialization import MontyDecoder
-from mp_api.client.core import BaseRester, MPRestError
-from mp_api.client.core.utils import validate_ids
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType, Spin
 
-import warnings
+from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.utils import validate_ids
 
 
 class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
@@ -126,6 +126,8 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             query_params.update({"magnetic_ordering": magnetic_ordering.value})
 
         if num_elements:
+            if isinstance(num_elements, int):
+                num_elements = (num_elements, num_elements)
             query_params.update(
                 {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
             )

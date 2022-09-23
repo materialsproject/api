@@ -1,14 +1,14 @@
+import warnings
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
 from emmet.core.mpid import MPID
 from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
-from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import validate_ids
 from pymatgen.analysis.magnetism import Ordering
 
-import warnings
+from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class SummaryRester(BaseRester[SummaryDoc]):
@@ -210,6 +210,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
 
         for param, value in locals().items():
             if param in min_max_name_dict and value:
+                if isinstance(value, (int, float)):
+                    value = (value, value)
                 query_params.update(
                     {
                         f"{min_max_name_dict[param]}_min": value[0],
@@ -289,5 +291,5 @@ class SummaryRester(BaseRester[SummaryDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )
