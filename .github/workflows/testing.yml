@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v1
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -70,7 +70,7 @@ jobs:
       - name: Set SSL_CERT_FILE (Linux)
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         run: export SSL_CERT_FILE=$(python -m certifi)
-        
+
       - name: Set SSL_CERT_FILE (Windows)
         if: matrix.os == 'windows-latest'
         run: echo ("SSL_CERT_FILE=" + $(python -m certifi)) >> $env:GITHUB_ENV
@@ -86,7 +86,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
-          
+
   auto-gen-release:
     needs:
       - lint
