@@ -20,7 +20,7 @@ from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import get
-from typing import Literal
+from typing_extensions import Literal
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.routes import *
@@ -609,7 +609,7 @@ class MPRester:
 
         return pbx_entries
 
-    @lru_cache
+    @lru_cache()
     def get_ion_reference_data(self) -> List[Dict]:
         """
         Download aqueous ion reference data used in the construction of Pourbaix diagrams.

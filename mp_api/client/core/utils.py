@@ -1,5 +1,6 @@
 import re
-from typing import List, Optional, Type, get_args
+from typing import List, Optional, Type
+from typing_extensions import get_args
 
 from monty.json import MSONable
 from pydantic import BaseModel
