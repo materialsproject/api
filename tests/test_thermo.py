@@ -112,7 +112,6 @@ def test_client(rester):
                 )
 
 
-@pytest.mark.xfail(reason="Monty decode issue with phase diagram")
 def test_get_phase_diagram_from_chemsys():
     # Test that a phase diagram is returned
 
