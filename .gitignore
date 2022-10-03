@@ -112,3 +112,6 @@ ENV/
 .DS_Store
 .vscode
 .pytest_cache
+
+# Doc folder
+_autosummary
