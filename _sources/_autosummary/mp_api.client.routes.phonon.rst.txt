@@ -1,0 +1,31 @@
+mp\_api.client.routes.phonon
+============================
+
+.. automodule:: mp_api.client.routes.phonon
+  
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:                                          
+      :template: custom-class-template.rst               
+   
+      PhononRester
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,39 @@
+mp\_api.client.routes.dielectric.DielectricRester
+=================================================
+
+.. currentmodule:: mp_api.client.routes.dielectric
+
+.. autoclass:: DielectricRester
+   :members:                         
+   :show-inheritance:                      
+   :inherited-members:                         
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~DielectricRester.__init__
+      ~DielectricRester.count
+      ~DielectricRester.get_data_by_id
+      ~DielectricRester.search
+      ~DielectricRester.search_dielectric_docs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DielectricRester.available_fields
+      ~DielectricRester.primary_key
+      ~DielectricRester.session
+      ~DielectricRester.suffix
+      ~DielectricRester.supports_versions
+   
+   

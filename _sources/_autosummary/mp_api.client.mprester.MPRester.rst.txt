@@ -1,0 +1,85 @@
+mp\_api.client.mprester.MPRester
+================================
+
+.. currentmodule:: mp_api.client.mprester
+
+.. autoclass:: MPRester
+   :members:                         
+   :show-inheritance:                      
+   :inherited-members:                         
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~MPRester.__init__
+      ~MPRester.find_structure
+      ~MPRester.get_bandstructure_by_material_id
+      ~MPRester.get_charge_density_from_material_id
+      ~MPRester.get_database_version
+      ~MPRester.get_dos_by_material_id
+      ~MPRester.get_entries
+      ~MPRester.get_entries_in_chemsys
+      ~MPRester.get_entry_by_material_id
+      ~MPRester.get_ion_entries
+      ~MPRester.get_ion_reference_data
+      ~MPRester.get_ion_reference_data_for_chemsys
+      ~MPRester.get_material_id_from_task_id
+      ~MPRester.get_material_id_references
+      ~MPRester.get_material_ids
+      ~MPRester.get_materials_id_from_task_id
+      ~MPRester.get_materials_id_references
+      ~MPRester.get_materials_ids
+      ~MPRester.get_phonon_bandstructure_by_material_id
+      ~MPRester.get_phonon_dos_by_material_id
+      ~MPRester.get_pourbaix_entries
+      ~MPRester.get_structure_by_material_id
+      ~MPRester.get_structures
+      ~MPRester.get_task_ids_associated_with_material_id
+      ~MPRester.get_wulff_shape
+      ~MPRester.query
+      ~MPRester.submit_structures
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MPRester.eos
+      ~MPRester.materials
+      ~MPRester.similarity
+      ~MPRester.tasks
+      ~MPRester.xas
+      ~MPRester.fermi
+      ~MPRester.grain_boundary
+      ~MPRester.substrates
+      ~MPRester.surface_properties
+      ~MPRester.phonon
+      ~MPRester.elasticity
+      ~MPRester.thermo
+      ~MPRester.dielectric
+      ~MPRester.doi
+      ~MPRester.piezoelectric
+      ~MPRester.magnetism
+      ~MPRester.summary
+      ~MPRester.robocrys
+      ~MPRester.molecules
+      ~MPRester.synthesis
+      ~MPRester.insertion_electrodes
+      ~MPRester.charge_density
+      ~MPRester.electronic_structure
+      ~MPRester.electronic_structure_bandstructure
+      ~MPRester.electronic_structure_dos
+      ~MPRester.oxidation_states
+      ~MPRester.provenance
+      ~MPRester.bonds
+      ~MPRester.alloys
+   
+   

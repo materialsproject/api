@@ -1,0 +1,889 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>mp_api.client.mprester.MPRester &#8212; mp-api 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mp_api.client.routes" href="mp_api.client.routes.html" />
+    <link rel="prev" title="mp_api.client.mprester" href="mp_api.client.mprester.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="mp-api-client-mprester-mprester">
+<h1>mp_api.client.mprester.MPRester<a class="headerlink" href="#mp-api-client-mprester-mprester" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mp_api.client.mprester.</span></span><span class="sig-name descname"><span class="pre">MPRester</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://api.materialsproject.org/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notify_db_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monty_decode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_document_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.8/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A String API key for accessing the MaterialsProject
+REST interface. Please obtain your API key at
+<a class="reference external" href="https://next-gen.materialsproject.org/api">https://next-gen.materialsproject.org/api</a>. If this is None,
+the code will check if there is a “MP_API_KEY” setting.
+If so, it will use that environment variable. This makes
+easier for heavy users to simply add this environment variable to
+their setups and MPRester can then be called without any arguments.</p></li>
+<li><p><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST
+interface. Defaults to the standard Materials Project REST
+address at “<a class="reference external" href="https://api.materialsproject.org">https://api.materialsproject.org</a>”, but
+can be changed to other urls implementing a similar interface.</p></li>
+<li><p><strong>notify_db_version</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, the current MP database version will
+be retrieved and logged locally in the ~/.pmgrc.yaml. If the database
+version changes, you will be notified. The current database version is
+also printed on instantiation. These local logs are not sent to
+materialsproject.org and are not associated with your API key, so be
+aware that a notification may not be presented if you run MPRester
+from multiple computing environments.</p></li>
+<li><p><strong>include_user_agent</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, will include a user agent with the
+HTTP request including information on pymatgen and system version
+making the API request. This helps MP support pymatgen users, and
+is similar to what most web browsers send with each page request.
+Set to False to disable the user agent.</p></li>
+<li><p><strong>monty_decode</strong> – Decode the data using monty into python objects</p></li>
+<li><p><strong>use_document_model</strong> – If False, skip the creating the document model and return data
+as a dictionary. This can be simpler to work with but bypasses data validation
+and will not give auto-complete for available fields.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://api.materialsproject.org/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notify_db_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monty_decode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_document_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A String API key for accessing the MaterialsProject
+REST interface. Please obtain your API key at
+<a class="reference external" href="https://next-gen.materialsproject.org/api">https://next-gen.materialsproject.org/api</a>. If this is None,
+the code will check if there is a “MP_API_KEY” setting.
+If so, it will use that environment variable. This makes
+easier for heavy users to simply add this environment variable to
+their setups and MPRester can then be called without any arguments.</p></li>
+<li><p><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST
+interface. Defaults to the standard Materials Project REST
+address at “<a class="reference external" href="https://api.materialsproject.org">https://api.materialsproject.org</a>”, but
+can be changed to other urls implementing a similar interface.</p></li>
+<li><p><strong>notify_db_version</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, the current MP database version will
+be retrieved and logged locally in the ~/.pmgrc.yaml. If the database
+version changes, you will be notified. The current database version is
+also printed on instantiation. These local logs are not sent to
+materialsproject.org and are not associated with your API key, so be
+aware that a notification may not be presented if you run MPRester
+from multiple computing environments.</p></li>
+<li><p><strong>include_user_agent</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, will include a user agent with the
+HTTP request including information on pymatgen and system version
+making the API request. This helps MP support pymatgen users, and
+is similar to what most web browsers send with each page request.
+Set to False to disable the user agent.</p></li>
+<li><p><strong>monty_decode</strong> – Decode the data using monty into python objects</p></li>
+<li><p><strong>use_document_model</strong> – If False, skip the creating the document model and return data
+as a dictionary. This can be simpler to work with but bypasses data validation
+and will not give auto-complete for available fields.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.__init__" title="mp_api.client.mprester.MPRester.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([api_key, endpoint, ...])</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">param api_key<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A String API key for accessing the MaterialsProject</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.find_structure" title="mp_api.client.mprester.MPRester.find_structure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_structure</span></code></a>(filename_or_structure[, ...])</p></td>
+<td><p>Finds matching structures from the Materials Project database.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_bandstructure_by_material_id" title="mp_api.client.mprester.MPRester.get_bandstructure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_bandstructure_by_material_id</span></code></a>(material_id)</p></td>
+<td><p>Get the band structure pymatgen object associated with a Materials Project ID.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_charge_density_from_material_id" title="mp_api.client.mprester.MPRester.get_charge_density_from_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_charge_density_from_material_id</span></code></a>(material_id)</p></td>
+<td><p>Get charge density data for a given Materials Project ID.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_database_version" title="mp_api.client.mprester.MPRester.get_database_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_database_version</span></code></a>()</p></td>
+<td><p>The Materials Project database is periodically updated and has a database version associated with it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dos_by_material_id</span></code></a>(material_id)</p></td>
+<td><p>Get the complete density of states pymatgen object associated with a Materials Project ID.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entries" title="mp_api.client.mprester.MPRester.get_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entries</span></code></a>(chemsys_formula[, ...])</p></td>
+<td><p>Get a list of ComputedEntries or ComputedStructureEntries corresponding to a chemical system or formula.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entries_in_chemsys" title="mp_api.client.mprester.MPRester.get_entries_in_chemsys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entries_in_chemsys</span></code></a>(elements[, use_gibbs])</p></td>
+<td><p>Helper method to get a list of ComputedEntries in a chemical system. For example, elements = [&quot;Li&quot;, &quot;Fe&quot;, &quot;O&quot;] will return a list of all entries in the Li-Fe-O chemical system, i.e., all LixOy, FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for creating phase diagrams of entire chemical systems. :param elements: Chemical system string comprising element                  symbols separated by dashes, e.g., &quot;Li-Fe-O&quot; or List of element                  symbols, e.g., [&quot;Li&quot;, &quot;Fe&quot;, &quot;O&quot;]. :type elements: str or [str] :param use_gibbs: If None (default), DFT energy is returned. If a number, return                   the free energy of formation estimated using a machine learning model                   (see GibbsComputedStructureEntry). The number is the temperature in                   Kelvin at which to estimate the free energy. Must be between 300 K and                   2000 K.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entry_by_material_id" title="mp_api.client.mprester.MPRester.get_entry_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entry_by_material_id</span></code></a>(material_id)</p></td>
+<td><p>Get all ComputedEntry objects corresponding to a material_id.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_entries" title="mp_api.client.mprester.MPRester.get_ion_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_entries</span></code></a>(pd[, ion_ref_data])</p></td>
+<td><p>Retrieve IonEntry objects that can be used in the construction of Pourbaix Diagrams.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_reference_data" title="mp_api.client.mprester.MPRester.get_ion_reference_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_reference_data</span></code></a>()</p></td>
+<td><p>Download aqueous ion reference data used in the construction of Pourbaix diagrams.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys" title="mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_reference_data_for_chemsys</span></code></a>(chemsys)</p></td>
+<td><p>Download aqueous ion reference data used in the construction of Pourbaix diagrams.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_id_from_task_id" title="mp_api.client.mprester.MPRester.get_material_id_from_task_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_id_from_task_id</span></code></a>(task_id)</p></td>
+<td><p>Returns the current material_id from a given task_id.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_id_references" title="mp_api.client.mprester.MPRester.get_material_id_references"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_id_references</span></code></a>(material_id)</p></td>
+<td><p>Returns all references for a material id.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_ids" title="mp_api.client.mprester.MPRester.get_material_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_ids</span></code></a>(chemsys_formula)</p></td>
+<td><p>Get all materials ids for a formula or chemsys.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_id_from_task_id" title="mp_api.client.mprester.MPRester.get_materials_id_from_task_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_id_from_task_id</span></code></a>(task_id)</p></td>
+<td><p>This method is deprecated, please use get_material_id_from_task_id.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_id_references" title="mp_api.client.mprester.MPRester.get_materials_id_references"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_id_references</span></code></a>(material_id)</p></td>
+<td><p>This method is deprecated, please use get_material_id_references.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_ids" title="mp_api.client.mprester.MPRester.get_materials_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_ids</span></code></a>(chemsys_formula)</p></td>
+<td><p>This method is deprecated, please use get_material_ids.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_bandstructure_by_material_id</span></code></a>(...)</p></td>
+<td><p>Get phonon dispersion data corresponding to a material_id.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_dos_by_material_id</span></code></a>(material_id)</p></td>
+<td><p>Get phonon density of states data corresponding to a material_id.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_pourbaix_entries" title="mp_api.client.mprester.MPRester.get_pourbaix_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pourbaix_entries</span></code></a>(chemsys[, ...])</p></td>
+<td><p>A helper function to get all entries necessary to generate a Pourbaix diagram from the rest interface.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structure_by_material_id" title="mp_api.client.mprester.MPRester.get_structure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structure_by_material_id</span></code></a>(material_id[, ...])</p></td>
+<td><p>Get a Structure corresponding to a material_id.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structures" title="mp_api.client.mprester.MPRester.get_structures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structures</span></code></a>(chemsys_formula[, final])</p></td>
+<td><p>Get a list of Structures corresponding to a chemical system or formula.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id" title="mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_task_ids_associated_with_material_id</span></code></a>(...)</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">param material_id<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_wulff_shape" title="mp_api.client.mprester.MPRester.get_wulff_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_wulff_shape</span></code></a>(material_id)</p></td>
+<td><p>Constructs a Wulff shape for a material.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.query" title="mp_api.client.mprester.MPRester.query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query</span></code></a>(**kwargs)</p></td>
+<td><p>The MPRester().query method has been replaced with the MPRester().summary.search method.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.submit_structures" title="mp_api.client.mprester.MPRester.submit_structures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">submit_structures</span></code></a>(structures, public_name, ...)</p></td>
+<td><p>Submits a list of structures to the Materials Project.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">eos</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">materials</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">similarity</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tasks</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">xas</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fermi</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">grain_boundary</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">substrates</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface_properties</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">phonon</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">elasticity</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">thermo</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dielectric</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">doi</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">piezoelectric</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">magnetism</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">summary</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">robocrys</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">molecules</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">synthesis</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">insertion_electrodes</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">charge_density</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">electronic_structure</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">electronic_structure_bandstructure</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">electronic_structure_dos</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxidation_states</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">provenance</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bonds</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">alloys</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id">
+<span class="sig-name descname"><span class="pre">get_task_ids_associated_with_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Optional" title="(in Python v3.8)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">CalcType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_task_ids_associated_with_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>material_id</strong> – </p></li>
+<li><p><strong>calc_types</strong> – if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_structure_by_material_id">
+<span class="sig-name descname"><span class="pre">get_structure_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conventional_unit_cell</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Structure</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Structure</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_structure_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_structure_by_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a Structure corresponding to a material_id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Materials Project material_id (a string,
+e.g., mp-1234).</p></li>
+<li><p><strong>final</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Whether to get the final structure, or the list of initial
+(pre-relaxation) structures. Defaults to True.</p></li>
+<li><p><strong>conventional_unit_cell</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Whether to get the standard
+conventional unit cell for the final or list of initial structures.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Structure object or list of Structure objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_database_version">
+<span class="sig-name descname"><span class="pre">get_database_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_database_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_database_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Materials Project database is periodically updated and has a
+database version associated with it. When the database is updated,
+consolidated data (information about “a material”) may and does
+change, while calculation data about a specific calculation task
+remains unchanged and available for querying via its task_id.</p>
+<p>The database version is set as a date in the format YYYY_MM_DD,
+where “_DD” may be optional. An additional numerical suffix
+might be added if multiple releases happen on the same day.</p>
+<p>Returns: database version as a string</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_material_id_from_task_id">
+<span class="sig-name descname"><span class="pre">get_material_id_from_task_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Optional" title="(in Python v3.8)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_material_id_from_task_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_material_id_from_task_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current material_id from a given task_id. The
+material_id should rarely change, and is usually chosen from
+among the smallest numerical id from the group of task_ids for
+that material. However, in some circumstances it might change,
+and this method is useful for finding the new material_id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>task_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A task id.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>material_id (MPID)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_materials_id_from_task_id">
+<span class="sig-name descname"><span class="pre">get_materials_id_from_task_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Optional" title="(in Python v3.8)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_materials_id_from_task_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_materials_id_from_task_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is deprecated, please use get_material_id_from_task_id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_material_id_references">
+<span class="sig-name descname"><span class="pre">get_material_id_references</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_material_id_references"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_material_id_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all references for a material id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A material id.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of BibTeX references ([str])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_materials_id_references">
+<span class="sig-name descname"><span class="pre">get_materials_id_references</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_materials_id_references"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_materials_id_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is deprecated, please use get_material_id_references.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_material_ids">
+<span class="sig-name descname"><span class="pre">get_material_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chemsys_formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">MPID</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_material_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_material_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all materials ids for a formula or chemsys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chemsys_formula</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – A chemical system, list of chemical systems</p></li>
+<li><p><strong>(</strong><strong>e.g.</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>Li-Fe-O</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>Si-*</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>[</strong><strong>Si-O</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>Li-Fe-P</strong><strong>]</strong><strong>)</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>formula</strong> (<em>or single</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of all materials ids ([MPID])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_materials_ids">
+<span class="sig-name descname"><span class="pre">get_materials_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chemsys_formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">MPID</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_materials_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_materials_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is deprecated, please use get_material_ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_structures">
+<span class="sig-name descname"><span class="pre">get_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chemsys_formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Structure</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_structures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of Structures corresponding to a chemical system or formula.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chemsys_formula</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – A chemical system, list of chemical systems
+(e.g., Li-Fe-O, Si-<em>, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si</em>).</p></li>
+<li><p><strong>final</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Whether to get the final structure, or the list of initial
+(pre-relaxation) structures. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of Structure objects. ([Structure])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.find_structure">
+<span class="sig-name descname"><span class="pre">find_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename_or_structure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Structure</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ltol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#float" title="(in Python v3.8)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#float" title="(in Python v3.8)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#float" title="(in Python v3.8)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_multiple_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.find_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.find_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds matching structures from the Materials Project database.</p>
+<p>Multiple results may be returned of “similar” structures based on
+distance using the pymatgen StructureMatcher algorithm, however only
+a single result should match with the same spacegroup, calculated to the
+default tolerances.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename_or_structure</strong> – filename or Structure object</p></li>
+<li><p><strong>ltol</strong> – fractional length tolerance</p></li>
+<li><p><strong>stol</strong> – site tolerance</p></li>
+<li><p><strong>angle_tol</strong> – angle tolerance in degrees</p></li>
+<li><p><strong>allow_multiple_results</strong> – changes return type for either</p></li>
+<li><p><strong>material_ids</strong> (<em>a single material_id</em><em> or </em><em>list of</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A matching material_id if one is found or list of results if allow_multiple_results
+is True</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>MPRestError</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_entries">
+<span class="sig-name descname"><span class="pre">get_entries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chemsys_formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_by_e_above_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of ComputedEntries or ComputedStructureEntries corresponding
+to a chemical system or formula.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chemsys_formula</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A chemical system, list of chemical systems</p></li>
+<li><p><strong>(</strong><strong>e.g.</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>Li-Fe-O</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>Si-*</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>[</strong><strong>Si-O</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>Li-Fe-P</strong><strong>]</strong><strong>)</strong> (<em>e.g.</em><em>, </em><em>Fe2O3</em><em>, </em><em>Si*</em>) – </p></li>
+<li><p><strong>formula</strong> (<em>or single</em>) – </p></li>
+<li><p><strong>sort_by_e_above_hull</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Whether to sort the list of entries by
+e_above_hull in ascending order.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of ComputedEntry or ComputedStructureEntry objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_pourbaix_entries">
+<span class="sig-name descname"><span class="pre">get_pourbaix_entries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chemsys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solid_compat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MaterialsProject2020Compatibility'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gibbs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Optional" title="(in Python v3.8)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Literal" title="(in Python v3.8)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">300</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_pourbaix_entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_pourbaix_entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper function to get all entries necessary to generate
+a Pourbaix diagram from the rest interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chemsys</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>[</em><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – Chemical system string comprising element
+symbols separated by dashes, e.g., “Li-Fe-O” or List of element
+symbols, e.g., [“Li”, “Fe”, “O”].</p></li>
+<li><p><strong>solid_compat</strong> – Compatibility scheme used to pre-process solid DFT energies prior
+to applying aqueous energy adjustments. May be passed as a class (e.g.
+MaterialsProject2020Compatibility) or an instance
+(e.g., MaterialsProject2020Compatibility()). If None, solid DFT energies
+are used as-is. Default: MaterialsProject2020Compatibility</p></li>
+<li><p><strong>use_gibbs</strong> – Set to 300 (for 300 Kelvin) to use a machine learning model to
+estimate solid free energy from DFT energy (see GibbsComputedStructureEntry).
+This can slightly improve the accuracy of the Pourbaix diagram in some
+cases. Default: None. Note that temperatures other than 300K are not
+permitted here, because MaterialsProjectAqueousCompatibility corrections,
+used in Pourbaix diagram construction, are calculated based on 300 K data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_ion_reference_data">
+<span class="sig-name descname"><span class="pre">get_ion_reference_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Dict" title="(in Python v3.8)"><span class="pre">Dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_ion_reference_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_ion_reference_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download aqueous ion reference data used in the construction of Pourbaix diagrams.</p>
+<p>Use this method to examine the ion reference data and to add additional
+ions if desired. The data returned from this method can be passed to
+get_ion_entries().</p>
+<p>Data are retrieved from the Aqueous Ion Reference Data project
+hosted on MPContribs. Refer to that project and its associated documentation
+for more details about the format and meaning of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl>
+<dt>Among other data, each record contains 1) the experimental ion  free energy, 2) the</dt><dd><p>formula of the reference solid for the ion, and 3) the experimental free energy of the
+reference solid. All energies are given in kJ/mol. An example is given below.</p>
+<p>{‘identifier’: ‘Li[+]’,
+‘formula’: ‘Li[+]’,
+‘data’: {‘charge’: {‘display’: ‘1.0’, ‘value’: 1.0, ‘unit’: ‘’},
+‘ΔGᶠ’: {‘display’: ‘-293.71 kJ/mol’, ‘value’: -293.71, ‘unit’: ‘kJ/mol’},
+‘MajElements’: ‘Li’,
+‘RefSolid’: ‘Li2O’,
+‘ΔGᶠRefSolid’: {‘display’: ‘-561.2 kJ/mol’,</p>
+<blockquote>
+<div><p>’value’: -561.2,
+‘unit’: ‘kJ/mol’},</p>
+</div></blockquote>
+<p>’reference’: ‘H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
+compounds and aqueous species, Wiley, New York (1978)’}}</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>[<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys">
+<span class="sig-name descname"><span class="pre">get_ion_reference_data_for_chemsys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chemsys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Dict" title="(in Python v3.8)"><span class="pre">Dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_ion_reference_data_for_chemsys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download aqueous ion reference data used in the construction of Pourbaix diagrams.</p>
+<p>Use this method to examine the ion reference data and to add additional
+ions if desired. The data returned from this method can be passed to
+get_ion_entries().</p>
+<p>Data are retrieved from the Aqueous Ion Reference Data project
+hosted on MPContribs. Refer to that project and its associated documentation
+for more details about the format and meaning of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>chemsys</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>[</em><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – Chemical system string comprising element
+symbols separated by dashes, e.g., “Li-Fe-O” or List of element
+symbols, e.g., [“Li”, “Fe”, “O”].</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl>
+<dt>Among other data, each record contains 1) the experimental ion  free energy, 2) the</dt><dd><p>formula of the reference solid for the ion, and 3) the experimental free energy of the
+reference solid. All energies are given in kJ/mol. An example is given below.</p>
+<p>{‘identifier’: ‘Li[+]’,
+‘formula’: ‘Li[+]’,
+‘data’: {‘charge’: {‘display’: ‘1.0’, ‘value’: 1.0, ‘unit’: ‘’},
+‘ΔGᶠ’: {‘display’: ‘-293.71 kJ/mol’, ‘value’: -293.71, ‘unit’: ‘kJ/mol’},
+‘MajElements’: ‘Li’,
+‘RefSolid’: ‘Li2O’,
+‘ΔGᶠRefSolid’: {‘display’: ‘-561.2 kJ/mol’,</p>
+<blockquote>
+<div><p>’value’: -561.2,
+‘unit’: ‘kJ/mol’},</p>
+</div></blockquote>
+<p>’reference’: ‘H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
+compounds and aqueous species, Wiley, New York (1978)’}}</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>[<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_ion_entries">
+<span class="sig-name descname"><span class="pre">get_ion_entries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PhaseDiagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_ref_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Optional" title="(in Python v3.8)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#dict" title="(in Python v3.8)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">IonEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_ion_entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_ion_entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve IonEntry objects that can be used in the construction of
+Pourbaix Diagrams. The energies of the IonEntry are calculaterd from
+the solid energies in the provided Phase Diagram to be
+consistent with experimental free energies.</p>
+<p>NOTE! This is an advanced method that assumes detailed understanding
+of how to construct computational Pourbaix Diagrams. If you just want
+to build a Pourbaix Diagram using default settings, use get_pourbaix_entries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pd</strong> – Solid phase diagram on which to construct IonEntry. Note that this
+Phase Diagram MUST include O and H in its chemical system. For example,
+to retrieve IonEntry for Ti, the phase diagram passed here should contain
+materials in the H-O-Ti chemical system. It is also assumed that solid
+energies have already been corrected with MaterialsProjectAqueousCompatibility,
+which is necessary for proper construction of Pourbaix diagrams.</p></li>
+<li><p><strong>ion_ref_data</strong> – Aqueous ion reference data. If None (default), the data
+are downloaded from the Aqueous Ion Reference Data project hosted
+on MPContribs. To add a custom ionic species, first download
+data using get_ion_reference_data, then add or customize it with
+your additional data, and pass the customized list here.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>IonEntry are similar to PDEntry objects. Their energies</dt><dd><p>are free energies in eV.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>[IonEntry]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_entry_by_material_id">
+<span class="sig-name descname"><span class="pre">get_entry_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_entry_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_entry_by_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all ComputedEntry objects corresponding to a material_id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Materials Project material_id (a string,
+e.g., mp-1234).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of ComputedEntry or ComputedStructureEntry object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_entries_in_chemsys">
+<span class="sig-name descname"><span class="pre">get_entries_in_chemsys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Union" title="(in Python v3.8)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.List" title="(in Python v3.8)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gibbs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Optional" title="(in Python v3.8)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#int" title="(in Python v3.8)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_entries_in_chemsys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_entries_in_chemsys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to get a list of ComputedEntries in a chemical system.
+For example, elements = [“Li”, “Fe”, “O”] will return a list of all
+entries in the Li-Fe-O chemical system, i.e., all LixOy,
+FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for
+creating phase diagrams of entire chemical systems.
+:param elements: Chemical system string comprising element</p>
+<blockquote>
+<div><p>symbols separated by dashes, e.g., “Li-Fe-O” or List of element
+symbols, e.g., [“Li”, “Fe”, “O”].</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>use_gibbs</strong> – If None (default), DFT energy is returned. If a number, return
+the free energy of formation estimated using a machine learning model
+(see GibbsComputedStructureEntry). The number is the temperature in
+Kelvin at which to estimate the free energy. Must be between 300 K and
+2000 K.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of ComputedEntries.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_bandstructure_by_material_id">
+<span class="sig-name descname"><span class="pre">get_bandstructure_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BSPathType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">BSPathType.setyawan_curtarolo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_bandstructure_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_bandstructure_by_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the band structure pymatgen object associated with a Materials Project ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>materials_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Materials Project ID for a material</p></li>
+<li><p><strong>path_type</strong> (<em>BSPathType</em>) – k-point path selection convention</p></li>
+<li><p><strong>line_mode</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Whether to return data for a line-mode calculation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>BandStructure or BandStructureSymmLine object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bandstructure (Union[BandStructure, BandStructureSymmLine])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_dos_by_material_id">
+<span class="sig-name descname"><span class="pre">get_dos_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_dos_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_dos_by_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the complete density of states pymatgen object associated with a Materials Project ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>materials_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Materials Project ID for a material</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CompleteDos object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dos (CompleteDos)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id">
+<span class="sig-name descname"><span class="pre">get_phonon_dos_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_phonon_dos_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get phonon density of states data corresponding to a material_id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Materials Project material_id.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A phonon DOS object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>CompletePhononDos</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id">
+<span class="sig-name descname"><span class="pre">get_phonon_bandstructure_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_phonon_bandstructure_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get phonon dispersion data corresponding to a material_id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Materials Project material_id.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>phonon band structure.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PhononBandStructureSymmLine</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.submit_structures">
+<span class="sig-name descname"><span class="pre">submit_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structures</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">public_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">public_email</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.submit_structures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.submit_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submits a list of structures to the Materials Project.</p>
+<p>Note that public_name and public_email will be used to credit the
+submitter on the Materials Project website.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>structures</strong> – A list of Structure objects</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>?</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_wulff_shape">
+<span class="sig-name descname"><span class="pre">get_wulff_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_wulff_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_wulff_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a Wulff shape for a material.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Materials Project material_id, e.g. ‘mp-123’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pymatgen.analysis.wulff.WulffShape</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_charge_density_from_material_id">
+<span class="sig-name descname"><span class="pre">get_charge_density_from_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inc_task_doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.8/library/typing.html#typing.Optional" title="(in Python v3.8)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Chgcar</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_charge_density_from_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_charge_density_from_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get charge density data for a given Materials Project ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Material Project ID</p></li>
+<li><p><strong>inc_task_doc</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Whether to include the task document in the returned data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pymatgen Chgcar object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>chgcar</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>The MPRester().query method has been replaced with the MPRester().summary.search method.
+Note this method also no longer supports direct MongoDB-type queries. For more information,
+please see the new documentation.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">mp-api</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=materialsproject&repo=api&type=star&v=2&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">Project Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="mp_api.client.mprester.html">mp_api.client.mprester</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mp_api.client.routes.html">mp_api.client.routes</a></li>
+</ul>
+</li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, The Materials Project.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.2.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_autosummary/mp_api.client.mprester.MPRester.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/materialsproject/api" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

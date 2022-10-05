@@ -1,0 +1,58 @@
+﻿mp\_api.client.routes
+=====================
+
+.. automodule:: mp_api.client.routes
+  
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst             
+   :recursive:
+
+   mp_api.client.routes.alloys
+   mp_api.client.routes.bonds
+   mp_api.client.routes.charge_density
+   mp_api.client.routes.dielectric
+   mp_api.client.routes.doi
+   mp_api.client.routes.elasticity
+   mp_api.client.routes.electrodes
+   mp_api.client.routes.electronic_structure
+   mp_api.client.routes.eos
+   mp_api.client.routes.fermi
+   mp_api.client.routes.grain_boundary
+   mp_api.client.routes.magnetism
+   mp_api.client.routes.materials
+   mp_api.client.routes.molecules
+   mp_api.client.routes.oxidation_states
+   mp_api.client.routes.phonon
+   mp_api.client.routes.piezo
+   mp_api.client.routes.provenance
+   mp_api.client.routes.robocrys
+   mp_api.client.routes.similarity
+   mp_api.client.routes.substrates
+   mp_api.client.routes.summary
+   mp_api.client.routes.surface_properties
+   mp_api.client.routes.synthesis
+   mp_api.client.routes.tasks
+   mp_api.client.routes.thermo
+   mp_api.client.routes.xas
+

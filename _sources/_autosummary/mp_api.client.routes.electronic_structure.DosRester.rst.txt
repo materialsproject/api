@@ -1,0 +1,41 @@
+mp\_api.client.routes.electronic\_structure.DosRester
+=====================================================
+
+.. currentmodule:: mp_api.client.routes.electronic_structure
+
+.. autoclass:: DosRester
+   :members:                         
+   :show-inheritance:                      
+   :inherited-members:                         
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~DosRester.__init__
+      ~DosRester.count
+      ~DosRester.get_data_by_id
+      ~DosRester.get_dos_from_material_id
+      ~DosRester.get_dos_from_task_id
+      ~DosRester.search
+      ~DosRester.search_dos_summary
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DosRester.available_fields
+      ~DosRester.primary_key
+      ~DosRester.session
+      ~DosRester.suffix
+      ~DosRester.supports_versions
+   
+   

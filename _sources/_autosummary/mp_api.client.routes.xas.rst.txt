@@ -1,0 +1,31 @@
+mp\_api.client.routes.xas
+=========================
+
+.. automodule:: mp_api.client.routes.xas
+  
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:                                          
+      :template: custom-class-template.rst               
+   
+      XASRester
+   
+   
+
+   
+   
+   
+
+
+
