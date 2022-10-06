@@ -76,7 +76,7 @@ jobs:
         run: echo ("SSL_CERT_FILE=" + $(python -m certifi)) >> $env:GITHUB_ENV
       
       - name: Format API key name
-        run: echo "API_KEY_NAME=$(echo ${{ format('MP_API_KEY_{0}_{1}', matrix.os, matrix.python-version) }} | awk '{gsub(/-|\./, "_"); print}')"
+        run: echo "API_KEY_NAME=$(echo ${{ format('MP_API_KEY_{0}_{1}', matrix.os, matrix.python-version) }} | awk '{gsub(/-|\./, "_"); print}')" >> $GITHUB_ENV
       
       - name : machine echo test
         run : |
