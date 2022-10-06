@@ -77,6 +77,7 @@ jobs:
       
       - name: Format API key name
         run: |
+          echo ${{ format('MP_API_KEY_{0}_{1}', matrix.os, matrix.python-version) }} | awk '{gsub(/-|\./, "_"); print}'
           export API_KEY_NAME=$(echo ${{ format('MP_API_KEY_{0}_{1}', matrix.os, matrix.python-version) }} | awk '{gsub(/-|\./, "_"); print}')
           echo API_KEY_NAME=$API_KEY_NAME >> $env:GITHUB_ENV
       
