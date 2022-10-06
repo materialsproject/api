@@ -75,6 +75,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: echo ("SSL_CERT_FILE=" + $(python -m certifi)) >> $env:GITHUB_ENV
 
+      - name : machine echo test
+        env : { CONTENT : "${{ toJson(format('MP_API_KEY_{0}_{1}', join(matrix.os, '-'), join(matrix.python-version, '.'))) }}" }
+        run : "echo $CONTENT"
+
       - name: Test with pytest
         env:
           MP_API_KEY: ${{ secrets[format('MP_API_KEY_{0}_{1}', join(matrix.os, '-'), join(matrix.python-version, '.'))] }}
