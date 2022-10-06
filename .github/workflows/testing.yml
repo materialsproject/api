@@ -82,7 +82,7 @@ jobs:
       
       - name : machine echo test
         run : |
-          echo ${{ env.API_KEY_NAME }}
+          echo '${{ toJSON(env) }}'
 
       - name: Test with pytest
         env:
