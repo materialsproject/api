@@ -81,7 +81,7 @@ jobs:
           echo "API_KEY_NAME="$API_KEY_NAME >> $env:GITHUB_ENV
       
       - name : machine echo test
-        run : echo ${{ env.API_KEY_NAME }}
+        run : "echo ${{ env.API_KEY_NAME }}"
 
       - name: Test with pytest
         env:
