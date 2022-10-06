@@ -78,14 +78,14 @@ jobs:
       - name: Format API key name
         run: |
           export API_KEY_NAME=$(echo ${{ toJson(format('MP_API_KEY_{0}_{1}', join(matrix.os, '-'), join(matrix.python-version, '.'))) }} | awk '{gsub(/-|\./, "_"); print}')
-          echo echo ("API_KEY_NAME="$API_KEY_NAME) >> $env:GITHUB_ENV
+          echo "API_KEY_NAME="$API_KEY_NAME >> $env:GITHUB_ENV
       
       - name : machine echo test
         run : "echo $API_KEY_NAME"
 
       - name: Test with pytest
         env:
-          MP_API_KEY: ${{ secrets[format('MP_API_KEY_{0}_{1}', join(matrix.os, '-'), join(matrix.python-version, '.'))] }}
+          MP_API_KEY: ${{ secrets[env.API_KEY_NAME] }}
           #MP_API_ENDPOINT: https://api-preview.materialsproject.org/
         run: |
           pip install -e .
