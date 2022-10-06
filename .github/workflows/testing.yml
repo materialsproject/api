@@ -81,7 +81,7 @@ jobs:
           echo "::set-env name=API_KEY_NAME::$API_KEY_NAME"
       
       - name : machine echo test
-          run : "echo $API_KEY_NAME"
+        run : "echo $API_KEY_NAME"
 
       - name: Test with pytest
         env:
