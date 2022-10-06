@@ -78,7 +78,7 @@ jobs:
       - name: Format API key name
         run: |
           export API_KEY_NAME=$(echo ${{ toJson(format('MP_API_KEY_{0}_{1}', join(matrix.os, '-'), join(matrix.python-version, '.'))) }} | awk '{gsub(/-|\./, "_"); print}')
-          echo "::set-env name=API_KEY_NAME::$API_KEY_NAME"
+          echo echo ("API_KEY_NAME="$API_KEY_NAME) >> $env:GITHUB_ENV
       
       - name : machine echo test
         run : "echo $API_KEY_NAME"
