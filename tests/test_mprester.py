@@ -90,7 +90,6 @@ class TestMPRester:
         structs = mpr.get_structures("Mn-O", final=False)
         assert len(structs) > 0
 
-    @pytest.mark.skip(reason="endpoint issues")
     def test_find_structure(self, mpr):
         path = os.path.join(MAPIClientSettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
@@ -136,28 +135,28 @@ class TestMPRester:
 
         for e in entries:
             assert isinstance(e, ComputedEntry)
-            
+
         # Property data
         formula = "BiFeO3"
         entries = mpr.get_entries(formula, property_data=["energy_above_hull"])
 
         for e in entries:
             assert e.data.get("energy_above_hull", None) is not None
-            
+
         # Conventional structure
         formula = "BiFeO3"
         entry = mpr.get_entry_by_material_id("mp-23", inc_structure=True, conventional_unit_cell=True)[0]
 
-        Ni = entry.strget_entries_inucture
-        self.assertEqual(Ni.lattice.a, Ni.lattice.b)
-        self.assertEqual(Ni.lattice.a, Ni.lattice.c)
-        self.assertEqual(Ni.lattice.alpha, 90)
-        self.assertEqual(Ni.lattice.beta, 90)
-        self.assertEqual(Ni.lattice.gamma, 90)
-        
+        Ni = entry.structure
+        assert Ni.lattice.a == Ni.lattice.b
+        assert Ni.lattice.a == Ni.lattice.c
+        assert Ni.lattice.alpha == 90
+        assert Ni.lattice.beta == 90
+        assert Ni.lattice.gamma == 90
+
         # Ensure energy per atom is same
         primNi = mpr.get_entry_by_material_id("mp-23", inc_structure=True, conventional_unit_cell=False)[0]
-        self.assertEqual(primNi.energy_per_atom, entry.energy_per_atom)
+        assert primNi.energy_per_atom == entry.energy_per_atom
 
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
@@ -177,7 +176,6 @@ class TestMPRester:
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
-    @pytest.mark.skip(reason="Until SSL issue fix")
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements
         pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
@@ -218,7 +216,6 @@ class TestMPRester:
         # so4_two_minus = pbx_entries[9]
         # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
 
-    @pytest.mark.skip(reason="Until SSL issue fix")
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
