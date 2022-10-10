@@ -3,6 +3,7 @@ import warnings
 from functools import lru_cache
 from os import environ
 from typing import Dict, List, Optional, Tuple, Union
+import xxlimited
 
 from emmet.core.charge_density import ChgcarDataDoc
 from emmet.core.electronic_structure import BSPathType
@@ -828,21 +829,66 @@ class MPRester:
 
         return ion_entries
 
-    def get_entry_by_material_id(self, material_id: str):
+    def get_entry_by_material_id(self, material_id: str,
+                                 compatible_only: bool = True,
+                                 inc_structure: bool = None,
+                                 property_data: List[str] = None,
+                                 conventional_unit_cell: bool = False,
+                                 additional_criteria=None):
         """
         Get all ComputedEntry objects corresponding to a material_id.
 
         Args:
             material_id (str): Materials Project material_id (a string,
                 e.g., mp-1234).
+            compatible_only (bool): Whether to return only "compatible"
+                entries. Compatible entries are entries that have been
+                processed using the MaterialsProject2020Compatibility class,
+                which performs adjustments to allow mixing of GGA and GGA+U
+                calculations for more accurate phase diagrams and reaction
+                energies. This data is obtained from the core "thermo" API endpoint.
+            inc_structure (str): *This is a deprecated input*. Previously, if None, entries
+                returned were ComputedEntries. If inc_structure="initial",
+                ComputedStructureEntries with initial structures were returned.
+                Otherwise, ComputedStructureEntries with final structures
+                were returned. This is no longer needed as all entries will contain
+                structure data by default.
+            property_data (list): Specify additional properties to include in
+                entry.data. If None, only default data is included. Should be a subset of
+                input parameters in the 'MPRester.thermo.available_fields' list.
+            conventional_unit_cell (bool): Whether to get the standard
+                conventional unit cell
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        return list(
-            self.thermo.get_data_by_id(
+        doc = self.thermo.get_data_by_id(
                 document_id=material_id, fields=["entries"]
-            ).entries.values()
-        )
+            )
+
+        entries = []
+
+        for entry in doc.entries.values():
+            if not compatible_only:
+                entry.correction = 0.0
+                entry.energy_adjustments = []
+
+            if property_data:
+                for property in property_data:
+                    entry.data[property] = doc.dict()[property]
+
+            if conventional_unit_cell:
+
+                s = SpacegroupAnalyzer(entry.structure).get_conventional_standard_structure()
+                new_energy = entry.energy * (len(s) / len(entry.structure))
+
+                entry_dict = entry.as_dict()
+                entry_dict["energy"] = new_energy
+                entry_dict["structure"] = s.as_dict()
+                entry = ComputedStructureEntry.from_dict(entry_dict)
+
+            entries.append(entry)
+
+        return entries
 
     def get_entries_in_chemsys(
         self, elements: Union[str, List[str]],
