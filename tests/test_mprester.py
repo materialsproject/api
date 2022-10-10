@@ -130,11 +130,34 @@ class TestMPRester:
 
         assert sorted_entries != entries
 
+        # Formula
         formula = "SiO2"
         entries = mpr.get_entries(formula)
 
         for e in entries:
             assert isinstance(e, ComputedEntry)
+            
+        # Property data
+        formula = "BiFeO3"
+        entries = mpr.get_entries(formula, property_data=["energy_above_hull"])
+
+        for e in entries:
+            assert e.data.get("energy_above_hull", None) is not None
+            
+        # Conventional structure
+        formula = "BiFeO3"
+        entry = mpr.get_entry_by_material_id("mp-23", inc_structure=True, conventional_unit_cell=True)[0]
+
+        Ni = entry.strget_entries_inucture
+        self.assertEqual(Ni.lattice.a, Ni.lattice.b)
+        self.assertEqual(Ni.lattice.a, Ni.lattice.c)
+        self.assertEqual(Ni.lattice.alpha, 90)
+        self.assertEqual(Ni.lattice.beta, 90)
+        self.assertEqual(Ni.lattice.gamma, 90)
+        
+        # Ensure energy per atom is same
+        primNi = mpr.get_entry_by_material_id("mp-23", inc_structure=True, conventional_unit_cell=False)[0]
+        self.assertEqual(primNi.energy_per_atom, entry.energy_per_atom)
 
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
