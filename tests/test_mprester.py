@@ -9,6 +9,7 @@ from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
+from sympy import prime
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client import MPRester
 from pymatgen.analysis.magnetism import Ordering
@@ -145,18 +146,24 @@ class TestMPRester:
 
         # Conventional structure
         formula = "BiFeO3"
-        entry = mpr.get_entry_by_material_id("mp-23", inc_structure=True, conventional_unit_cell=True)[0]
+        entry = mpr.get_entry_by_material_id("mp-22526", inc_structure=True, conventional_unit_cell=True)[0]
 
-        Ni = entry.structure
-        assert Ni.lattice.a == Ni.lattice.b
-        assert Ni.lattice.a == Ni.lattice.c
-        assert Ni.lattice.alpha == 90
-        assert Ni.lattice.beta == 90
-        assert Ni.lattice.gamma == 90
+        s = entry.structure
+        assert pytest.approx(s.lattice.a) == s.lattice.b
+        assert pytest.approx(s.lattice.a) != s.lattice.c
+        assert pytest.approx(s.lattice.alpha) == 90
+        assert pytest.approx(s.lattice.beta) == 90
+        assert pytest.approx(s.lattice.gamma) == 120
 
         # Ensure energy per atom is same
-        primNi = mpr.get_entry_by_material_id("mp-23", inc_structure=True, conventional_unit_cell=False)[0]
-        assert primNi.energy_per_atom == entry.energy_per_atom
+        prim = mpr.get_entry_by_material_id("mp-22526", inc_structure=True, conventional_unit_cell=False)[0]
+        assert prim.energy_per_atom == entry.energy_per_atom
+        
+        s = prim.structure
+        assert pytest.approx(s.lattice.a) == s.lattice.b
+        assert pytest.approx(s.lattice.a) == s.lattice.c
+        assert pytest.approx(s.lattice.alpha) == s.lattice.beta
+        assert pytest.approx(s.lattice.alpha) == s.lattice.gamma
 
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]

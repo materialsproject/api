@@ -1,9 +1,9 @@
 import itertools
+from multiprocessing.sharedctypes import Value
 import warnings
 from functools import lru_cache
 from os import environ
 from typing import Dict, List, Optional, Tuple, Union
-import xxlimited
 
 from emmet.core.charge_density import ChgcarDataDoc
 from emmet.core.electronic_structure import BSPathType
@@ -24,6 +24,7 @@ from requests import get
 from typing import Literal
 
 from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes import *
 
 _DEPRECATION_WARNING = (
@@ -399,7 +400,7 @@ class MPRester:
                 structures.extend(doc.initial_structures)
 
             return structures
-
+    
     def find_structure(
         self,
         filename_or_structure: Union[str, Structure],
@@ -440,7 +441,7 @@ class MPRester:
 
     def get_entries(
         self,
-        chemsys_formula: Union[str, List[str]],
+        chemsys_formula_mpids: Union[str, List[str]],
         compatible_only: bool = True,
         inc_structure: bool = None,
         property_data: List[str] = None,
@@ -452,8 +453,10 @@ class MPRester:
         to a chemical system or formula.
 
         Args:
-            chemsys_formula (str): A chemical system, list of chemical systems
-                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
+            chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas
+                (e.g., Fe2O3, Si*, [SiO2, BiFeO3]), Materials Project ID, or list of Materials
+                Project IDs (e.g., mp-22526, [mp-22526, mp-149]).
             compatible_only (bool): Whether to return only "compatible"
                 entries. Compatible entries are entries that have been
                 processed using the MaterialsProject2020Compatibility class,
@@ -482,15 +485,20 @@ class MPRester:
             warnings.warn("The 'inc_structure' parameter is deprecated as structure "
                           "data is now always included in all returned entry objects.")
 
-        if isinstance(chemsys_formula, list) or (
-            isinstance(chemsys_formula, str) and "-" in chemsys_formula
-        ):
-            input_params = {"chemsys": chemsys_formula}
-        else:
-            input_params = {"formula": chemsys_formula}
+        if isinstance(chemsys_formula_mpids, str):
+            chemsys_formula_mpids = [chemsys_formula_mpids]
+
+        try:
+            input_params = {"material_ids": validate_ids(chemsys_formula_mpids)}
+        except ValueError:
+
+            if any("-" in entry for entry in chemsys_formula_mpids):
+                input_params = {"chemsys": chemsys_formula_mpids}
+            else:
+                input_params = {"formula": chemsys_formula_mpids}
 
         entries = []
-        
+
         fields = ["entries"] if not property_data else ["entries"] + property_data
 
         if sort_by_e_above_hull:
@@ -518,11 +526,20 @@ class MPRester:
                 if conventional_unit_cell:
         
                     s = SpacegroupAnalyzer(entry.structure).get_conventional_standard_structure()
-                    new_energy = entry.energy * (len(s) / len(entry.structure))
-                    
+                    site_ratio = (len(s) / len(entry.structure))
+                    new_energy = entry.uncorrected_energy * site_ratio
+
                     entry_dict = entry.as_dict()
                     entry_dict["energy"] = new_energy
                     entry_dict["structure"] = s.as_dict()
+                    entry_dict["correction"] = 0.0
+
+                    for element in entry_dict["composition"]:
+                        entry_dict["composition"][element] *= site_ratio
+
+                    for correction in entry_dict["energy_adjustments"]:
+                        correction["n_atoms"] *= site_ratio
+                        
                     entry = ComputedStructureEntry.from_dict(entry_dict)
             
                 entries.append(entry)
@@ -833,8 +850,7 @@ class MPRester:
                                  compatible_only: bool = True,
                                  inc_structure: bool = None,
                                  property_data: List[str] = None,
-                                 conventional_unit_cell: bool = False,
-                                 additional_criteria=None):
+                                 conventional_unit_cell: bool = False,):
         """
         Get all ComputedEntry objects corresponding to a material_id.
 
@@ -861,43 +877,11 @@ class MPRester:
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        doc = self.thermo.get_data_by_id(
-                document_id=material_id, fields=["entries"]
-            )
-
-        entries = []
-
-        for entry in doc.entries.values():
-            if not compatible_only:
-                entry.correction = 0.0
-                entry.energy_adjustments = []
-
-            if property_data:
-                for property in property_data:
-                    entry.data[property] = doc.dict()[property]
-
-            if conventional_unit_cell:
-
-                s = SpacegroupAnalyzer(entry.structure).get_conventional_standard_structure()
-                site_ratio = (len(s) / len(entry.structure))
-                new_energy = entry.uncorrected_energy * site_ratio
-
-                entry_dict = entry.as_dict()
-                entry_dict["energy"] = new_energy
-                entry_dict["structure"] = s.as_dict()
-                entry_dict["correction"] = None
-
-                for element in entry_dict["composition"]:
-                    entry_dict["composition"][element] *= site_ratio
-
-                for correction in entry_dict["energy_adjustments"]:
-                    correction["n_atoms"] *= site_ratio
-
-                entry = ComputedStructureEntry.from_dict(entry_dict)
-
-            entries.append(entry)
-
-        return entries
+        return self.get_entries(material_id,
+                                compatible_only=compatible_only,
+                                inc_structure=inc_structure,
+                                property_data=property_data,
+                                conventional_unit_cell=conventional_unit_cell)
 
     def get_entries_in_chemsys(
         self, elements: Union[str, List[str]],
@@ -945,12 +929,12 @@ class MPRester:
         Returns:
             List of ComputedStructureEntries.
         """
-        
+
         if additional_criteria is not None:
             warnings.warn("The 'additional_criteria' parameter is deprecated."
                           "To obtain entry objects with additional criteria, use "
                           "the 'MPRester.thermo.search' method directly")
-        
+
         if isinstance(elements, str):
             elements = elements.split("-")
 
