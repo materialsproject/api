@@ -463,7 +463,7 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): This is a deprecated input. Previously, if None, entries
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
                 returned were ComputedEntries. If inc_structure="initial",
                 ComputedStructureEntries with initial structures were returned.
                 Otherwise, ComputedStructureEntries with final structures
@@ -863,7 +863,7 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): *This is a deprecated input*. Previously, if None, entries
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
                 returned were ComputedEntries. If inc_structure="initial",
                 ComputedStructureEntries with initial structures were returned.
                 Otherwise, ComputedStructureEntries with final structures
@@ -913,7 +913,7 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): *This is a deprecated input*. Previously, if None, entries
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
                 returned were ComputedEntries. If inc_structure="initial",
                 ComputedStructureEntries with initial structures were returned.
                 Otherwise, ComputedStructureEntries with final structures
@@ -924,7 +924,7 @@ class MPRester:
                 input parameters in the 'MPRester.thermo.available_fields' list.
             conventional_unit_cell (bool): Whether to get the standard
                 conventional unit cell
-            additional_criteria (dict): *This is a deprecated input*. To obtain entry objects
+            additional_criteria (dict): *This is a deprecated argument*. To obtain entry objects
                 with additional criteria, use the `MPRester.thermo.search` method directly.
         Returns:
             List of ComputedStructureEntries.
