@@ -879,11 +879,20 @@ class MPRester:
             if conventional_unit_cell:
 
                 s = SpacegroupAnalyzer(entry.structure).get_conventional_standard_structure()
-                new_energy = entry.energy * (len(s) / len(entry.structure))
+                site_ratio = (len(s) / len(entry.structure))
+                new_energy = entry.uncorrected_energy * site_ratio
 
                 entry_dict = entry.as_dict()
                 entry_dict["energy"] = new_energy
                 entry_dict["structure"] = s.as_dict()
+                entry_dict["correction"] = None
+
+                for element in entry_dict["composition"]:
+                    entry_dict["composition"][element] *= site_ratio
+
+                for correction in entry_dict["energy_adjustments"]:
+                    correction["n_atoms"] *= site_ratio
+
                 entry = ComputedStructureEntry.from_dict(entry_dict)
 
             entries.append(entry)
