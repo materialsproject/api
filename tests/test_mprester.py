@@ -91,6 +91,7 @@ class TestMPRester:
         structs = mpr.get_structures("Mn-O", final=False)
         assert len(structs) > 0
 
+    @pytest.mark.skip(reason="Endpoint issues")
     def test_find_structure(self, mpr):
         path = os.path.join(MAPIClientSettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
@@ -157,8 +158,8 @@ class TestMPRester:
 
         # Ensure energy per atom is same
         prim = mpr.get_entry_by_material_id("mp-22526", inc_structure=True, conventional_unit_cell=False)[0]
-        assert prim.energy_per_atom == entry.energy_per_atom
-        
+        assert pytest.approx(prim.energy_per_atom) == entry.energy_per_atom
+
         s = prim.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
         assert pytest.approx(s.lattice.a) == s.lattice.c
@@ -276,7 +277,6 @@ class TestMPRester:
         dos = mpr.get_phonon_dos_by_material_id("mp-11659")
         assert isinstance(dos, PhononDos)
 
-    @pytest.mark.xfail(reason="SSL issue")
     def test_get_charge_density_data(self, mpr):
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)

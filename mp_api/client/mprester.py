@@ -400,7 +400,7 @@ class MPRester:
                 structures.extend(doc.initial_structures)
 
             return structures
-    
+
     def find_structure(
         self,
         filename_or_structure: Union[str, Structure],
@@ -512,19 +512,19 @@ class MPRester:
             docs = self.thermo.search(
                 **input_params, all_fields=False, fields=fields,  # type: ignore
             )
-        
+
         for doc in docs:
             for entry in doc.entries.values():
                 if not compatible_only:
                     entry.correction = 0.0
                     entry.energy_adjustments = []
-                    
+
                 if property_data:
                     for property in property_data:
                         entry.data[property] = doc.dict()[property]
-                        
+
                 if conventional_unit_cell:
-        
+
                     s = SpacegroupAnalyzer(entry.structure).get_conventional_standard_structure()
                     site_ratio = (len(s) / len(entry.structure))
                     new_energy = entry.uncorrected_energy * site_ratio
@@ -539,9 +539,9 @@ class MPRester:
 
                     for correction in entry_dict["energy_adjustments"]:
                         correction["n_atoms"] *= site_ratio
-                        
+
                     entry = ComputedStructureEntry.from_dict(entry_dict)
-            
+
                 entries.append(entry)
 
         return entries
