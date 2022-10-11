@@ -1,4 +1,5 @@
 import itertools
+from multiprocessing.sharedctypes import Value
 import warnings
 from functools import lru_cache
 from os import environ
@@ -16,13 +17,14 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
 from pymatgen.core import Composition, Element, Structure
 from pymatgen.core.ion import Ion
-from pymatgen.entries.computed_entries import ComputedEntry
+from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import get
 from typing import Literal
 
 from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes import *
 
 _DEPRECATION_WARNING = (
@@ -438,50 +440,111 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula: Union[str, List[str]], sort_by_e_above_hull=False,
-    ):
+        self,
+        chemsys_formula_mpids: Union[str, List[str]],
+        compatible_only: bool = True,
+        inc_structure: bool = None,
+        property_data: List[str] = None,
+        conventional_unit_cell: bool = False,
+        sort_by_e_above_hull=False,
+    ) -> List[ComputedStructureEntry]:
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
         Args:
-            chemsys_formula (str): A chemical system, list of chemical systems
-            (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
+            chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas
+                (e.g., Fe2O3, Si*, [SiO2, BiFeO3]), Materials Project ID, or list of Materials
+                Project IDs (e.g., mp-22526, [mp-22526, mp-149]).
+            compatible_only (bool): Whether to return only "compatible"
+                entries. Compatible entries are entries that have been
+                processed using the MaterialsProject2020Compatibility class,
+                which performs adjustments to allow mixing of GGA and GGA+U
+                calculations for more accurate phase diagrams and reaction
+                energies. This data is obtained from the core "thermo" API endpoint.
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
+                returned were ComputedEntries. If inc_structure="initial",
+                ComputedStructureEntries with initial structures were returned.
+                Otherwise, ComputedStructureEntries with final structures
+                were returned. This is no longer needed as all entries will contain
+                structure data by default.
+            property_data (list): Specify additional properties to include in
+                entry.data. If None, only default data is included. Should be a subset of
+                input parameters in the 'MPRester.thermo.available_fields' list.
+            conventional_unit_cell (bool): Whether to get the standard
+                conventional unit cell
             sort_by_e_above_hull (bool): Whether to sort the list of entries by
                 e_above_hull in ascending order.
 
         Returns:
-            List of ComputedEntry or ComputedStructureEntry objects.
+            List ComputedStructureEntry objects.
         """
 
-        if isinstance(chemsys_formula, list) or (
-            isinstance(chemsys_formula, str) and "-" in chemsys_formula
-        ):
-            input_params = {"chemsys": chemsys_formula}
-        else:
-            input_params = {"formula": chemsys_formula}
+        if inc_structure is not None:
+            warnings.warn("The 'inc_structure' argument is deprecated as structure "
+                          "data is now always included in all returned entry objects.")
+
+        if isinstance(chemsys_formula_mpids, str):
+            chemsys_formula_mpids = [chemsys_formula_mpids]
+
+        try:
+            input_params = {"material_ids": validate_ids(chemsys_formula_mpids)}
+        except ValueError:
+
+            if any("-" in entry for entry in chemsys_formula_mpids):
+                input_params = {"chemsys": chemsys_formula_mpids}
+            else:
+                input_params = {"formula": chemsys_formula_mpids}
 
         entries = []
 
-        if sort_by_e_above_hull:
+        fields = ["entries"] if not property_data else ["entries"] + property_data
 
-            for doc in self.thermo.search(
+        if sort_by_e_above_hull:
+            docs = self.thermo.search(
                 **input_params,  # type: ignore
                 all_fields=False,
-                fields=["entries"],
+                fields=fields,
                 sort_fields=["energy_above_hull"],
-            ):
-                entries.extend(list(doc.entries.values()))
-
-            return entries
-
+            )
         else:
-            for doc in self.thermo.search(
-                **input_params, all_fields=False, fields=["entries"],  # type: ignore
-            ):
-                entries.extend(list(doc.entries.values()))
+            docs = self.thermo.search(
+                **input_params, all_fields=False, fields=fields,  # type: ignore
+            )
 
-            return entries
+        for doc in docs:
+            for entry in doc.entries.values():
+                if not compatible_only:
+                    entry.correction = 0.0
+                    entry.energy_adjustments = []
+
+                if property_data:
+                    for property in property_data:
+                        entry.data[property] = doc.dict()[property]
+
+                if conventional_unit_cell:
+
+                    s = SpacegroupAnalyzer(entry.structure).get_conventional_standard_structure()
+                    site_ratio = (len(s) / len(entry.structure))
+                    new_energy = entry.uncorrected_energy * site_ratio
+
+                    entry_dict = entry.as_dict()
+                    entry_dict["energy"] = new_energy
+                    entry_dict["structure"] = s.as_dict()
+                    entry_dict["correction"] = 0.0
+
+                    for element in entry_dict["composition"]:
+                        entry_dict["composition"][element] *= site_ratio
+
+                    for correction in entry_dict["energy_adjustments"]:
+                        correction["n_atoms"] *= site_ratio
+
+                    entry = ComputedStructureEntry.from_dict(entry_dict)
+
+                entries.append(entry)
+
+        return entries
 
     def get_pourbaix_entries(
         self,
@@ -783,24 +846,51 @@ class MPRester:
 
         return ion_entries
 
-    def get_entry_by_material_id(self, material_id: str):
+    def get_entry_by_material_id(self, material_id: str,
+                                 compatible_only: bool = True,
+                                 inc_structure: bool = None,
+                                 property_data: List[str] = None,
+                                 conventional_unit_cell: bool = False,):
         """
         Get all ComputedEntry objects corresponding to a material_id.
 
         Args:
             material_id (str): Materials Project material_id (a string,
                 e.g., mp-1234).
+            compatible_only (bool): Whether to return only "compatible"
+                entries. Compatible entries are entries that have been
+                processed using the MaterialsProject2020Compatibility class,
+                which performs adjustments to allow mixing of GGA and GGA+U
+                calculations for more accurate phase diagrams and reaction
+                energies. This data is obtained from the core "thermo" API endpoint.
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
+                returned were ComputedEntries. If inc_structure="initial",
+                ComputedStructureEntries with initial structures were returned.
+                Otherwise, ComputedStructureEntries with final structures
+                were returned. This is no longer needed as all entries will contain
+                structure data by default.
+            property_data (list): Specify additional properties to include in
+                entry.data. If None, only default data is included. Should be a subset of
+                input parameters in the 'MPRester.thermo.available_fields' list.
+            conventional_unit_cell (bool): Whether to get the standard
+                conventional unit cell
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        return list(
-            self.thermo.get_data_by_id(
-                document_id=material_id, fields=["entries"]
-            ).entries.values()
-        )
+        return self.get_entries(material_id,
+                                compatible_only=compatible_only,
+                                inc_structure=inc_structure,
+                                property_data=property_data,
+                                conventional_unit_cell=conventional_unit_cell)
 
     def get_entries_in_chemsys(
-        self, elements: Union[str, List[str]], use_gibbs: Optional[int] = None,
+        self, elements: Union[str, List[str]],
+        use_gibbs: Optional[int] = None,
+        compatible_only: bool = True,
+        inc_structure: bool = None,
+        property_data: List[str] = None,
+        conventional_unit_cell: bool = False,
+        additional_criteria=None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -817,9 +907,34 @@ class MPRester:
                 (see GibbsComputedStructureEntry). The number is the temperature in
                 Kelvin at which to estimate the free energy. Must be between 300 K and
                 2000 K.
+            compatible_only (bool): Whether to return only "compatible"
+                entries. Compatible entries are entries that have been
+                processed using the MaterialsProject2020Compatibility class,
+                which performs adjustments to allow mixing of GGA and GGA+U
+                calculations for more accurate phase diagrams and reaction
+                energies. This data is obtained from the core "thermo" API endpoint.
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
+                returned were ComputedEntries. If inc_structure="initial",
+                ComputedStructureEntries with initial structures were returned.
+                Otherwise, ComputedStructureEntries with final structures
+                were returned. This is no longer needed as all entries will contain
+                structure data by default.
+            property_data (list): Specify additional properties to include in
+                entry.data. If None, only default data is included. Should be a subset of
+                input parameters in the 'MPRester.thermo.available_fields' list.
+            conventional_unit_cell (bool): Whether to get the standard
+                conventional unit cell
+            additional_criteria (dict): *This is a deprecated argument*. To obtain entry objects
+                with additional criteria, use the `MPRester.thermo.search` method directly.
         Returns:
-            List of ComputedEntries.
+            List of ComputedStructureEntries.
         """
+
+        if additional_criteria is not None:
+            warnings.warn("The 'additional_criteria' argument is deprecated. "
+                          "To obtain entry objects with additional criteria, use "
+                          "the 'MPRester.thermo.search' method directly")
+
         if isinstance(elements, str):
             elements = elements.split("-")
 
@@ -830,7 +945,11 @@ class MPRester:
 
         entries = []  # type: List[ComputedEntry]
 
-        entries.extend(self.get_entries(all_chemsyses))
+        entries.extend(self.get_entries(all_chemsyses,
+                                        compatible_only=compatible_only,
+                                        inc_structure=inc_structure,
+                                        property_data=property_data,
+                                        conventional_unit_cell=conventional_unit_cell))
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
