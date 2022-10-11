@@ -482,7 +482,7 @@ class MPRester:
         """
 
         if inc_structure is not None:
-            warnings.warn("The 'inc_structure' parameter is deprecated as structure "
+            warnings.warn("The 'inc_structure' argument is deprecated as structure "
                           "data is now always included in all returned entry objects.")
 
         if isinstance(chemsys_formula_mpids, str):
@@ -931,7 +931,7 @@ class MPRester:
         """
 
         if additional_criteria is not None:
-            warnings.warn("The 'additional_criteria' parameter is deprecated."
+            warnings.warn("The 'additional_criteria' argument is deprecated. "
                           "To obtain entry objects with additional criteria, use "
                           "the 'MPRester.thermo.search' method directly")
 
