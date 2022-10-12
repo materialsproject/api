@@ -1,21 +1,17 @@
 import itertools
-from multiprocessing.sharedctypes import Value
 import warnings
 from functools import lru_cache
 from os import environ
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 from emmet.core.charge_density import ChgcarDataDoc
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
-from emmet.core.summary import HasProps
-from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import Composition, Element, Structure
+from pymatgen.core import Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
@@ -997,7 +993,7 @@ class MPRester:
         Get the band structure pymatgen object associated with a Materials Project ID.
 
         Arguments:
-            materials_id (str): Materials Project ID for a material
+            material_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
             line_mode (bool): Whether to return data for a line-mode calculation
 
@@ -1013,7 +1009,7 @@ class MPRester:
         Get the complete density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
-            materials_id (str): Materials Project ID for a material
+            material_id (str): Materials Project ID for a material
 
         Returns:
             dos (CompleteDos): CompleteDos object
@@ -1054,6 +1050,7 @@ class MPRester:
 
         Args:
             structures: A list of Structure objects
+
 
         Returns:
             ?

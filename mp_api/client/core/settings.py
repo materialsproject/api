@@ -1,7 +1,15 @@
 from pydantic import BaseSettings, Field
 from mp_api.client import __file__ as root_dir
+from multiprocessing import cpu_count
 from typing import List
 import os
+
+CPU_COUNT = 8
+
+try:
+    CPU_COUNT = cpu_count()
+except NotImplementedError:
+    pass
 
 
 class MAPIClientSettings(BaseSettings):
@@ -41,7 +49,7 @@ class MAPIClientSettings(BaseSettings):
     )
 
     NUM_PARALLEL_REQUESTS: int = Field(
-        8, description="Number of parallel requests to send.",
+        CPU_COUNT, description="Number of parallel requests to send.",
     )
 
     MAX_RETRIES: int = Field(3, description="Maximum number of retries for requests.")
