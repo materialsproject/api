@@ -25,7 +25,7 @@ sub_doc_fields = []  # type: list
 
 alt_name_dict = {"formula": "task_id"}  # type: dict
 
-custom_field_tests = {"formula": "BiFeO3", "chemsys": "Si-O"}  # type: dict
+custom_field_tests = {"formula": "Si", "chemsys": "Si-O"}  # type: dict
 
 
 @pytest.mark.skipif(
