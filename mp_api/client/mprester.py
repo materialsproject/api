@@ -546,7 +546,7 @@ class MPRester:
                     entry_struct = Structure.from_dict(entry_dict["structure"])
                     s = SpacegroupAnalyzer(entry_struct).get_conventional_standard_structure()
                     site_ratio = len(s) / len(entry_struct)
-                    new_energy = entry_dict["uncorrected_energy"] * site_ratio
+                    new_energy = entry_dict["energy"] * site_ratio
 
                     entry_dict["energy"] = new_energy
                     entry_dict["structure"] = s.as_dict()
