@@ -538,7 +538,8 @@ class MPRester:
 
                 if property_data:
                     for property in property_data:
-                        entry_dict["data"][property] = doc.dict()[property] if self.use_document_model else doc[property]
+                        entry_dict["data"][property] = doc.dict()[property] if self.use_document_model else doc[
+                            property]
 
                 if conventional_unit_cell:
 
