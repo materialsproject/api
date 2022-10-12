@@ -128,6 +128,8 @@ class MPRester:
         self.session = BaseRester._create_session(
             api_key=api_key, include_user_agent=include_user_agent
         )
+        self.use_document_model = use_document_model
+        self.monty_decode = monty_decode
 
         try:
             from mpcontribs.client import Client
@@ -527,24 +529,24 @@ class MPRester:
             )
 
         for doc in docs:
-            for entry in doc.entries.values():
+            entry_list = doc.entries.values() if self.use_document_model else doc["entries"].values()
+            for entry in entry_list:
+                entry_dict = entry.as_dict() if self.monty_decode else entry
                 if not compatible_only:
-                    entry.correction = 0.0
-                    entry.energy_adjustments = []
+                    entry_dict["correction"] = 0.0
+                    entry_dict["energy_adjustments"] = []
 
                 if property_data:
                     for property in property_data:
-                        entry.data[property] = doc.dict()[property]
+                        entry_dict["data"][property] = doc.dict()[property] if self.use_document_model else doc[property]
 
                 if conventional_unit_cell:
 
-                    s = SpacegroupAnalyzer(
-                        entry.structure
-                    ).get_conventional_standard_structure()
-                    site_ratio = len(s) / len(entry.structure)
-                    new_energy = entry.uncorrected_energy * site_ratio
+                    entry_struct = Structure.from_dict(entry_dict["structure"])
+                    s = SpacegroupAnalyzer(entry_struct).get_conventional_standard_structure()
+                    site_ratio = len(s) / len(entry_struct)
+                    new_energy = entry_dict["uncorrected_energy"] * site_ratio
 
-                    entry_dict = entry.as_dict()
                     entry_dict["energy"] = new_energy
                     entry_dict["structure"] = s.as_dict()
                     entry_dict["correction"] = 0.0
@@ -555,7 +557,7 @@ class MPRester:
                     for correction in entry_dict["energy_adjustments"]:
                         correction["n_atoms"] *= site_ratio
 
-                    entry = ComputedStructureEntry.from_dict(entry_dict)
+                entry = ComputedStructureEntry.from_dict(entry_dict) if self.monty_decode else entry_dict
 
                 entries.append(entry)
 
@@ -975,11 +977,17 @@ class MPRester:
             )
         )
 
+        if not self.monty_decode:
+            entries = [ComputedStructureEntry.from_dict(entry) for entry in entries]
+
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
             from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
             entries = GibbsComputedStructureEntry.from_entries(entries, temp=use_gibbs)
+
+            if not self.monty_decode:
+                entries = [entry.as_dict() for entry in entries]
 
         return entries
 
