@@ -30,8 +30,10 @@ ignore_generic = [
     "_user_settings",
     "_general_store",
     "tasks",
+    "bonds",
     "xas",
     "elasticity",
+    "fermi",
     "alloys",
     "summary",
 ]  # temp

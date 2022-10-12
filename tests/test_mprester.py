@@ -147,7 +147,9 @@ class TestMPRester:
 
         # Conventional structure
         formula = "BiFeO3"
-        entry = mpr.get_entry_by_material_id("mp-22526", inc_structure=True, conventional_unit_cell=True)[0]
+        entry = mpr.get_entry_by_material_id(
+            "mp-22526", inc_structure=True, conventional_unit_cell=True
+        )[0]
 
         s = entry.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
@@ -157,7 +159,9 @@ class TestMPRester:
         assert pytest.approx(s.lattice.gamma) == 120
 
         # Ensure energy per atom is same
-        prim = mpr.get_entry_by_material_id("mp-22526", inc_structure=True, conventional_unit_cell=False)[0]
+        prim = mpr.get_entry_by_material_id(
+            "mp-22526", inc_structure=True, conventional_unit_cell=False
+        )[0]
         assert pytest.approx(prim.energy_per_atom) == entry.energy_per_atom
 
         s = prim.structure
@@ -165,6 +169,23 @@ class TestMPRester:
         assert pytest.approx(s.lattice.a) == s.lattice.c
         assert pytest.approx(s.lattice.alpha) == s.lattice.beta
         assert pytest.approx(s.lattice.alpha) == s.lattice.gamma
+
+        # Additional criteria
+        entry = mpr.get_entries(
+            "mp-149",
+            additional_criteria={"energy_above_hull": (0.0, 10)},
+            property_data=["energy_above_hull"],
+        )[0]
+
+        assert "energy_above_hull" in entry.data
+
+        entries = mpr.get_entries(
+            "mp-149",
+            additional_criteria={"energy_above_hull": (1, 10)},
+            property_data=["energy_above_hull"],
+        )
+
+        assert len(entries) == 0
 
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]

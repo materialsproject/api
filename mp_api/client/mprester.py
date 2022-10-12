@@ -1,21 +1,17 @@
 import itertools
-from multiprocessing.sharedctypes import Value
 import warnings
 from functools import lru_cache
 from os import environ
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 from emmet.core.charge_density import ChgcarDataDoc
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
-from emmet.core.summary import HasProps
-from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import Composition, Element, Structure
+from pymatgen.core import Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
@@ -132,15 +128,20 @@ class MPRester:
         self.session = BaseRester._create_session(
             api_key=api_key, include_user_agent=include_user_agent
         )
+        self.use_document_model = use_document_model
+        self.monty_decode = monty_decode
 
         try:
             from mpcontribs.client import Client
+
             self.contribs = Client(api_key)
         except ImportError:
             self.contribs = None
-            warnings.warn("mpcontribs-client not installed. "
-                          "Install the package to query MPContribs data, or construct pourbaix diagrams: "
-                          "'pip install mpcontribs-client'")
+            warnings.warn(
+                "mpcontribs-client not installed. "
+                "Install the package to query MPContribs data, or construct pourbaix diagrams: "
+                "'pip install mpcontribs-client'"
+            )
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
@@ -186,15 +187,19 @@ class MPRester:
 
     def __getattr__(self, attr):
         if attr == "alloys":
-            raise MPRestError("Alloy addon package not installed. "
-                              "To query alloy data first install with: 'pip install pymatgen-analysis-alloys'")
+            raise MPRestError(
+                "Alloy addon package not installed. "
+                "To query alloy data first install with: 'pip install pymatgen-analysis-alloys'"
+            )
         elif attr == "charge_density":
-            raise MPRestError("boto3 not installed. "
-                              "To query charge density data first install with: 'pip install boto3'")
+            raise MPRestError(
+                "boto3 not installed. "
+                "To query charge density data first install with: 'pip install boto3'"
+            )
         else:
             raise AttributeError(
-                    f"{self.__class__.__name__!r} object has no attribute {attr!r}"
-                )
+                f"{self.__class__.__name__!r} object has no attribute {attr!r}"
+            )
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: Optional[List[CalcType]] = None
@@ -446,7 +451,8 @@ class MPRester:
         inc_structure: bool = None,
         property_data: List[str] = None,
         conventional_unit_cell: bool = False,
-        sort_by_e_above_hull=False,
+        sort_by_e_above_hull: bool = False,
+        additional_criteria: dict = None,
     ) -> List[ComputedStructureEntry]:
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
@@ -476,14 +482,20 @@ class MPRester:
                 conventional unit cell
             sort_by_e_above_hull (bool): Whether to sort the list of entries by
                 e_above_hull in ascending order.
+            additional_criteria (dict): Any additional criteria to pass. The keys and values should
+                correspond to proper function inputs to `MPRester.thermo.search`. For instance,
+                if you are only interested in entries on the convex hull, you could pass
+                {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}.
 
         Returns:
             List ComputedStructureEntry objects.
         """
 
         if inc_structure is not None:
-            warnings.warn("The 'inc_structure' argument is deprecated as structure "
-                          "data is now always included in all returned entry objects.")
+            warnings.warn(
+                "The 'inc_structure' argument is deprecated as structure "
+                "data is now always included in all returned entry objects."
+            )
 
         if isinstance(chemsys_formula_mpids, str):
             chemsys_formula_mpids = [chemsys_formula_mpids]
@@ -496,6 +508,9 @@ class MPRester:
                 input_params = {"chemsys": chemsys_formula_mpids}
             else:
                 input_params = {"formula": chemsys_formula_mpids}
+
+        if additional_criteria:
+            input_params = {**input_params, **additional_criteria}
 
         entries = []
 
@@ -514,22 +529,25 @@ class MPRester:
             )
 
         for doc in docs:
-            for entry in doc.entries.values():
+            entry_list = doc.entries.values() if self.use_document_model else doc["entries"].values()
+            for entry in entry_list:
+                entry_dict = entry.as_dict() if self.monty_decode else entry
                 if not compatible_only:
-                    entry.correction = 0.0
-                    entry.energy_adjustments = []
+                    entry_dict["correction"] = 0.0
+                    entry_dict["energy_adjustments"] = []
 
                 if property_data:
                     for property in property_data:
-                        entry.data[property] = doc.dict()[property]
+                        entry_dict["data"][property] = doc.dict()[property] if self.use_document_model else doc[
+                            property]
 
                 if conventional_unit_cell:
 
-                    s = SpacegroupAnalyzer(entry.structure).get_conventional_standard_structure()
-                    site_ratio = (len(s) / len(entry.structure))
-                    new_energy = entry.uncorrected_energy * site_ratio
+                    entry_struct = Structure.from_dict(entry_dict["structure"])
+                    s = SpacegroupAnalyzer(entry_struct).get_conventional_standard_structure()
+                    site_ratio = len(s) / len(entry_struct)
+                    new_energy = entry_dict["energy"] * site_ratio
 
-                    entry_dict = entry.as_dict()
                     entry_dict["energy"] = new_energy
                     entry_dict["structure"] = s.as_dict()
                     entry_dict["correction"] = 0.0
@@ -540,7 +558,7 @@ class MPRester:
                     for correction in entry_dict["energy_adjustments"]:
                         correction["n_atoms"] *= site_ratio
 
-                    entry = ComputedStructureEntry.from_dict(entry_dict)
+                entry = ComputedStructureEntry.from_dict(entry_dict) if self.monty_decode else entry_dict
 
                 entries.append(entry)
 
@@ -575,9 +593,11 @@ class MPRester:
         # imports are not top-level due to expense
         from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
         from pymatgen.entries.compatibility import (
-            Compatibility, MaterialsProject2020Compatibility,
+            Compatibility,
+            MaterialsProject2020Compatibility,
             MaterialsProjectAqueousCompatibility,
-            MaterialsProjectCompatibility)
+            MaterialsProjectCompatibility,
+        )
         from pymatgen.entries.computed_entries import ComputedEntry
 
         if solid_compat == "MaterialsProjectCompatibility":
@@ -638,8 +658,7 @@ class MPRester:
         # could be removed
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
-            from pymatgen.entries.computed_entries import \
-                GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
             ion_ref_entries = GibbsComputedStructureEntry.from_entries(
                 ion_ref_entries, temp=use_gibbs
@@ -846,11 +865,14 @@ class MPRester:
 
         return ion_entries
 
-    def get_entry_by_material_id(self, material_id: str,
-                                 compatible_only: bool = True,
-                                 inc_structure: bool = None,
-                                 property_data: List[str] = None,
-                                 conventional_unit_cell: bool = False,):
+    def get_entry_by_material_id(
+        self,
+        material_id: str,
+        compatible_only: bool = True,
+        inc_structure: bool = None,
+        property_data: List[str] = None,
+        conventional_unit_cell: bool = False,
+    ):
         """
         Get all ComputedEntry objects corresponding to a material_id.
 
@@ -877,14 +899,17 @@ class MPRester:
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        return self.get_entries(material_id,
-                                compatible_only=compatible_only,
-                                inc_structure=inc_structure,
-                                property_data=property_data,
-                                conventional_unit_cell=conventional_unit_cell)
+        return self.get_entries(
+            material_id,
+            compatible_only=compatible_only,
+            inc_structure=inc_structure,
+            property_data=property_data,
+            conventional_unit_cell=conventional_unit_cell,
+        )
 
     def get_entries_in_chemsys(
-        self, elements: Union[str, List[str]],
+        self,
+        elements: Union[str, List[str]],
         use_gibbs: Optional[int] = None,
         compatible_only: bool = True,
         inc_structure: bool = None,
@@ -924,16 +949,13 @@ class MPRester:
                 input parameters in the 'MPRester.thermo.available_fields' list.
             conventional_unit_cell (bool): Whether to get the standard
                 conventional unit cell
-            additional_criteria (dict): *This is a deprecated argument*. To obtain entry objects
-                with additional criteria, use the `MPRester.thermo.search` method directly.
+            additional_criteria (dict): Any additional criteria to pass. The keys and values should
+                correspond to proper function inputs to `MPRester.thermo.search`. For instance,
+                if you are only interested in entries on the convex hull, you could pass
+                {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}.
         Returns:
             List of ComputedStructureEntries.
         """
-
-        if additional_criteria is not None:
-            warnings.warn("The 'additional_criteria' argument is deprecated. "
-                          "To obtain entry objects with additional criteria, use "
-                          "the 'MPRester.thermo.search' method directly")
 
         if isinstance(elements, str):
             elements = elements.split("-")
@@ -945,18 +967,28 @@ class MPRester:
 
         entries = []  # type: List[ComputedEntry]
 
-        entries.extend(self.get_entries(all_chemsyses,
-                                        compatible_only=compatible_only,
-                                        inc_structure=inc_structure,
-                                        property_data=property_data,
-                                        conventional_unit_cell=conventional_unit_cell))
+        entries.extend(
+            self.get_entries(
+                all_chemsyses,
+                compatible_only=compatible_only,
+                inc_structure=inc_structure,
+                property_data=property_data,
+                conventional_unit_cell=conventional_unit_cell,
+                additional_criteria=additional_criteria,
+            )
+        )
+
+        if not self.monty_decode:
+            entries = [ComputedStructureEntry.from_dict(entry) for entry in entries]
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
-            from pymatgen.entries.computed_entries import \
-                GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
             entries = GibbsComputedStructureEntry.from_entries(entries, temp=use_gibbs)
+
+            if not self.monty_decode:
+                entries = [entry.as_dict() for entry in entries]
 
         return entries
 
@@ -970,7 +1002,7 @@ class MPRester:
         Get the band structure pymatgen object associated with a Materials Project ID.
 
         Arguments:
-            materials_id (str): Materials Project ID for a material
+            material_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
             line_mode (bool): Whether to return data for a line-mode calculation
 
@@ -986,7 +1018,7 @@ class MPRester:
         Get the complete density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
-            materials_id (str): Materials Project ID for a material
+            material_id (str): Materials Project ID for a material
 
         Returns:
             dos (CompleteDos): CompleteDos object
@@ -1027,6 +1059,7 @@ class MPRester:
 
         Args:
             structures: A list of Structure objects
+
 
         Returns:
             ?
@@ -1077,8 +1110,10 @@ class MPRester:
         """
 
         if not hasattr(self, "charge_density"):
-            raise MPRestError("boto3 not installed. "
-                  "To query charge density data install the boto3 package.")
+            raise MPRestError(
+                "boto3 not installed. "
+                "To query charge density data install the boto3 package."
+            )
 
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
