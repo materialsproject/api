@@ -34,23 +34,19 @@
             
   <h1>Source code for mp_api.client.mprester</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">multiprocessing.sharedctypes</span> <span class="kn">import</span> <span class="n">Value</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">emmet.core.charge_density</span> <span class="kn">import</span> <span class="n">ChgcarDataDoc</span>
 <span class="kn">from</span> <span class="nn">emmet.core.electronic_structure</span> <span class="kn">import</span> <span class="n">BSPathType</span>
 <span class="kn">from</span> <span class="nn">emmet.core.mpid</span> <span class="kn">import</span> <span class="n">MPID</span>
 <span class="kn">from</span> <span class="nn">emmet.core.settings</span> <span class="kn">import</span> <span class="n">EmmetSettings</span>
-<span class="kn">from</span> <span class="nn">emmet.core.summary</span> <span class="kn">import</span> <span class="n">HasProps</span>
-<span class="kn">from</span> <span class="nn">emmet.core.symmetry</span> <span class="kn">import</span> <span class="n">CrystalSystem</span>
 <span class="kn">from</span> <span class="nn">emmet.core.vasp.calc_types</span> <span class="kn">import</span> <span class="n">CalcType</span>
-<span class="kn">from</span> <span class="nn">pymatgen.analysis.magnetism</span> <span class="kn">import</span> <span class="n">Ordering</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.phase_diagram</span> <span class="kn">import</span> <span class="n">PhaseDiagram</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.pourbaix_diagram</span> <span class="kn">import</span> <span class="n">IonEntry</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Composition</span><span class="p">,</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.ion</span> <span class="kn">import</span> <span class="n">Ion</span>
 <span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="kn">import</span> <span class="n">ComputedEntry</span><span class="p">,</span> <span class="n">ComputedStructureEntry</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp</span> <span class="kn">import</span> <span class="n">Chgcar</span>
@@ -167,15 +163,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">BaseRester</span><span class="o">.</span><span class="n">_create_session</span><span class="p">(</span>
             <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">include_user_agent</span><span class="o">=</span><span class="n">include_user_agent</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="n">use_document_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="o">=</span> <span class="n">monty_decode</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">mpcontribs.client</span> <span class="kn">import</span> <span class="n">Client</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">contribs</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">contribs</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;mpcontribs-client not installed. &quot;</span>
-                          <span class="s2">&quot;Install the package to query MPContribs data, or construct pourbaix diagrams: &quot;</span>
-                          <span class="s2">&quot;&#39;pip install mpcontribs-client&#39;&quot;</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;mpcontribs-client not installed. &quot;</span>
+                <span class="s2">&quot;Install the package to query MPContribs data, or construct pourbaix diagrams: &quot;</span>
+                <span class="s2">&quot;&#39;pip install mpcontribs-client&#39;&quot;</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">contribs</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Problem loading MPContribs client: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -221,15 +222,19 @@
 
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">attr</span> <span class="o">==</span> <span class="s2">&quot;alloys&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;Alloy addon package not installed. &quot;</span>
-                              <span class="s2">&quot;To query alloy data first install with: &#39;pip install pymatgen-analysis-alloys&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;Alloy addon package not installed. &quot;</span>
+                <span class="s2">&quot;To query alloy data first install with: &#39;pip install pymatgen-analysis-alloys&#39;&quot;</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">attr</span> <span class="o">==</span> <span class="s2">&quot;charge_density&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;boto3 not installed. &quot;</span>
-                              <span class="s2">&quot;To query charge density data first install with: &#39;pip install boto3&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;boto3 not installed. &quot;</span>
+                <span class="s2">&quot;To query charge density data first install with: &#39;pip install boto3&#39;&quot;</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> object has no attribute </span><span class="si">{</span><span class="n">attr</span><span class="si">!r}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> object has no attribute </span><span class="si">{</span><span class="n">attr</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
 <div class="viewcode-block" id="MPRester.get_task_ids_associated_with_material_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_task_ids_associated_with_material_id</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">calc_types</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">CalcType</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -481,7 +486,8 @@
         <span class="n">inc_structure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">property_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">sort_by_e_above_hull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">sort_by_e_above_hull</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">additional_criteria</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a list of ComputedEntries or ComputedStructureEntries corresponding</span>
@@ -511,14 +517,20 @@
 <span class="sd">                conventional unit cell</span>
 <span class="sd">            sort_by_e_above_hull (bool): Whether to sort the list of entries by</span>
 <span class="sd">                e_above_hull in ascending order.</span>
+<span class="sd">            additional_criteria (dict): Any additional criteria to pass. The keys and values should</span>
+<span class="sd">                correspond to proper function inputs to `MPRester.thermo.search`. For instance,</span>
+<span class="sd">                if you are only interested in entries on the convex hull, you could pass</span>
+<span class="sd">                {&quot;energy_above_hull&quot;: (0.0, 0.0)} or {&quot;is_stable&quot;: True}.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List ComputedStructureEntry objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">inc_structure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The &#39;inc_structure&#39; argument is deprecated as structure &quot;</span>
-                          <span class="s2">&quot;data is now always included in all returned entry objects.&quot;</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;The &#39;inc_structure&#39; argument is deprecated as structure &quot;</span>
+                <span class="s2">&quot;data is now always included in all returned entry objects.&quot;</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys_formula_mpids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">chemsys_formula_mpids</span> <span class="o">=</span> <span class="p">[</span><span class="n">chemsys_formula_mpids</span><span class="p">]</span>
@@ -531,6 +543,9 @@
                 <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;chemsys&quot;</span><span class="p">:</span> <span class="n">chemsys_formula_mpids</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span> <span class="n">chemsys_formula_mpids</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">additional_criteria</span><span class="p">:</span>
+            <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">input_params</span><span class="p">,</span> <span class="o">**</span><span class="n">additional_criteria</span><span class="p">}</span>
 
         <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -549,22 +564,25 @@
             <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">entry_list</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entry_list</span><span class="p">:</span>
+                <span class="n">entry_dict</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">entry</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">compatible_only</span><span class="p">:</span>
-                    <span class="n">entry</span><span class="o">.</span><span class="n">correction</span> <span class="o">=</span> <span class="mf">0.0</span>
-                    <span class="n">entry</span><span class="o">.</span><span class="n">energy_adjustments</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;correction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;energy_adjustments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
                 <span class="k">if</span> <span class="n">property_data</span><span class="p">:</span>
                     <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="n">property_data</span><span class="p">:</span>
-                        <span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">dict</span><span class="p">()[</span><span class="nb">property</span><span class="p">]</span>
+                        <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">dict</span><span class="p">()[</span><span class="nb">property</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">doc</span><span class="p">[</span>
+                            <span class="nb">property</span><span class="p">]</span>
 
                 <span class="k">if</span> <span class="n">conventional_unit_cell</span><span class="p">:</span>
 
-                    <span class="n">s</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span><span class="o">.</span><span class="n">get_conventional_standard_structure</span><span class="p">()</span>
-                    <span class="n">site_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
-                    <span class="n">new_energy</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">uncorrected_energy</span> <span class="o">*</span> <span class="n">site_ratio</span>
+                    <span class="n">entry_struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">])</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">entry_struct</span><span class="p">)</span><span class="o">.</span><span class="n">get_conventional_standard_structure</span><span class="p">()</span>
+                    <span class="n">site_ratio</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry_struct</span><span class="p">)</span>
+                    <span class="n">new_energy</span> <span class="o">=</span> <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">site_ratio</span>
 
-                    <span class="n">entry_dict</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_energy</span>
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;correction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -575,7 +593,7 @@
                     <span class="k">for</span> <span class="n">correction</span> <span class="ow">in</span> <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;energy_adjustments&quot;</span><span class="p">]:</span>
                         <span class="n">correction</span><span class="p">[</span><span class="s2">&quot;n_atoms&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">site_ratio</span>
 
-                    <span class="n">entry</span> <span class="o">=</span> <span class="n">ComputedStructureEntry</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">)</span>
+                <span class="n">entry</span> <span class="o">=</span> <span class="n">ComputedStructureEntry</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">entry_dict</span>
 
                 <span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
 
@@ -610,9 +628,11 @@
         <span class="c1"># imports are not top-level due to expense</span>
         <span class="kn">from</span> <span class="nn">pymatgen.analysis.pourbaix_diagram</span> <span class="kn">import</span> <span class="n">PourbaixEntry</span>
         <span class="kn">from</span> <span class="nn">pymatgen.entries.compatibility</span> <span class="kn">import</span> <span class="p">(</span>
-            <span class="n">Compatibility</span><span class="p">,</span> <span class="n">MaterialsProject2020Compatibility</span><span class="p">,</span>
+            <span class="n">Compatibility</span><span class="p">,</span>
+            <span class="n">MaterialsProject2020Compatibility</span><span class="p">,</span>
             <span class="n">MaterialsProjectAqueousCompatibility</span><span class="p">,</span>
-            <span class="n">MaterialsProjectCompatibility</span><span class="p">)</span>
+            <span class="n">MaterialsProjectCompatibility</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="kn">import</span> <span class="n">ComputedEntry</span>
 
         <span class="k">if</span> <span class="n">solid_compat</span> <span class="o">==</span> <span class="s2">&quot;MaterialsProjectCompatibility&quot;</span><span class="p">:</span>
@@ -673,8 +693,7 @@
         <span class="c1"># could be removed</span>
         <span class="k">if</span> <span class="n">use_gibbs</span><span class="p">:</span>
             <span class="c1"># replace the entries with GibbsComputedStructureEntry</span>
-            <span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="kn">import</span> \
-                <span class="n">GibbsComputedStructureEntry</span>
+            <span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="kn">import</span> <span class="n">GibbsComputedStructureEntry</span>
 
             <span class="n">ion_ref_entries</span> <span class="o">=</span> <span class="n">GibbsComputedStructureEntry</span><span class="o">.</span><span class="n">from_entries</span><span class="p">(</span>
                 <span class="n">ion_ref_entries</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">use_gibbs</span>
@@ -881,11 +900,14 @@
 
         <span class="k">return</span> <span class="n">ion_entries</span></div>
 
-<div class="viewcode-block" id="MPRester.get_entry_by_material_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_entry_by_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_entry_by_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                 <span class="n">compatible_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-                                 <span class="n">inc_structure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                                 <span class="n">property_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                                 <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,):</span>
+<div class="viewcode-block" id="MPRester.get_entry_by_material_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_entry_by_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_entry_by_material_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">compatible_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">inc_structure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">property_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all ComputedEntry objects corresponding to a material_id.</span>
 
@@ -912,14 +934,17 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            List of ComputedEntry or ComputedStructureEntry object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entries</span><span class="p">(</span><span class="n">material_id</span><span class="p">,</span>
-                                <span class="n">compatible_only</span><span class="o">=</span><span class="n">compatible_only</span><span class="p">,</span>
-                                <span class="n">inc_structure</span><span class="o">=</span><span class="n">inc_structure</span><span class="p">,</span>
-                                <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
-                                <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entries</span><span class="p">(</span>
+            <span class="n">material_id</span><span class="p">,</span>
+            <span class="n">compatible_only</span><span class="o">=</span><span class="n">compatible_only</span><span class="p">,</span>
+            <span class="n">inc_structure</span><span class="o">=</span><span class="n">inc_structure</span><span class="p">,</span>
+            <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
+            <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="MPRester.get_entries_in_chemsys"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_entries_in_chemsys">[docs]</a>    <span class="k">def</span> <span class="nf">get_entries_in_chemsys</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">elements</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
         <span class="n">use_gibbs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">compatible_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">inc_structure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -959,16 +984,13 @@
 <span class="sd">                input parameters in the &#39;MPRester.thermo.available_fields&#39; list.</span>
 <span class="sd">            conventional_unit_cell (bool): Whether to get the standard</span>
 <span class="sd">                conventional unit cell</span>
-<span class="sd">            additional_criteria (dict): *This is a deprecated argument*. To obtain entry objects</span>
-<span class="sd">                with additional criteria, use the `MPRester.thermo.search` method directly.</span>
+<span class="sd">            additional_criteria (dict): Any additional criteria to pass. The keys and values should</span>
+<span class="sd">                correspond to proper function inputs to `MPRester.thermo.search`. For instance,</span>
+<span class="sd">                if you are only interested in entries on the convex hull, you could pass</span>
+<span class="sd">                {&quot;energy_above_hull&quot;: (0.0, 0.0)} or {&quot;is_stable&quot;: True}.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            List of ComputedStructureEntries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="n">additional_criteria</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The &#39;additional_criteria&#39; argument is deprecated. &quot;</span>
-                          <span class="s2">&quot;To obtain entry objects with additional criteria, use &quot;</span>
-                          <span class="s2">&quot;the &#39;MPRester.thermo.search&#39; method directly&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">elements</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
@@ -980,18 +1002,28 @@
 
         <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[ComputedEntry]</span>
 
-        <span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_entries</span><span class="p">(</span><span class="n">all_chemsyses</span><span class="p">,</span>
-                                        <span class="n">compatible_only</span><span class="o">=</span><span class="n">compatible_only</span><span class="p">,</span>
-                                        <span class="n">inc_structure</span><span class="o">=</span><span class="n">inc_structure</span><span class="p">,</span>
-                                        <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
-                                        <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">))</span>
+        <span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_entries</span><span class="p">(</span>
+                <span class="n">all_chemsyses</span><span class="p">,</span>
+                <span class="n">compatible_only</span><span class="o">=</span><span class="n">compatible_only</span><span class="p">,</span>
+                <span class="n">inc_structure</span><span class="o">=</span><span class="n">inc_structure</span><span class="p">,</span>
+                <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
+                <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">,</span>
+                <span class="n">additional_criteria</span><span class="o">=</span><span class="n">additional_criteria</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span><span class="p">:</span>
+            <span class="n">entries</span> <span class="o">=</span> <span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">use_gibbs</span><span class="p">:</span>
             <span class="c1"># replace the entries with GibbsComputedStructureEntry</span>
-            <span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="kn">import</span> \
-                <span class="n">GibbsComputedStructureEntry</span>
+            <span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="kn">import</span> <span class="n">GibbsComputedStructureEntry</span>
 
             <span class="n">entries</span> <span class="o">=</span> <span class="n">GibbsComputedStructureEntry</span><span class="o">.</span><span class="n">from_entries</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">use_gibbs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span><span class="p">:</span>
+                <span class="n">entries</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">entries</span></div>
 
@@ -1005,7 +1037,7 @@
 <span class="sd">        Get the band structure pymatgen object associated with a Materials Project ID.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            materials_id (str): Materials Project ID for a material</span>
+<span class="sd">            material_id (str): Materials Project ID for a material</span>
 <span class="sd">            path_type (BSPathType): k-point path selection convention</span>
 <span class="sd">            line_mode (bool): Whether to return data for a line-mode calculation</span>
 
@@ -1021,7 +1053,7 @@
 <span class="sd">        Get the complete density of states pymatgen object associated with a Materials Project ID.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            materials_id (str): Materials Project ID for a material</span>
+<span class="sd">            material_id (str): Materials Project ID for a material</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            dos (CompleteDos): CompleteDos object</span>
@@ -1062,6 +1094,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            structures: A list of Structure objects</span>
+
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ?</span>
@@ -1112,8 +1145,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;charge_density&quot;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;boto3 not installed. &quot;</span>
-                  <span class="s2">&quot;To query charge density data install the boto3 package.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;boto3 not installed. &quot;</span>
+                <span class="s2">&quot;To query charge density data install the boto3 package.&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># TODO: really we want a recommended task_id for charge densities here</span>
         <span class="c1"># this could potentially introduce an ambiguity</span>
