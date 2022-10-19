@@ -57,6 +57,10 @@ class MAPIClientSettings(BaseSettings):
     MUTE_PROGRESS_BARS: bool = Field(
         False, description="Whether to mute progress bars when data is retrieved.",
     )
+    
+    MAX_HTTP_URL_LENGTH: int = Field(
+        2000, description="Number of characters to use to define the maximum length of a given HTTP URL.",
+    )
 
     class Config:
         env_prefix = "MPRESTER_"

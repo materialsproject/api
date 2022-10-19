@@ -15,7 +15,7 @@ from json import JSONDecodeError
 from math import ceil
 from os import environ
 from typing import Dict, Generic, List, Optional, Tuple, TypeVar, Union
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 
 import requests
 from emmet.core.utils import jsanitize
@@ -342,10 +342,37 @@ class BaseRester(Generic[T]):
         # trying to evenly divide num_chunks by the total number of new
         # criteria dicts.
         if parallel_param is not None:
+
+            # Determine slice size accounting for character maximum in HTTP URL
+            # First get URl length without parallel param
+            url_string = ""
+            for key, value in criteria.items():
+                if key != parallel_param:
+                    parsed_val = quote(str(value))
+                    url_string += f"{key}={parsed_val}&"
+
+            bare_url_len = len(url_string)
+            max_param_str_length = (
+                MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len
+            )
+
+            # Next, check if default number of parallel requests works.
+            # If not, increase the total number of splits for the parallel param list.
             param_length = len(criteria[parallel_param].split(","))
             slice_size = (
-                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
+                ceil(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
             )
+
+            parallel_param_str_chunks = [
+                criteria[parallel_param][i : i + max_param_str_length]
+                for i in range(0, len(criteria[parallel_param]), max_param_str_length)
+            ]
+            largest_str_chunk = max(
+                parallel_param_str_chunks, key=lambda x: len(quote(x))
+            )
+            num_params_max_chunk = len(largest_str_chunk.split(","))
+            if num_params_max_chunk <= slice_size:
+                slice_size = ceil(param_length / num_params_max_chunk) or 1
 
             new_param_values = [
                 entry
