@@ -314,3 +314,13 @@ class TestMPRester:
     def test_get_wulff_shape(self, mpr):
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
+
+    def test_large_list(self, mpr):
+        mpids = [
+            str(doc.material_id)
+            for doc in mpr.summary.search(
+                chunk_size=1000, num_chunks=15, fields=["material_id"]
+            )
+        ]
+        docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
+        assert len(docs) == 15000
