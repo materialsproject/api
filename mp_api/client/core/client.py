@@ -371,7 +371,7 @@ class BaseRester(Generic[T]):
                 for i in range(0, len(url_param_string), max_param_str_length)
                 if (i + max_param_str_length) <= len(url_param_string)
             ]
-            
+
             if len(parallel_param_str_chunks) > 0:
 
                 params_min_chunk = min(
