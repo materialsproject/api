@@ -205,6 +205,7 @@ class TestMPRester:
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
+    @pytest.mark.skip(reason="SSL issues")
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements
         pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
@@ -245,6 +246,7 @@ class TestMPRester:
         # so4_two_minus = pbx_entries[9]
         # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
 
+    @pytest.mark.skip(reason="SSL issues")
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
@@ -312,3 +314,13 @@ class TestMPRester:
     def test_get_wulff_shape(self, mpr):
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
+
+    def test_large_list(self, mpr):
+        mpids = [
+            str(doc.material_id)
+            for doc in mpr.summary.search(
+                chunk_size=1000, num_chunks=15, fields=["material_id"]
+            )
+        ]
+        docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
+        assert len(docs) == 15000

@@ -15,7 +15,7 @@ from json import JSONDecodeError
 from math import ceil
 from os import environ
 from typing import Dict, Generic, List, Optional, Tuple, TypeVar, Union
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 
 import requests
 from emmet.core.utils import jsanitize
@@ -342,10 +342,46 @@ class BaseRester(Generic[T]):
         # trying to evenly divide num_chunks by the total number of new
         # criteria dicts.
         if parallel_param is not None:
+
+            # Determine slice size accounting for character maximum in HTTP URL
+            # First get URl length without parallel param
+            url_string = ""
+            for key, value in criteria.items():
+                if key != parallel_param:
+                    parsed_val = quote(str(value))
+                    url_string += f"{key}={parsed_val}&"
+
+            bare_url_len = len(url_string)
+            max_param_str_length = (
+                MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len
+            )
+
+            # Next, check if default number of parallel requests works.
+            # If not, make slice size the minimum number of param entries
+            # contained in any substring of length max_param_str_length.
             param_length = len(criteria[parallel_param].split(","))
             slice_size = (
                 int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
             )
+
+            url_param_string = quote(criteria[parallel_param])
+
+            parallel_param_str_chunks = [
+                url_param_string[i : i + max_param_str_length]
+                for i in range(0, len(url_param_string), max_param_str_length)
+                if (i + max_param_str_length) <= len(url_param_string)
+            ]
+
+            if len(parallel_param_str_chunks) > 0:
+
+                params_min_chunk = min(
+                    parallel_param_str_chunks, key=lambda x: len(x.split("%2C"))
+                )
+
+                num_params_min_chunk = len(params_min_chunk.split("%2C"))
+
+                if num_params_min_chunk < slice_size:
+                    slice_size = num_params_min_chunk or 1
 
             new_param_values = [
                 entry
