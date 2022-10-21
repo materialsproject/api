@@ -33,7 +33,7 @@ setup(
     ],
     extras_require={
         "all": [
-            "emmet-core[all]>=0.36.4"
+            "emmet-core[all]>=0.36.4",
             "custodian",
             "mpcontribs-client",
             "boto3"
