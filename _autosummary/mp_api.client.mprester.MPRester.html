@@ -138,71 +138,74 @@ and will not give auto-complete for available fields.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dos_by_material_id</span></code></a>(material_id)</p></td>
 <td><p>Get the complete density of states pymatgen object associated with a Materials Project ID.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entries" title="mp_api.client.mprester.MPRester.get_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entries</span></code></a>(chemsys_formula_mpids[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_download_info" title="mp_api.client.mprester.MPRester.get_download_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_download_info</span></code></a>(material_ids[, ...])</p></td>
+<td><p>Get a list of URLs to retrieve raw VASP output files from the NoMaD repository :param material_ids: list of material identifiers (mp-id's) :type material_ids: list :param task_types: list of task types to include in download (see CalcType Enum class) :type task_types: list :param file_patterns: list of wildcard file names to include for each task :type file_patterns: list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entries" title="mp_api.client.mprester.MPRester.get_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entries</span></code></a>(chemsys_formula_mpids[, ...])</p></td>
 <td><p>Get a list of ComputedEntries or ComputedStructureEntries corresponding to a chemical system or formula.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entries_in_chemsys" title="mp_api.client.mprester.MPRester.get_entries_in_chemsys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entries_in_chemsys</span></code></a>(elements[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entries_in_chemsys" title="mp_api.client.mprester.MPRester.get_entries_in_chemsys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entries_in_chemsys</span></code></a>(elements[, ...])</p></td>
 <td><p>Helper method to get a list of ComputedEntries in a chemical system. For example, elements = [&quot;Li&quot;, &quot;Fe&quot;, &quot;O&quot;] will return a list of all entries in the Li-Fe-O chemical system, i.e., all LixOy, FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for creating phase diagrams of entire chemical systems. :param elements: Chemical system string comprising element                  symbols separated by dashes, e.g., &quot;Li-Fe-O&quot; or List of element                  symbols, e.g., [&quot;Li&quot;, &quot;Fe&quot;, &quot;O&quot;]. :type elements: str or [str] :param use_gibbs: If None (default), DFT energy is returned. If a number, return                   the free energy of formation estimated using a machine learning model                   (see GibbsComputedStructureEntry). The number is the temperature in                   Kelvin at which to estimate the free energy. Must be between 300 K and                   2000 K. :param compatible_only: Whether to return only &quot;compatible&quot;                         entries. Compatible entries are entries that have been                         processed using the MaterialsProject2020Compatibility class,                         which performs adjustments to allow mixing of GGA and GGA+U                         calculations for more accurate phase diagrams and reaction                         energies. This data is obtained from the core &quot;thermo&quot; API endpoint. :type compatible_only: bool :param inc_structure: <em>This is a deprecated argument</em>. Previously, if None, entries                       returned were ComputedEntries. If inc_structure=&quot;initial&quot;,                       ComputedStructureEntries with initial structures were returned. Otherwise, ComputedStructureEntries with final structures                       were returned. This is no longer needed as all entries will contain                       structure data by default. :type inc_structure: str :param property_data: Specify additional properties to include in                       entry.data. If None, only default data is included. Should be a subset of                       input parameters in the 'MPRester.thermo.available_fields' list. :type property_data: list :param conventional_unit_cell: Whether to get the standard                                conventional unit cell :type conventional_unit_cell: bool :param additional_criteria: Any additional criteria to pass. The keys and values should                             correspond to proper function inputs to <cite>MPRester.thermo.search</cite>. For instance,                             if you are only interested in entries on the convex hull, you could pass                             {&quot;energy_above_hull&quot;: (0.0, 0.0)} or {&quot;is_stable&quot;: True}. :type additional_criteria: dict.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entry_by_material_id" title="mp_api.client.mprester.MPRester.get_entry_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entry_by_material_id</span></code></a>(material_id[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_entry_by_material_id" title="mp_api.client.mprester.MPRester.get_entry_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_entry_by_material_id</span></code></a>(material_id[, ...])</p></td>
 <td><p>Get all ComputedEntry objects corresponding to a material_id.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_entries" title="mp_api.client.mprester.MPRester.get_ion_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_entries</span></code></a>(pd[, ion_ref_data])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_entries" title="mp_api.client.mprester.MPRester.get_ion_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_entries</span></code></a>(pd[, ion_ref_data])</p></td>
 <td><p>Retrieve IonEntry objects that can be used in the construction of Pourbaix Diagrams.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_reference_data" title="mp_api.client.mprester.MPRester.get_ion_reference_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_reference_data</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_reference_data" title="mp_api.client.mprester.MPRester.get_ion_reference_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_reference_data</span></code></a>()</p></td>
 <td><p>Download aqueous ion reference data used in the construction of Pourbaix diagrams.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys" title="mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_reference_data_for_chemsys</span></code></a>(chemsys)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys" title="mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ion_reference_data_for_chemsys</span></code></a>(chemsys)</p></td>
 <td><p>Download aqueous ion reference data used in the construction of Pourbaix diagrams.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_id_from_task_id" title="mp_api.client.mprester.MPRester.get_material_id_from_task_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_id_from_task_id</span></code></a>(task_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_id_from_task_id" title="mp_api.client.mprester.MPRester.get_material_id_from_task_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_id_from_task_id</span></code></a>(task_id)</p></td>
 <td><p>Returns the current material_id from a given task_id.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_id_references" title="mp_api.client.mprester.MPRester.get_material_id_references"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_id_references</span></code></a>(material_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_id_references" title="mp_api.client.mprester.MPRester.get_material_id_references"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_id_references</span></code></a>(material_id)</p></td>
 <td><p>Returns all references for a material id.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_ids" title="mp_api.client.mprester.MPRester.get_material_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_ids</span></code></a>(chemsys_formula)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_ids" title="mp_api.client.mprester.MPRester.get_material_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_ids</span></code></a>(chemsys_formula)</p></td>
 <td><p>Get all materials ids for a formula or chemsys.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_id_from_task_id" title="mp_api.client.mprester.MPRester.get_materials_id_from_task_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_id_from_task_id</span></code></a>(task_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_id_from_task_id" title="mp_api.client.mprester.MPRester.get_materials_id_from_task_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_id_from_task_id</span></code></a>(task_id)</p></td>
 <td><p>This method is deprecated, please use get_material_id_from_task_id.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_id_references" title="mp_api.client.mprester.MPRester.get_materials_id_references"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_id_references</span></code></a>(material_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_id_references" title="mp_api.client.mprester.MPRester.get_materials_id_references"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_id_references</span></code></a>(material_id)</p></td>
 <td><p>This method is deprecated, please use get_material_id_references.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_ids" title="mp_api.client.mprester.MPRester.get_materials_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_ids</span></code></a>(chemsys_formula)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_materials_ids" title="mp_api.client.mprester.MPRester.get_materials_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_materials_ids</span></code></a>(chemsys_formula)</p></td>
 <td><p>This method is deprecated, please use get_material_ids.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_bandstructure_by_material_id</span></code></a>(...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_bandstructure_by_material_id</span></code></a>(...)</p></td>
 <td><p>Get phonon dispersion data corresponding to a material_id.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_dos_by_material_id</span></code></a>(material_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_dos_by_material_id</span></code></a>(material_id)</p></td>
 <td><p>Get phonon density of states data corresponding to a material_id.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_pourbaix_entries" title="mp_api.client.mprester.MPRester.get_pourbaix_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pourbaix_entries</span></code></a>(chemsys[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_pourbaix_entries" title="mp_api.client.mprester.MPRester.get_pourbaix_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pourbaix_entries</span></code></a>(chemsys[, ...])</p></td>
 <td><p>A helper function to get all entries necessary to generate a Pourbaix diagram from the rest interface.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structure_by_material_id" title="mp_api.client.mprester.MPRester.get_structure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structure_by_material_id</span></code></a>(material_id[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structure_by_material_id" title="mp_api.client.mprester.MPRester.get_structure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structure_by_material_id</span></code></a>(material_id[, ...])</p></td>
 <td><p>Get a Structure corresponding to a material_id.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structures" title="mp_api.client.mprester.MPRester.get_structures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structures</span></code></a>(chemsys_formula[, final])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structures" title="mp_api.client.mprester.MPRester.get_structures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structures</span></code></a>(chemsys_formula[, final])</p></td>
 <td><p>Get a list of Structures corresponding to a chemical system or formula.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id" title="mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_task_ids_associated_with_material_id</span></code></a>(...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id" title="mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_task_ids_associated_with_material_id</span></code></a>(...)</p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">param material_id<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p></dd>
 </dl>
 </p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_wulff_shape" title="mp_api.client.mprester.MPRester.get_wulff_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_wulff_shape</span></code></a>(material_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_wulff_shape" title="mp_api.client.mprester.MPRester.get_wulff_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_wulff_shape</span></code></a>(material_id)</p></td>
 <td><p>Constructs a Wulff shape for a material.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.query" title="mp_api.client.mprester.MPRester.query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query</span></code></a>(**kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.query" title="mp_api.client.mprester.MPRester.query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query</span></code></a>(**kwargs)</p></td>
 <td><p>The MPRester().query method has been replaced with the MPRester().summary.search method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.submit_structures" title="mp_api.client.mprester.MPRester.submit_structures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">submit_structures</span></code></a>(structures, public_name, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.submit_structures" title="mp_api.client.mprester.MPRester.submit_structures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">submit_structures</span></code></a>(structures, public_name, ...)</p></td>
 <td><p>Submits a list of structures to the Materials Project.</p></td>
 </tr>
 </tbody>
@@ -863,6 +866,26 @@ submitter on the Materials Project website.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>chgcar</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_download_info">
+<span class="sig-name descname"><span class="pre">get_download_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_patterns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_download_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_download_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of URLs to retrieve raw VASP output files from the NoMaD repository
+:param material_ids: list of material identifiers (mp-id’s)
+:type material_ids: list
+:param task_types: list of task types to include in download (see CalcType Enum class)
+:type task_types: list
+:param file_patterns: list of wildcard file names to include for each task
+:type file_patterns: list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a tuple of 1) a dictionary mapping material_ids to task_ids and
+calc_types, and 2) a list of URLs to download zip archives from
+NoMaD repository. Each zip archive will contain a manifest.json with
+metadata info, e.g. the task/external_ids that belong to a directory</p>
 </dd>
 </dl>
 </dd></dl>
