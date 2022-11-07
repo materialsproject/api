@@ -1151,8 +1151,8 @@ class MPRester:
         urls = [prefix + tids for tids in nomad_exist_task_ids]
         return meta, urls
 
-    def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> list[str]:
-        nomad_exist_task_ids: list[str] = []
+    def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> List[str]:
+        nomad_exist_task_ids: List[str] = []
         prefix = prefix.replace("/raw/query", "/repo/")
         for task_id in task_ids:
             url = prefix + task_id
