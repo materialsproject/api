@@ -12,6 +12,7 @@ from emmet.core.charge_density import ChgcarDataDoc
 from monty.serialization import MontyDecoder, dumpfn
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
@@ -49,25 +50,30 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         return num_downloads
 
     def search(  # type: ignore
-        self, num_chunks: Optional[int] = 1, chunk_size: int = 10, **kwargs
+        self, task_ids: Optional[List[str]] = None, num_chunks: Optional[int] = 1, chunk_size: int = 10, **kwargs
     ) -> Union[List[ChgcarDataDoc], List[Dict]]:  # type: ignore
         """
         A search method to find what charge densities are available via this API.
 
         Arguments:
+            task_ids (List[str]): List of Materials Project IDs to return data for.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
 
         Returns:
             A list of ChgcarDataDoc that contain task_id references.
         """
+        query_params = {}
+
+        if task_ids:
+            query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=False,
             fields=["last_updated", "task_id", "fs_id"],
-            **kwargs,
+            **query_params,
         )
 
     def get_charge_density_from_file_id(self, fs_id: str):
@@ -82,9 +88,7 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
 
                 if self.boto_resource is None:
-                    self.boto_resource = self._get_s3_resource(
-                        use_minio=False, unsigned=False
-                    )
+                    self.boto_resource = self._get_s3_resource(use_minio=False, unsigned=False)
 
                 bucket, obj_prefix = self._extract_s3_url_info(url_doc, use_minio=False)
 
@@ -98,13 +102,9 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
                 except ConnectionError:
                     self.boto_resource = self._get_s3_resource(use_minio=False)
 
-                    bucket, obj_prefix = self._extract_s3_url_info(
-                        url_doc, use_minio=False
-                    )
+                    bucket, obj_prefix = self._extract_s3_url_info(url_doc, use_minio=False)
 
-            r = self.boto_resource.Object(  # type: ignore
-                bucket, f"{obj_prefix}/{url_doc.fs_id}"
-            ).get()["Body"]
+            r = self.boto_resource.Object(bucket, f"{obj_prefix}/{url_doc.fs_id}").get()["Body"]  # type: ignore
 
             packed_bytes = r.read()
 
