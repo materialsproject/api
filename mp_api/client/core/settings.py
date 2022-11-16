@@ -2,7 +2,7 @@ from pydantic import BaseSettings, Field
 from mp_api.client import __file__ as root_dir
 from multiprocessing import cpu_count
 from typing import List
-from pymatgen.core.__init__ import _load_pmg_settings
+from pymatgen.core import _load_pmg_settings
 import os
 
 
