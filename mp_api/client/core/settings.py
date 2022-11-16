@@ -7,11 +7,10 @@ import os
 
 
 PMG_SETTINGS = _load_pmg_settings()
-NUM_PARALLEL_REQUESTS = PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 8)
-NUM_PARALLEL_REQUESTS = PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 8)
-MAX_RETRIES = PMG_SETTINGS.get("MPRESTER_MAX_RETRIES", 3)
-MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BAR", False)
-MAX_HTTP_URL_LENGTH = PMG_SETTINGS.get("MPRESTER_MAX_HTTP_URL_LENGTH", 2000)
+_NUM_PARALLEL_REQUESTS = PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 8)
+_MAX_RETRIES = PMG_SETTINGS.get("MPRESTER_MAX_RETRIES", 3)
+_MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BARS", False)
+_MAX_HTTP_URL_LENGTH = PMG_SETTINGS.get("MPRESTER_MAX_HTTP_URL_LENGTH", 2000)
 
 try:
     CPU_COUNT = cpu_count()
@@ -56,19 +55,21 @@ class MAPIClientSettings(BaseSettings):
     )
 
     NUM_PARALLEL_REQUESTS: int = Field(
-        NUM_PARALLEL_REQUESTS,
+        _NUM_PARALLEL_REQUESTS,
         description="Number of parallel requests to send.",
     )
 
-    MAX_RETRIES: int = Field(MAX_RETRIES, description="Maximum number of retries for requests.")
+    MAX_RETRIES: int = Field(
+        _MAX_RETRIES, description="Maximum number of retries for requests."
+    )
 
     MUTE_PROGRESS_BARS: bool = Field(
-        MUTE_PROGRESS_BAR,
+        _MUTE_PROGRESS_BAR,
         description="Whether to mute progress bars when data is retrieved.",
     )
 
     MAX_HTTP_URL_LENGTH: int = Field(
-        MAX_HTTP_URL_LENGTH,
+        _MAX_HTTP_URL_LENGTH,
         description="Number of characters to use to define the maximum length of a given HTTP URL.",
     )
 
