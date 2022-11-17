@@ -5,6 +5,8 @@ from mp_api.client.core import BaseRester, MPRestError
 
 import warnings
 
+from mp_api.client.core.utils import validate_ids
+
 
 class TaskRester(BaseRester[TaskDoc]):
 
