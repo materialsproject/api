@@ -19,6 +19,9 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
+    "formula",
+    "elements",
+    "exclude_elements",
 ]
 
 sub_doc_fields = []  # type: list
@@ -27,9 +30,7 @@ alt_name_dict = {"formula": "task_id", "task_ids": "task_id", "exclude_elements"
 
 custom_field_tests = {
     "chemsys": "Si-O",
-    "elements": ["Si", "O"],
     "task_ids": ["mp-149"],
-    "exclude_elements": ["Si"],
 }  # type: dict
 
 
