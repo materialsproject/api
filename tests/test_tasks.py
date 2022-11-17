@@ -23,15 +23,14 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {
-    "formula": "task_id",
-    "task_ids": "task_id"
-    "exclude_elements": "task_id",,
-}  # type: dict
+alt_name_dict = {"formula": "task_id", "task_ids": "task_id", "exclude_elements": "task_id"}  # type: dict
 
-custom_field_tests = {"chemsys": "Si-O", "elements": ["Si", "O"],
-                      "task_ids": ["mp-149"],
-                      "exclude_elements": ["Si"]}  # type: dict
+custom_field_tests = {
+    "chemsys": "Si-O",
+    "elements": ["Si", "O"],
+    "task_ids": ["mp-149"],
+    "exclude_elements": ["Si"],
+}  # type: dict
 
 
 @pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
