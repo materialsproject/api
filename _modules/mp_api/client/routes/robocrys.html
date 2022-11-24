@@ -84,7 +84,8 @@
             <span class="n">criteria</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="n">keyword_string</span><span class="p">,</span> <span class="s2">&quot;_limit&quot;</span><span class="p">:</span> <span class="n">chunk_size</span><span class="p">},</span>
             <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;text_search&quot;</span><span class="p">,</span>
             <span class="n">use_document_model</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">chunk_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+            <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">robocrys_docs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
