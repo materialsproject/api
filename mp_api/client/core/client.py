@@ -855,7 +855,7 @@ class BaseRester(Generic[T]):
                         )
 
                         results = self._query_resource_data(
-                            criteria=criteria, fields=fields, suburl=document_id  # type: ignore
+                            criteria=criteria, fields=fields, suburl=new_document_id  # type: ignore
                         )
 
         if not results:
