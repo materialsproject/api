@@ -22,7 +22,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "equilibrium_reaction_energy",
-    "thermo_type"
+    "thermo_types",
 ]
 
 sub_doc_fields = []  # type: list
@@ -43,13 +43,11 @@ custom_field_tests = {
     "material_ids": ["mp-149"],
     "formula": "SiO2",
     "chemsys": "Si-O",
-    "thermo_ids": ["mp-149"]
+    "thermo_ids": ["mp-149"],
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 
@@ -60,6 +58,7 @@ def test_client(rester):
         # Query API for each numeric and boolean parameter and check if returned
         for entry in param_tuples:
             param = entry[0]
+            print(param)
             if param not in excluded_params:
                 param_type = entry[1].__args__[0]
                 q = None
@@ -70,9 +69,7 @@ def test_client(rester):
                         param: (-100, 100),
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [
-                            project_field if project_field is not None else param
-                        ],
+                        "fields": [project_field if project_field is not None else param],
                     }
                 elif param_type == typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
@@ -80,9 +77,7 @@ def test_client(rester):
                         param: (-100.12, 100.12),
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [
-                            project_field if project_field is not None else param
-                        ],
+                        "fields": [project_field if project_field is not None else param],
                     }
                 elif param_type is bool:
                     project_field = alt_name_dict.get(param, None)
@@ -90,9 +85,7 @@ def test_client(rester):
                         param: False,
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [
-                            project_field if project_field is not None else param
-                        ],
+                        "fields": [project_field if project_field is not None else param],
                     }
                 elif param in custom_field_tests:
                     project_field = alt_name_dict.get(param, None)
@@ -100,9 +93,7 @@ def test_client(rester):
                         param: custom_field_tests[param],
                         "chunk_size": 1,
                         "num_chunks": 1,
-                        "fields": [
-                            project_field if project_field is not None else param
-                        ],
+                        "fields": [project_field if project_field is not None else param],
                     }
 
                 doc = search_method(**q)[0].dict()
@@ -110,15 +101,10 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+                assert doc[project_field if project_field is not None else param] is not None
 
 
 def test_get_phase_diagram_from_chemsys():
     # Test that a phase diagram is returned
 
-    assert isinstance(
-        ThermoRester().get_phase_diagram_from_chemsys("Hf-Pm"), PhaseDiagram
-    )
+    assert isinstance(ThermoRester().get_phase_diagram_from_chemsys("Hf-Pm"), PhaseDiagram)
