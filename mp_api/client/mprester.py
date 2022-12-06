@@ -133,7 +133,7 @@ class MPRester:
         )
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
-        self.headers = headers
+        self.headers = headers or {}
 
         try:
             from mpcontribs.client import Client

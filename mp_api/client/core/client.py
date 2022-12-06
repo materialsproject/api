@@ -101,7 +101,7 @@ class BaseRester(Generic[T]):
         self.monty_decode = monty_decode
         self.use_document_model = use_document_model
         self.timeout = timeout
-        self.headers = headers
+        self.headers = headers or {}
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
