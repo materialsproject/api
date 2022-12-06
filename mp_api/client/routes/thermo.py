@@ -6,8 +6,6 @@ from mp_api.client.core.utils import validate_ids
 from emmet.core.thermo import ThermoDoc, ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
-from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import validate_ids
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
@@ -162,7 +160,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         Get a pre-computed phase diagram for a given chemsys.
 
         Arguments:
-            material_id (str): Materials project ID
+            chemsys (str): A chemical system (e.g. Li-Fe-O)
             thermo_type (ThermoType): The thermo type for the phase diagram.
                 Defaults to ThermoType.GGA_GGA_U.
         Returns:
