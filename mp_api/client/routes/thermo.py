@@ -7,7 +7,6 @@ from emmet.core.thermo import ThermoDoc, ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 
-
 class ThermoRester(BaseRester[ThermoDoc]):
 
     suffix = "thermo"
