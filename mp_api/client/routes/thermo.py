@@ -1,12 +1,10 @@
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
-
-from emmet.core.thermo import ThermoDoc
-from pymatgen.analysis.phase_diagram import PhaseDiagram
-
+from typing import Optional, List, Tuple, Union
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
+from emmet.core.thermo import ThermoDoc, ThermoType
+from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
@@ -40,6 +38,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
         is_stable: Optional[bool] = None,
         material_ids: Optional[List[str]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
+        thermo_ids: Optional[List[str]] = None,
+        thermo_types: Optional[List[ThermoType]] = None,
         total_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
@@ -63,6 +63,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
                 (e.g., [Fe2O3, ABO3]).
             is_stable (bool): Whether the material is stable.
             material_ids (List[str]): List of Materials Project IDs to return data for.
+            thermo_ids (List[str]): List of thermo IDs to return data for. This is a combination of the Materials
+                Project ID and thermo type (e.g. mp-149_GGA_GGA+U).
+            thermo_types (List[ThermoType]): List of thermo types to return data for (e.g. ThermoType.GGA_GGA_U).
             num_elements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
             total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
             uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
@@ -94,6 +97,14 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
         if material_ids:
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+
+        if thermo_ids:
+            query_params.update({"thermo_ids": ",".join(validate_ids(thermo_ids))})
+
+        if thermo_types:
+            query_params.update(
+                {"thermo_types": ",".join([t.value for t in thermo_types])}
+            )
 
         if num_elements:
             if isinstance(num_elements, int):
@@ -141,19 +152,23 @@ class ThermoRester(BaseRester[ThermoDoc]):
             **query_params,
         )
 
-    def get_phase_diagram_from_chemsys(self, chemsys: str) -> PhaseDiagram:
+    def get_phase_diagram_from_chemsys(
+        self, chemsys: str, thermo_type: ThermoType = ThermoType.GGA_GGA_U
+    ) -> PhaseDiagram:
         """
         Get a pre-computed phase diagram for a given chemsys.
 
         Arguments:
-            material_id (str): Materials project ID
+            chemsys (str): A chemical system (e.g. Li-Fe-O)
+            thermo_type (ThermoType): The thermo type for the phase diagram.
+                Defaults to ThermoType.GGA_GGA_U.
         Returns:
             phase_diagram (PhaseDiagram): Pymatgen phase diagram object.
         """
-
+        phase_diagram_id = f"{chemsys}_{thermo_type.value}"
         response = self._query_resource(
             fields=["phase_diagram"],
-            suburl=f"phase_diagram/{chemsys}",
+            suburl=f"phase_diagram/{phase_diagram_id}",
             use_document_model=False,
             num_chunks=1,
             chunk_size=1,
