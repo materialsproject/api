@@ -49,7 +49,8 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
             criteria={"keywords": keyword_string, "_limit": chunk_size},
             suburl="text_search",
             use_document_model=True,
-            chunk_size=100,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
         ).get("data", None)
 
         if robocrys_docs is None:

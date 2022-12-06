@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from typing import Optional, List, Tuple, Union
 from mp_api.client.core import BaseRester
@@ -5,7 +6,8 @@ from mp_api.client.core.utils import validate_ids
 from emmet.core.thermo import ThermoDoc, ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
-import warnings
+from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
@@ -108,6 +110,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
             )
 
         if num_elements:
+            if isinstance(num_elements, int):
+                num_elements = (num_elements, num_elements)
             query_params.update(
                 {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
             )

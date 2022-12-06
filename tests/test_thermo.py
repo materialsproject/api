@@ -1,9 +1,10 @@
 import os
-from pymatgen.analysis.phase_diagram import PhaseDiagram
-import pytest
-from mp_api.client.routes.thermo import ThermoRester
-
 import typing
+
+import pytest
+from pymatgen.analysis.phase_diagram import PhaseDiagram
+
+from mp_api.client.routes.thermo import ThermoRester
 
 
 @pytest.fixture
@@ -30,7 +31,7 @@ alt_name_dict = {
     "total_energy": "energy_per_atom",
     "formation_energy": "formation_energy_per_atom",
     "uncorrected_energy": "uncorrected_energy_per_atom",
-    "equilibirum_reaction_energy": "equilibirum_reaction_energy_per_atom",
+    "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
     "num_elements": "nelements",
     "num_sites": "nsites",
 }  # type: dict
@@ -111,7 +112,6 @@ def test_client(rester):
                 )
 
 
-@pytest.mark.xfail(reason="Monty decode issue with phase diagram")
 def test_get_phase_diagram_from_chemsys():
     # Test that a phase diagram is returned
 

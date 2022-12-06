@@ -1,7 +1,7 @@
 """ Primary MAPI module """
 import os
 from pkg_resources import get_distribution, DistributionNotFound
-from .client import MPRester
+from .mprester import MPRester
 from .core import MPRestError
 
 try:  # pragma: no cover

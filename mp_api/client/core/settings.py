@@ -1,7 +1,21 @@
 from pydantic import BaseSettings, Field
 from mp_api.client import __file__ as root_dir
+from multiprocessing import cpu_count
 from typing import List
+from pymatgen.core import _load_pmg_settings
 import os
+
+
+PMG_SETTINGS = _load_pmg_settings()
+_NUM_PARALLEL_REQUESTS = PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 8)
+_MAX_RETRIES = PMG_SETTINGS.get("MPRESTER_MAX_RETRIES", 3)
+_MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BARS", False)
+_MAX_HTTP_URL_LENGTH = PMG_SETTINGS.get("MPRESTER_MAX_HTTP_URL_LENGTH", 2000)
+
+try:
+    CPU_COUNT = cpu_count()
+except NotImplementedError:
+    pass
 
 
 class MAPIClientSettings(BaseSettings):
@@ -41,13 +55,22 @@ class MAPIClientSettings(BaseSettings):
     )
 
     NUM_PARALLEL_REQUESTS: int = Field(
-        8, description="Number of parallel requests to send.",
+        _NUM_PARALLEL_REQUESTS,
+        description="Number of parallel requests to send.",
     )
 
-    MAX_RETRIES: int = Field(3, description="Maximum number of retries for requests.")
+    MAX_RETRIES: int = Field(
+        _MAX_RETRIES, description="Maximum number of retries for requests."
+    )
 
     MUTE_PROGRESS_BARS: bool = Field(
-        False, description="Whether to mute progress bars when data is retrieved.",
+        _MUTE_PROGRESS_BAR,
+        description="Whether to mute progress bars when data is retrieved.",
+    )
+
+    MAX_HTTP_URL_LENGTH: int = Field(
+        _MAX_HTTP_URL_LENGTH,
+        description="Number of characters to use to define the maximum length of a given HTTP URL.",
     )
 
     class Config:

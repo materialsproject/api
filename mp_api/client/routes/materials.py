@@ -1,14 +1,13 @@
+import warnings
 from typing import List, Optional, Tuple, Union
-from pymatgen.core.structure import Structure
 
-from emmet.core.vasp.material import MaterialsDoc
-from emmet.core.symmetry import CrystalSystem
 from emmet.core.settings import EmmetSettings
+from emmet.core.symmetry import CrystalSystem
+from emmet.core.vasp.material import MaterialsDoc
+from pymatgen.core.structure import Structure
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
-
-import warnings
 
 _EMMET_SETTINGS = EmmetSettings()
 
@@ -154,6 +153,8 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             )
 
         if num_elements:
+            if isinstance(num_elements, int):
+                num_elements = (num_elements, num_elements)
             query_params.update(
                 {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
             )

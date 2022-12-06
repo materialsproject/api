@@ -131,6 +131,8 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             query_params.update({"elements": ",".join(elements)})
 
         if num_elements:
+            if isinstance(num_elements, int):
+                num_elements = (num_elements, num_elements)
             query_params.update(
                 {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
             )

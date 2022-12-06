@@ -2,27 +2,26 @@ import itertools
 import warnings
 from functools import lru_cache
 from os import environ
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
+from json import loads
 
 from emmet.core.charge_density import ChgcarDataDoc
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
-from emmet.core.summary import HasProps
-from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import CalcType
-from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import Composition, Element, Structure
+from pymatgen.core import Element, Structure
 from pymatgen.core.ion import Ion
-from pymatgen.entries.computed_entries import ComputedEntry
+from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import get
 from typing import Literal
 
 from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes import *
 
 _DEPRECATION_WARNING = (
@@ -127,18 +126,21 @@ class MPRester:
 
         self.api_key = api_key
         self.endpoint = endpoint
-        self.session = BaseRester._create_session(
-            api_key=api_key, include_user_agent=include_user_agent
-        )
+        self.session = BaseRester._create_session(api_key=api_key, include_user_agent=include_user_agent)
+        self.use_document_model = use_document_model
+        self.monty_decode = monty_decode
 
         try:
             from mpcontribs.client import Client
+
             self.contribs = Client(api_key)
         except ImportError:
             self.contribs = None
-            warnings.warn("mpcontribs-client not installed. "
-                          "Install the package to query MPContribs data, or construct pourbaix diagrams: "
-                          "'pip install mpcontribs-client'")
+            warnings.warn(
+                "mpcontribs-client not installed. "
+                "Install the package to query MPContribs data, or construct pourbaix diagrams: "
+                "'pip install mpcontribs-client'"
+            )
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
@@ -184,15 +186,16 @@ class MPRester:
 
     def __getattr__(self, attr):
         if attr == "alloys":
-            raise MPRestError("Alloy addon package not installed. "
-                              "To query alloy data first install with: 'pip install pymatgen-analysis-alloys'")
+            raise MPRestError(
+                "Alloy addon package not installed. "
+                "To query alloy data first install with: 'pip install pymatgen-analysis-alloys'"
+            )
         elif attr == "charge_density":
-            raise MPRestError("boto3 not installed. "
-                              "To query charge density data first install with: 'pip install boto3'")
+            raise MPRestError(
+                "boto3 not installed. " "To query charge density data first install with: 'pip install boto3'"
+            )
         else:
-            raise AttributeError(
-                    f"{self.__class__.__name__!r} object has no attribute {attr!r}"
-                )
+            raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: Optional[List[CalcType]] = None
@@ -203,13 +206,9 @@ class MPRester:
         :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
         :return:
         """
-        tasks = self.materials.get_data_by_id(
-            material_id, fields=["calc_types"]
-        ).calc_types
+        tasks = self.materials.get_data_by_id(material_id, fields=["calc_types"]).calc_types
         if calc_types:
-            return [
-                task for task, calc_type in tasks.items() if calc_type in calc_types
-            ]
+            return [task for task, calc_type in tasks.items() if calc_type in calc_types]
         else:
             return list(tasks.keys())
 
@@ -231,19 +230,14 @@ class MPRester:
             Structure object or list of Structure objects.
         """
 
-        structure_data = self.materials.get_structure_by_material_id(
-            material_id=material_id, final=final
-        )
+        structure_data = self.materials.get_structure_by_material_id(material_id=material_id, final=final)
 
         if conventional_unit_cell and structure_data:
             if final:
-                structure_data = SpacegroupAnalyzer(
-                    structure_data
-                ).get_conventional_standard_structure()
+                structure_data = SpacegroupAnalyzer(structure_data).get_conventional_standard_structure()
             else:
                 structure_data = [
-                    SpacegroupAnalyzer(structure).get_conventional_standard_structure()
-                    for structure in structure_data
+                    SpacegroupAnalyzer(structure).get_conventional_standard_structure() for structure in structure_data
                 ]
 
         return structure_data
@@ -282,9 +276,7 @@ class MPRester:
         if len(docs) == 1:  # pragma: no cover
             return str(docs[0].material_id)  # type: ignore
         elif len(docs) > 1:  # pragma: no cover
-            raise ValueError(
-                f"Multiple documents return for {task_id}, this should not happen, please report it!"
-            )
+            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
         else:  # pragma: no cover
             warnings.warn(
                 f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
@@ -323,7 +315,10 @@ class MPRester:
         )
         return self.get_material_id_references(material_id)
 
-    def get_material_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
+    def get_material_ids(
+        self,
+        chemsys_formula: Union[str, List[str]],
+    ) -> List[MPID]:
         """
         Get all materials ids for a formula or chemsys.
 
@@ -335,9 +330,7 @@ class MPRester:
             List of all materials ids ([MPID])
         """
 
-        if isinstance(chemsys_formula, list) or (
-            isinstance(chemsys_formula, str) and "-" in chemsys_formula
-        ):
+        if isinstance(chemsys_formula, list) or (isinstance(chemsys_formula, str) and "-" in chemsys_formula):
             input_params = {"chemsys": chemsys_formula}
         else:
             input_params = {"formula": chemsys_formula}
@@ -345,11 +338,16 @@ class MPRester:
         return sorted(
             doc.material_id
             for doc in self.materials.search(
-                **input_params, all_fields=False, fields=["material_id"],  # type: ignore
+                **input_params,  # type: ignore
+                all_fields=False,
+                fields=["material_id"],
             )
         )
 
-    def get_materials_ids(self, chemsys_formula: Union[str, List[str]],) -> List[MPID]:
+    def get_materials_ids(
+        self,
+        chemsys_formula: Union[str, List[str]],
+    ) -> List[MPID]:
         """
         This method is deprecated, please use get_material_ids.
         """
@@ -359,9 +357,7 @@ class MPRester:
         )
         return self.get_material_ids(chemsys_formula)
 
-    def get_structures(
-        self, chemsys_formula: Union[str, List[str]], final=True
-    ) -> List[Structure]:
+    def get_structures(self, chemsys_formula: Union[str, List[str]], final=True) -> List[Structure]:
         """
         Get a list of Structures corresponding to a chemical system or formula.
 
@@ -375,9 +371,7 @@ class MPRester:
             List of Structure objects. ([Structure])
         """
 
-        if isinstance(chemsys_formula, list) or (
-            isinstance(chemsys_formula, str) and "-" in chemsys_formula
-        ):
+        if isinstance(chemsys_formula, list) or (isinstance(chemsys_formula, str) and "-" in chemsys_formula):
             input_params = {"chemsys": chemsys_formula}
         else:
             input_params = {"formula": chemsys_formula}
@@ -386,14 +380,18 @@ class MPRester:
             return [
                 doc.structure
                 for doc in self.materials.search(
-                    **input_params, all_fields=False, fields=["structure"],  # type: ignore
+                    **input_params,  # type: ignore
+                    all_fields=False,
+                    fields=["structure"],
                 )
             ]
         else:
             structures = []
 
             for doc in self.materials.search(
-                **input_params, all_fields=False, fields=["initial_structures"],  # type: ignore
+                **input_params,  # type: ignore
+                all_fields=False,
+                fields=["initial_structures"],
             ):
                 structures.extend(doc.initial_structures)
 
@@ -438,50 +436,127 @@ class MPRester:
         )
 
     def get_entries(
-        self, chemsys_formula: Union[str, List[str]], sort_by_e_above_hull=False,
-    ):
+        self,
+        chemsys_formula_mpids: Union[str, List[str]],
+        compatible_only: bool = True,
+        inc_structure: bool = None,
+        property_data: List[str] = None,
+        conventional_unit_cell: bool = False,
+        sort_by_e_above_hull: bool = False,
+        additional_criteria: dict = None,
+    ) -> List[ComputedStructureEntry]:
         """
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
         Args:
-            chemsys_formula (str): A chemical system, list of chemical systems
-            (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
+            chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas
+                (e.g., Fe2O3, Si*, [SiO2, BiFeO3]), Materials Project ID, or list of Materials
+                Project IDs (e.g., mp-22526, [mp-22526, mp-149]).
+            compatible_only (bool): Whether to return only "compatible"
+                entries. Compatible entries are entries that have been
+                processed using the MaterialsProject2020Compatibility class,
+                which performs adjustments to allow mixing of GGA and GGA+U
+                calculations for more accurate phase diagrams and reaction
+                energies. This data is obtained from the core "thermo" API endpoint.
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
+                returned were ComputedEntries. If inc_structure="initial",
+                ComputedStructureEntries with initial structures were returned.
+                Otherwise, ComputedStructureEntries with final structures
+                were returned. This is no longer needed as all entries will contain
+                structure data by default.
+            property_data (list): Specify additional properties to include in
+                entry.data. If None, only default data is included. Should be a subset of
+                input parameters in the 'MPRester.thermo.available_fields' list.
+            conventional_unit_cell (bool): Whether to get the standard
+                conventional unit cell
             sort_by_e_above_hull (bool): Whether to sort the list of entries by
                 e_above_hull in ascending order.
+            additional_criteria (dict): Any additional criteria to pass. The keys and values should
+                correspond to proper function inputs to `MPRester.thermo.search`. For instance,
+                if you are only interested in entries on the convex hull, you could pass
+                {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}.
 
         Returns:
-            List of ComputedEntry or ComputedStructureEntry objects.
+            List ComputedStructureEntry objects.
         """
 
-        if isinstance(chemsys_formula, list) or (
-            isinstance(chemsys_formula, str) and "-" in chemsys_formula
-        ):
-            input_params = {"chemsys": chemsys_formula}
-        else:
-            input_params = {"formula": chemsys_formula}
+        if inc_structure is not None:
+            warnings.warn(
+                "The 'inc_structure' argument is deprecated as structure "
+                "data is now always included in all returned entry objects."
+            )
+
+        if isinstance(chemsys_formula_mpids, str):
+            chemsys_formula_mpids = [chemsys_formula_mpids]
+
+        try:
+            input_params = {"material_ids": validate_ids(chemsys_formula_mpids)}
+        except ValueError:
+
+            if any("-" in entry for entry in chemsys_formula_mpids):
+                input_params = {"chemsys": chemsys_formula_mpids}
+            else:
+                input_params = {"formula": chemsys_formula_mpids}
+
+        if additional_criteria:
+            input_params = {**input_params, **additional_criteria}
 
         entries = []
 
-        if sort_by_e_above_hull:
+        fields = ["entries"] if not property_data else ["entries"] + property_data
 
-            for doc in self.thermo.search(
+        if sort_by_e_above_hull:
+            docs = self.thermo.search(
                 **input_params,  # type: ignore
                 all_fields=False,
-                fields=["entries"],
+                fields=fields,
                 sort_fields=["energy_above_hull"],
-            ):
-                entries.extend(list(doc.entries.values()))
-
-            return entries
-
+            )
         else:
-            for doc in self.thermo.search(
-                **input_params, all_fields=False, fields=["entries"],  # type: ignore
-            ):
-                entries.extend(list(doc.entries.values()))
+            docs = self.thermo.search(
+                **input_params,
+                all_fields=False,
+                fields=fields,  # type: ignore
+            )
 
-            return entries
+        for doc in docs:
+            entry_list = doc.entries.values() if self.use_document_model else doc["entries"].values()
+            for entry in entry_list:
+                entry_dict = entry.as_dict() if self.monty_decode else entry
+                if not compatible_only:
+                    entry_dict["correction"] = 0.0
+                    entry_dict["energy_adjustments"] = []
+
+                if property_data:
+                    for property in property_data:
+                        entry_dict["data"][property] = (
+                            doc.dict()[property] if self.use_document_model else doc[property]
+                        )
+
+                if conventional_unit_cell:
+
+                    entry_struct = Structure.from_dict(entry_dict["structure"])
+                    s = SpacegroupAnalyzer(entry_struct).get_conventional_standard_structure()
+                    site_ratio = len(s) / len(entry_struct)
+                    new_energy = entry_dict["energy"] * site_ratio
+
+                    entry_dict["energy"] = new_energy
+                    entry_dict["structure"] = s.as_dict()
+                    entry_dict["correction"] = 0.0
+
+                    for element in entry_dict["composition"]:
+                        entry_dict["composition"][element] *= site_ratio
+
+                    for correction in entry_dict["energy_adjustments"]:
+                        correction["n_atoms"] *= site_ratio
+
+                entry = ComputedStructureEntry.from_dict(entry_dict) if self.monty_decode else entry_dict
+
+                entries.append(entry)
+
+        return entries
 
     def get_pourbaix_entries(
         self,
@@ -512,9 +587,11 @@ class MPRester:
         # imports are not top-level due to expense
         from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
         from pymatgen.entries.compatibility import (
-            Compatibility, MaterialsProject2020Compatibility,
+            Compatibility,
+            MaterialsProject2020Compatibility,
             MaterialsProjectAqueousCompatibility,
-            MaterialsProjectCompatibility)
+            MaterialsProjectCompatibility,
+        )
         from pymatgen.entries.computed_entries import ComputedEntry
 
         if solid_compat == "MaterialsProjectCompatibility":
@@ -543,12 +620,8 @@ class MPRester:
         ion_data = self.get_ion_reference_data_for_chemsys(chemsys)
 
         # build the PhaseDiagram for get_ion_entries
-        ion_ref_comps = [
-            Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data
-        ]
-        ion_ref_elts = set(
-            itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
-        )
+        ion_ref_comps = [Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data]
+        ion_ref_elts = set(itertools.chain.from_iterable(i.elements for i in ion_ref_comps))
         # TODO - would be great if the commented line below would work
         # However for some reason you cannot process GibbsComputedStructureEntry with
         # MaterialsProjectAqueousCompatibility
@@ -567,43 +640,29 @@ class MPRester:
             compat = MaterialsProjectAqueousCompatibility(solid_compat=solid_compat)
         # suppress the warning about missing oxidation states
         with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", message="Failed to guess oxidation states.*"
-            )
+            warnings.filterwarnings("ignore", message="Failed to guess oxidation states.*")
             ion_ref_entries = compat.process_entries(ion_ref_entries)
         # TODO - if the commented line above would work, this conditional block
         # could be removed
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
-            from pymatgen.entries.computed_entries import \
-                GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
-            ion_ref_entries = GibbsComputedStructureEntry.from_entries(
-                ion_ref_entries, temp=use_gibbs
-            )
+            ion_ref_entries = GibbsComputedStructureEntry.from_entries(ion_ref_entries, temp=use_gibbs)
         ion_ref_pd = PhaseDiagram(ion_ref_entries)
 
         ion_entries = self.get_ion_entries(ion_ref_pd, ion_ref_data=ion_data)
         pbx_entries = [PourbaixEntry(e, f"ion-{n}") for n, e in enumerate(ion_entries)]
 
         # Construct the solid pourbaix entries from filtered ion_ref entries
-        extra_elts = (
-            set(ion_ref_elts)
-            - {Element(s) for s in chemsys}
-            - {Element("H"), Element("O")}
-        )
+        extra_elts = set(ion_ref_elts) - {Element(s) for s in chemsys} - {Element("H"), Element("O")}
         for entry in ion_ref_entries:
             entry_elts = set(entry.composition.elements)
             # Ensure no OH chemsys or extraneous elements from ion references
-            if not (
-                entry_elts <= {Element("H"), Element("O")}
-                or extra_elts.intersection(entry_elts)
-            ):
+            if not (entry_elts <= {Element("H"), Element("O")} or extra_elts.intersection(entry_elts)):
                 # Create new computed entry
                 form_e = ion_ref_pd.get_form_energy(entry)
-                new_entry = ComputedEntry(
-                    entry.composition, form_e, entry_id=entry.entry_id
-                )
+                new_entry = ComputedEntry(entry.composition, form_e, entry_id=entry.entry_id)
                 pbx_entry = PourbaixEntry(new_entry)
                 pbx_entries.append(pbx_entry)
 
@@ -651,9 +710,7 @@ class MPRester:
 
         return ion_data
 
-    def get_ion_reference_data_for_chemsys(
-        self, chemsys: Union[str, List]
-    ) -> List[Dict]:
+    def get_ion_reference_data_for_chemsys(self, chemsys: Union[str, List]) -> List[Dict]:
         """
         Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
@@ -692,9 +749,7 @@ class MPRester:
 
         return [d for d in ion_data if d["data"]["MajElements"] in chemsys]
 
-    def get_ion_entries(
-        self, pd: PhaseDiagram, ion_ref_data: List[dict] = None
-    ) -> List[IonEntry]:
+    def get_ion_entries(self, pd: PhaseDiagram, ion_ref_data: List[dict] = None) -> List[IonEntry]:
         """
         Retrieve IonEntry objects that can be used in the construction of
         Pourbaix Diagrams. The energies of the IonEntry are calculaterd from
@@ -728,8 +783,7 @@ class MPRester:
         # raise ValueError if O and H not in chemsys
         if "O" not in chemsys or "H" not in chemsys:
             raise ValueError(
-                "The phase diagram chemical system must contain O and H! Your"
-                f" diagram chemical system is {chemsys}."
+                "The phase diagram chemical system must contain O and H! Your" f" diagram chemical system is {chemsys}."
             )
 
         if not ion_ref_data:
@@ -741,11 +795,7 @@ class MPRester:
         ion_entries = []
         for n, i_d in enumerate(ion_data):
             ion = Ion.from_formula(i_d["formula"])
-            refs = [
-                e
-                for e in pd.all_entries
-                if e.composition.reduced_formula == i_d["data"]["RefSolid"]
-            ]
+            refs = [e for e in pd.all_entries if e.composition.reduced_formula == i_d["data"]["RefSolid"]]
             if not refs:
                 raise ValueError("Reference solid not contained in entry list")
             stable_ref = sorted(refs, key=lambda x: x.energy_per_atom)[0]
@@ -760,9 +810,7 @@ class MPRester:
                 # convert to eV/formula unit
                 ref_solid_energy = i_d["data"]["ΔGᶠRefSolid"]["value"] / 96485
             else:
-                raise ValueError(
-                    f"Ion reference solid energy has incorrect unit {i_d['data']['ΔGᶠRefSolid']['unit']}"
-                )
+                raise ValueError(f"Ion reference solid energy has incorrect unit {i_d['data']['ΔGᶠRefSolid']['unit']}")
             solid_diff = pd.get_form_energy(stable_ref) - ref_solid_energy * rf
             elt = i_d["data"]["MajElements"]
             correction_factor = ion.composition[elt] / stable_ref.composition[elt]
@@ -775,32 +823,63 @@ class MPRester:
                 # convert to eV/formula unit
                 ion_free_energy = i_d["data"]["ΔGᶠ"]["value"] / 96485
             else:
-                raise ValueError(
-                    f"Ion free energy has incorrect unit {i_d['data']['ΔGᶠ']['unit']}"
-                )
+                raise ValueError(f"Ion free energy has incorrect unit {i_d['data']['ΔGᶠ']['unit']}")
             energy = ion_free_energy + solid_diff * correction_factor
             ion_entries.append(IonEntry(ion, energy))
 
         return ion_entries
 
-    def get_entry_by_material_id(self, material_id: str):
+    def get_entry_by_material_id(
+        self,
+        material_id: str,
+        compatible_only: bool = True,
+        inc_structure: bool = None,
+        property_data: List[str] = None,
+        conventional_unit_cell: bool = False,
+    ):
         """
         Get all ComputedEntry objects corresponding to a material_id.
 
         Args:
             material_id (str): Materials Project material_id (a string,
                 e.g., mp-1234).
+            compatible_only (bool): Whether to return only "compatible"
+                entries. Compatible entries are entries that have been
+                processed using the MaterialsProject2020Compatibility class,
+                which performs adjustments to allow mixing of GGA and GGA+U
+                calculations for more accurate phase diagrams and reaction
+                energies. This data is obtained from the core "thermo" API endpoint.
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
+                returned were ComputedEntries. If inc_structure="initial",
+                ComputedStructureEntries with initial structures were returned.
+                Otherwise, ComputedStructureEntries with final structures
+                were returned. This is no longer needed as all entries will contain
+                structure data by default.
+            property_data (list): Specify additional properties to include in
+                entry.data. If None, only default data is included. Should be a subset of
+                input parameters in the 'MPRester.thermo.available_fields' list.
+            conventional_unit_cell (bool): Whether to get the standard
+                conventional unit cell
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
-        return list(
-            self.thermo.get_data_by_id(
-                document_id=material_id, fields=["entries"]
-            ).entries.values()
+        return self.get_entries(
+            material_id,
+            compatible_only=compatible_only,
+            inc_structure=inc_structure,
+            property_data=property_data,
+            conventional_unit_cell=conventional_unit_cell,
         )
 
     def get_entries_in_chemsys(
-        self, elements: Union[str, List[str]], use_gibbs: Optional[int] = None,
+        self,
+        elements: Union[str, List[str]],
+        use_gibbs: Optional[int] = None,
+        compatible_only: bool = True,
+        inc_structure: bool = None,
+        property_data: List[str] = None,
+        conventional_unit_cell: bool = False,
+        additional_criteria=None,
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.
@@ -817,9 +896,31 @@ class MPRester:
                 (see GibbsComputedStructureEntry). The number is the temperature in
                 Kelvin at which to estimate the free energy. Must be between 300 K and
                 2000 K.
+            compatible_only (bool): Whether to return only "compatible"
+                entries. Compatible entries are entries that have been
+                processed using the MaterialsProject2020Compatibility class,
+                which performs adjustments to allow mixing of GGA and GGA+U
+                calculations for more accurate phase diagrams and reaction
+                energies. This data is obtained from the core "thermo" API endpoint.
+            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
+                returned were ComputedEntries. If inc_structure="initial",
+                ComputedStructureEntries with initial structures were returned.
+                Otherwise, ComputedStructureEntries with final structures
+                were returned. This is no longer needed as all entries will contain
+                structure data by default.
+            property_data (list): Specify additional properties to include in
+                entry.data. If None, only default data is included. Should be a subset of
+                input parameters in the 'MPRester.thermo.available_fields' list.
+            conventional_unit_cell (bool): Whether to get the standard
+                conventional unit cell
+            additional_criteria (dict): Any additional criteria to pass. The keys and values should
+                correspond to proper function inputs to `MPRester.thermo.search`. For instance,
+                if you are only interested in entries on the convex hull, you could pass
+                {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}.
         Returns:
-            List of ComputedEntries.
+            List of ComputedStructureEntries.
         """
+
         if isinstance(elements, str):
             elements = elements.split("-")
 
@@ -830,14 +931,28 @@ class MPRester:
 
         entries = []  # type: List[ComputedEntry]
 
-        entries.extend(self.get_entries(all_chemsyses))
+        entries.extend(
+            self.get_entries(
+                all_chemsyses,
+                compatible_only=compatible_only,
+                inc_structure=inc_structure,
+                property_data=property_data,
+                conventional_unit_cell=conventional_unit_cell,
+                additional_criteria=additional_criteria,
+            )
+        )
+
+        if not self.monty_decode:
+            entries = [ComputedStructureEntry.from_dict(entry) for entry in entries]
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
-            from pymatgen.entries.computed_entries import \
-                GibbsComputedStructureEntry
+            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
             entries = GibbsComputedStructureEntry.from_entries(entries, temp=use_gibbs)
+
+            if not self.monty_decode:
+                entries = [entry.as_dict() for entry in entries]
 
         return entries
 
@@ -851,7 +966,7 @@ class MPRester:
         Get the band structure pymatgen object associated with a Materials Project ID.
 
         Arguments:
-            materials_id (str): Materials Project ID for a material
+            material_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
             line_mode (bool): Whether to return data for a line-mode calculation
 
@@ -867,7 +982,7 @@ class MPRester:
         Get the complete density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
-            materials_id (str): Materials Project ID for a material
+            material_id (str): Materials Project ID for a material
 
         Returns:
             dos (CompleteDos): CompleteDos object
@@ -909,6 +1024,7 @@ class MPRester:
         Args:
             structures: A list of Structure objects
 
+
         Returns:
             ?
         """
@@ -928,12 +1044,8 @@ class MPRester:
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
         structure = self.get_structure_by_material_id(material_id)
-        surfaces = surfaces = self.surface_properties.get_data_by_id(
-            material_id
-        ).surfaces
-        lattice = (
-            SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
-        )
+        surfaces = surfaces = self.surface_properties.get_data_by_id(material_id).surfaces
+        lattice = SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
         miller_energy_map = {}
         for surf in surfaces:
             miller = tuple(surf.miller_index)
@@ -943,9 +1055,7 @@ class MPRester:
         millers, energies = zip(*miller_energy_map.items())
         return WulffShape(lattice, millers, energies)
 
-    def get_charge_density_from_material_id(
-        self, material_id: str, inc_task_doc: bool = False
-    ) -> Optional[Chgcar]:
+    def get_charge_density_from_material_id(self, material_id: str, inc_task_doc: bool = False) -> Optional[Chgcar]:
         """
         Get charge density data for a given Materials Project ID.
 
@@ -958,8 +1068,7 @@ class MPRester:
         """
 
         if not hasattr(self, "charge_density"):
-            raise MPRestError("boto3 not installed. "
-                  "To query charge density data install the boto3 package.")
+            raise MPRestError("boto3 not installed. " "To query charge density data install the boto3 package.")
 
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
@@ -984,11 +1093,97 @@ class MPRester:
 
         return chgcar
 
+    def get_download_info(self, material_ids, calc_types=None, file_patterns=None):
+        """
+        Get a list of URLs to retrieve raw VASP output files from the NoMaD repository
+        Args:
+            material_ids (list): list of material identifiers (mp-id's)
+            task_types (list): list of task types to include in download (see CalcType Enum class)
+            file_patterns (list): list of wildcard file names to include for each task
+        Returns:
+            a tuple of 1) a dictionary mapping material_ids to task_ids and
+            calc_types, and 2) a list of URLs to download zip archives from
+            NoMaD repository. Each zip archive will contain a manifest.json with
+            metadata info, e.g. the task/external_ids that belong to a directory
+        """
+        # task_id's correspond to NoMaD external_id's
+        calc_types = [t.value for t in calc_types if isinstance(t, CalcType)] if calc_types else []
+
+        meta = {}
+        for doc in self.materials.search(
+            task_ids=material_ids, fields=["calc_types", "deprecated_tasks", "material_id"]
+        ):
+
+            for task_id, calc_type in doc.calc_types.items():
+                if calc_types and calc_type not in calc_types:
+                    continue
+                mp_id = doc.material_id
+                if meta.get(mp_id) is None:
+                    meta[mp_id] = [{"task_id": task_id, "calc_type": calc_type}]
+                else:
+                    meta[mp_id].append({"task_id": task_id, "calc_type": calc_type})
+        if not meta:
+            raise ValueError(f"No tasks found for material id {material_ids}.")
+
+        # return a list of URLs for NoMaD Downloads containing the list of files
+        # for every external_id in `task_ids`
+        # For reference, please visit https://nomad-lab.eu/prod/rae/api/
+
+        # check if these task ids exist on NOMAD
+        prefix = "https://nomad-lab.eu/prod/rae/api/repo/?"
+        if file_patterns is not None:
+            for file_pattern in file_patterns:
+                prefix += f"file_pattern={file_pattern}&"
+        prefix += "external_id="
+
+        task_ids = [t["task_id"] for tl in meta.values() for t in tl]
+        nomad_exist_task_ids = self._check_get_download_info_url_by_task_id(prefix=prefix, task_ids=task_ids)
+        if len(nomad_exist_task_ids) != len(task_ids):
+            self._print_help_message(nomad_exist_task_ids, task_ids, file_patterns, calc_types)
+
+        # generate download links for those that exist
+        prefix = "https://nomad-lab.eu/prod/rae/api/raw/query?"
+        if file_patterns is not None:
+            for file_pattern in file_patterns:
+                prefix += f"file_pattern={file_pattern}&"
+        prefix += "external_id="
+
+        urls = [prefix + tids for tids in nomad_exist_task_ids]
+        return meta, urls
+
+    def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> List[str]:
+        nomad_exist_task_ids: List[str] = []
+        prefix = prefix.replace("/raw/query", "/repo/")
+        for task_id in task_ids:
+            url = prefix + task_id
+            if self._check_nomad_exist(url):
+                nomad_exist_task_ids.append(task_id)
+        return nomad_exist_task_ids
+
+    @staticmethod
+    def _check_nomad_exist(url) -> bool:
+        response = get(url=url)
+        if response.status_code != 200:
+            return False
+        content = loads(response.text)
+        if content["pagination"]["total"] == 0:
+            return False
+        return True
+
+    @staticmethod
+    def _print_help_message(nomad_exist_task_ids, task_ids, file_patterns, calc_types):
+        non_exist_ids = set(task_ids) - set(nomad_exist_task_ids)
+        warnings.warn(
+            f"For file patterns [{file_patterns}] and calc_types [{calc_types}], \n"
+            f"the following ids are not found on NOMAD [{list(non_exist_ids)}]. \n"
+            f"If you need to upload them, please contact Patrick Huck at phuck@lbl.gov"
+        )
+
     def query(*args, **kwargs):
         """
-            The MPRester().query method has been replaced with the MPRester().summary.search method.
-            Note this method also no longer supports direct MongoDB-type queries. For more information,
-            please see the new documentation.
+        The MPRester().query method has been replaced with the MPRester().summary.search method.
+        Note this method also no longer supports direct MongoDB-type queries. For more information,
+        please see the new documentation.
         """
         raise NotImplementedError(
             """

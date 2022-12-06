@@ -9,6 +9,7 @@ from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
+from sympy import prime
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client import MPRester
 from pymatgen.analysis.magnetism import Ordering
@@ -90,7 +91,7 @@ class TestMPRester:
         structs = mpr.get_structures("Mn-O", final=False)
         assert len(structs) > 0
 
-    @pytest.mark.skip(reason="endpoint issues")
+    @pytest.mark.skip(reason="Endpoint issues")
     def test_find_structure(self, mpr):
         path = os.path.join(MAPIClientSettings().TEST_FILES, "Si_mp_149.cif")
         with open(path) as file:
@@ -130,11 +131,61 @@ class TestMPRester:
 
         assert sorted_entries != entries
 
+        # Formula
         formula = "SiO2"
         entries = mpr.get_entries(formula)
 
         for e in entries:
             assert isinstance(e, ComputedEntry)
+
+        # Property data
+        formula = "BiFeO3"
+        entries = mpr.get_entries(formula, property_data=["energy_above_hull"])
+
+        for e in entries:
+            assert e.data.get("energy_above_hull", None) is not None
+
+        # Conventional structure
+        formula = "BiFeO3"
+        entry = mpr.get_entry_by_material_id(
+            "mp-22526", inc_structure=True, conventional_unit_cell=True
+        )[0]
+
+        s = entry.structure
+        assert pytest.approx(s.lattice.a) == s.lattice.b
+        assert pytest.approx(s.lattice.a) != s.lattice.c
+        assert pytest.approx(s.lattice.alpha) == 90
+        assert pytest.approx(s.lattice.beta) == 90
+        assert pytest.approx(s.lattice.gamma) == 120
+
+        # Ensure energy per atom is same
+        prim = mpr.get_entry_by_material_id(
+            "mp-22526", inc_structure=True, conventional_unit_cell=False
+        )[0]
+        assert pytest.approx(prim.energy_per_atom) == entry.energy_per_atom
+
+        s = prim.structure
+        assert pytest.approx(s.lattice.a) == s.lattice.b
+        assert pytest.approx(s.lattice.a) == s.lattice.c
+        assert pytest.approx(s.lattice.alpha) == s.lattice.beta
+        assert pytest.approx(s.lattice.alpha) == s.lattice.gamma
+
+        # Additional criteria
+        entry = mpr.get_entries(
+            "mp-149",
+            additional_criteria={"energy_above_hull": (0.0, 10)},
+            property_data=["energy_above_hull"],
+        )[0]
+
+        assert "energy_above_hull" in entry.data
+
+        entries = mpr.get_entries(
+            "mp-149",
+            additional_criteria={"energy_above_hull": (1, 10)},
+            property_data=["energy_above_hull"],
+        )
+
+        assert len(entries) == 0
 
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
@@ -154,7 +205,7 @@ class TestMPRester:
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
-    @pytest.mark.skip(reason="Until SSL issue fix")
+    @pytest.mark.skip(reason="SSL issues")
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements
         pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
@@ -195,7 +246,7 @@ class TestMPRester:
         # so4_two_minus = pbx_entries[9]
         # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
 
-    @pytest.mark.skip(reason="Until SSL issue fix")
+    @pytest.mark.skip(reason="SSL issues")
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
@@ -249,7 +300,7 @@ class TestMPRester:
         dos = mpr.get_phonon_dos_by_material_id("mp-11659")
         assert isinstance(dos, PhononDos)
 
-    @pytest.mark.xfail(reason="SSL issue")
+    @pytest.mark.skip(reason="Test needs fixing with ENV variables")
     def test_get_charge_density_data(self, mpr):
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
@@ -263,3 +314,13 @@ class TestMPRester:
     def test_get_wulff_shape(self, mpr):
         ws = mpr.get_wulff_shape("mp-126")
         assert isinstance(ws, WulffShape)
+
+    def test_large_list(self, mpr):
+        mpids = [
+            str(doc.material_id)
+            for doc in mpr.summary.search(
+                chunk_size=1000, num_chunks=15, fields=["material_id"]
+            )
+        ]
+        docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
+        assert len(docs) == 15000

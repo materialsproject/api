@@ -5,6 +5,8 @@ from mp_api.client.core import BaseRester, MPRestError
 
 import warnings
 
+from mp_api.client.core.utils import validate_ids
+
 
 class TaskRester(BaseRester[TaskDoc]):
 
@@ -22,9 +24,9 @@ class TaskRester(BaseRester[TaskDoc]):
         :return: List of trajectory objects
         """
 
-        traj_data = self._query_resource_data(
-            suburl=f"trajectory/{task_id}/", use_document_model=False
-        )[0].get("trajectories", None)
+        traj_data = self._query_resource_data(suburl=f"trajectory/{task_id}/", use_document_model=False)[0].get(
+            "trajectories", None
+        )
 
         if traj_data is None:
             raise MPRestError(f"No trajectory data for {task_id} found")
@@ -37,8 +39,7 @@ class TaskRester(BaseRester[TaskDoc]):
         """
 
         warnings.warn(
-            "MPRester.tasks.search_task_docs is deprecated. "
-            "Please use MPRester.tasks.search instead.",
+            "MPRester.tasks.search_task_docs is deprecated. " "Please use MPRester.tasks.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -47,7 +48,10 @@ class TaskRester(BaseRester[TaskDoc]):
 
     def search(
         self,
+        task_ids: Optional[List[str]] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
+        elements: Optional[List[str]] = None,
+        exclude_elements: Optional[List[str]] = None,
         formula: Optional[Union[str, List[str]]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -58,8 +62,11 @@ class TaskRester(BaseRester[TaskDoc]):
         Query core task docs using a variety of search criteria.
 
         Arguments:
+            task_ids (List[str]): List of Materials Project IDs to return data for.
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
+            elements (List[str]): A list of elements.
+            exclude_elements (List[str]): A list of elements to exclude.
             formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
@@ -75,8 +82,17 @@ class TaskRester(BaseRester[TaskDoc]):
 
         query_params = {}  # type: dict
 
+        if task_ids:
+            query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
+
         if formula:
             query_params.update({"formula": formula})
+
+        if elements:
+            query_params.update({"elements": ",".join(elements)})
+
+        if exclude_elements:
+            query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
         if chemsys:
             if isinstance(chemsys, str):
