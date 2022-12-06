@@ -5,6 +5,7 @@ import pytest
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 from mp_api.client.routes.thermo import ThermoRester
+from emmet.core.thermo import ThermoType
 
 
 @pytest.fixture
@@ -21,6 +22,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "equilibrium_reaction_energy",
+    "thermo_type"
 ]
 
 sub_doc_fields = []  # type: list
@@ -28,6 +30,7 @@ sub_doc_fields = []  # type: list
 alt_name_dict = {
     "formula": "formula_pretty",
     "material_ids": "material_id",
+    "thermo_ids": "thermo_id",
     "total_energy": "energy_per_atom",
     "formation_energy": "formation_energy_per_atom",
     "uncorrected_energy": "uncorrected_energy_per_atom",
@@ -40,6 +43,7 @@ custom_field_tests = {
     "material_ids": ["mp-149"],
     "formula": "SiO2",
     "chemsys": "Si-O",
+    "thermo_ids": ["mp-149"]
 }  # type: dict
 
 
