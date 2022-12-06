@@ -85,6 +85,7 @@ class MPRester:
         include_user_agent=True,
         monty_decode: bool = True,
         use_document_model: bool = True,
+        headers: dict = None,
     ):
         """
         Args:
@@ -115,6 +116,7 @@ class MPRester:
             use_document_model: If False, skip the creating the document model and return data
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
+            headers (dict): Custom headers for localhost connections.
         """
 
         if api_key and len(api_key) == 16:
@@ -129,11 +131,12 @@ class MPRester:
         self.session = BaseRester._create_session(api_key=api_key, include_user_agent=include_user_agent)
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
+        self.headers = headers
 
         try:
             from mpcontribs.client import Client
 
-            self.contribs = Client(api_key)
+            self.contribs = Client(api_key, headers=headers)
         except ImportError:
             self.contribs = None
             warnings.warn(

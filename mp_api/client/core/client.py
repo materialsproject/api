@@ -62,6 +62,7 @@ class BaseRester(Generic[T]):
         monty_decode: bool = True,
         use_document_model: bool = True,
         timeout: int = 20,
+        headers: dict = None,
     ):
         """
         Args:
@@ -89,6 +90,7 @@ class BaseRester(Generic[T]):
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
             timeout: Time in seconds to wait until a request timeout error is thrown
+            headers (dict): Custom headers for localhost connections.
         """
 
         self.api_key = api_key
@@ -99,6 +101,7 @@ class BaseRester(Generic[T]):
         self.monty_decode = monty_decode
         self.use_document_model = use_document_model
         self.timeout = timeout
+        self.headers = headers
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
@@ -117,13 +120,15 @@ class BaseRester(Generic[T]):
     @property
     def session(self) -> requests.Session:
         if not self._session:
-            self._session = self._create_session(self.api_key, self.include_user_agent)
+            self._session = self._create_session(self.api_key, self.include_user_agent, self.headers)
         return self._session
 
     @staticmethod
-    def _create_session(api_key, include_user_agent):
+    def _create_session(api_key, include_user_agent, headers):
         session = requests.Session()
         session.headers = {"x-api-key": api_key}
+        session.headers.update(headers)
+
         if include_user_agent:
             pymatgen_info = "pymatgen/" + pmg_version
             python_info = f"Python/{sys.version.split()[0]}"
