@@ -845,7 +845,7 @@ class BaseRester(Generic[T]):
                 from mp_api.client.routes.materials import MaterialsRester
 
                 with MaterialsRester(
-                    api_key=self.api_key, endpoint=self.base_endpoint, use_document_model=False, monty_decode=False, 
+                    api_key=self.api_key, endpoint=self.base_endpoint, use_document_model=False, monty_decode=False,
                     session=self.session, headers=self.headers
                 ) as mpr:
                     docs = mpr.search(task_ids=[document_id], fields=["material_id"])
