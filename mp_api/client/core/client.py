@@ -675,7 +675,7 @@ class BaseRester(Generic[T]):
             Tuple with data and total number of docs in matching the query in the database.
         """
         try:
-            response = self.session.get(url=url, verify=verify, params=params, timeout=timeout)
+            response = self.session.get(url=url, verify=verify, params=params, timeout=timeout, headers=self.headers)
         except requests.exceptions.ConnectTimeout:
             raise MPRestError(f"REST query timed out on URL {url}. Try again with a smaller request.")
 
