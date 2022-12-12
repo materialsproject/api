@@ -165,7 +165,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
         Returns:
             phase_diagram (PhaseDiagram): Pymatgen phase diagram object.
         """
-        phase_diagram_id = f"{chemsys}_{thermo_type.value}"
+        sorted_chemsys = "-".join(sorted(chemsys.split("-")))
+        phase_diagram_id = f"{sorted_chemsys}_{thermo_type.value}"
         response = self._query_resource(
             fields=["phase_diagram"],
             suburl=f"phase_diagram/{phase_diagram_id}",
