@@ -140,7 +140,7 @@ class MPRester:
         try:
             from mpcontribs.client import Client
 
-            self.contribs = Client(api_key, headers=self.headers, sesson=self.session)
+            self.contribs = Client(api_key, headers=self.headers, session=self.session)
         except ImportError:
             self.contribs = None
             warnings.warn(
