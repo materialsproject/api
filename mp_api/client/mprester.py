@@ -706,17 +706,11 @@ class MPRester:
                 'reference': 'H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
-
-        ion_data = [
-            d
-            for d in self.contribs.contributions.get_entries(
-                project="ion_ref_data",
-                fields=["identifier", "formula", "data"],
-                per_page=500,
-            ).result()["data"]
-        ]
-
-        return ion_data
+        return self.contribs.query_contributions(
+            query={"project": "ion_ref_data"},
+            fields=["identifier", "formula", "data"],
+            paginate=True
+        ).get("data")
 
     def get_ion_reference_data_for_chemsys(self, chemsys: Union[str, List]) -> List[Dict]:
         """
