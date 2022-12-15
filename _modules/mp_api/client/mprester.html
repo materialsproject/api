@@ -114,10 +114,10 @@
 
 <div class="viewcode-block" id="MPRester.__init__"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">api_key</span><span class="o">=</span><span class="n">DEFAULT_API_KEY</span><span class="p">,</span>
-        <span class="n">endpoint</span><span class="o">=</span><span class="n">DEFAULT_ENDPOINT</span><span class="p">,</span>
-        <span class="n">notify_db_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">include_user_agent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_API_KEY</span><span class="p">,</span>
+        <span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_ENDPOINT</span><span class="p">,</span>
+        <span class="n">notify_db_version</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">include_user_agent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">monty_decode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">use_document_model</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">session</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -156,9 +156,9 @@
 <span class="sd">            headers (dict): Custom headers for localhost connections.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">api_key</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span> <span class="o">==</span> <span class="mi">16</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">api_key</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">32</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Please use a new API key from https://next-gen.materialsproject.org/api &quot;</span>
+                <span class="s2">&quot;Please use a new API key from https://materialsproject.org/api &quot;</span>
                 <span class="s2">&quot;Keys for the new API are 32 characters, whereas keys for the legacy &quot;</span>
                 <span class="s2">&quot;API are 16 characters.&quot;</span>
             <span class="p">)</span>
@@ -741,17 +741,11 @@
 <span class="sd">                &#39;reference&#39;: &#39;H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for</span>
 <span class="sd">                compounds and aqueous species, Wiley, New York (1978)&#39;}}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">ion_data</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">d</span>
-            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contribs</span><span class="o">.</span><span class="n">contributions</span><span class="o">.</span><span class="n">get_entries</span><span class="p">(</span>
-                <span class="n">project</span><span class="o">=</span><span class="s2">&quot;ion_ref_data&quot;</span><span class="p">,</span>
-                <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identifier&quot;</span><span class="p">,</span> <span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">],</span>
-                <span class="n">per_page</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
-        <span class="p">]</span>
-
-        <span class="k">return</span> <span class="n">ion_data</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">contribs</span><span class="o">.</span><span class="n">query_contributions</span><span class="p">(</span>
+            <span class="n">query</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="s2">&quot;ion_ref_data&quot;</span><span class="p">},</span>
+            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identifier&quot;</span><span class="p">,</span> <span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">],</span>
+            <span class="n">paginate</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MPRester.get_ion_reference_data_for_chemsys"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys">[docs]</a>    <span class="k">def</span> <span class="nf">get_ion_reference_data_for_chemsys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
