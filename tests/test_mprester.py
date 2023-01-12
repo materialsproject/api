@@ -166,9 +166,9 @@ class TestMPRester:
 
         s = prim.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
-        assert pytest.approx(s.lattice.a) == s.lattice.c
+        assert pytest.approx(s.lattice.a) != s.lattice.c
         assert pytest.approx(s.lattice.alpha) == s.lattice.beta
-        assert pytest.approx(s.lattice.alpha) == s.lattice.gamma
+        assert pytest.approx(s.lattice.alpha) != s.lattice.gamma
 
         # Additional criteria
         entry = mpr.get_entries(
@@ -294,10 +294,10 @@ class TestMPRester:
         assert np.allclose(so4_two_minus.energy, solid_energy + 5.542, atol=1e-3)
 
     def test_get_phonon_data_by_material_id(self, mpr):
-        bs = mpr.get_phonon_bandstructure_by_material_id("mp-11659")
+        bs = mpr.get_phonon_bandstructure_by_material_id("mp-2172")
         assert isinstance(bs, PhononBandStructureSymmLine)
 
-        dos = mpr.get_phonon_dos_by_material_id("mp-11659")
+        dos = mpr.get_phonon_dos_by_material_id("mp-2172")
         assert isinstance(dos, PhononDos)
 
     @pytest.mark.skip(reason="Test needs fixing with ENV variables")

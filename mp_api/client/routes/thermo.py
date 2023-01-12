@@ -12,7 +12,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
     suffix = "thermo"
     document_model = ThermoDoc  # type: ignore
     supports_versions = True
-    primary_key = "material_id"
+    primary_key = "thermo_id"
 
     def search_thermo_docs(self, *args, **kwargs):  # pragma: no cover
         """
@@ -39,7 +39,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         material_ids: Optional[List[str]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
         thermo_ids: Optional[List[str]] = None,
-        thermo_types: Optional[List[ThermoType]] = None,
+        thermo_types: Optional[List[ThermoType]] = [ThermoType.GGA_GGA_U],
         total_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
