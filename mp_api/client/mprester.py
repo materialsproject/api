@@ -79,7 +79,7 @@ class MPRester:
 
     def __init__(
         self,
-        api_key: str = DEFAULT_API_KEY,
+        api_key: Optional[str] = DEFAULT_API_KEY,
         endpoint: str = DEFAULT_ENDPOINT,
         notify_db_version: bool = False,
         include_user_agent: bool = True,
