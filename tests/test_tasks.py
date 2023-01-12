@@ -90,7 +90,6 @@ def test_client(rester):
                 assert doc[project_field if project_field is not None else param] is not None
 
 
-@pytest.mark.xfail(reason="Temporary until redeploy")
 def test_get_trajectories(rester):
 
     trajectories = rester.get_trajectory("mp-149")
