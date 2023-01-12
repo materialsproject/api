@@ -45,7 +45,6 @@ custom_field_tests = {
     "thermo_types": [ThermoType.GGA_GGA_U],
     "formula": "SiO2",
     "chemsys": "Si-O",
-    "thermo_ids": ["mp-149"],
 }  # type: dict
 
 

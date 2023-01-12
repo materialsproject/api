@@ -12,7 +12,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
     suffix = "thermo"
     document_model = ThermoDoc  # type: ignore
     supports_versions = True
-    primary_key = "material_id"
+    primary_key = "thermo_id"
 
     def search_thermo_docs(self, *args, **kwargs):  # pragma: no cover
         """
