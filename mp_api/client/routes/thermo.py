@@ -1,10 +1,12 @@
 import warnings
 from collections import defaultdict
-from typing import Optional, List, Tuple, Union
-from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import validate_ids
+from typing import List, Optional, Tuple, Union
+
 from emmet.core.thermo import ThermoDoc, ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
+
+from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
@@ -39,7 +41,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         material_ids: Optional[List[str]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
         thermo_ids: Optional[List[str]] = None,
-        thermo_types: Optional[List[ThermoType]] = [ThermoType.GGA_GGA_U],
+        thermo_types: Optional[List[Union[ThermoType, str]]] = [ThermoType.GGA_GGA_U],
         total_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
@@ -102,9 +104,12 @@ class ThermoRester(BaseRester[ThermoDoc]):
             query_params.update({"thermo_ids": ",".join(validate_ids(thermo_ids))})
 
         if thermo_types:
-            query_params.update(
-                {"thermo_types": ",".join([t.value for t in thermo_types])}
-            )
+            t_types = [t if isinstance(t, str) else t.value for t in thermo_types]
+            if not all(hasattr(ThermoType, t) for t in t_types):
+                raise ValueError(
+                    f"Invalid thermo type(s) passed: {t_types}, valid types are: {list(ThermoType.__members__)}"
+                )
+            query_params.update({"thermo_types": ",".join(t_types)})
 
         if num_elements:
             if isinstance(num_elements, int):
