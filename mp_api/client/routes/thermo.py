@@ -106,9 +106,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
         if thermo_types:
             t_types = {t if isinstance(t, str) else t.value for t in thermo_types}
             valid_types = {*map(str, ThermoType.__members__.values())}
-            if t_types - valid_types:
+            if invalid_types := t_types - valid_types:
                 raise ValueError(
-                    f"Invalid thermo type(s) passed: {t_types}, valid types are: {valid_types}"
+                    f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}"
                 )
             query_params.update({"thermo_types": ",".join(t_types)})
 
