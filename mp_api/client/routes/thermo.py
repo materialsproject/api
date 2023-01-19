@@ -174,9 +174,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
             use_document_model=False,
             num_chunks=1,
             chunk_size=1,
-        ).get("data")
+        ).get("data", [{}])
 
-        pd = response[0]["phase_diagram"]
+        pd = response[0].get("phase_diagram", None)
 
         # Ensure el_ref keys are Element objects for PDPlotter.
         # This should be fixed in pymatgen
