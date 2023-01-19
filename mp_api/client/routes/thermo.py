@@ -5,6 +5,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 from emmet.core.thermo import ThermoDoc, ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
+from pymatgen.core import Element
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
@@ -173,6 +174,18 @@ class ThermoRester(BaseRester[ThermoDoc]):
             use_document_model=False,
             num_chunks=1,
             chunk_size=1,
-        ).get("data")
+        ).get("data", [{}])
 
-        return response[0]["phase_diagram"]  # type: ignore
+        pd = response[0].get("phase_diagram", None)
+
+        # Ensure el_ref keys are Element objects for PDPlotter.
+        # This should be fixed in pymatgen
+        if pd:
+            for key, entry in list(pd.el_refs.items()):
+                if not isinstance(key, str):
+                    break
+
+                pd.el_refs[Element(str(key))] = entry
+                pd.el_refs.pop(key)
+
+        return pd  # type: ignore
