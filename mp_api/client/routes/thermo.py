@@ -184,8 +184,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
             for key, entry in list(pd.el_refs.items()):
                 if not isinstance(key, str):
                     break
-                    
-            pd.el_refs[Element(str(key))] = entry
-            pd.el_refs.pop(key)
+
+                pd.el_refs[Element(str(key))] = entry
+                pd.el_refs.pop(key)
 
         return pd  # type: ignore
