@@ -1,4 +1,5 @@
 import warnings
+import numpy as np
 from collections import defaultdict
 from typing import Optional, List, Tuple, Union
 from mp_api.client.core import BaseRester
@@ -179,6 +180,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         pd = response[0].get("phase_diagram", None)
 
         # Ensure el_ref keys are Element objects for PDPlotter.
+        # Ensure qhull_data is a numpy array
         # This should be fixed in pymatgen
         if pd:
             for key, entry in list(pd.el_refs.items()):
@@ -187,5 +189,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
                 pd.el_refs[Element(str(key))] = entry
                 pd.el_refs.pop(key)
+
+            if isinstance(pd.qhull_data, list):
+                pd.qhull_data = np.array(pd.qhull_data)
 
         return pd  # type: ignore
