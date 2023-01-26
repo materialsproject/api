@@ -457,6 +457,9 @@ class MPRester:
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
+        Note that by default this returns mixed GGA/GGA+U entries. For others,
+        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.
+
         Args:
             chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas
@@ -889,6 +892,10 @@ class MPRester:
         entries in the Li-Fe-O chemical system, i.e., all LixOy,
         FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for
         creating phase diagrams of entire chemical systems.
+
+        Note that by default this returns mixed GGA/GGA+U entries. For others,
+        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.
+
         Args:
             elements (str or [str]): Chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
@@ -918,7 +925,8 @@ class MPRester:
             additional_criteria (dict): Any additional criteria to pass. The keys and values should
                 correspond to proper function inputs to `MPRester.thermo.search`. For instance,
                 if you are only interested in entries on the convex hull, you could pass
-                {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}.
+                {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}, or if you are only interested
+                in entry data 
         Returns:
             List of ComputedStructureEntries.
         """
