@@ -934,9 +934,11 @@ class MPRester:
         if isinstance(elements, str):
             elements = elements.split("-")
 
+        elements_set = set(elements)  # remove duplicate elements
+
         all_chemsyses = []
-        for i in range(len(elements)):
-            for els in itertools.combinations(elements, i + 1):
+        for i in range(len(elements_set)):
+            for els in itertools.combinations(elements_set, i + 1):
                 all_chemsyses.append("-".join(sorted(els)))
 
         entries = []  # type: List[ComputedEntry]
