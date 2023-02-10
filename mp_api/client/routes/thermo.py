@@ -150,7 +150,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         )
 
     def get_phase_diagram_from_chemsys(
-        self, chemsys: str, thermo_type: ThermoType = ThermoType.GGA_GGA_U
+        self, chemsys: str, thermo_type: Union[ThermoType, str] = ThermoType.GGA_GGA_U
     ) -> PhaseDiagram:
         """
         Get a pre-computed phase diagram for a given chemsys.
