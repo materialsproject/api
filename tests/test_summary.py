@@ -42,7 +42,7 @@ custom_field_tests = {
     "formula": "SiO2",
     "chemsys": "Si-O",
     "elements": ["Si", "O"],
-    "exclude_elements": ["Si"],
+    "exclude_elements": ["Zr"],
     "possible_species": ["O2-"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
@@ -54,9 +54,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client():
 
     search_method = SummaryRester().search
@@ -107,6 +105,4 @@ def test_client():
             else:
                 raise ValueError("No documents returned")
 
-            assert (
-                doc[project_field if project_field is not None else param] is not None
-            )
+            assert doc[project_field if project_field is not None else param] is not None
