@@ -14,7 +14,8 @@ excluded_params = [
     "all_fields",
     "fields",
     "equilibrium_reaction_energy",  # temp until data update
-    "exclude_elements"
+    "exclude_elements",  # temp until data update
+    "num_sites",  # temp until timeout update
 ]
 
 alt_name_dict = {

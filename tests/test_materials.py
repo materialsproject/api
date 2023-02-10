@@ -20,6 +20,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "exclude_elements",  # temp until timeout update
+    "num_sites",  # temp until timeout update
 ]
 
 sub_doc_fields = []  # type: list
