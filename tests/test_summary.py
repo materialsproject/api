@@ -14,6 +14,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "equilibrium_reaction_energy",  # temp until data update
+    "exclude_elements"
 ]
 
 alt_name_dict = {
@@ -42,7 +43,6 @@ custom_field_tests = {
     "formula": "SiO2",
     "chemsys": "Si-O",
     "elements": ["Si", "O"],
-    "exclude_elements": ["Zr"],
     "possible_species": ["O2-"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,

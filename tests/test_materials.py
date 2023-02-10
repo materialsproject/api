@@ -19,6 +19,7 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
+    "exclude_elements",  # temp until timeout update
 ]
 
 sub_doc_fields = []  # type: list
@@ -39,7 +40,6 @@ custom_field_tests = {
     "formula": "Si",
     "chemsys": "Si-O",
     "elements": ["Si", "O"],
-    "exclude_elements": ["Zr"],
     "task_ids": ["mp-149"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
