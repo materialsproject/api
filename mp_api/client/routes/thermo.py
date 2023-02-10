@@ -163,13 +163,13 @@ class ThermoRester(BaseRester[ThermoDoc]):
             phase_diagram (PhaseDiagram): Pymatgen phase diagram object.
         """
 
-        t_types = thermo_type if isinstance(thermo_type, str) else thermo_type.value
+        t_type = thermo_type if isinstance(thermo_type, str) else thermo_type.value
         valid_types = {*map(str, ThermoType.__members__.values())}
-        if invalid_types := t_types - valid_types:
+        if invalid_types := {t_type} - valid_types:
             raise ValueError(f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}")
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
-        phase_diagram_id = f"{sorted_chemsys}_{t_types}"
+        phase_diagram_id = f"{sorted_chemsys}_{t_type}"
         response = self._query_resource(
             fields=["phase_diagram"],
             suburl=f"phase_diagram/{phase_diagram_id}",
