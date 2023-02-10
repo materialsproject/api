@@ -201,7 +201,7 @@
                 <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
                 <span class="n">monty_decode</span><span class="o">=</span><span class="n">monty_decode</span><span class="p">,</span>
                 <span class="n">use_document_model</span><span class="o">=</span><span class="n">use_document_model</span><span class="p">,</span>
-                <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span>
+                <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
             <span class="p">)</span>  <span class="c1"># type: BaseRester</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_all_resters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rester</span><span class="p">)</span>
@@ -489,6 +489,9 @@
 <span class="sd">        Get a list of ComputedEntries or ComputedStructureEntries corresponding</span>
 <span class="sd">        to a chemical system or formula.</span>
 
+<span class="sd">        Note that by default this returns mixed GGA/GGA+U entries. For others,</span>
+<span class="sd">        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas</span>
@@ -739,9 +742,7 @@
 <span class="sd">                compounds and aqueous species, Wiley, New York (1978)&#39;}}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">contribs</span><span class="o">.</span><span class="n">query_contributions</span><span class="p">(</span>
-            <span class="n">query</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="s2">&quot;ion_ref_data&quot;</span><span class="p">},</span>
-            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identifier&quot;</span><span class="p">,</span> <span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">],</span>
-            <span class="n">paginate</span><span class="o">=</span><span class="kc">True</span>
+            <span class="n">query</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="s2">&quot;ion_ref_data&quot;</span><span class="p">},</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identifier&quot;</span><span class="p">,</span> <span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">],</span> <span class="n">paginate</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MPRester.get_ion_reference_data_for_chemsys"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys">[docs]</a>    <span class="k">def</span> <span class="nf">get_ion_reference_data_for_chemsys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
@@ -921,6 +922,10 @@
 <span class="sd">        entries in the Li-Fe-O chemical system, i.e., all LixOy,</span>
 <span class="sd">        FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for</span>
 <span class="sd">        creating phase diagrams of entire chemical systems.</span>
+
+<span class="sd">        Note that by default this returns mixed GGA/GGA+U entries. For others,</span>
+<span class="sd">        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            elements (str or [str]): Chemical system string comprising element</span>
 <span class="sd">                symbols separated by dashes, e.g., &quot;Li-Fe-O&quot; or List of element</span>
@@ -950,7 +955,8 @@
 <span class="sd">            additional_criteria (dict): Any additional criteria to pass. The keys and values should</span>
 <span class="sd">                correspond to proper function inputs to `MPRester.thermo.search`. For instance,</span>
 <span class="sd">                if you are only interested in entries on the convex hull, you could pass</span>
-<span class="sd">                {&quot;energy_above_hull&quot;: (0.0, 0.0)} or {&quot;is_stable&quot;: True}.</span>
+<span class="sd">                {&quot;energy_above_hull&quot;: (0.0, 0.0)} or {&quot;is_stable&quot;: True}, or if you are only interested</span>
+<span class="sd">                in entry data</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            List of ComputedStructureEntries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -958,9 +964,11 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">elements</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
 
+        <span class="n">elements_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>  <span class="c1"># remove duplicate elements</span>
+
         <span class="n">all_chemsyses</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span>
-            <span class="k">for</span> <span class="n">els</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">elements_set</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">els</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">elements_set</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
                 <span class="n">all_chemsyses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">els</span><span class="p">)))</span>
 
         <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[ComputedEntry]</span>
