@@ -169,7 +169,7 @@ class MPRester:
                 session=self.session,
                 monty_decode=monty_decode,
                 use_document_model=use_document_model,
-                headers=self.headers
+                headers=self.headers,
             )  # type: BaseRester
 
             self._all_resters.append(rester)
@@ -710,9 +710,7 @@ class MPRester:
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
         return self.contribs.query_contributions(
-            query={"project": "ion_ref_data"},
-            fields=["identifier", "formula", "data"],
-            paginate=True
+            query={"project": "ion_ref_data"}, fields=["identifier", "formula", "data"], paginate=True
         ).get("data")
 
     def get_ion_reference_data_for_chemsys(self, chemsys: Union[str, List]) -> List[Dict]:
@@ -926,7 +924,7 @@ class MPRester:
                 correspond to proper function inputs to `MPRester.thermo.search`. For instance,
                 if you are only interested in entries on the convex hull, you could pass
                 {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}, or if you are only interested
-                in entry data 
+                in entry data
         Returns:
             List of ComputedStructureEntries.
         """
