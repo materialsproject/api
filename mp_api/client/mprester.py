@@ -79,7 +79,7 @@ class MPRester:
 
     def __init__(
         self,
-        api_key: Optional[str] = DEFAULT_API_KEY,
+        api_key: Optional[str] = None,
         endpoint: str = DEFAULT_ENDPOINT,
         notify_db_version: bool = False,
         include_user_agent: bool = True,
@@ -128,7 +128,7 @@ class MPRester:
                 "API are 16 characters."
             )
 
-        self.api_key = api_key
+        self.api_key = api_key or DEFAULT_API_KEY
         self.endpoint = endpoint
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
