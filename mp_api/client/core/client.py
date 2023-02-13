@@ -54,7 +54,7 @@ class BaseRester(Generic[T]):
 
     def __init__(
         self,
-        api_key: Union[str, None] = DEFAULT_API_KEY,
+        api_key: Union[str, None] = None,
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
         session: Optional[requests.Session] = None,
@@ -93,7 +93,7 @@ class BaseRester(Generic[T]):
             headers (dict): Custom headers for localhost connections.
         """
 
-        self.api_key = api_key
+        self.api_key = api_key or DEFAULT_API_KEY
         self.base_endpoint = endpoint
         self.endpoint = endpoint
         self.debug = debug
