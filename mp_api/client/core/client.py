@@ -54,7 +54,7 @@ class BaseRester(Generic[T]):
 
     def __init__(
         self,
-        api_key: Union[str, None] = DEFAULT_API_KEY,
+        api_key: Union[str, None] = None,
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
         session: Optional[requests.Session] = None,
@@ -93,7 +93,7 @@ class BaseRester(Generic[T]):
             headers (dict): Custom headers for localhost connections.
         """
 
-        self.api_key = api_key
+        self.api_key = api_key or DEFAULT_API_KEY
         self.base_endpoint = endpoint
         self.endpoint = endpoint
         self.debug = debug
@@ -845,8 +845,12 @@ class BaseRester(Generic[T]):
                 from mp_api.client.routes.materials import MaterialsRester
 
                 with MaterialsRester(
-                    api_key=self.api_key, endpoint=self.base_endpoint, use_document_model=False, monty_decode=False,
-                    session=self.session, headers=self.headers
+                    api_key=self.api_key,
+                    endpoint=self.base_endpoint,
+                    use_document_model=False,
+                    monty_decode=False,
+                    session=self.session,
+                    headers=self.headers,
                 ) as mpr:
                     docs = mpr.search(task_ids=[document_id], fields=["material_id"])
 
