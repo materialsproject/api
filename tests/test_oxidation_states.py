@@ -80,8 +80,6 @@ def test_client(rester):
                         "num_chunks": 1,
                     }
 
-                print(q)
-
                 doc = search_method(**q)[0].dict()
                 for sub_field in sub_doc_fields:
                     if sub_field in doc:
