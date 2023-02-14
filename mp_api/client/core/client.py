@@ -41,6 +41,7 @@ DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.
 
 T = TypeVar("T")
 
+
 class BaseRester(Generic[T]):
     """
     Base client class with core stubs
