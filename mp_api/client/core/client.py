@@ -41,6 +41,8 @@ DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.
 
 T = TypeVar("T")
 
+print(DEFAULT_API_KEY)
+
 
 class BaseRester(Generic[T]):
     """
@@ -845,8 +847,12 @@ class BaseRester(Generic[T]):
                 from mp_api.client.routes.materials import MaterialsRester
 
                 with MaterialsRester(
-                    api_key=self.api_key, endpoint=self.base_endpoint, use_document_model=False, monty_decode=False,
-                    session=self.session, headers=self.headers
+                    api_key=self.api_key,
+                    endpoint=self.base_endpoint,
+                    use_document_model=False,
+                    monty_decode=False,
+                    session=self.session,
+                    headers=self.headers,
                 ) as mpr:
                     docs = mpr.search(task_ids=[document_id], fields=["material_id"])
 
