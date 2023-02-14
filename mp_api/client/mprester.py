@@ -132,7 +132,7 @@ class MPRester:
         self.endpoint = endpoint
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
-            api_key=api_key, include_user_agent=include_user_agent, headers=self.headers
+            api_key=self.api_key, include_user_agent=include_user_agent, headers=self.headers
         )
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
