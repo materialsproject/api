@@ -53,6 +53,9 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
+        if sort_fields:
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+
         return super()._search(
             formulae=formulae,
             num_chunks=num_chunks,
