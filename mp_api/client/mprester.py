@@ -102,7 +102,7 @@ class MPRester:
                 address at "https://api.materialsproject.org", but
                 can be changed to other urls implementing a similar interface.
             notify_db_version (bool): If True, the current MP database version will
-                be retrieved and logged locally in the ~/.pmgrc.yaml. If the database
+                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
                 version changes, you will be notified. The current database version is
                 also printed on instantiation. These local logs are not sent to
                 materialsproject.org and are not associated with your API key, so be
