@@ -2,7 +2,7 @@ import warnings
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
-from emmet.core.mpid import MPID
+from emmet.core.mpid import MPculeID
 from emmet.core.molecules.summary import HasProps, SummaryDoc
 
 from mp_api.client.core import BaseRester
@@ -23,7 +23,7 @@ class MPculeSummaryRester(BaseRester[SummaryDoc]):
         has_solvent: Optional[Union[str, List[str]]] = None,
         has_level_of_theory: Optional[Union[str, List[str]]] = None,
         has_lot_solvent: Optional[Union[str, List[str]]] = None,
-        with_solvent: Optional[str] = None,
+        # with_solvent: Optional[str] = None,
         electronic_energy: Optional[Tuple[float, float]] = None,
         ionization_energy: Optional[Tuple[float, float]] = None,
         electron_affinity: Optional[Tuple[float, float]] = None,
@@ -45,8 +45,7 @@ class MPculeSummaryRester(BaseRester[SummaryDoc]):
         exclude_elements: Optional[List[str]] = None,
         formula: Optional[Union[str, List[str]]] = None,
         has_props: Optional[List[HasProps]] = None,
-        material_ids: Optional[List[MPID]] = None,
-        num_elements: Optional[Tuple[int, int]] = None,
+        molecule_ids: Optional[List[MPculeID]] = None,
         # num_sites: Optional[Tuple[int, int]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
@@ -66,8 +65,9 @@ class MPculeSummaryRester(BaseRester[SummaryDoc]):
             has_level_of_theory (str, List[str]): Whether the molecule has properties calculated
                 using a particular level of theory (e.g. "wB97M-V/def2-SVPD/SMD", 
                     ["wB97X-V/def2-TZVPPD/SMD", "wB97M-V/def2-QZVPPD/SMD"])
-            with_solvent (str): For property-based queries, ensure that the properties are calculated
-                in a particular solvent
+            has_lot_solvent (str, List[str]): Whether the molecule has properties calculated
+                using a particular combination of level of theory and solvent (e.g. "wB97X-V/def2-SVPD/SMD(SOLVENT=THF)", 
+                    ["wB97X-V/def2-TZVPPD/SMD(VACUUM)", "wB97M-V/def2-QZVPPD/SMD(SOLVENT=WATER)"])
             electronic_energy (Tuple[float, float]): Minimum and maximum electronic energy
             ionization_energy (Tuple[float, float]): Minimum and maximum ionization energy
             electron_affinity (Tuple[float, float]): Minimum and maximum electron affinity
@@ -81,8 +81,7 @@ class MPculeSummaryRester(BaseRester[SummaryDoc]):
             formula (str, List[str]): An alphabetical formula or list of formulas
                 (e.g. "C2 Li2 O4", ["C2 H4", "C2 H6"]).
             has_props: (List[HasProps]): The calculated properties available for the material.
-            material_ids (List[MPID]): List of Materials Project IDs to return data for.
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            molecule_ids (List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data for.
             sort_fields (List[str]): Fields used to sort results. Prefixing with '-' will sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -95,19 +94,30 @@ class MPculeSummaryRester(BaseRester[SummaryDoc]):
 
         query_params = defaultdict(dict)  # type: dict
 
+        min_max = [
+            "charge",
+            "spin_multiplicity",
+            "nelements",
+            "electronic_energy",
+            "ionization_energy",
+            "electron_affinity",
+            "reduction_free_energy",
+            "oxidation_free_energy"
+        ]
+
         for param, value in locals().items():
-            if param in min_max_name_dict and value:
+            if param in min_max and value:
                 if isinstance(value, (int, float)):
                     value = (value, value)
                 query_params.update(
                     {
-                        f"{min_max_name_dict[param]}_min": value[0],
-                        f"{min_max_name_dict[param]}_max": value[1],
+                        f"{param}_min": value[0],
+                        f"{param}_max": value[1],
                     }
                 )
 
-        if material_ids:
-            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+        if molecule_ids:
+            query_params.update({"molecule_ids": ",".join(molecule_ids)})
 
         if deprecated is not None:
             query_params.update({"deprecated": deprecated})
@@ -130,37 +140,8 @@ class MPculeSummaryRester(BaseRester[SummaryDoc]):
         if exclude_elements is not None:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
-        if possible_species is not None:
-            query_params.update({"possible_species": ",".join(possible_species)})
-
-        query_params.update(
-            {
-                "crystal_system": crystal_system,
-                "spacegroup_number": spacegroup_number,
-                "spacegroup_symbol": spacegroup_symbol,
-            }
-        )
-
-        if is_stable is not None:
-            query_params.update({"is_stable": is_stable})
-
-        if is_gap_direct is not None:
-            query_params.update({"is_gap_direct": is_gap_direct})
-
-        if is_metal is not None:
-            query_params.update({"is_metal": is_metal})
-
-        if magnetic_ordering:
-            query_params.update({"ordering": magnetic_ordering.value})
-
-        if has_reconstructed is not None:
-            query_params.update({"has_reconstructed": has_reconstructed})
-
         if has_props:
             query_params.update({"has_props": ",".join([i.value for i in has_props])})
-
-        if theoretical is not None:
-            query_params.update({"theoretical": theoretical})
 
         if sort_fields:
             query_params.update(

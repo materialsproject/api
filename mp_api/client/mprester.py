@@ -74,6 +74,7 @@ class MPRester:
     provenance: ProvenanceRester
     bonds: BondsRester
     alloys: AlloysRester
+    mpcules_summary: MPculesSummaryRester
     _user_settings: UserSettingsRester
     _general_store: GeneralStoreRester
 

@@ -30,6 +30,7 @@ from ._user_settings import UserSettingsRester
 from ._general_store import GeneralStoreRester
 from .bonds import BondsRester
 from .robocrys import RobocrysRester
+from mp_api.routes.mpcules.summary import MPculesSummaryRester
 
 try:
     from .alloys import AlloysRester
