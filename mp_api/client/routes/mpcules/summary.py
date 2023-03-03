@@ -9,9 +9,9 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class MPculeSummaryRester(BaseRester[SummaryDoc]):
+class MPculesSummaryRester(BaseRester[SummaryDoc]):
 
-    suffix = "summary"
+    suffix = "mpcules_summary"
     document_model = SummaryDoc  # type: ignore
     primary_key = "molecule_id"
 
