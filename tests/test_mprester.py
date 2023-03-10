@@ -254,6 +254,10 @@ class TestMPRester:
         ion_entries = mpr.get_ion_entries(pd, ion_entry_data)
         assert len(ion_entries) == 5
         assert all([isinstance(i, IonEntry) for i in ion_entries])
+        bi_v_entry_data = mpr.get_ion_reference_data_for_chemsys("Bi-V")
+        bi_data = mpr.get_ion_reference_data_for_chemsys("Bi")
+        v_data = mpr.get_ion_reference_data_for_chemsys("V")
+        assert len(bi_v_entry_data) == len(bi_data) + v_data
 
         # test an incomplete phase diagram
         entries = mpr.get_entries_in_chemsys("Ti-O")
