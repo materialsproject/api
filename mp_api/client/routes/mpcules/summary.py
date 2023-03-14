@@ -3,16 +3,16 @@ from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
 from emmet.core.mpid import MPculeID
-from emmet.core.molecules.summary import HasProps, SummaryDoc
+from emmet.core.molecules.summary import HasProps, MoleculeSummaryDoc
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class MPculesSummaryRester(BaseRester[SummaryDoc]):
+class MPculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
 
-    suffix = "mpcules_summary"
-    document_model = SummaryDoc  # type: ignore
+    suffix = "mpcules"
+    document_model = MoleculeSummaryDoc  # type: ignore
     primary_key = "molecule_id"
 
     def search(
