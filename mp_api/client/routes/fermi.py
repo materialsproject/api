@@ -4,7 +4,6 @@ from typing import Optional, List
 
 
 class FermiRester(BaseRester[FermiDoc]):
-
     suffix = "fermi"
     document_model = FermiDoc  # type: ignore
     primary_key = "task_id"

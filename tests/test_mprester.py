@@ -38,9 +38,7 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-149")
@@ -147,9 +145,7 @@ class TestMPRester:
 
         # Conventional structure
         formula = "BiFeO3"
-        entry = mpr.get_entry_by_material_id(
-            "mp-22526", inc_structure=True, conventional_unit_cell=True
-        )[0]
+        entry = mpr.get_entry_by_material_id("mp-22526", inc_structure=True, conventional_unit_cell=True)[0]
 
         s = entry.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
@@ -159,9 +155,7 @@ class TestMPRester:
         assert pytest.approx(s.lattice.gamma) == 120
 
         # Ensure energy per atom is same
-        prim = mpr.get_entry_by_material_id(
-            "mp-22526", inc_structure=True, conventional_unit_cell=False
-        )[0]
+        prim = mpr.get_entry_by_material_id("mp-22526", inc_structure=True, conventional_unit_cell=False)[0]
         assert pytest.approx(prim.energy_per_atom) == entry.energy_per_atom
 
         s = prim.structure
@@ -263,15 +257,9 @@ class TestMPRester:
 
         # test ion energy calculation
         ion_data = mpr.get_ion_reference_data_for_chemsys("S")
-        ion_ref_comps = [
-            Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data
-        ]
-        ion_ref_elts = set(
-            itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
-        )
-        ion_ref_entries = mpr.get_entries_in_chemsys(
-            list([str(e) for e in ion_ref_elts] + ["O", "H"])
-        )
+        ion_ref_comps = [Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data]
+        ion_ref_elts = set(itertools.chain.from_iterable(i.elements for i in ion_ref_comps))
+        ion_ref_entries = mpr.get_entries_in_chemsys(list([str(e) for e in ion_ref_elts] + ["O", "H"]))
         mpc = MaterialsProjectAqueousCompatibility()
         ion_ref_entries = mpc.process_entries(ion_ref_entries)
         ion_ref_pd = PhaseDiagram(ion_ref_entries)
@@ -280,9 +268,7 @@ class TestMPRester:
         # In ion ref data, SO4-2 is -744.27 kJ/mol; ref solid is -1,279.0 kJ/mol
         # so the ion entry should have an energy (-744.27 +1279) = 534.73 kJ/mol
         # or 5.542 eV/f.u. above the energy of Na2SO4
-        so4_two_minus = [e for e in ion_entries if e.ion.reduced_formula == "SO4[-2]"][
-            0
-        ]
+        so4_two_minus = [e for e in ion_entries if e.ion.reduced_formula == "SO4[-2]"][0]
 
         # the ref solid is Na2SO4, ground state mp-4770
         # the rf factor correction is necessary to make sure the composition
@@ -305,9 +291,7 @@ class TestMPRester:
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
         assert isinstance(chgcar, Chgcar)
 
-        chgcar, task_doc = mpr.get_charge_density_from_material_id(
-            "mp-149", inc_task_doc=True
-        )
+        chgcar, task_doc = mpr.get_charge_density_from_material_id("mp-149", inc_task_doc=True)
         assert isinstance(chgcar, Chgcar)
         assert isinstance(task_doc, TaskDoc)
 
@@ -317,10 +301,7 @@ class TestMPRester:
 
     def test_large_list(self, mpr):
         mpids = [
-            str(doc.material_id)
-            for doc in mpr.summary.search(
-                chunk_size=1000, num_chunks=15, fields=["material_id"]
-            )
+            str(doc.material_id) for doc in mpr.summary.search(chunk_size=1000, num_chunks=15, fields=["material_id"])
         ]
         docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
         assert len(docs) == 15000

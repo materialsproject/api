@@ -16,7 +16,6 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
-
     suffix = "charge_density"
     primary_key = "fs_id"
     document_model = ChgcarDataDoc  # type: ignore
@@ -50,7 +49,11 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         return num_downloads
 
     def search(  # type: ignore
-        self, task_ids: Optional[List[str]] = None, num_chunks: Optional[int] = 1, chunk_size: int = 10, **kwargs
+        self,
+        task_ids: Optional[List[str]] = None,
+        num_chunks: Optional[int] = 1,
+        chunk_size: int = 10,
+        **kwargs,
     ) -> Union[List[ChgcarDataDoc], List[Dict]]:  # type: ignore
         """
         A search method to find what charge densities are available via this API.
@@ -80,13 +83,11 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         url_doc = self.get_data_by_id(fs_id)
 
         if url_doc:
-
             # The check below is performed to see if the client is being
             # used by our internal AWS deployment. If it is, we pull charge
             # density data from a private S3 bucket. Else, we pull data
             # from public MinIO buckets.
             if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
-
                 if self.boto_resource is None:
                     self.boto_resource = self._get_s3_resource(use_minio=False, unsigned=False)
 
@@ -118,7 +119,6 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             return None
 
     def _extract_s3_url_info(self, url_doc, use_minio: bool = True):
-
         if use_minio:
             url_list = url_doc.url.split("/")
             bucket = url_list[3]
@@ -131,7 +131,6 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         return (bucket, obj_prefix)
 
     def _get_s3_resource(self, use_minio: bool = True, unsigned: bool = True):
-
         resource = boto3.resource(
             "s3",
             endpoint_url="https://minio.materialsproject.org" if use_minio else None,

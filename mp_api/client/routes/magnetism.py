@@ -11,7 +11,6 @@ import warnings
 
 
 class MagnetismRester(BaseRester[MagnetismDoc]):
-
     suffix = "magnetism"
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"
@@ -22,8 +21,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         """
 
         warnings.warn(
-            "MPRester.magnetism.search_magnetism_docs is deprecated. "
-            "Please use MPRester.magnetism.search instead.",
+            "MPRester.magnetism.search_magnetism_docs is deprecated. " "Please use MPRester.magnetism.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -38,9 +36,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         ordering: Optional[Ordering] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_formula_units: Optional[
-            Tuple[float, float]
-        ] = None,
+        total_magnetization_normalized_formula_units: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
@@ -92,24 +88,16 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         if total_magnetization_normalized_vol:
             query_params.update(
                 {
-                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[
-                        0
-                    ],
-                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[
-                        1
-                    ],
+                    "total_magnetization_normalized_vol_min": total_magnetization_normalized_vol[0],
+                    "total_magnetization_normalized_vol_max": total_magnetization_normalized_vol[1],
                 }
             )
 
         if total_magnetization_normalized_formula_units:
             query_params.update(
                 {
-                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[
-                        0
-                    ],
-                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[
-                        1
-                    ],
+                    "total_magnetization_normalized_formula_units_min": total_magnetization_normalized_formula_units[0],
+                    "total_magnetization_normalized_formula_units_max": total_magnetization_normalized_formula_units[1],
                 }
             )
 
@@ -133,20 +121,10 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
             query_params.update({"ordering": ordering.value})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

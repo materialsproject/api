@@ -33,9 +33,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 
@@ -84,7 +82,4 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+                assert doc[project_field if project_field is not None else param] is not None

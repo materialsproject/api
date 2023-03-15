@@ -10,7 +10,6 @@ from mp_api.client.core.utils import validate_ids
 
 
 class MPculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
-
     suffix = "mpcules"
     document_model = MoleculeSummaryDoc  # type: ignore
     primary_key = "molecule_id"
@@ -48,10 +47,11 @@ class MPculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
             # has_solvent (str, List[str]): Whether the molecule has properties calculated in
             #     solvents (e.g., "SOLVENT=THF", ["SOLVENT=WATER", "VACUUM"])
             # has_level_of_theory (str, List[str]): Whether the molecule has properties calculated
-            #     using a particular level of theory (e.g. "wB97M-V/def2-SVPD/SMD", 
+            #     using a particular level of theory (e.g. "wB97M-V/def2-SVPD/SMD",
             #         ["wB97X-V/def2-TZVPPD/SMD", "wB97M-V/def2-QZVPPD/SMD"])
             # has_lot_solvent (str, List[str]): Whether the molecule has properties calculated
-            #     using a particular combination of level of theory and solvent (e.g. "wB97X-V/def2-SVPD/SMD(SOLVENT=THF)", 
+            #     using a particular combination of level of theory and solvent (e.g.
+            #         "wB97X-V/def2-SVPD/SMD(SOLVENT=THF)",
             #         ["wB97X-V/def2-TZVPPD/SMD(VACUUM)", "wB97M-V/def2-QZVPPD/SMD(SOLVENT=WATER)"])
             chemsys (str, List[str]): A chemical system, list of chemical systems
                 (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).
@@ -82,7 +82,7 @@ class MPculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
             "ionization_energy",
             "electron_affinity",
             "reduction_free_energy",
-            "oxidation_free_energy"
+            "oxidation_free_energy",
         ]
 
         for param, value in locals().items():
@@ -124,15 +124,9 @@ class MPculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
             query_params.update({"has_props": ",".join([i.value for i in has_props])})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
             num_chunks=num_chunks,

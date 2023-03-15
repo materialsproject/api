@@ -59,9 +59,7 @@ class MAPIClientSettings(BaseSettings):
         description="Number of parallel requests to send.",
     )
 
-    MAX_RETRIES: int = Field(
-        _MAX_RETRIES, description="Maximum number of retries for requests."
-    )
+    MAX_RETRIES: int = Field(_MAX_RETRIES, description="Maximum number of retries for requests.")
 
     MUTE_PROGRESS_BARS: bool = Field(
         _MUTE_PROGRESS_BAR,

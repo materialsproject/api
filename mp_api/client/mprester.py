@@ -133,7 +133,9 @@ class MPRester:
         self.endpoint = endpoint
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
-            api_key=self.api_key, include_user_agent=include_user_agent, headers=self.headers
+            api_key=self.api_key,
+            include_user_agent=include_user_agent,
+            headers=self.headers,
         )
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
@@ -162,7 +164,6 @@ class MPRester:
             self.endpoint += "/"
 
         for cls in BaseRester.__subclasses__():
-
             rester = cls(
                 api_key=api_key,
                 endpoint=endpoint,
@@ -506,7 +507,6 @@ class MPRester:
         try:
             input_params = {"material_ids": validate_ids(chemsys_formula_mpids)}
         except ValueError:
-
             if any("-" in entry for entry in chemsys_formula_mpids):
                 input_params = {"chemsys": chemsys_formula_mpids}
             else:
@@ -548,7 +548,6 @@ class MPRester:
                         )
 
                 if conventional_unit_cell:
-
                     entry_struct = Structure.from_dict(entry_dict["structure"])
                     s = SpacegroupAnalyzer(entry_struct).get_conventional_standard_structure()
                     site_ratio = len(s) / len(entry_struct)
@@ -604,7 +603,6 @@ class MPRester:
             MaterialsProjectAqueousCompatibility,
             MaterialsProjectCompatibility,
         )
-        from pymatgen.entries.computed_entries import ComputedEntry
 
         if solid_compat == "MaterialsProjectCompatibility":
             solid_compat = MaterialsProjectCompatibility()
@@ -711,7 +709,9 @@ class MPRester:
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
         return self.contribs.query_contributions(
-            query={"project": "ion_ref_data"}, fields=["identifier", "formula", "data"], paginate=True
+            query={"project": "ion_ref_data"},
+            fields=["identifier", "formula", "data"],
+            paginate=True,
         ).get("data")
 
     def get_ion_reference_data_for_chemsys(self, chemsys: Union[str, List]) -> List[Dict]:
@@ -1122,9 +1122,9 @@ class MPRester:
 
         meta = {}
         for doc in self.materials.search(
-            task_ids=material_ids, fields=["calc_types", "deprecated_tasks", "material_id"]
+            task_ids=material_ids,
+            fields=["calc_types", "deprecated_tasks", "material_id"],
         ):
-
             for task_id, calc_type in doc.calc_types.items():
                 if calc_types and calc_type not in calc_types:
                     continue

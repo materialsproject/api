@@ -47,9 +47,7 @@ es_custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_es_client(es_rester):
     search_method = es_rester.search
 
@@ -61,7 +59,6 @@ def test_es_client(es_rester):
         for entry in param_tuples:
             param = entry[0]
             if param not in es_excluded_params:
-
                 param_type = entry[1].__args__[0]
                 q = None
 
@@ -96,10 +93,7 @@ def test_es_client(es_rester):
 
                 doc = search_method(**q)[0].dict()
 
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+                assert doc[project_field if project_field is not None else param] is not None
 
 
 bs_custom_field_tests = {
@@ -122,9 +116,7 @@ def bs_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_bs_client(bs_rester):
     # Get specific search method
     search_method = bs_rester.search
@@ -169,9 +161,7 @@ def dos_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_dos_client(dos_rester):
     search_method = dos_rester.search
 
@@ -192,6 +182,4 @@ def test_dos_client(dos_rester):
             if param != "projection_type" and param != "magnetic_ordering":
                 doc = doc["total"]["1"]
 
-            assert (
-                doc[project_field if project_field is not None else param] is not None
-            )
+            assert doc[project_field if project_field is not None else param] is not None

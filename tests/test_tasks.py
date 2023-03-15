@@ -26,7 +26,11 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"formula": "task_id", "task_ids": "task_id", "exclude_elements": "task_id"}  # type: dict
+alt_name_dict = {
+    "formula": "task_id",
+    "task_ids": "task_id",
+    "exclude_elements": "task_id",
+}  # type: dict
 
 custom_field_tests = {
     "chemsys": "Si-O",
@@ -91,7 +95,6 @@ def test_client(rester):
 
 
 def test_get_trajectories(rester):
-
     trajectories = rester.get_trajectory("mp-149")
 
     for traj in trajectories:

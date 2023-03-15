@@ -45,7 +45,6 @@ mpr = MPRester()
 @pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 @pytest.mark.parametrize("rester", mpr._all_resters)
 def test_generic_get_methods(rester):
-
     # -- Test generic search and get_data_by_id methods
     name = rester.suffix.replace("/", "_")
     if name not in ignore_generic:

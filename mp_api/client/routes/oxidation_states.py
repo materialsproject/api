@@ -6,7 +6,6 @@ from collections import defaultdict
 
 
 class OxidationStatesRester(BaseRester[OxidationStateDoc]):
-
     suffix = "oxidation_states"
     document_model = OxidationStateDoc  # type: ignore
     primary_key = "material_id"
@@ -70,20 +69,10 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
             query_params.update({"possible_species": ",".join(possible_species)})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )
