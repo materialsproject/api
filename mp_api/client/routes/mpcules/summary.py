@@ -20,25 +20,10 @@ class MPculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
         charge: Optional[Tuple[int, int]] = None,
         spin_multiplicity: Optional[Tuple[int, int]] = None,
         nelements: Optional[Tuple[int, int]] = None,
-        has_solvent: Optional[Union[str, List[str]]] = None,
-        has_level_of_theory: Optional[Union[str, List[str]]] = None,
-        has_lot_solvent: Optional[Union[str, List[str]]] = None,
+        # has_solvent: Optional[Union[str, List[str]]] = None,
+        # has_level_of_theory: Optional[Union[str, List[str]]] = None,
+        # has_lot_solvent: Optional[Union[str, List[str]]] = None,
         # with_solvent: Optional[str] = None,
-        electronic_energy: Optional[Tuple[float, float]] = None,
-        ionization_energy: Optional[Tuple[float, float]] = None,
-        electron_affinity: Optional[Tuple[float, float]] = None,
-        reduction_free_energy: Optional[Tuple[float, float]] = None,
-        oxidation_free_energy: Optional[Tuple[float, float]] = None,
-        # zero_point_energy: Optional[Tuple[float, float]] = None,
-        # total_enthalpy: Optional[Tuple[float, float]] = None,
-        # total_entropy: Optional[Tuple[float, float]] = None,
-        # translational_enthalpy: Optional[Tuple[float, float]] = None,
-        # translational_entropy: Optional[Tuple[float, float]] = None,
-        # vibrational_enthalpy: Optional[Tuple[float, float]] = None,
-        # vibrational_entropy: Optional[Tuple[float, float]] = None,
-        # rotational_enthalpy: Optional[Tuple[float, float]] = None,
-        # rotational_entropy: Optional[Tuple[float, float]] = None,
-        # free_energy: Optional[Tuple[float, float]] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
         deprecated: Optional[bool] = None,
         elements: Optional[List[str]] = None,
@@ -60,19 +45,14 @@ class MPculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
             charge (Tuple[int, int]): Minimum and maximum charge for the molecule.
             spin_multiplicity (Tuple[int, int]): Minimum and maximum spin for the molecule.
             nelements (Tuple[int, int]): Minimum and maximum number of elements
-            has_solvent (str, List[str]): Whether the molecule has properties calculated in
-                solvents (e.g., "SOLVENT=THF", ["SOLVENT=WATER", "VACUUM"])
-            has_level_of_theory (str, List[str]): Whether the molecule has properties calculated
-                using a particular level of theory (e.g. "wB97M-V/def2-SVPD/SMD", 
-                    ["wB97X-V/def2-TZVPPD/SMD", "wB97M-V/def2-QZVPPD/SMD"])
-            has_lot_solvent (str, List[str]): Whether the molecule has properties calculated
-                using a particular combination of level of theory and solvent (e.g. "wB97X-V/def2-SVPD/SMD(SOLVENT=THF)", 
-                    ["wB97X-V/def2-TZVPPD/SMD(VACUUM)", "wB97M-V/def2-QZVPPD/SMD(SOLVENT=WATER)"])
-            electronic_energy (Tuple[float, float]): Minimum and maximum electronic energy
-            ionization_energy (Tuple[float, float]): Minimum and maximum ionization energy
-            electron_affinity (Tuple[float, float]): Minimum and maximum electron affinity
-            reduction_free_energy (Tuple[float, float]): Minimum and maximum reduction free energy
-            oxidation_free_energy (Tuple[float, float]): Minimum and maximum oxidation free energy
+            # has_solvent (str, List[str]): Whether the molecule has properties calculated in
+            #     solvents (e.g., "SOLVENT=THF", ["SOLVENT=WATER", "VACUUM"])
+            # has_level_of_theory (str, List[str]): Whether the molecule has properties calculated
+            #     using a particular level of theory (e.g. "wB97M-V/def2-SVPD/SMD", 
+            #         ["wB97X-V/def2-TZVPPD/SMD", "wB97M-V/def2-QZVPPD/SMD"])
+            # has_lot_solvent (str, List[str]): Whether the molecule has properties calculated
+            #     using a particular combination of level of theory and solvent (e.g. "wB97X-V/def2-SVPD/SMD(SOLVENT=THF)", 
+            #         ["wB97X-V/def2-TZVPPD/SMD(VACUUM)", "wB97M-V/def2-QZVPPD/SMD(SOLVENT=WATER)"])
             chemsys (str, List[str]): A chemical system, list of chemical systems
                 (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).
             deprecated (bool): Whether the material is tagged as deprecated.
