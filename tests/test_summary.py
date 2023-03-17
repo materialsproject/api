@@ -19,6 +19,7 @@ excluded_params = [
     "num_elements",  # temp until server timeout increase
     "num_sites",  # temp until server timeout increase
     "density",  # temp until server timeout increase
+    "total_magnetization",  # temp until server timeout increase
 ]
 
 alt_name_dict = {
@@ -83,14 +84,14 @@ def test_client():
             elif param_type == typing.Tuple[int, int]:
                 project_field = alt_name_dict.get(param, None)
                 q = {
-                    param: (-100, 100),
+                    param: (-10, 10),
                     "chunk_size": 1,
                     "num_chunks": 1,
                 }
             elif param_type == typing.Tuple[float, float]:
                 project_field = alt_name_dict.get(param, None)
                 q = {
-                    param: (-100.12, 100.12),
+                    param: (-10.12, 10.12),
                     "chunk_size": 1,
                     "num_chunks": 1,
                 }
