@@ -63,6 +63,11 @@ class MAPIClientSettings(BaseSettings):
         _MAX_RETRIES, description="Maximum number of retries for requests."
     )
 
+    BACKOFF_FACTOR: float = Field(
+        0.1,
+        description="A backoff factor to apply between retry attempts. To disable, set to 0.",
+    )
+
     MUTE_PROGRESS_BARS: bool = Field(
         _MUTE_PROGRESS_BAR,
         description="Whether to mute progress bars when data is retrieved.",
