@@ -22,6 +22,7 @@ excluded_params = [
     "exclude_elements",  # temp until timeout update
 ]
 
+
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
@@ -65,14 +66,14 @@ def test_client(rester):
                 if param_type == typing.Tuple[int, int]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
-                        param: (-100, 100),
+                        param: (-10, 10),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
                 elif param_type == typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
-                        param: (-100.12, 100.12),
+                        param: (-10.12, 10.12),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
@@ -91,9 +92,12 @@ def test_client(rester):
                         "num_chunks": 1,
                     }
 
-                doc = search_method(**q)[0].dict()
+                project_field = project_field or param
+
+                doc = search_method(**{**q, "fields": project_field})[0].dict()
+
                 for sub_field in sub_doc_fields:
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert doc[project_field] is not None
