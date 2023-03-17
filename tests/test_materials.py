@@ -40,6 +40,7 @@ custom_field_tests = {
     "formula": "Si",
     "chemsys": "Si-O",
     "elements": ["Si", "O"],
+    "excluded_elements": ["Si", "O"],
     "task_ids": ["mp-149"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
