@@ -14,6 +14,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "equilibrium_reaction_energy",  # temp until data update
+    "total_energy",  # temp until data update
     "exclude_elements",  # temp until data update
     "num_elements",  # temp until server timeout increase
     "num_sites",  # temp until server timeout increase
