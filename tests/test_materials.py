@@ -20,6 +20,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "exclude_elements",  # temp until server timeout increase
+    "nelements",  # temp until server timeout increase
 ]
 
 sub_doc_fields = []  # type: list
@@ -32,7 +33,6 @@ alt_name_dict = {
     "spacegroup_symbol": "symmetry",
     "exclude_elements": "material_id",
     "num_elements": "nelements",
-    "exclude_elements": "elements",
     "num_sites": "nsites",
 }  # type: dict
 
