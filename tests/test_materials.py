@@ -20,7 +20,8 @@ excluded_params = [
     "all_fields",
     "fields",
     "exclude_elements",  # temp until server timeout increase
-    "nelements",  # temp until server timeout increase
+    "num_elements",  # temp until server timeout increase
+    "num_sites",  # temp until server timeout increase
 ]
 
 sub_doc_fields = []  # type: list
