@@ -63,7 +63,7 @@ class MAPIClientSettings(BaseSettings):
         _MAX_RETRIES, description="Maximum number of retries for requests."
     )
     
-    BACKOFF_FACTOR: float = FIELD(
+    BACKOFF_FACTOR: float = Field(
         0.1,
         description="A backoff factor to apply between retry attempts. To disable, set to 0.",
     )
