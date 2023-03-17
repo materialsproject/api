@@ -135,13 +135,15 @@ class BaseRester(Generic[T]):
             platform_info = f"{platform.system()}/{platform.release()}"
             session.headers["user-agent"] = f"{pymatgen_info} ({python_info} {platform_info})"
 
-        max_retry_num = MAPIClientSettings().MAX_RETRIES
+        settings = MAPIClientSettings()
+        max_retry_num = settings.MAX_RETRIES
         retry = Retry(
             total=max_retry_num,
             read=max_retry_num,
             connect=max_retry_num,
             respect_retry_after_header=True,
             status_forcelist=[429],  # rate limiting
+            backoff_factor=settings.BACKOFF_FACTOR
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
