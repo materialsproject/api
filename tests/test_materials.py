@@ -19,7 +19,6 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
-    "exclude_elements",  # temp until timeout update
 ]
 
 
