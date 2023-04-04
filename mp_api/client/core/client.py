@@ -19,6 +19,7 @@ from urllib.parse import urljoin, quote
 
 import requests
 from emmet.core.utils import jsanitize
+from emmet.core.summary import SummaryDoc
 from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
@@ -143,7 +144,7 @@ class BaseRester(Generic[T]):
             connect=max_retry_num,
             respect_retry_after_header=True,
             status_forcelist=[429],  # rate limiting
-            backoff_factor=settings.BACKOFF_FACTOR
+            backoff_factor=settings.BACKOFF_FACTOR,
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
@@ -201,7 +202,6 @@ class BaseRester(Generic[T]):
             response = self.session.post(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
-
                 if self.monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
                 else:
@@ -234,7 +234,6 @@ class BaseRester(Generic[T]):
                 )
 
         except RequestException as ex:
-
             raise MPRestError(str(ex))
 
     def _query_resource(
@@ -307,7 +306,6 @@ class BaseRester(Generic[T]):
             return data
 
         except RequestException as ex:
-
             raise MPRestError(str(ex))
 
     def _submit_requests(
@@ -345,7 +343,6 @@ class BaseRester(Generic[T]):
         # trying to evenly divide num_chunks by the total number of new
         # criteria dicts.
         if parallel_param is not None:
-
             # Determine slice size accounting for character maximum in HTTP URL
             # First get URl length without parallel param
             url_string = ""
@@ -372,7 +369,6 @@ class BaseRester(Generic[T]):
             ]
 
             if len(parallel_param_str_chunks) > 0:
-
                 params_min_chunk = min(parallel_param_str_chunks, key=lambda x: len(x.split("%2C")))
 
                 num_params_min_chunk = len(params_min_chunk.split("%2C"))
@@ -431,7 +427,6 @@ class BaseRester(Generic[T]):
         initial_data_tuples = self._multi_thread(use_document_model, initial_params_list)
 
         for data, subtotal, crit_ind in initial_data_tuples:
-
             subtotals.append(subtotal)
             sub_diff = subtotal - new_limits[crit_ind]
             remaining_docs_avail[crit_ind] = sub_diff
@@ -475,7 +470,6 @@ class BaseRester(Generic[T]):
 
             # Obtain missing initial data after rebalancing
             if len(rebalance_params) > 0:
-
                 rebalance_data_tuples = self._multi_thread(use_document_model, rebalance_params)
 
                 for data, _, _ in rebalance_data_tuples:
@@ -611,12 +605,10 @@ class BaseRester(Generic[T]):
         params_ind = 0
 
         with ThreadPoolExecutor(max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS) as executor:
-
             # Get list of initial futures defined by max number of parallel requests
             futures = set()
 
             for params in itertools.islice(params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS):
-
                 future = executor.submit(
                     self._submit_request_and_process,
                     use_document_model=use_document_model,
@@ -632,7 +624,6 @@ class BaseRester(Generic[T]):
                 finished, futures = wait(futures, return_when=FIRST_COMPLETED)
 
                 for future in finished:
-
                     data, subtotal = future.result()
 
                     if progress_bar is not None:
@@ -641,7 +632,6 @@ class BaseRester(Generic[T]):
 
                 # Populate more futures to replace finished
                 for params in itertools.islice(params_gen, len(finished)):
-
                     new_future = executor.submit(
                         self._submit_request_and_process,
                         use_document_model=use_document_model,
@@ -677,12 +667,17 @@ class BaseRester(Generic[T]):
             Tuple with data and total number of docs in matching the query in the database.
         """
         try:
-            response = self.session.get(url=url, verify=verify, params=params, timeout=timeout, headers=self.headers)
+            response = self.session.get(
+                url=url,
+                verify=verify,
+                params=params,
+                timeout=timeout,
+                headers=self.headers,
+            )
         except requests.exceptions.ConnectTimeout:
             raise MPRestError(f"REST query timed out on URL {url}. Try again with a smaller request.")
 
         if response.status_code == 200:
-
             if self.monty_decode:
                 data = json.loads(response.text, cls=MontyDecoder)
             else:
@@ -691,7 +686,6 @@ class BaseRester(Generic[T]):
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-
                 raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 if len(raw_doc_list) > 0:
@@ -727,8 +721,22 @@ class BaseRester(Generic[T]):
             )
 
     def _generate_returned_model(self, doc):
+        def get_dict_fields(d: dict, root: str = None, nest: int = 0):
+            field_list = [(root + "." + field if root is not None else field) for field in d]
 
-        set_fields = [field for field, _ in doc if field in doc.dict(exclude_unset=True)]
+            if nest:
+                for field in d:
+                    if isinstance(d[field], dict):
+                        new_root = field if root is None else root + "." + field
+                        field_list.extend(get_dict_fields(d[field], root=new_root, nest=nest - 1))
+
+            return field_list
+
+        set_fields = get_dict_fields(
+            doc.dict(exclude_unset=True),
+            root=None,
+            nest=(1 if self.document_model == SummaryDoc else 0),
+        )
         unset_fields = [field for field in doc.__fields__ if field not in set_fields]
 
         data_model = create_model(
@@ -840,7 +848,6 @@ class BaseRester(Generic[T]):
         try:
             results = self._query_resource_data(criteria=criteria, fields=fields, suburl=document_id)  # type: ignore
         except MPRestError:
-
             if self.primary_key == "material_id":
                 # see if the material_id has changed, perhaps a task_id was supplied
                 # this should likely be re-thought
@@ -857,7 +864,6 @@ class BaseRester(Generic[T]):
                     docs = mpr.search(task_ids=[document_id], fields=["material_id"])
 
                 if len(docs) > 0:
-
                     new_document_id = docs[0].get("material_id", None)
 
                     if new_document_id is not None:
