@@ -28,6 +28,7 @@
    :template: custom-module-template.rst             
    :recursive:
 
+   mp_api.client.routes.absorption
    mp_api.client.routes.alloys
    mp_api.client.routes.bonds
    mp_api.client.routes.charge_density

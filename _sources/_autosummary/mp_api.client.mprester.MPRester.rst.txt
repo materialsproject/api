@@ -82,5 +82,6 @@ mp\_api.client.mprester.MPRester
       ~MPRester.provenance
       ~MPRester.bonds
       ~MPRester.alloys
+      ~MPRester.absorption
    
    
