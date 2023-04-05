@@ -74,6 +74,7 @@ class MPRester:
     provenance: ProvenanceRester
     bonds: BondsRester
     alloys: AlloysRester
+    absorption: AbsorptionRester
     _user_settings: UserSettingsRester
     _general_store: GeneralStoreRester
 
