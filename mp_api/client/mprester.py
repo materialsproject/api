@@ -80,7 +80,7 @@ class MPRester:
 
     def __init__(
         self,
-        api_key: Optional[str] = DEFAULT_API_KEY,
+        api_key: Optional[str] = None,
         endpoint: str = DEFAULT_ENDPOINT,
         notify_db_version: bool = False,
         include_user_agent: bool = True,
@@ -129,11 +129,11 @@ class MPRester:
                 "API are 16 characters."
             )
 
-        self.api_key = api_key
+        self.api_key = api_key or DEFAULT_API_KEY
         self.endpoint = endpoint
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
-            api_key=api_key, include_user_agent=include_user_agent, headers=self.headers
+            api_key=self.api_key, include_user_agent=include_user_agent, headers=self.headers
         )
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
@@ -170,7 +170,7 @@ class MPRester:
                 session=self.session,
                 monty_decode=monty_decode,
                 use_document_model=use_document_model,
-                headers=self.headers
+                headers=self.headers,
             )  # type: BaseRester
 
             self._all_resters.append(rester)
@@ -458,6 +458,9 @@ class MPRester:
         Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
+        Note that by default this returns mixed GGA/GGA+U entries. For others,
+        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.
+
         Args:
             chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas
@@ -708,9 +711,7 @@ class MPRester:
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
         return self.contribs.query_contributions(
-            query={"project": "ion_ref_data"},
-            fields=["identifier", "formula", "data"],
-            paginate=True
+            query={"project": "ion_ref_data"}, fields=["identifier", "formula", "data"], paginate=True
         ).get("data")
 
     def get_ion_reference_data_for_chemsys(self, chemsys: Union[str, List]) -> List[Dict]:
@@ -890,6 +891,10 @@ class MPRester:
         entries in the Li-Fe-O chemical system, i.e., all LixOy,
         FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for
         creating phase diagrams of entire chemical systems.
+
+        Note that by default this returns mixed GGA/GGA+U entries. For others,
+        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.
+
         Args:
             elements (str or [str]): Chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
@@ -919,7 +924,8 @@ class MPRester:
             additional_criteria (dict): Any additional criteria to pass. The keys and values should
                 correspond to proper function inputs to `MPRester.thermo.search`. For instance,
                 if you are only interested in entries on the convex hull, you could pass
-                {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}.
+                {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}, or if you are only interested
+                in entry data
         Returns:
             List of ComputedStructureEntries.
         """
@@ -927,9 +933,11 @@ class MPRester:
         if isinstance(elements, str):
             elements = elements.split("-")
 
+        elements_set = set(elements)  # remove duplicate elements
+
         all_chemsyses = []
-        for i in range(len(elements)):
-            for els in itertools.combinations(elements, i + 1):
+        for i in range(len(elements_set)):
+            for els in itertools.combinations(elements_set, i + 1):
                 all_chemsyses.append("-".join(sorted(els)))
 
         entries = []  # type: List[ComputedEntry]

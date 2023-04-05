@@ -54,7 +54,7 @@ class BaseRester(Generic[T]):
 
     def __init__(
         self,
-        api_key: Union[str, None] = DEFAULT_API_KEY,
+        api_key: Union[str, None] = None,
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
         session: Optional[requests.Session] = None,
@@ -93,7 +93,7 @@ class BaseRester(Generic[T]):
             headers (dict): Custom headers for localhost connections.
         """
 
-        self.api_key = api_key
+        self.api_key = api_key or DEFAULT_API_KEY
         self.base_endpoint = endpoint
         self.endpoint = endpoint
         self.debug = debug
@@ -135,13 +135,15 @@ class BaseRester(Generic[T]):
             platform_info = f"{platform.system()}/{platform.release()}"
             session.headers["user-agent"] = f"{pymatgen_info} ({python_info} {platform_info})"
 
-        max_retry_num = MAPIClientSettings().MAX_RETRIES
+        settings = MAPIClientSettings()
+        max_retry_num = settings.MAX_RETRIES
         retry = Retry(
             total=max_retry_num,
             read=max_retry_num,
             connect=max_retry_num,
             respect_retry_after_header=True,
             status_forcelist=[429],  # rate limiting
+            backoff_factor=settings.BACKOFF_FACTOR
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
@@ -757,7 +759,7 @@ class BaseRester(Generic[T]):
             return s
 
         def new_getattr(self, attr) -> str:
-            if attr in unset_fields:
+            if attr in self.fields_not_requested:
                 raise AttributeError(
                     f"'{attr}' data is available but has not been requested in 'fields'."
                     " A full list of unrequested fields can be found in `fields_not_requested`."
@@ -845,8 +847,12 @@ class BaseRester(Generic[T]):
                 from mp_api.client.routes.materials import MaterialsRester
 
                 with MaterialsRester(
-                    api_key=self.api_key, endpoint=self.base_endpoint, use_document_model=False, monty_decode=False,
-                    session=self.session, headers=self.headers
+                    api_key=self.api_key,
+                    endpoint=self.base_endpoint,
+                    use_document_model=False,
+                    monty_decode=False,
+                    session=self.session,
+                    headers=self.headers,
                 ) as mpr:
                     docs = mpr.search(task_ids=[document_id], fields=["material_id"])
 

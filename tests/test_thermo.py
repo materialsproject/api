@@ -59,7 +59,6 @@ def test_client(rester):
         # Query API for each numeric and boolean parameter and check if returned
         for entry in param_tuples:
             param = entry[0]
-            print(param)
             if param not in excluded_params:
                 param_type = entry[1].__args__[0]
                 q = None

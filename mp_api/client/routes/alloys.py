@@ -10,7 +10,7 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
 
     suffix = "alloys"
     document_model = AlloyPairDoc  # type: ignore
-    primary_key = "material_id"
+    primary_key = "pair_id"
 
     def search(
         self,
@@ -45,17 +45,16 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
 
         query_params = defaultdict(dict)  # type: dict
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         if material_ids:
             if isinstance(material_ids, str):
                 material_ids = [material_ids]
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+
+        if sort_fields:
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
         return super()._search(
             formulae=formulae,
