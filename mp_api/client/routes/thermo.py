@@ -42,7 +42,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         material_ids: Optional[List[str]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
         thermo_ids: Optional[List[str]] = None,
-        thermo_types: Optional[List[Union[ThermoType, str]]] = [ThermoType.GGA_GGA_U],
+        thermo_types: Optional[List[Union[ThermoType, str]]] = None,
         total_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
@@ -150,7 +150,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         )
 
     def get_phase_diagram_from_chemsys(
-        self, chemsys: str, thermo_type: Union[ThermoType, str] = ThermoType.GGA_GGA_U
+        self, chemsys: str, thermo_type: Union[ThermoType, str]
     ) -> PhaseDiagram:
         """
         Get a pre-computed phase diagram for a given chemsys.
