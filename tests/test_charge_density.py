@@ -83,7 +83,6 @@ def test_client(rester):
 
 
 def test_download_for_task_ids(tmpdir, rester):
-
     n = rester.download_for_task_ids(
         task_ids=["mp-655585", "mp-1057373", "mp-1059589", "mp-1440634", "mp-1791788"],
         path=tmpdir,
@@ -94,7 +93,6 @@ def test_download_for_task_ids(tmpdir, rester):
 
 
 def test_extract_s3_url_info(rester):
-
     url_doc_dict = {
         "task_id": "mp-1896591",
         "url": "https://minio.materialsproject.org/phuck/atomate_chgcar_fs/6021584c12afbe14911d1b8e",

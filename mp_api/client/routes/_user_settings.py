@@ -3,7 +3,6 @@ from mp_api.client.core import BaseRester
 
 
 class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
-
     suffix = "_user_settings"
     document_model = UserSettingsDoc  # type: ignore
     primary_key = "consumer_id"
@@ -21,9 +20,7 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
         Raises:
             MPRestError
         """
-        return self._post_resource(
-            body=settings, params={"consumer_id": consumer_id}
-        ).get("data")
+        return self._post_resource(body=settings, params={"consumer_id": consumer_id}).get("data")
 
     def get_user_settings(self, consumer_id):  # pragma: no cover
         """

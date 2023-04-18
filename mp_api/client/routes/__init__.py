@@ -31,6 +31,7 @@ from ._general_store import GeneralStoreRester
 from .bonds import BondsRester
 from .robocrys import RobocrysRester
 from .absorption import AbsorptionRester
+from mp_api.client.routes.mpcules.summary import MPculesSummaryRester
 
 try:
     from .alloys import AlloysRester

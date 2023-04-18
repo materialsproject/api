@@ -12,7 +12,6 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
-
     suffix = "thermo"
     document_model = ThermoDoc  # type: ignore
     supports_versions = True

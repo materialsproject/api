@@ -1,4 +1,4 @@
-emmet-core[all]==0.39.8
+emmet-core[all]==0.51.11
 pydantic>=1.8.2
 pymatgen>=2022.3.7
 pymatgen-analysis-alloys>=0.0.3

@@ -7,7 +7,6 @@ from emmet.core.alloys import AlloyPairDoc
 
 
 class AlloysRester(BaseRester[AlloyPairDoc]):
-
     suffix = "alloys"
     document_model = AlloyPairDoc  # type: ignore
     primary_key = "pair_id"

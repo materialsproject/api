@@ -7,7 +7,6 @@ import warnings
 
 
 class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
-
     suffix = "robocrys"
     document_model = RobocrystallogapherDoc  # type: ignore
     primary_key = "material_id"

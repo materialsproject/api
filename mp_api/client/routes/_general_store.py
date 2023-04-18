@@ -5,7 +5,6 @@ from emmet.core._general_store import GeneralStoreDoc
 
 
 class GeneralStoreRester(BaseRester[GeneralStoreDoc]):  # pragma: no cover
-
     suffix = "_general_store"
     document_model = GeneralStoreDoc  # type: ignore
     primary_key = "submission_id"
@@ -24,9 +23,7 @@ class GeneralStoreRester(BaseRester[GeneralStoreDoc]):  # pragma: no cover
         Raises:
             MPRestError
         """
-        return self._post_resource(
-            body=meta, params={"kind": kind, "markdown": markdown}
-        ).get("data")
+        return self._post_resource(body=meta, params={"kind": kind, "markdown": markdown}).get("data")
 
     def get_items(self, kind):  # pragma: no cover
         """

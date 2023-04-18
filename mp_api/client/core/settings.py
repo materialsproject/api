@@ -59,9 +59,7 @@ class MAPIClientSettings(BaseSettings):
         description="Number of parallel requests to send.",
     )
 
-    MAX_RETRIES: int = Field(
-        _MAX_RETRIES, description="Maximum number of retries for requests."
-    )
+    MAX_RETRIES: int = Field(_MAX_RETRIES, description="Maximum number of retries for requests.")
 
     BACKOFF_FACTOR: float = Field(
         0.1,

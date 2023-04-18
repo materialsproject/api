@@ -9,7 +9,6 @@ import warnings
 
 
 class BondsRester(BaseRester[BondingDoc]):
-
     suffix = "bonds"
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
@@ -102,25 +101,13 @@ class BondsRester(BaseRester[BondingDoc]):
             query_params.update({"coordination_envs": ",".join(coordination_envs)})
 
         if coordination_envs_anonymous is not None:
-            query_params.update(
-                {"coordination_envs_anonymous": ",".join(coordination_envs_anonymous)}
-            )
+            query_params.update({"coordination_envs_anonymous": ",".join(coordination_envs_anonymous)})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

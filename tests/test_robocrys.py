@@ -12,14 +12,11 @@ def rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 
     if search_method is not None:
-
         q = {"keywords": ["silicon"], "num_chunks": 1}
 
         doc = search_method(**q)[0]
