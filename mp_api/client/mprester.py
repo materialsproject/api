@@ -75,6 +75,7 @@ class MPRester:
     bonds: BondsRester
     alloys: AlloysRester
     absorption: AbsorptionRester
+    chemenv: ChemenvRester
     _user_settings: UserSettingsRester
     _general_store: GeneralStoreRester
 
