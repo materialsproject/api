@@ -83,5 +83,6 @@ mp\_api.client.mprester.MPRester
       ~MPRester.bonds
       ~MPRester.alloys
       ~MPRester.absorption
+      ~MPRester.chemenv
    
    

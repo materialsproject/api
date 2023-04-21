@@ -32,6 +32,7 @@
    mp_api.client.routes.alloys
    mp_api.client.routes.bonds
    mp_api.client.routes.charge_density
+   mp_api.client.routes.chemenv
    mp_api.client.routes.dielectric
    mp_api.client.routes.doi
    mp_api.client.routes.elasticity
