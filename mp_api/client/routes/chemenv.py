@@ -18,6 +18,9 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
         chemenv_iucr: Optional[Union[str, List[str]]] = None,
         chemenv_iupac: Optional[Union[str, List[str]]] = None,
         chemenv_name: Optional[Union[str, List[str]]] = None,
+        chemenv_symbol: Optional[Union[str, List[str]]] = None,
+        species: Optional[Union[str,List[str]]]=None,
+        elements: Optional[Union[str,List[str]]]=None,
         csm: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
@@ -34,10 +37,13 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
 
         Arguments:
             material_ids (str, List[str]): Search forchemical environment associated with the specified Material IDs.
-            chemenv_iucr (str, List[str]): Unique cationic species in IUCR format.
-            chemenv_iupac (str, List[str]): Unique cationic species in IUPAC format.
-            chemenv_iupac (str, List[str]): Coordination environment descriptions for unique cationic species.
-            density (Tuple[float,float]): Minimum and maximum value of continuous symmetry measure to consider.
+            chemenv_iucr (str, List[str]): Unique cationic species in IUCR format, e.g. "[3n]".
+            chemenv_iupac (str, List[str]): Unique cationic species in IUPAC format, e.g., "T-4".
+            chemenv_name (str, List[str]): Coordination environment descriptions in text form for unique cationic species, e.g. "Tetrahedron".
+            chemenv_symbol (str, List[str]): Coordination environment descriptions as used in ChemEnv package for unique cationic species, e.g. "T:4".
+            species (str, List[str]): Cationic species in the crystal structure, e.g. "Ti4+".
+            elements (str, List[str]): Element naes in the crystal structure, e.g., "Ti".
+            csm (Tuple[float,float]): Minimum and maximum value of continuous symmetry measure to consider.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
             num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
@@ -94,6 +100,13 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
                 chemenv_name = [chemenv_name]
 
             query_params.update({"chemenv_name": ",".join(chemenv_name)})
+
+        if chemenv_symbol:
+            if isinstance(chemenv_symbol, str):
+                chemenv_symbol = [chemenv_symbol]
+
+            query_params.update({"chemenv_symbol": ",".join(chemenv_symbol)})
+
 
         if sort_fields:
             query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
