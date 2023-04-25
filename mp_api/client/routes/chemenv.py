@@ -100,12 +100,13 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
                             "chemenv_symbol": (chemenv_symbol, COORDINATION_GEOMETRIES)}
 
         for chemenv_var_name, (chemenv_var, literals) in chemenv_literals.items():
-            t_types = {t if isinstance(t, str) else t.value for t in chemenv_var}
-            valid_types = {*map(str, literals.__args__)}
-            if invalid_types := t_types - valid_types:
-                raise ValueError(f"Invalid type(s) passed for {chemenv_var_name}: {invalid_types}, valid types are: {valid_types}")
-            
-            query_params.update({"chemenv_var_name": ",".join(t_types)})
+            if chemenv_var:
+                t_types = {t if isinstance(t, str) else t.value for t in chemenv_var}
+                valid_types = {*map(str, literals.__args__)}
+                if invalid_types := t_types - valid_types:
+                    raise ValueError(f"Invalid type(s) passed for {chemenv_var_name}: {invalid_types}, valid types are: {valid_types}")
+                
+                query_params.update({"chemenv_var_name": ",".join(t_types)})
 
         if species:
             if isinstance(species, str):
