@@ -74,6 +74,8 @@ class MPRester:
     provenance: ProvenanceRester
     bonds: BondsRester
     alloys: AlloysRester
+    absorption: AbsorptionRester
+    chemenv: ChemenvRester
     _user_settings: UserSettingsRester
     _general_store: GeneralStoreRester
 
@@ -882,7 +884,7 @@ class MPRester:
         inc_structure: bool = None,
         property_data: List[str] = None,
         conventional_unit_cell: bool = False,
-        additional_criteria=None,
+        additional_criteria={"thermo_types": ["GGA_GGA+U"]},
     ):
         """
         Helper method to get a list of ComputedEntries in a chemical system.

@@ -30,6 +30,8 @@ from ._user_settings import UserSettingsRester
 from ._general_store import GeneralStoreRester
 from .bonds import BondsRester
 from .robocrys import RobocrysRester
+from .absorption import AbsorptionRester
+from .chemenv import ChemenvRester
 
 try:
     from .alloys import AlloysRester

@@ -135,13 +135,15 @@ class BaseRester(Generic[T]):
             platform_info = f"{platform.system()}/{platform.release()}"
             session.headers["user-agent"] = f"{pymatgen_info} ({python_info} {platform_info})"
 
-        max_retry_num = MAPIClientSettings().MAX_RETRIES
+        settings = MAPIClientSettings()
+        max_retry_num = settings.MAX_RETRIES
         retry = Retry(
             total=max_retry_num,
             read=max_retry_num,
             connect=max_retry_num,
             respect_retry_after_header=True,
             status_forcelist=[429],  # rate limiting
+            backoff_factor=settings.BACKOFF_FACTOR
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
@@ -757,7 +759,7 @@ class BaseRester(Generic[T]):
             return s
 
         def new_getattr(self, attr) -> str:
-            if attr in unset_fields:
+            if attr in self.fields_not_requested:
                 raise AttributeError(
                     f"'{attr}' data is available but has not been requested in 'fields'."
                     " A full list of unrequested fields can be found in `fields_not_requested`."
