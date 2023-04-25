@@ -3,7 +3,10 @@ from collections import defaultdict
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from emmet.core.chemenv import ChemEnvDoc
+from emmet.core.chemenv import (
+    ChemEnvDoc, COORDINATION_GEOMETRIES_IUCR, 
+    COORDINATION_GEOMETRIES_IUPAC, COORDINATION_GEOMETRIES, 
+    COORDINATION_GEOMETRIES_NAMES)
 
 
 class ChemenvRester(BaseRester[ChemEnvDoc]):
@@ -15,12 +18,13 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
     def search(
         self,
         material_ids: Optional[Union[str, List[str]]] = None,
-        chemenv_iucr: Optional[Union[str, List[str]]] = None,
-        chemenv_iupac: Optional[Union[str, List[str]]] = None,
-        chemenv_name: Optional[Union[str, List[str]]] = None,
-        chemenv_symbol: Optional[Union[str, List[str]]] = None,
+        chemenv_iucr: Optional[Union[COORDINATION_GEOMETRIES_IUCR, List[ COORDINATION_GEOMETRIES_IUCR]]] = None,
+        chemenv_iupac: Optional[Union[COORDINATION_GEOMETRIES_IUPAC, List[COORDINATION_GEOMETRIES_IUPAC]]] = None,
+        chemenv_name: Optional[Union[COORDINATION_GEOMETRIES_NAMES, List[COORDINATION_GEOMETRIES_NAMES]]] = None,
+        chemenv_symbol: Optional[Union[COORDINATION_GEOMETRIES, List[COORDINATION_GEOMETRIES]]] = None,
         species: Optional[Union[str,List[str]]]=None,
         elements: Optional[Union[str,List[str]]]=None,
+        exclude_elements: Optional[List[str]] = None,
         csm: Optional[Tuple[float, float]] = None,
         density: Optional[Tuple[float, float]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
@@ -37,12 +41,13 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
 
         Arguments:
             material_ids (str, List[str]): Search forchemical environment associated with the specified Material IDs.
-            chemenv_iucr (str, List[str]): Unique cationic species in IUCR format, e.g. "[3n]".
-            chemenv_iupac (str, List[str]): Unique cationic species in IUPAC format, e.g., "T-4".
-            chemenv_name (str, List[str]): Coordination environment descriptions in text form for unique cationic species, e.g. "Tetrahedron".
-            chemenv_symbol (str, List[str]): Coordination environment descriptions as used in ChemEnv package for unique cationic species, e.g. "T:4".
+            chemenv_iucr (COORDINATION_GEOMETRIES_IUCR, List[COORDINATION_GEOMETRIES_IUCR]): Unique cationic species in IUCR format, e.g. "[3n]".
+            chemenv_iupac (COORDINATION_GEOMETRIES_IUPAC, List[COORDINATION_GEOMETRIES_IUPAC]): Unique cationic species in IUPAC format, e.g., "T-4".
+            chemenv_name (COORDINATION_GEOMETRIES_NAMES, List[COORDINATION_GEOMETRIES_NAMES]): Coordination environment descriptions in text form for unique cationic species, e.g. "Tetrahedron".
+            chemenv_symbol (COORDINATION_GEOMETRIES, List[COORDINATION_GEOMETRIES]): Coordination environment descriptions as used in ChemEnv package for unique cationic species, e.g. "T:4".
             species (str, List[str]): Cationic species in the crystal structure, e.g. "Ti4+".
             elements (str, List[str]): Element naes in the crystal structure, e.g., "Ti".
+            exclude_elements (List[str]): A list of elements to exclude.
             csm (Tuple[float,float]): Minimum and maximum value of continuous symmetry measure to consider.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
@@ -72,6 +77,12 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
         if num_sites:
             query_params.update({"nsites_min": num_sites[0], "nsites_max": num_sites[1]})
 
+        if elements:
+            query_params.update({"elements": ",".join(elements)})
+
+        if exclude_elements:
+            query_params.update({"exclude_elements": ",".join(exclude_elements)})
+
         if num_elements:
             if isinstance(num_elements, int):
                 num_elements = (num_elements, num_elements)
@@ -83,30 +94,24 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
-        if chemenv_iucr:
-            if isinstance(chemenv_iucr, str):
-                chemenv_iucr = [chemenv_iucr]
+        chemenv_literals = {"chemenv_iucr": (chemenv_iucr, COORDINATION_GEOMETRIES_IUCR), 
+                            "chemenv_iupac": (chemenv_iupac, COORDINATION_GEOMETRIES_IUPAC),
+                            "chemenv_name": (chemenv_name, COORDINATION_GEOMETRIES_NAMES), 
+                            "chemenv_symbol": (chemenv_symbol, COORDINATION_GEOMETRIES)}
 
-            query_params.update({"chemenv_iucr": ",".join(chemenv_iucr)})
+        for chemenv_var_name, (chemenv_var, literals) in chemenv_literals.items():
+            t_types = {t if isinstance(t, str) else t.value for t in chemenv_var}
+            valid_types = {*map(str, literals.__args__)}
+            if invalid_types := t_types - valid_types:
+                raise ValueError(f"Invalid type(s) passed for {chemenv_var_name}: {invalid_types}, valid types are: {valid_types}")
+            
+            query_params.update({"chemenv_var_name": ",".join(t_types)})
 
-        if chemenv_iupac:
-            if isinstance(chemenv_iupac, str):
-                chemenv_iupac = [chemenv_iupac]
+        if species:
+            if isinstance(species, str):
+                species = [species]
 
-            query_params.update({"chemenv_iupac": ",".join(chemenv_iupac)})
-
-        if chemenv_name:
-            if isinstance(chemenv_name, str):
-                chemenv_name = [chemenv_name]
-
-            query_params.update({"chemenv_name": ",".join(chemenv_name)})
-
-        if chemenv_symbol:
-            if isinstance(chemenv_symbol, str):
-                chemenv_symbol = [chemenv_symbol]
-
-            query_params.update({"chemenv_symbol": ",".join(chemenv_symbol)})
-
+            query_params.update({"species": ",".join(species)})
 
         if sort_fields:
             query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
