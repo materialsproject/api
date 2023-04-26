@@ -30,5 +30,4 @@ ignore = [
 pydocstyle.convention = "google"
 
 [tool.ruff.per-file-ignores]
-"tests/*" = ["D103"]
-"examples/*" = ["E402"] # E402 Module level import not at top of file
+"*/__init__.py" = ["F401"] # F401: imported but unused
