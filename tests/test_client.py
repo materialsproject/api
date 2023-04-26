@@ -71,5 +71,5 @@ def test_generic_get_methods(rester):
             assert isinstance(doc, rester.document_model)
 
 
-if os.environ.get("MP_API_KEY", None) is None:
+if os.getenv("MP_API_KEY", None) is None:
     pytest.mark.skip(test_generic_get_methods)

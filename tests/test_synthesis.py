@@ -14,9 +14,7 @@ def rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 
@@ -30,9 +28,7 @@ def test_client(rester):
         assert doc.synthesis_type is not None
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_keywords(rester):
     search_method = rester.search
 
@@ -44,9 +40,7 @@ def test_filters_keywords(rester):
         assert "silicon" in " ".join([x["value"] for x in highlighted]).lower()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_synthesis_type(rester):
     search_method = rester.search
 
@@ -60,9 +54,7 @@ def test_filters_synthesis_type(rester):
         assert all(x.synthesis_type == SynthesisTypeEnum.sol_gel for x in doc)
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 @pytest.mark.xfail  # Needs fixing
 def test_filters_temperature_range(rester):
     search_method = rester.search
@@ -80,9 +72,7 @@ def test_filters_temperature_range(rester):
                         assert 700 <= val <= 1000
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 @pytest.mark.xfail  # Needs fixing
 def test_filters_time_range(rester):
     search_method = rester.search
@@ -98,9 +88,7 @@ def test_filters_time_range(rester):
                         assert 7 <= val <= 11
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_atmosphere(rester):
     search_method = rester.search
 
@@ -118,9 +106,7 @@ def test_filters_atmosphere(rester):
             assert found
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_mixing_device(rester):
     search_method = rester.search
 
@@ -137,9 +123,7 @@ def test_filters_mixing_device(rester):
             assert found
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_mixing_media(rester):
     search_method = rester.search
 

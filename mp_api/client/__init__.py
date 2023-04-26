@@ -11,4 +11,4 @@ except (ImportError, LookupError):  # pragma: no cover
     try:
         __version__ = get_distribution(__package__).version
     except DistributionNotFound:  # pragma: no cover
-        __version__ = os.environ.get("SETUPTOOLS_SCM_PRETEND_VERSION", None)
+        __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION", None)

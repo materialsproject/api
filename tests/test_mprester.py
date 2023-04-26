@@ -34,9 +34,7 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-149")
@@ -225,7 +223,7 @@ class TestMPRester:
         # test removal of extra elements from reference solids
         # Li-Zn-S has Na in reference solids
         pbx_entries = mpr.get_pourbaix_entries("Li-Zn-S")
-        assert not any([e for e in pbx_entries if "Na" in e.composition])
+        assert not any(e for e in pbx_entries if "Na" in e.composition)
 
         # Ensure entries are pourbaix compatible
         PourbaixDiagram(pbx_entries)
@@ -249,7 +247,7 @@ class TestMPRester:
         ion_entry_data = mpr.get_ion_reference_data_for_chemsys("Ti-O-H")
         ion_entries = mpr.get_ion_entries(pd, ion_entry_data)
         assert len(ion_entries) == 5
-        assert all([isinstance(i, IonEntry) for i in ion_entries])
+        assert all(isinstance(i, IonEntry) for i in ion_entries)
 
         # test an incomplete phase diagram
         entries = mpr.get_entries_in_chemsys("Ti-O")
