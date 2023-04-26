@@ -21,7 +21,41 @@ from requests import Session, get
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
-from mp_api.client.routes import *
+from mp_api.client.routes import (
+    AbsorptionRester,
+    AlloysRester,
+    BandStructureRester,
+    BondsRester,
+    ChargeDensityRester,
+    ChemenvRester,
+    DielectricRester,
+    DOIRester,
+    DosRester,
+    ElasticityRester,
+    ElectrodeRester,
+    ElectronicStructureRester,
+    EOSRester,
+    FermiRester,
+    GeneralStoreRester,
+    GrainBoundaryRester,
+    MagnetismRester,
+    MaterialsRester,
+    MoleculesRester,
+    OxidationStatesRester,
+    PhononRester,
+    PiezoRester,
+    ProvenanceRester,
+    RobocrysRester,
+    SimilarityRester,
+    SubstratesRester,
+    SummaryRester,
+    SurfacePropertiesRester,
+    SynthesisRester,
+    TaskRester,
+    ThermoRester,
+    UserSettingsRester,
+    XASRester,
+)
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
