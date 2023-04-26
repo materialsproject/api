@@ -1,22 +1,18 @@
+import warnings
 from typing import List, Optional
 
-from mp_api.client.core import BaseRester, MPRestError
 from emmet.core.robocrys import RobocrystallogapherDoc
 
-import warnings
+from mp_api.client.core import BaseRester, MPRestError
 
 
 class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
-
     suffix = "robocrys"
     document_model = RobocrystallogapherDoc  # type: ignore
     primary_key = "material_id"
 
     def search_robocrys_text(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "search_robocrys_text is deprecated. " "Please use search instead.",
             DeprecationWarning,
@@ -31,8 +27,7 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
         num_chunks: Optional[int] = None,
         chunk_size: Optional[int] = 100,
     ):
-        """
-        Search text generated from Robocrystallographer.
+        """Search text generated from Robocrystallographer.
 
         Arguments:
             keywords (List[str]): List of search keywords
@@ -42,7 +37,6 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
         Returns:
             robocrys_docs (List[RobocrystallogapherDoc]): List of robocrystallographer documents
         """
-
         keyword_string = ",".join(keywords)
 
         robocrys_docs = self._query_resource(

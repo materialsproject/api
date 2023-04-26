@@ -1,22 +1,19 @@
-from typing import List, Optional, Tuple
-from collections import defaultdict
 import warnings
+from collections import defaultdict
+from typing import List, Optional, Tuple
+
+from emmet.core.substrates import SubstratesDoc
 
 from mp_api.client.core import BaseRester
-from emmet.core.substrates import SubstratesDoc
 
 
 class SubstratesRester(BaseRester[SubstratesDoc]):
-
     suffix = "substrates"
     document_model = SubstratesDoc  # type: ignore
     primary_key = "film_id"
 
     def search_substrates_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.substrates.search_substrates_docs is deprecated. "
             "Please use MPRester.substrates.search instead.",
@@ -41,8 +38,7 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query equations of state docs using a variety of search criteria.
+        """Query equations of state docs using a variety of search criteria.
 
         Arguments:
             area (Tuple[float,float]): Minimum and maximum volume in Å² to consider for the minimim coincident
@@ -63,7 +59,6 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
         Returns:
             ([SubstratesDoc]) List of substrate documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if film_id:

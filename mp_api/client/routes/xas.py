@@ -1,24 +1,20 @@
+import warnings
 from typing import List, Optional, Union
 
-from emmet.core.xas import Edge, XASDoc, Type
-from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import validate_ids
+from emmet.core.xas import Edge, Type, XASDoc
 from pymatgen.core.periodic_table import Element
 
-import warnings
+from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class XASRester(BaseRester[XASDoc]):
-
     suffix = "xas"
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
 
     def search_xas_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.xas.search_xas_docs is deprecated. "
             "Please use MPRester.xas.search instead.",
@@ -43,8 +39,7 @@ class XASRester(BaseRester[XASDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query core XAS docs using a variety of search criteria.
+        """Query core XAS docs using a variety of search criteria.
 
         Arguments:
             edge (Edge): The absorption edge (e.g. K, L2, L3, L2,3).

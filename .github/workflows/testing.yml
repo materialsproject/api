@@ -2,48 +2,12 @@ name: testing
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.8
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-testing.txt
-
-      - name: Lint with pycodestyle
-        run: |
-          pip install pycodestyle
-          pycodestyle mp_api
-
-      - name: Lint with mypy
-        run: |
-          mypy --namespace-packages --explicit-package-bases mp_api
-
-      - name: Lint with flake8
-        run: |
-          pip install flake8
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 --count --show-source --statistics mp_api
-          # exit-zero treats all errors as warnings.
-          flake8 --count --exit-zero --max-complexity=20 --statistics mp_api
-
   test:
     strategy:
       max-parallel: 3
@@ -74,7 +38,7 @@ jobs:
       - name: Set SSL_CERT_FILE (Windows)
         if: matrix.os == 'windows-latest'
         run: echo "SSL_CERT_FILE=$(python -m certifi)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-      
+
       - name: Format API key name (Linux/MacOS)
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         run: |
@@ -98,9 +62,7 @@ jobs:
           file: ./coverage.xml
 
   auto-gen-release:
-    needs:
-      - lint
-      - test
+    needs: [test]
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.API_VER_BUMP_TOKEN }}

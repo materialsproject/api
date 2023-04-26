@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.provenance import ProvenanceRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.provenance import ProvenanceRester
 
 
 @pytest.fixture
@@ -27,9 +28,7 @@ alt_name_dict = {"material_ids": "material_id"}  # type: dict
 custom_field_tests = {"material_ids": ["mp-149"]}  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 

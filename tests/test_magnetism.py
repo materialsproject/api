@@ -1,9 +1,10 @@
 import os
+import typing
+
 import pytest
-from mp_api.client.routes.magnetism import MagnetismRester
 from pymatgen.analysis.magnetism import Ordering
 
-import typing
+from mp_api.client.routes.magnetism import MagnetismRester
 
 
 @pytest.fixture
@@ -28,9 +29,7 @@ alt_name_dict = {"material_ids": "material_id"}  # type: dict
 custom_field_tests = {"material_ids": ["mp-149"], "ordering": Ordering.FM}  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 

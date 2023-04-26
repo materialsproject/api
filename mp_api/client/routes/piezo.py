@@ -1,24 +1,20 @@
-from typing import List, Optional, Tuple, Union
+import warnings
 from collections import defaultdict
+from typing import List, Optional, Tuple, Union
+
+from emmet.core.polar import PiezoelectricDoc
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from emmet.core.polar import PiezoelectricDoc
-
-import warnings
 
 
 class PiezoRester(BaseRester[PiezoelectricDoc]):
-
     suffix = "piezoelectric"
     document_model = PiezoelectricDoc  # type: ignore
     primary_key = "material_id"
 
     def search_piezoelectric_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.piezoelectric.search_piezoelectric_docs is deprecated. "
             "Please use MPRester.piezoelectric.search instead.",
@@ -38,8 +34,7 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query equations of state docs using a variety of search criteria.
+        """Query equations of state docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -56,7 +51,6 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
         Returns:
             ([PiezoDoc]) List of piezoelectric documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:
