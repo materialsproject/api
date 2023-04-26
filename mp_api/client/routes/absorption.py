@@ -1,13 +1,13 @@
-from typing import List, Optional, Union
 from collections import defaultdict
+from typing import List, Optional, Union
+
+from emmet.core.absorption import AbsorptionDoc
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from emmet.core.absorption import AbsorptionDoc
 
 
 class AbsorptionRester(BaseRester[AbsorptionDoc]):
-
     suffix = "absorption"
     document_model = AbsorptionDoc  # type: ignore
     primary_key = "material_id"
@@ -25,8 +25,7 @@ class AbsorptionRester(BaseRester[AbsorptionDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ) -> List[AbsorptionDoc]:
-        """
-        Query for optical absorption spectra data.
+        """Query for optical absorption spectra data.
 
         Arguments:
             material_ids (str, List[str]): Search for optical absorption data associated with the specified Material IDs
@@ -46,7 +45,6 @@ class AbsorptionRester(BaseRester[AbsorptionDoc]):
         Returns:
             ([AbsorptionDoc]) List of optical absorption documents.
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if formula:

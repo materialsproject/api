@@ -1,10 +1,11 @@
-from pydantic import BaseSettings, Field
-from mp_api.client import __file__ as root_dir
+import os
 from multiprocessing import cpu_count
 from typing import List
-from pymatgen.core import _load_pmg_settings
-import os
 
+from pydantic import BaseSettings, Field
+from pymatgen.core import _load_pmg_settings
+
+from mp_api.client import __file__ as root_dir
 
 PMG_SETTINGS = _load_pmg_settings()
 _NUM_PARALLEL_REQUESTS = PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 8)
@@ -19,9 +20,8 @@ except NotImplementedError:
 
 
 class MAPIClientSettings(BaseSettings):
-    """
-    Special class to store settings for MAPI client
-    python module
+    """Special class to store settings for MAPI client
+    python module.
     """
 
     TEST_FILES: str = Field(

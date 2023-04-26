@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.provenance import ProvenanceRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.provenance import ProvenanceRester
 
 
 @pytest.fixture

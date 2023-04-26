@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.dielectric import DielectricRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.dielectric import DielectricRester
 
 
 @pytest.fixture

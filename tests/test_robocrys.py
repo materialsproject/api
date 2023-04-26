@@ -1,8 +1,8 @@
 import os
-import pytest
-from mp_api.client.routes.robocrys import RobocrysRester
 
-from pymatgen.core.periodic_table import Element
+import pytest
+
+from mp_api.client.routes.robocrys import RobocrysRester
 
 
 @pytest.fixture
@@ -19,7 +19,6 @@ def test_client(rester):
     search_method = rester.search
 
     if search_method is not None:
-
         q = {"keywords": ["silicon"], "num_chunks": 1}
 
         doc = search_method(**q)[0]

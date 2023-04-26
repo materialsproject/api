@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.substrates import SubstratesRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.substrates import SubstratesRester
 
 
 @pytest.fixture

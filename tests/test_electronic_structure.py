@@ -1,15 +1,14 @@
 import os
+import typing
+
 import pytest
+from pymatgen.analysis.magnetism import Ordering
+
 from mp_api.client.routes.electronic_structure import (
     BandStructureRester,
     DosRester,
     ElectronicStructureRester,
 )
-
-from pymatgen.analysis.magnetism import Ordering
-
-import inspect
-import typing
 
 
 @pytest.fixture
@@ -61,7 +60,6 @@ def test_es_client(es_rester):
         for entry in param_tuples:
             param = entry[0]
             if param not in es_excluded_params:
-
                 param_type = entry[1].__args__[0]
                 q = None
 

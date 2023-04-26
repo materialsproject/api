@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.piezo import PiezoRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.piezo import PiezoRester
 
 
 @pytest.fixture

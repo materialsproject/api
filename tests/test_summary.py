@@ -1,11 +1,12 @@
-from emmet.core.symmetry import CrystalSystem
-from emmet.core.summary import HasProps
-from pymatgen.analysis.magnetism import Ordering
-from mp_api.client.routes.summary import SummaryRester
 import os
-import pytest
-
 import typing
+
+import pytest
+from emmet.core.summary import HasProps
+from emmet.core.symmetry import CrystalSystem
+from pymatgen.analysis.magnetism import Ordering
+
+from mp_api.client.routes.summary import SummaryRester
 
 excluded_params = [
     "sort_fields",
@@ -39,7 +40,6 @@ alt_name_dict = {
     "poisson_ratio": "homogeneous_poisson",
     "num_sites": "nsites",
     "num_elements": "nelements",
-    "piezoelectric_modulus": "e_ij_max",
     "surface_energy_anisotropy": "surface_anisotropy",
 }  # type: dict
 
@@ -59,9 +59,10 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client():
-
     search_method = SummaryRester().search
 
     # Get list of parameters
@@ -110,4 +111,6 @@ def test_client():
             else:
                 raise ValueError("No documents returned")
 
-            assert doc[project_field if project_field is not None else param] is not None
+            assert (
+                doc[project_field if project_field is not None else param] is not None
+            )

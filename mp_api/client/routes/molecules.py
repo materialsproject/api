@@ -1,25 +1,20 @@
-from typing import List, Optional, Tuple
+import warnings
 from collections import defaultdict
+from typing import List, Optional, Tuple
 
+from emmet.core.molecules_jcesr import MoleculesDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
-from emmet.core.molecules_jcesr import MoleculesDoc
-
-import warnings
 
 
 class MoleculesRester(BaseRester[MoleculesDoc]):
-
     suffix = "molecules"
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
 
     def search_molecules_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.molecules.search_molecules_docs is deprecated. "
             "Please use MPRester.molecules.search instead.",
@@ -44,8 +39,7 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query equations of state docs using a variety of search criteria.
+        """Query equations of state docs using a variety of search criteria.
 
         Arguments:
             charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
@@ -66,7 +60,6 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
         Returns:
             ([MoleculesDoc]) List of molecule documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if elements:

@@ -1,8 +1,7 @@
-""" Primary MAPI module """
+"""Primary MAPI module."""
 import os
-from pkg_resources import get_distribution, DistributionNotFound
-from .mprester import MPRester
-from .core import MPRestError
+
+from pkg_resources import DistributionNotFound, get_distribution
 
 try:  # pragma: no cover
     from setuptools_scm import get_version

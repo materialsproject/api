@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.surface_properties import SurfacePropertiesRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.surface_properties import SurfacePropertiesRester
 
 
 @pytest.fixture

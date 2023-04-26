@@ -1,23 +1,19 @@
+import warnings
 from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from emmet.core.eos import EOSDoc
-from mp_api.client.core import BaseRester
 
-import warnings
+from mp_api.client.core import BaseRester
 
 
 class EOSRester(BaseRester[EOSDoc]):
-
     suffix = "eos"
     document_model = EOSDoc  # type: ignore
     primary_key = "task_id"
 
     def search_eos_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.eos.search_eos_docs is deprecated. "
             "Please use MPRester.eos.search instead.",
@@ -37,8 +33,7 @@ class EOSRester(BaseRester[EOSDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query equations of state docs using a variety of search criteria.
+        """Query equations of state docs using a variety of search criteria.
 
         Arguments:
             energies (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
@@ -53,7 +48,6 @@ class EOSRester(BaseRester[EOSDoc]):
         Returns:
             ([EOSDoc]) List of eos documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if volumes:

@@ -3,22 +3,19 @@ from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
 from emmet.core.electrode import InsertionElectrodeDoc
+from pymatgen.core.periodic_table import Element
+
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from pymatgen.core.periodic_table import Element
 
 
 class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
-
     suffix = "insertion_electrodes"
     document_model = InsertionElectrodeDoc  # type: ignore
     primary_key = "battery_id"
 
     def search_electrode_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.electrode.search_electrode_docs is deprecated. Please use MPRester.electrode.search instead.",
             DeprecationWarning,
@@ -54,8 +51,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query equations of state docs using a variety of search criteria.
+        """Query equations of state docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -114,7 +110,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             query_params.update({"battery_ids": ",".join(validate_ids(battery_ids))})
 
         if working_ion:
-            if isinstance(working_ion, str) or isinstance(working_ion, Element):
+            if isinstance(working_ion, (str, Element)):
                 working_ion = [working_ion]  # type: ignore
 
             query_params.update(

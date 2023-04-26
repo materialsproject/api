@@ -1,9 +1,10 @@
 import os
+import typing
+
 import pytest
 from emmet.core.charge_density import ChgcarDataDoc
-from mp_api.client.routes.charge_density import ChargeDensityRester
 
-import typing
+from mp_api.client.routes.charge_density import ChargeDensityRester
 
 
 @pytest.fixture
@@ -31,7 +32,9 @@ alt_name_dict = {
 custom_field_tests = {"task_ids": ["mp-1985345", "mp-1896118"]}  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client(rester):
     search_method = rester.search
 
@@ -79,12 +82,14 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )
 
 
 def test_download_for_task_ids(tmpdir, rester):
-
-    n = rester.download_for_task_ids(
+    rester.download_for_task_ids(
         task_ids=["mp-655585", "mp-1057373", "mp-1059589", "mp-1440634", "mp-1791788"],
         path=tmpdir,
     )
@@ -94,7 +99,6 @@ def test_download_for_task_ids(tmpdir, rester):
 
 
 def test_extract_s3_url_info(rester):
-
     url_doc_dict = {
         "task_id": "mp-1896591",
         "url": "https://minio.materialsproject.org/phuck/atomate_chgcar_fs/6021584c12afbe14911d1b8e",

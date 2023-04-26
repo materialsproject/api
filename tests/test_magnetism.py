@@ -1,9 +1,10 @@
 import os
+import typing
+
 import pytest
-from mp_api.client.routes.magnetism import MagnetismRester
 from pymatgen.analysis.magnetism import Ordering
 
-import typing
+from mp_api.client.routes.magnetism import MagnetismRester
 
 
 @pytest.fixture

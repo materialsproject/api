@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.eos import EOSRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.eos import EOSRester
 
 
 @pytest.fixture

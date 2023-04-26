@@ -1,9 +1,10 @@
 import os
+import typing
+
 import pytest
-from mp_api.client.routes.grain_boundary import GrainBoundaryRester
 from emmet.core.grain_boundary import GBTypeEnum
 
-import typing
+from mp_api.client.routes.grain_boundary import GrainBoundaryRester
 
 
 @pytest.fixture

@@ -1,9 +1,10 @@
 import os
+import typing
+
 import pytest
-from mp_api.client.routes.molecules import MoleculesRester
 from pymatgen.core.periodic_table import Element
 
-import typing
+from mp_api.client.routes.molecules import MoleculesRester
 
 
 @pytest.fixture

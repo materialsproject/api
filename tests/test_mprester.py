@@ -1,34 +1,30 @@
+import itertools
 import os
 import random
-import typing
-import numpy as np
-import itertools
 
+import numpy as np
 import pytest
-from emmet.core.summary import HasProps
-from emmet.core.symmetry import CrystalSystem
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
-from sympy import prime
-from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client import MPRester
-from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
 from pymatgen.analysis.wulff import WulffShape
-from pymatgen.core.periodic_table import Element
 from pymatgen.core.ion import Ion
+from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
-from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.entries.compatibility import MaterialsProjectAqueousCompatibility
+from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import PhononDos
+
+from mp_api.client import MPRester
+from mp_api.client.core.settings import MAPIClientSettings
 
 
 @pytest.fixture()

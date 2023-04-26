@@ -1,11 +1,10 @@
-import inspect
 import os
 from typing import List
 
 import pytest
+from emmet.core.synthesis import SynthesisRecipe, SynthesisTypeEnum
 
 from mp_api.client.routes.synthesis import SynthesisRester
-from emmet.core.synthesis import SynthesisTypeEnum, SynthesisRecipe
 
 
 @pytest.fixture
@@ -107,7 +106,8 @@ def test_filters_atmosphere(rester):
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_heating_atmosphere=["air", "O2"], num_chunks=5,
+            condition_heating_atmosphere=["air", "O2"],
+            num_chunks=5,
         )
         for doc in docs:
             found = False
@@ -126,7 +126,8 @@ def test_filters_mixing_device(rester):
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_mixing_device=["zirconia", "Al2O3"], num_chunks=5,
+            condition_mixing_device=["zirconia", "Al2O3"],
+            num_chunks=5,
         )
         for doc in docs:
             found = False
@@ -144,7 +145,8 @@ def test_filters_mixing_media(rester):
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_mixing_media=["water", "alcohol"], num_chunks=5,
+            condition_mixing_media=["water", "alcohol"],
+            num_chunks=5,
         )
         for doc in docs:
             found = False

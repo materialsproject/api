@@ -1,9 +1,10 @@
 import os
-import pytest
-from mp_api.client.routes.electrodes import ElectrodeRester
-
 import typing
+
+import pytest
 from pymatgen.core.periodic_table import Element
+
+from mp_api.client.routes.electrodes import ElectrodeRester
 
 
 @pytest.fixture

@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.elasticity import ElasticityRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.elasticity import ElasticityRester
 
 
 @pytest.fixture

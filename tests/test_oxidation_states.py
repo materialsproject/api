@@ -1,9 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.oxidation_states import OxidationStatesRester
-from pymatgen.analysis.magnetism import Ordering
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.oxidation_states import OxidationStatesRester
 
 
 @pytest.fixture
@@ -47,7 +47,6 @@ def test_client(rester):
         for entry in param_tuples:
             param = entry[0]
             if param not in excluded_params:
-
                 param_type = entry[1].__args__[0]
                 q = None
 

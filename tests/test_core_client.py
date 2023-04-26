@@ -1,7 +1,9 @@
 import os
+
 import pytest
-from mp_api.client.core import BaseRester
+
 from mp_api.client import MPRester
+from mp_api.client.core import BaseRester
 
 
 @pytest.fixture
