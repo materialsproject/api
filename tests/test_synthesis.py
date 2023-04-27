@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import os
-from typing import List
 
 import pytest
 from emmet.core.synthesis import SynthesisRecipe, SynthesisTypeEnum
@@ -60,7 +61,7 @@ def test_filters_temperature_range(rester):
     search_method = rester.search
 
     if search_method is not None:
-        docs: List[SynthesisRecipe] = search_method(
+        docs: list[SynthesisRecipe] = search_method(
             condition_heating_temperature_min=700,
             condition_heating_temperature_max=1000,
             num_chunks=5,
@@ -78,7 +79,7 @@ def test_filters_time_range(rester):
     search_method = rester.search
 
     if search_method is not None:
-        docs: List[SynthesisRecipe] = search_method(
+        docs: list[SynthesisRecipe] = search_method(
             condition_heating_time_min=7, condition_heating_time_max=11, num_chunks=5
         )
         for doc in docs:
@@ -93,7 +94,7 @@ def test_filters_atmosphere(rester):
     search_method = rester.search
 
     if search_method is not None:
-        docs: List[SynthesisRecipe] = search_method(
+        docs: list[SynthesisRecipe] = search_method(
             condition_heating_atmosphere=["air", "O2"],
             num_chunks=5,
         )
@@ -111,7 +112,7 @@ def test_filters_mixing_device(rester):
     search_method = rester.search
 
     if search_method is not None:
-        docs: List[SynthesisRecipe] = search_method(
+        docs: list[SynthesisRecipe] = search_method(
             condition_mixing_device=["zirconia", "Al2O3"],
             num_chunks=5,
         )
@@ -128,7 +129,7 @@ def test_filters_mixing_media(rester):
     search_method = rester.search
 
     if search_method is not None:
-        docs: List[SynthesisRecipe] = search_method(
+        docs: list[SynthesisRecipe] = search_method(
             condition_mixing_media=["water", "alcohol"],
             num_chunks=5,
         )

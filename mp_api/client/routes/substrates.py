@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple
 
 from emmet.core.substrates import SubstratesDoc
 
@@ -25,18 +26,18 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
 
     def search(
         self,
-        area: Optional[Tuple[float, float]] = None,
-        energy: Optional[Tuple[float, float]] = None,
-        film_id: Optional[str] = None,
-        film_orientation: Optional[List[int]] = None,
-        substrate_id: Optional[str] = None,
-        substrate_formula: Optional[str] = None,
-        substrate_orientation: Optional[List[int]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        area: tuple[float, float] | None = None,
+        energy: tuple[float, float] | None = None,
+        film_id: str | None = None,
+        film_orientation: list[int] | None = None,
+        substrate_id: str | None = None,
+        substrate_formula: str | None = None,
+        substrate_orientation: list[int] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query equations of state docs using a variety of search criteria.
 

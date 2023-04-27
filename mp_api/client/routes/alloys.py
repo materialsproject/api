@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import List, Optional, Union
 
 from emmet.core.alloys import AlloyPairDoc
 
@@ -14,14 +15,14 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        formulae: Optional[List[str]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        formulae: list[str] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
-    ) -> List[AlloyPairDoc]:
+        fields: list[str] | None = None,
+    ) -> list[AlloyPairDoc]:
         """Query for hypothetical alloys formed between two commensurate
         crystal structures, following the methodology in
         https://doi.org/10.48550/arXiv.2206.10715.
@@ -66,5 +67,5 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )

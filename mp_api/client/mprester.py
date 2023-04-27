@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import itertools
 import warnings
 from functools import lru_cache
 from json import loads
 from os import environ
-from typing import Dict, List, Literal, Optional, Union
+from typing import Literal
 
 from emmet.core.charge_density import ChgcarDataDoc
 from emmet.core.electronic_structure import BSPathType
@@ -112,7 +114,7 @@ class MPRester:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         endpoint: str = DEFAULT_ENDPOINT,
         notify_db_version: bool = False,
         include_user_agent: bool = True,
@@ -237,8 +239,8 @@ class MPRester:
             )
 
     def get_task_ids_associated_with_material_id(
-        self, material_id: str, calc_types: Optional[List[CalcType]] = None
-    ) -> List[str]:
+        self, material_id: str, calc_types: list[CalcType] | None = None
+    ) -> list[str]:
         """:param material_id:
         :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
         :return:
@@ -255,7 +257,7 @@ class MPRester:
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
-    ) -> Union[Structure, List[Structure]]:
+    ) -> Structure | list[Structure]:
         """Get a Structure corresponding to a material_id.
 
         Args:
@@ -301,7 +303,7 @@ class MPRester:
         """
         return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
-    def get_material_id_from_task_id(self, task_id: str) -> Union[str, None]:
+    def get_material_id_from_task_id(self, task_id: str) -> str | None:
         """Returns the current material_id from a given task_id. The
         material_id should rarely change, and is usually chosen from
         among the smallest numerical id from the group of task_ids for
@@ -327,7 +329,7 @@ class MPRester:
             )
             return None
 
-    def get_materials_id_from_task_id(self, task_id: str) -> Union[str, None]:
+    def get_materials_id_from_task_id(self, task_id: str) -> str | None:
         """This method is deprecated, please use get_material_id_from_task_id."""
         warnings.warn(
             "This method is deprecated, please use get_material_id_from_task_id.",
@@ -335,7 +337,7 @@ class MPRester:
         )
         return self.get_material_id_from_task_id(task_id)
 
-    def get_material_id_references(self, material_id: str) -> List[str]:
+    def get_material_id_references(self, material_id: str) -> list[str]:
         """Returns all references for a material id.
 
         Args:
@@ -346,7 +348,7 @@ class MPRester:
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_id_references(self, material_id: str) -> List[str]:
+    def get_materials_id_references(self, material_id: str) -> list[str]:
         """This method is deprecated, please use get_material_id_references."""
         warnings.warn(
             "This method is deprecated, please use get_material_id_references instead.",
@@ -356,8 +358,8 @@ class MPRester:
 
     def get_material_ids(
         self,
-        chemsys_formula: Union[str, List[str]],
-    ) -> List[MPID]:
+        chemsys_formula: str | list[str],
+    ) -> list[MPID]:
         """Get all materials ids for a formula or chemsys.
 
         Args:
@@ -385,8 +387,8 @@ class MPRester:
 
     def get_materials_ids(
         self,
-        chemsys_formula: Union[str, List[str]],
-    ) -> List[MPID]:
+        chemsys_formula: str | list[str],
+    ) -> list[MPID]:
         """This method is deprecated, please use get_material_ids."""
         warnings.warn(
             "This method is deprecated, please use get_material_ids.",
@@ -395,8 +397,8 @@ class MPRester:
         return self.get_material_ids(chemsys_formula)
 
     def get_structures(
-        self, chemsys_formula: Union[str, List[str]], final=True
-    ) -> List[Structure]:
+        self, chemsys_formula: str | list[str], final=True
+    ) -> list[Structure]:
         """Get a list of Structures corresponding to a chemical system or formula.
 
         Args:
@@ -438,12 +440,12 @@ class MPRester:
 
     def find_structure(
         self,
-        filename_or_structure: Union[str, Structure],
+        filename_or_structure: str | Structure,
         ltol: float = _EMMET_SETTINGS.LTOL,
         stol: float = _EMMET_SETTINGS.STOL,
         angle_tol: float = _EMMET_SETTINGS.ANGLE_TOL,
         allow_multiple_results: bool = False,
-    ) -> Union[List[str], str]:
+    ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.
 
         Multiple results may be returned of "similar" structures based on
@@ -474,14 +476,14 @@ class MPRester:
 
     def get_entries(
         self,
-        chemsys_formula_mpids: Union[str, List[str]],
+        chemsys_formula_mpids: str | list[str],
         compatible_only: bool = True,
         inc_structure: bool = None,
-        property_data: List[str] = None,
+        property_data: list[str] = None,
         conventional_unit_cell: bool = False,
         sort_by_e_above_hull: bool = False,
         additional_criteria: dict = None,
-    ) -> List[ComputedStructureEntry]:
+    ) -> list[ComputedStructureEntry]:
         """Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
@@ -608,9 +610,9 @@ class MPRester:
 
     def get_pourbaix_entries(
         self,
-        chemsys: Union[str, List],
+        chemsys: str | list,
         solid_compat="MaterialsProject2020Compatibility",
-        use_gibbs: Optional[Literal[300]] = None,
+        use_gibbs: Literal[300] | None = None,
     ):
         """A helper function to get all entries necessary to generate
         a Pourbaix diagram from the rest interface.
@@ -733,7 +735,7 @@ class MPRester:
         return pbx_entries
 
     @lru_cache
-    def get_ion_reference_data(self) -> List[Dict]:
+    def get_ion_reference_data(self) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
         Use this method to examine the ion reference data and to add additional
@@ -767,9 +769,7 @@ class MPRester:
             paginate=True,
         ).get("data")
 
-    def get_ion_reference_data_for_chemsys(
-        self, chemsys: Union[str, List]
-    ) -> List[Dict]:
+    def get_ion_reference_data_for_chemsys(self, chemsys: str | list) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
         Use this method to examine the ion reference data and to add additional
@@ -807,8 +807,8 @@ class MPRester:
         return [d for d in ion_data if d["data"]["MajElements"] in chemsys]
 
     def get_ion_entries(
-        self, pd: PhaseDiagram, ion_ref_data: List[dict] = None
-    ) -> List[IonEntry]:
+        self, pd: PhaseDiagram, ion_ref_data: list[dict] = None
+    ) -> list[IonEntry]:
         """Retrieve IonEntry objects that can be used in the construction of
         Pourbaix Diagrams. The energies of the IonEntry are calculaterd from
         the solid energies in the provided Phase Diagram to be
@@ -901,7 +901,7 @@ class MPRester:
         material_id: str,
         compatible_only: bool = True,
         inc_structure: bool = None,
-        property_data: List[str] = None,
+        property_data: list[str] = None,
         conventional_unit_cell: bool = False,
     ):
         """Get all ComputedEntry objects corresponding to a material_id.
@@ -939,11 +939,11 @@ class MPRester:
 
     def get_entries_in_chemsys(
         self,
-        elements: Union[str, List[str]],
-        use_gibbs: Optional[int] = None,
+        elements: str | list[str],
+        use_gibbs: int | None = None,
         compatible_only: bool = True,
         inc_structure: bool = None,
-        property_data: List[str] = None,
+        property_data: list[str] = None,
         conventional_unit_cell: bool = False,
         additional_criteria=None,
     ):
@@ -1129,7 +1129,7 @@ class MPRester:
 
     def get_charge_density_from_material_id(
         self, material_id: str, inc_task_doc: bool = False
-    ) -> Optional[Chgcar]:
+    ) -> Chgcar | None:
         """Get charge density data for a given Materials Project ID.
 
         Arguments:
@@ -1150,7 +1150,7 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results: List[ChgcarDataDoc] = self.charge_density.search(task_ids=task_ids)  # type: ignore
+        results: list[ChgcarDataDoc] = self.charge_density.search(task_ids=task_ids)  # type: ignore
 
         if len(results) == 0:
             return None
@@ -1233,8 +1233,8 @@ class MPRester:
         urls = [prefix + tids for tids in nomad_exist_task_ids]
         return meta, urls
 
-    def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> List[str]:
-        nomad_exist_task_ids: List[str] = []
+    def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> list[str]:
+        nomad_exist_task_ids: list[str] = []
         prefix = prefix.replace("/raw/query", "/repo/")
         for task_id in task_ids:
             url = prefix + task_id

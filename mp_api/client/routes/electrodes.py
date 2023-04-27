@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.electrode import InsertionElectrodeDoc
 from pymatgen.core.periodic_table import Element
@@ -26,30 +27,30 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
     def search(  # pragma: ignore
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        battery_ids: Optional[Union[str, List[str]]] = None,
-        average_voltage: Optional[Tuple[float, float]] = None,
-        capacity_grav: Optional[Tuple[float, float]] = None,
-        capacity_vol: Optional[Tuple[float, float]] = None,
-        elements: Optional[List[str]] = None,
-        energy_grav: Optional[Tuple[float, float]] = None,
-        energy_vol: Optional[Tuple[float, float]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        fracA_charge: Optional[Tuple[float, float]] = None,
-        fracA_discharge: Optional[Tuple[float, float]] = None,
-        max_delta_volume: Optional[Tuple[float, float]] = None,
-        max_voltage_step: Optional[Tuple[float, float]] = None,
-        num_elements: Optional[Tuple[int, int]] = None,
-        num_steps: Optional[Tuple[int, int]] = None,
-        stability_charge: Optional[Tuple[float, float]] = None,
-        stability_discharge: Optional[Tuple[float, float]] = None,
-        working_ion: Optional[Element] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        battery_ids: str | list[str] | None = None,
+        average_voltage: tuple[float, float] | None = None,
+        capacity_grav: tuple[float, float] | None = None,
+        capacity_vol: tuple[float, float] | None = None,
+        elements: list[str] | None = None,
+        energy_grav: tuple[float, float] | None = None,
+        energy_vol: tuple[float, float] | None = None,
+        exclude_elements: list[str] | None = None,
+        formula: str | list[str] | None = None,
+        fracA_charge: tuple[float, float] | None = None,
+        fracA_discharge: tuple[float, float] | None = None,
+        max_delta_volume: tuple[float, float] | None = None,
+        max_voltage_step: tuple[float, float] | None = None,
+        num_elements: tuple[int, int] | None = None,
+        num_steps: tuple[int, int] | None = None,
+        stability_charge: tuple[float, float] | None = None,
+        stability_discharge: tuple[float, float] | None = None,
+        working_ion: Element | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query equations of state docs using a variety of search criteria.
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ast import Import
 
 from ._general_store import GeneralStoreRester

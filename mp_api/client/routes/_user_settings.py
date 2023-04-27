@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from emmet.core._user_settings import UserSettingsDoc
 
 from mp_api.client.core import BaseRester

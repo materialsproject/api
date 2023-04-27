@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.chemenv import ChemEnvDoc
 
@@ -14,21 +15,21 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        chemenv_iucr: Optional[Union[str, List[str]]] = None,
-        chemenv_iupac: Optional[Union[str, List[str]]] = None,
-        chemenv_name: Optional[Union[str, List[str]]] = None,
-        csm: Optional[Tuple[float, float]] = None,
-        density: Optional[Tuple[float, float]] = None,
-        num_elements: Optional[Tuple[int, int]] = None,
-        num_sites: Optional[Tuple[int, int]] = None,
-        volume: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        chemenv_iucr: str | list[str] | None = None,
+        chemenv_iupac: str | list[str] | None = None,
+        chemenv_name: str | list[str] | None = None,
+        csm: tuple[float, float] | None = None,
+        density: tuple[float, float] | None = None,
+        num_elements: tuple[int, int] | None = None,
+        num_sites: tuple[int, int] | None = None,
+        volume: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
-    ) -> List[ChemEnvDoc]:
+        fields: list[str] | None = None,
+    ) -> list[ChemEnvDoc]:
         """Query for chemical environment data.
 
         Arguments:
@@ -113,5 +114,5 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )

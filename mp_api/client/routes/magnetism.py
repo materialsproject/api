@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.magnetism import MagnetismDoc
 from pymatgen.analysis.magnetism import Ordering
@@ -27,20 +28,18 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        num_magnetic_sites: Optional[Tuple[int, int]] = None,
-        num_unique_magnetic_sites: Optional[Tuple[int, int]] = None,
-        ordering: Optional[Ordering] = None,
-        total_magnetization: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_formula_units: Optional[
-            Tuple[float, float]
-        ] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        num_magnetic_sites: tuple[int, int] | None = None,
+        num_unique_magnetic_sites: tuple[int, int] | None = None,
+        ordering: Ordering | None = None,
+        total_magnetization: tuple[float, float] | None = None,
+        total_magnetization_normalized_vol: tuple[float, float] | None = None,
+        total_magnetization_normalized_formula_units: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query magnetism docs using a variety of search criteria.
 
@@ -141,5 +140,5 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )

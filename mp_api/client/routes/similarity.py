@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from emmet.core.similarity import SimilarityDoc
 
 from mp_api.client.core import BaseRester

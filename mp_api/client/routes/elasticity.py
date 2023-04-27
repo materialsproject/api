@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple
 
 from emmet.core.elasticity_legacy import ElasticityDoc
 
@@ -24,19 +25,19 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
 
     def search(
         self,
-        elastic_anisotropy: Optional[Tuple[float, float]] = None,
-        g_voigt: Optional[Tuple[float, float]] = None,
-        g_reuss: Optional[Tuple[float, float]] = None,
-        g_vrh: Optional[Tuple[float, float]] = None,
-        k_voigt: Optional[Tuple[float, float]] = None,
-        k_reuss: Optional[Tuple[float, float]] = None,
-        k_vrh: Optional[Tuple[float, float]] = None,
-        poisson_ratio: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        elastic_anisotropy: tuple[float, float] | None = None,
+        g_voigt: tuple[float, float] | None = None,
+        g_reuss: tuple[float, float] | None = None,
+        g_vrh: tuple[float, float] | None = None,
+        k_voigt: tuple[float, float] | None = None,
+        k_reuss: tuple[float, float] | None = None,
+        k_vrh: tuple[float, float] | None = None,
+        poisson_ratio: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query elasticity docs using a variety of search criteria.
 
@@ -116,5 +117,5 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )
