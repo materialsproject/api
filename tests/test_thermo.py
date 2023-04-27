@@ -121,5 +121,6 @@ def test_get_phase_diagram_from_chemsys():
     # Test that a phase diagram is returned
 
     assert isinstance(
-        ThermoRester().get_phase_diagram_from_chemsys("Hf-Pm"), PhaseDiagram
+        ThermoRester().get_phase_diagram_from_chemsys("Hf-Pm", thermo_type="GGA_GGA+U"),
+        PhaseDiagram,
     )

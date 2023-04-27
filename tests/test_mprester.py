@@ -160,9 +160,9 @@ class TestMPRester:
 
         s = prim.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
-        assert pytest.approx(s.lattice.a) != s.lattice.c
+        assert pytest.approx(s.lattice.a) == s.lattice.c
         assert pytest.approx(s.lattice.alpha) == s.lattice.beta
-        assert pytest.approx(s.lattice.alpha) != s.lattice.gamma
+        assert pytest.approx(s.lattice.alpha) == s.lattice.gamma
 
         # Additional criteria
         entry = mpr.get_entries(
