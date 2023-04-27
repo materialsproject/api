@@ -28,6 +28,7 @@ ignore = [
     "SIM115",  # Use context handler for opening files
 ]
 pydocstyle.convention = "google"
+isort.required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.per-file-ignores]
 "*/__init__.py" = ["F401"] # F401: imported but unused
