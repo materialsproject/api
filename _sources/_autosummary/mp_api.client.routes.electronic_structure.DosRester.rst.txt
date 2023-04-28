@@ -4,9 +4,9 @@ mp\_api.client.routes.electronic\_structure.DosRester
 .. currentmodule:: mp_api.client.routes.electronic_structure
 
 .. autoclass:: DosRester
-   :members:                         
-   :show-inheritance:                      
-   :inherited-members:                         
+   :members:
+   :show-inheritance:
+   :inherited-members:
 
    
    .. automethod:: __init__

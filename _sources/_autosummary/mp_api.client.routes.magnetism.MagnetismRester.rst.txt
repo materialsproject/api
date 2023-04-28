@@ -4,9 +4,9 @@ mp\_api.client.routes.magnetism.MagnetismRester
 .. currentmodule:: mp_api.client.routes.magnetism
 
 .. autoclass:: MagnetismRester
-   :members:                         
-   :show-inheritance:                      
-   :inherited-members:                         
+   :members:
+   :show-inheritance:
+   :inherited-members:
 
    
    .. automethod:: __init__

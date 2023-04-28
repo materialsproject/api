@@ -4,9 +4,9 @@ mp\_api.client.mprester.MPRester
 .. currentmodule:: mp_api.client.mprester
 
 .. autoclass:: MPRester
-   :members:                         
-   :show-inheritance:                      
-   :inherited-members:                         
+   :members:
+   :show-inheritance:
+   :inherited-members:
 
    
    .. automethod:: __init__

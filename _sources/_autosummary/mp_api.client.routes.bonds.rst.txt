@@ -2,7 +2,7 @@ mp\_api.client.routes.bonds
 ===========================
 
 .. automodule:: mp_api.client.routes.bonds
-  
+
    
    
    
@@ -16,8 +16,8 @@ mp\_api.client.routes.bonds
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       BondsRester
    

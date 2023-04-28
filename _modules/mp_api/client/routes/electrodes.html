@@ -35,22 +35,19 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">emmet.core.electrode</span> <span class="kn">import</span> <span class="n">InsertionElectrodeDoc</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
+
 <span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
 
 
 <div class="viewcode-block" id="ElectrodeRester"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.electrodes.ElectrodeRester.html#mp_api.client.routes.electrodes.ElectrodeRester">[docs]</a><span class="k">class</span> <span class="nc">ElectrodeRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">InsertionElectrodeDoc</span><span class="p">]):</span>
-
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;insertion_electrodes&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">InsertionElectrodeDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;battery_id&quot;</span>
 
 <div class="viewcode-block" id="ElectrodeRester.search_electrode_docs"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.electrodes.ElectrodeRester.html#mp_api.client.routes.electrodes.ElectrodeRester.search_electrode_docs">[docs]</a>    <span class="k">def</span> <span class="nf">search_electrode_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Deprecated</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;MPRester.electrode.search_electrode_docs is deprecated. Please use MPRester.electrode.search instead.&quot;</span><span class="p">,</span>
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
@@ -86,8 +83,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Query equations of state docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query equations of state docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
@@ -146,7 +142,7 @@
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;battery_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">battery_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">working_ion</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">working_ion</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">working_ion</span><span class="p">,</span> <span class="n">Element</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">working_ion</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Element</span><span class="p">)):</span>
                 <span class="n">working_ion</span> <span class="o">=</span> <span class="p">[</span><span class="n">working_ion</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
 
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
@@ -251,7 +247,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

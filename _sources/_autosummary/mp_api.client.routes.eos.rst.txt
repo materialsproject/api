@@ -2,7 +2,7 @@ mp\_api.client.routes.eos
 =========================
 
 .. automodule:: mp_api.client.routes.eos
-  
+
    
    
    
@@ -16,8 +16,8 @@ mp\_api.client.routes.eos
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       EOSRester
    

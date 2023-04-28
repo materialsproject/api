@@ -2,7 +2,7 @@ mp\_api.client.routes.oxidation\_states
 =======================================
 
 .. automodule:: mp_api.client.routes.oxidation_states
-  
+
    
    
    
@@ -16,8 +16,8 @@ mp\_api.client.routes.oxidation\_states
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       OxidationStatesRester
    

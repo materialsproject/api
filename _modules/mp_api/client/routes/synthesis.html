@@ -30,16 +30,16 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.synthesis</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span> <span class="nn">emmet.core.synthesis</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">OperationTypeEnum</span><span class="p">,</span>
     <span class="n">SynthesisSearchResultModel</span><span class="p">,</span>
     <span class="n">SynthesisTypeEnum</span><span class="p">,</span>
-    <span class="n">OperationTypeEnum</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 
 
 <div class="viewcode-block" id="SynthesisRester"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.synthesis.SynthesisRester.html#mp_api.client.routes.synthesis.SynthesisRester">[docs]</a><span class="k">class</span> <span class="nc">SynthesisRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">SynthesisSearchResultModel</span><span class="p">]):</span>
@@ -47,10 +47,7 @@
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">SynthesisSearchResultModel</span>  <span class="c1"># type: ignore</span>
 
 <div class="viewcode-block" id="SynthesisRester.search_synthesis_text"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.synthesis.SynthesisRester.html#mp_api.client.routes.synthesis.SynthesisRester.search_synthesis_text">[docs]</a>    <span class="k">def</span> <span class="nf">search_synthesis_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Deprecated</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;search_synthesis_text is deprecated. &quot;</span> <span class="s2">&quot;Please use search instead.&quot;</span><span class="p">,</span>
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
@@ -76,8 +73,8 @@
         <span class="n">num_chunks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Search synthesis recipe text.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Search synthesis recipe text.</span>
+
 <span class="sd">        Arguments:</span>
 <span class="sd">            keywords (Optional[List[str]]): List of string keywords to search synthesis paragraph text with</span>
 <span class="sd">            synthesis_type (Optional[List[SynthesisTypeEnum]]): Type of synthesis to include</span>
@@ -93,10 +90,11 @@
 <span class="sd">            condition_mixing_media (Optional[List[str]]): Required mixing media, such as &quot;alcohol&quot;, &quot;water&quot;</span>
 <span class="sd">            num_chunks (Optional[int]): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (Optional[int]): Number of data entries per chunk.</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            synthesis_docs ([SynthesisDoc]): List of synthesis documents</span>
-<span class="sd">        &quot;&quot;&quot;</span>
 
+
+<span class="sd">        Returns:</span>
+<span class="sd">            synthesis_docs ([SynthesisDoc]): List of synthesis documents.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Turn None and empty list into None</span>
         <span class="n">keywords</span> <span class="o">=</span> <span class="n">keywords</span> <span class="ow">or</span> <span class="kc">None</span>
         <span class="n">synthesis_type</span> <span class="o">=</span> <span class="n">synthesis_type</span> <span class="ow">or</span> <span class="kc">None</span>
@@ -180,7 +178,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

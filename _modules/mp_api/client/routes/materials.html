@@ -45,7 +45,6 @@
 
 
 <div class="viewcode-block" id="MaterialsRester"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.materials.MaterialsRester.html#mp_api.client.routes.materials.MaterialsRester">[docs]</a><span class="k">class</span> <span class="nc">MaterialsRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">MaterialsDoc</span><span class="p">]):</span>
-
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">MaterialsDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">supports_versions</span> <span class="o">=</span> <span class="kc">True</span>
@@ -54,8 +53,7 @@
 <div class="viewcode-block" id="MaterialsRester.get_structure_by_material_id"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.materials.MaterialsRester.html#mp_api.client.routes.materials.MaterialsRester.get_structure_by_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_structure_by_material_id</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">final</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Structure</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Structure</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get a structure for a given Materials Project ID.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a structure for a given Materials Project ID.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_id (str): Materials project ID</span>
@@ -74,10 +72,7 @@
             <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">initial_structures</span> <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">response</span>  <span class="c1"># type: ignore</span></div>
 
 <div class="viewcode-block" id="MaterialsRester.search_material_docs"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.materials.MaterialsRester.html#mp_api.client.routes.materials.MaterialsRester.search_material_docs">[docs]</a>    <span class="k">def</span> <span class="nf">search_material_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Deprecated</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;MPRester.materials.search_material_docs is deprecated. &quot;</span>
             <span class="s2">&quot;Please use MPRester.materials.search instead.&quot;</span><span class="p">,</span>
@@ -109,8 +104,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Query core material docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core material docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
@@ -141,7 +135,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([MaterialsDoc]) List of material documents</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">}</span>  <span class="c1"># type: dict</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
@@ -213,7 +206,7 @@
             <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">query_params</span>
+            <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="MaterialsRester.find_structure"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.materials.MaterialsRester.html#mp_api.client.routes.materials.MaterialsRester.find_structure">[docs]</a>    <span class="k">def</span> <span class="nf">find_structure</span><span class="p">(</span>
@@ -224,8 +217,7 @@
         <span class="n">angle_tol</span><span class="o">=</span><span class="n">_EMMET_SETTINGS</span><span class="o">.</span><span class="n">ANGLE_TOL</span><span class="p">,</span>
         <span class="n">allow_multiple_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Finds matching structures from the Materials Project database.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds matching structures from the Materials Project database.</span>
 
 <span class="sd">        Multiple results may be returned of &quot;similar&quot; structures based on</span>
 <span class="sd">        distance using the pymatgen StructureMatcher algorithm, however only</span>
@@ -245,7 +237,6 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            MPRestError</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ltol&quot;</span><span class="p">:</span> <span class="n">ltol</span><span class="p">,</span> <span class="s2">&quot;stol&quot;</span><span class="p">:</span> <span class="n">stol</span><span class="p">,</span> <span class="s2">&quot;angle_tol&quot;</span><span class="p">:</span> <span class="n">angle_tol</span><span class="p">,</span> <span class="s2">&quot;_limit&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename_or_structure</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -322,7 +313,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

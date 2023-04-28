@@ -2,7 +2,7 @@
 =======================
 
 .. automodule:: mp_api.client.mprester
-  
+
    
    
    
@@ -16,8 +16,8 @@
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       MPRester
    

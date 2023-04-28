@@ -30,15 +30,16 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.oxidation_states</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
 <span class="kn">from</span> <span class="nn">emmet.core.oxidation_states</span> <span class="kn">import</span> <span class="n">OxidationStateDoc</span>
+
+<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 
 
 <div class="viewcode-block" id="OxidationStatesRester"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.oxidation_states.OxidationStatesRester.html#mp_api.client.routes.oxidation_states.OxidationStatesRester">[docs]</a><span class="k">class</span> <span class="nc">OxidationStatesRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">OxidationStateDoc</span><span class="p">]):</span>
-
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;oxidation_states&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">OxidationStateDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
@@ -55,8 +56,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Query oxidation state docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query oxidation state docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
@@ -77,7 +77,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([OxidationStateDoc]) List of oxidation state documents</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
@@ -167,7 +166,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

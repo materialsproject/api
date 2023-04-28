@@ -31,10 +31,10 @@
             
   <h1>Source code for mp_api.client.routes.thermo</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">emmet.core.thermo</span> <span class="kn">import</span> <span class="n">ThermoDoc</span><span class="p">,</span> <span class="n">ThermoType</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.phase_diagram</span> <span class="kn">import</span> <span class="n">PhaseDiagram</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Element</span>
@@ -44,19 +44,16 @@
 
 
 <div class="viewcode-block" id="ThermoRester"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.thermo.ThermoRester.html#mp_api.client.routes.thermo.ThermoRester">[docs]</a><span class="k">class</span> <span class="nc">ThermoRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">ThermoDoc</span><span class="p">]):</span>
-
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;thermo&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">ThermoDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">supports_versions</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;thermo_id&quot;</span>
 
 <div class="viewcode-block" id="ThermoRester.search_thermo_docs"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.thermo.ThermoRester.html#mp_api.client.routes.thermo.ThermoRester.search_thermo_docs">[docs]</a>    <span class="k">def</span> <span class="nf">search_thermo_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Deprecated</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;MPRester.thermo.search_thermo_docs is deprecated. &quot;</span> <span class="s2">&quot;Please use MPRester.thermo.search instead.&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;MPRester.thermo.search_thermo_docs is deprecated. &quot;</span>
+            <span class="s2">&quot;Please use MPRester.thermo.search instead.&quot;</span><span class="p">,</span>
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
@@ -83,8 +80,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Query core material docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core material docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
@@ -115,7 +111,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([ThermoDoc]) List of thermo documents</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
 
         <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
@@ -140,19 +135,25 @@
             <span class="n">t_types</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thermo_types</span><span class="p">}</span>
             <span class="n">valid_types</span> <span class="o">=</span> <span class="p">{</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">__members__</span><span class="o">.</span><span class="n">values</span><span class="p">())}</span>
             <span class="k">if</span> <span class="n">invalid_types</span> <span class="o">:=</span> <span class="n">t_types</span> <span class="o">-</span> <span class="n">valid_types</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid thermo type(s) passed: </span><span class="si">{</span><span class="n">invalid_types</span><span class="si">}</span><span class="s2">, valid types are: </span><span class="si">{</span><span class="n">valid_types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Invalid thermo type(s) passed: </span><span class="si">{</span><span class="n">invalid_types</span><span class="si">}</span><span class="s2">, valid types are: </span><span class="si">{</span><span class="n">valid_types</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t_types</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">num_elements</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_elements</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="n">num_elements</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_elements</span><span class="p">,</span> <span class="n">num_elements</span><span class="p">)</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;nelements_min&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;nelements_max&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;nelements_min&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;nelements_max&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">is_stable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;is_stable&quot;</span><span class="p">:</span> <span class="n">is_stable</span><span class="p">})</span>
 
         <span class="k">if</span> <span class="n">sort_fields</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;_sort_fields&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_fields</span><span class="p">])})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;_sort_fields&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_fields</span><span class="p">])}</span>
+            <span class="p">)</span>
 
         <span class="n">name_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;total_energy&quot;</span><span class="p">:</span> <span class="s2">&quot;energy_per_atom&quot;</span><span class="p">,</span>
@@ -171,7 +172,11 @@
                     <span class="p">}</span>
                 <span class="p">)</span>
 
-        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">query_params</span> <span class="k">if</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">query_params</span>
+            <span class="k">if</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">}</span>
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span>
             <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
@@ -184,21 +189,23 @@
 <div class="viewcode-block" id="ThermoRester.get_phase_diagram_from_chemsys"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.thermo.ThermoRester.html#mp_api.client.routes.thermo.ThermoRester.get_phase_diagram_from_chemsys">[docs]</a>    <span class="k">def</span> <span class="nf">get_phase_diagram_from_chemsys</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">thermo_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ThermoType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseDiagram</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get a pre-computed phase diagram for a given chemsys.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a pre-computed phase diagram for a given chemsys.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            chemsys (str): A chemical system (e.g. Li-Fe-O)</span>
 <span class="sd">            thermo_type (ThermoType): The thermo type for the phase diagram.</span>
 <span class="sd">                Defaults to ThermoType.GGA_GGA_U.</span>
+
+
 <span class="sd">        Returns:</span>
 <span class="sd">            phase_diagram (PhaseDiagram): Pymatgen phase diagram object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">t_type</span> <span class="o">=</span> <span class="n">thermo_type</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thermo_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">thermo_type</span><span class="o">.</span><span class="n">value</span>
         <span class="n">valid_types</span> <span class="o">=</span> <span class="p">{</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">__members__</span><span class="o">.</span><span class="n">values</span><span class="p">())}</span>
         <span class="k">if</span> <span class="n">invalid_types</span> <span class="o">:=</span> <span class="p">{</span><span class="n">t_type</span><span class="p">}</span> <span class="o">-</span> <span class="n">valid_types</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid thermo type(s) passed: </span><span class="si">{</span><span class="n">invalid_types</span><span class="si">}</span><span class="s2">, valid types are: </span><span class="si">{</span><span class="n">valid_types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid thermo type(s) passed: </span><span class="si">{</span><span class="n">invalid_types</span><span class="si">}</span><span class="s2">, valid types are: </span><span class="si">{</span><span class="n">valid_types</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
         <span class="n">sorted_chemsys</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">chemsys</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)))</span>
         <span class="n">phase_diagram_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sorted_chemsys</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">t_type</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -275,7 +282,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

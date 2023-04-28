@@ -2,7 +2,7 @@ mp\_api.client.routes.provenance
 ================================
 
 .. automodule:: mp_api.client.routes.provenance
-  
+
    
    
    
@@ -16,8 +16,8 @@ mp\_api.client.routes.provenance
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       ProvenanceRester
    

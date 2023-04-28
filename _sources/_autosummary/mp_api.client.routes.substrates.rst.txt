@@ -2,7 +2,7 @@ mp\_api.client.routes.substrates
 ================================
 
 .. automodule:: mp_api.client.routes.substrates
-  
+
    
    
    
@@ -16,8 +16,8 @@ mp\_api.client.routes.substrates
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       SubstratesRester
    

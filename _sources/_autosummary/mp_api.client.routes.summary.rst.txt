@@ -2,7 +2,7 @@ mp\_api.client.routes.summary
 =============================
 
 .. automodule:: mp_api.client.routes.summary
-  
+
    
    
    
@@ -16,8 +16,8 @@ mp\_api.client.routes.summary
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       SummaryRester
    

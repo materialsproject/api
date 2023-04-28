@@ -38,83 +38,68 @@
 <dt class="sig sig-object py" id="mp_api.client.routes.electronic_structure.DosRester">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mp_api.client.routes.electronic_structure.</span></span><span class="sig-name descname"><span class="pre">DosRester</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://api.materialsproject.org/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_user_agent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monty_decode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_document_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#int" title="(in Python v3.8)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#dict" title="(in Python v3.8)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/routes/electronic_structure.html#DosRester"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.routes.electronic_structure.DosRester" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseRester</span></code></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A String API key for accessing the MaterialsProject
+<p>Args:
+api_key (str): A String API key for accessing the MaterialsProject
 REST interface. Please obtain your API key at
 <a class="reference external" href="https://www.materialsproject.org/dashboard">https://www.materialsproject.org/dashboard</a>. If this is None,
 the code will check if there is a “PMG_MAPI_KEY” setting.
 If so, it will use that environment variable. This makes
 easier for heavy users to simply add this environment variable to
-their setups and MPRester can then be called without any arguments.</p></li>
-<li><p><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST
+their setups and MPRester can then be called without any arguments.
+endpoint (str): Url of endpoint to access the MaterialsProject REST
 interface. Defaults to the standard Materials Project REST
 address at “<a class="reference external" href="https://api.materialsproject.org">https://api.materialsproject.org</a>”, but
-can be changed to other urls implementing a similar interface.</p></li>
-<li><p><strong>include_user_agent</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, will include a user agent with the
+can be changed to other urls implementing a similar interface.
+include_user_agent (bool): If True, will include a user agent with the
 HTTP request including information on pymatgen and system version
 making the API request. This helps MP support pymatgen users, and
 is similar to what most web browsers send with each page request.
-Set to False to disable the user agent.</p></li>
-<li><p><strong>session</strong> – requests Session object with which to connect to the API, for
-advanced usage only.</p></li>
-<li><p><strong>debug</strong> – if True, print the URL for every request</p></li>
-<li><p><strong>monty_decode</strong> – Decode the data using monty into python objects</p></li>
-<li><p><strong>use_document_model</strong> – If False, skip the creating the document model and return data
+Set to False to disable the user agent.
+session: requests Session object with which to connect to the API, for
+advanced usage only.
+debug: if True, print the URL for every request
+monty_decode: Decode the data using monty into python objects
+use_document_model: If False, skip the creating the document model and return data
 as a dictionary. This can be simpler to work with but bypasses data validation
-and will not give auto-complete for available fields.</p></li>
-<li><p><strong>timeout</strong> – Time in seconds to wait until a request timeout error is thrown</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – Custom headers for localhost connections.</p></li>
-</ul>
-</dd>
-</dl>
+and will not give auto-complete for available fields.
+timeout: Time in seconds to wait until a request timeout error is thrown
+headers (dict): Custom headers for localhost connections.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="mp_api.client.routes.electronic_structure.DosRester.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://api.materialsproject.org/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_user_agent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monty_decode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_document_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/functions.html#int" title="(in Python v3.8)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#dict" title="(in Python v3.8)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.8/library/constants.html#None" title="(in Python v3.8)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mp_api.client.routes.electronic_structure.DosRester.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A String API key for accessing the MaterialsProject
+<dd><p>Args:
+api_key (str): A String API key for accessing the MaterialsProject
 REST interface. Please obtain your API key at
 <a class="reference external" href="https://www.materialsproject.org/dashboard">https://www.materialsproject.org/dashboard</a>. If this is None,
 the code will check if there is a “PMG_MAPI_KEY” setting.
 If so, it will use that environment variable. This makes
 easier for heavy users to simply add this environment variable to
-their setups and MPRester can then be called without any arguments.</p></li>
-<li><p><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST
+their setups and MPRester can then be called without any arguments.
+endpoint (str): Url of endpoint to access the MaterialsProject REST
 interface. Defaults to the standard Materials Project REST
 address at “<a class="reference external" href="https://api.materialsproject.org">https://api.materialsproject.org</a>”, but
-can be changed to other urls implementing a similar interface.</p></li>
-<li><p><strong>include_user_agent</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, will include a user agent with the
+can be changed to other urls implementing a similar interface.
+include_user_agent (bool): If True, will include a user agent with the
 HTTP request including information on pymatgen and system version
 making the API request. This helps MP support pymatgen users, and
 is similar to what most web browsers send with each page request.
-Set to False to disable the user agent.</p></li>
-<li><p><strong>session</strong> – requests Session object with which to connect to the API, for
-advanced usage only.</p></li>
-<li><p><strong>debug</strong> – if True, print the URL for every request</p></li>
-<li><p><strong>monty_decode</strong> – Decode the data using monty into python objects</p></li>
-<li><p><strong>use_document_model</strong> – If False, skip the creating the document model and return data
+Set to False to disable the user agent.
+session: requests Session object with which to connect to the API, for
+advanced usage only.
+debug: if True, print the URL for every request
+monty_decode: Decode the data using monty into python objects
+use_document_model: If False, skip the creating the document model and return data
 as a dictionary. This can be simpler to work with but bypasses data validation
-and will not give auto-complete for available fields.</p></li>
-<li><p><strong>timeout</strong> – Time in seconds to wait until a request timeout error is thrown</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3.8/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – Custom headers for localhost connections.</p></li>
-</ul>
-</dd>
-</dl>
+and will not give auto-complete for available fields.
+timeout: Time in seconds to wait until a request timeout error is thrown
+headers (dict): Custom headers for localhost connections.</p>
 </dd></dl>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.routes.electronic_structure.DosRester.__init__" title="mp_api.client.routes.electronic_structure.DosRester.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([api_key, endpoint, ...])</p></td>
-<td><p><dl class="field-list simple">
-<dt class="field-odd">param api_key<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A String API key for accessing the MaterialsProject</p>
-</dd>
-</dl>
-</p></td>
+<td><p>Args: api_key (str): A String API key for accessing the MaterialsProject REST interface.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.routes.electronic_structure.DosRester.count" title="mp_api.client.routes.electronic_structure.DosRester.count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count</span></code></a>([criteria])</p></td>
 <td><p>Return a count of total documents.</p></td>
@@ -132,7 +117,7 @@ and will not give auto-complete for available fields.</p></li>
 <td><p>Query density of states summary data in electronic structure docs using a variety of search criteria.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.routes.electronic_structure.DosRester.search_dos_summary" title="mp_api.client.routes.electronic_structure.DosRester.search_dos_summary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">search_dos_summary</span></code></a>(*args, **kwargs)</p></td>
-<td><p>Deprecated</p></td>
+<td><p>Deprecated.</p></td>
 </tr>
 </tbody>
 </table>
@@ -165,7 +150,7 @@ and will not give auto-complete for available fields.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="mp_api.client.routes.electronic_structure.DosRester.search_dos_summary">
 <span class="sig-name descname"><span class="pre">search_dos_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/routes/electronic_structure.html#DosRester.search_dos_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.routes.electronic_structure.DosRester.search_dos_summary" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deprecated</p>
+<dd><p>Deprecated.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -310,7 +295,7 @@ Default is material_id and last_updated if all_fields is False.</p></li>
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

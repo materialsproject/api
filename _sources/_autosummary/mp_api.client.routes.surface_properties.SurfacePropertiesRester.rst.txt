@@ -4,9 +4,9 @@ mp\_api.client.routes.surface\_properties.SurfacePropertiesRester
 .. currentmodule:: mp_api.client.routes.surface_properties
 
 .. autoclass:: SurfacePropertiesRester
-   :members:                         
-   :show-inheritance:                      
-   :inherited-members:                         
+   :members:
+   :show-inheritance:
+   :inherited-members:
 
    
    .. automethod:: __init__

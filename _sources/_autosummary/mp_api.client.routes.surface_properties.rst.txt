@@ -2,7 +2,7 @@ mp\_api.client.routes.surface\_properties
 =========================================
 
 .. automodule:: mp_api.client.routes.surface_properties
-  
+
    
    
    
@@ -16,8 +16,8 @@ mp\_api.client.routes.surface\_properties
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       SurfacePropertiesRester
    

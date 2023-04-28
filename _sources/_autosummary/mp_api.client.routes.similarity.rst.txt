@@ -2,7 +2,7 @@ mp\_api.client.routes.similarity
 ================================
 
 .. automodule:: mp_api.client.routes.similarity
-  
+
    
    
    
@@ -16,8 +16,8 @@ mp\_api.client.routes.similarity
    .. rubric:: Classes
 
    .. autosummary::
-      :toctree:                                          
-      :template: custom-class-template.rst               
+      :toctree:
+      :template: custom-class-template.rst
    
       SimilarityRester
    
