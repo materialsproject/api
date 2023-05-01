@@ -10,7 +10,7 @@ from mp_api.client.core.utils import validate_ids
 
 class TaskRester(BaseRester[TaskDoc]):
 
-    suffix = "tasks"
+    suffix = "materials/tasks"
     document_model = TaskDoc  # type: ignore
     primary_key = "task_id"
 
@@ -24,9 +24,9 @@ class TaskRester(BaseRester[TaskDoc]):
         :return: List of trajectory objects
         """
 
-        traj_data = self._query_resource_data(suburl=f"trajectory/{task_id}/", use_document_model=False)[0].get(
-            "trajectories", None
-        )
+        traj_data = self._query_resource_data(
+            suburl=f"trajectory/{task_id}/", use_document_model=False
+        )[0].get("trajectories", None)
 
         if traj_data is None:
             raise MPRestError(f"No trajectory data for {task_id} found")
@@ -39,7 +39,8 @@ class TaskRester(BaseRester[TaskDoc]):
         """
 
         warnings.warn(
-            "MPRester.tasks.search_task_docs is deprecated. " "Please use MPRester.tasks.search instead.",
+            "MPRester.tasks.search_task_docs is deprecated. "
+            "Please use MPRester.tasks.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )

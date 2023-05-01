@@ -7,7 +7,7 @@ from collections import defaultdict
 
 class OxidationStatesRester(BaseRester[OxidationStateDoc]):
 
-    suffix = "oxidation_states"
+    suffix = "materials/oxidation_states"
     document_model = OxidationStateDoc  # type: ignore
     primary_key = "material_id"
 

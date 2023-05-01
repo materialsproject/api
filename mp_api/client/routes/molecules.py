@@ -11,7 +11,7 @@ import warnings
 
 class MoleculesRester(BaseRester[MoleculesDoc]):
 
-    suffix = "molecules"
+    suffix = "legacy/jcesr"
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
 

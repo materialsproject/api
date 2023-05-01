@@ -10,7 +10,7 @@ import warnings
 
 class BondsRester(BaseRester[BondingDoc]):
 
-    suffix = "bonds"
+    suffix = "materials/bonds"
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
 

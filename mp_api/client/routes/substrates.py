@@ -8,7 +8,7 @@ from emmet.core.substrates import SubstratesDoc
 
 class SubstratesRester(BaseRester[SubstratesDoc]):
 
-    suffix = "substrates"
+    suffix = "materials/substrates"
     document_model = SubstratesDoc  # type: ignore
     primary_key = "film_id"
 

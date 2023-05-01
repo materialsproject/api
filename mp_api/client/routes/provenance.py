@@ -6,7 +6,7 @@ from typing import Optional, List, Union
 
 class ProvenanceRester(BaseRester[ProvenanceDoc]):
 
-    suffix = "provenance"
+    suffix = "materials/provenance"
     document_model = ProvenanceDoc  # type: ignore
     primary_key = "material_id"
 

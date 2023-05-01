@@ -13,7 +13,7 @@ from mp_api.client.core.utils import validate_ids
 
 class ThermoRester(BaseRester[ThermoDoc]):
 
-    suffix = "thermo"
+    suffix = "materials/thermo"
     document_model = ThermoDoc  # type: ignore
     supports_versions = True
     primary_key = "thermo_id"
@@ -24,7 +24,8 @@ class ThermoRester(BaseRester[ThermoDoc]):
         """
 
         warnings.warn(
-            "MPRester.thermo.search_thermo_docs is deprecated. " "Please use MPRester.thermo.search instead.",
+            "MPRester.thermo.search_thermo_docs is deprecated. "
+            "Please use MPRester.thermo.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -108,19 +109,25 @@ class ThermoRester(BaseRester[ThermoDoc]):
             t_types = {t if isinstance(t, str) else t.value for t in thermo_types}
             valid_types = {*map(str, ThermoType.__members__.values())}
             if invalid_types := t_types - valid_types:
-                raise ValueError(f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}"
+                )
             query_params.update({"thermo_types": ",".join(t_types)})
 
         if num_elements:
             if isinstance(num_elements, int):
                 num_elements = (num_elements, num_elements)
-            query_params.update({"nelements_min": num_elements[0], "nelements_max": num_elements[1]})
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if is_stable is not None:
             query_params.update({"is_stable": is_stable})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         name_dict = {
             "total_energy": "energy_per_atom",
@@ -139,7 +146,11 @@ class ThermoRester(BaseRester[ThermoDoc]):
                     }
                 )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
             num_chunks=num_chunks,
@@ -166,7 +177,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
         t_type = thermo_type if isinstance(thermo_type, str) else thermo_type.value
         valid_types = {*map(str, ThermoType.__members__.values())}
         if invalid_types := {t_type} - valid_types:
-            raise ValueError(f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}")
+            raise ValueError(
+                f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}"
+            )
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
         phase_diagram_id = f"{sorted_chemsys}_{t_type}"

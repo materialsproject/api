@@ -10,7 +10,7 @@ import warnings
 
 class XASRester(BaseRester[XASDoc]):
 
-    suffix = "xas"
+    suffix = "materials/xas"
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
 

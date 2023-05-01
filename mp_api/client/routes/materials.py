@@ -14,7 +14,7 @@ _EMMET_SETTINGS = EmmetSettings()
 
 class MaterialsRester(BaseRester[MaterialsDoc]):
 
-    suffix = "materials"
+    suffix = "materials/core"
     document_model = MaterialsDoc  # type: ignore
     supports_versions = True
     primary_key = "material_id"

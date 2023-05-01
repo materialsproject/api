@@ -12,7 +12,7 @@ import warnings
 
 class MagnetismRester(BaseRester[MagnetismDoc]):
 
-    suffix = "magnetism"
+    suffix = "materials/magnetism"
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"
 
