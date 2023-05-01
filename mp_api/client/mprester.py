@@ -209,7 +209,6 @@ class MPRester:
             self.endpoint += "/"
 
         for cls in BaseRester.__subclasses__():
-
             rester = cls(
                 api_key=api_key,
                 endpoint=endpoint,
@@ -595,7 +594,6 @@ class MPRester:
         try:
             input_params = {"material_ids": validate_ids(chemsys_formula_mpids)}
         except ValueError:
-
             if any("-" in entry for entry in chemsys_formula_mpids):
                 input_params = {"chemsys": chemsys_formula_mpids}
             else:
@@ -643,7 +641,6 @@ class MPRester:
                         )
 
                 if conventional_unit_cell:
-
                     entry_struct = Structure.from_dict(entry_dict["structure"])
                     s = SpacegroupAnalyzer(
                         entry_struct
@@ -1271,7 +1268,6 @@ class MPRester:
             task_ids=material_ids,
             fields=["calc_types", "deprecated_tasks", "material_id"],
         ):
-
             for task_id, calc_type in doc.calc_types.items():
                 if calc_types and calc_type not in calc_types:
                     continue
