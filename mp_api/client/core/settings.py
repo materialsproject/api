@@ -78,5 +78,9 @@ class MAPIClientSettings(BaseSettings):
         description="Number of characters to use to define the maximum length of a given HTTP URL.",
     )
 
+    MIN_EMMET_VERSION: str = Field(
+        "0.53.0", description="Minimum compatible version of emmet-core for the client."
+    )
+
     class Config:
         env_prefix = "MPRESTER_"

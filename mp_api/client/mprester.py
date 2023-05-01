@@ -19,9 +19,11 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import get, Session
 from typing import Literal
+from packaging import version
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.routes import (
     AlloysRester,
     BandStructureRester,
@@ -63,6 +65,7 @@ _DEPRECATION_WARNING = (
 )
 
 _EMMET_SETTINGS = EmmetSettings()
+_MAPI_SETTINGS = MAPIClientSettings()
 
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
@@ -185,6 +188,17 @@ class MPRester:
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
+
+        # Check if emmet version of server os compatible
+        emmet_version = version.parse(self.get_emmet_version())
+
+        if version.parse(emmet_version.base_version) < version.parse(
+            _MAPI_SETTINGS.MIN_EMMET_VERSION
+        ):
+            warnings.warn(
+                "The installed version of the mp-api client may not be compatible with the API server. "
+                "Please install a previous version if any problems occur."
+            )
 
         self._all_resters = []
 
@@ -324,6 +338,15 @@ class MPRester:
         Returns: database version as a string
         """
         return get(url=self.endpoint + "heartbeat").json()["db_version"]
+
+    def get_emmet_version(self):
+        """
+        Get the latest version emmet-core and emmet-api used in the
+        current API service.
+
+        Returns: version as a string
+        """
+        return get(url=self.endpoint + "heartbeat").json()["version"]
 
     def get_material_id_from_task_id(self, task_id: str) -> Union[str, None]:
         """
