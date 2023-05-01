@@ -201,7 +201,9 @@ class MPRester:
                 endpoint=endpoint,
                 include_user_agent=include_user_agent,
                 session=self.session,
-                monty_decode=monty_decode,
+                monty_decode=monty_decode
+                if cls not in [TaskRester, ProvenanceRester]  # type: ignore
+                else False,  # Disable monty decode on nested data which may give errors
                 use_document_model=use_document_model,
                 headers=self.headers,
             )  # type: BaseRester
@@ -596,7 +598,8 @@ class MPRester:
                         entry_dict["composition"][element] *= site_ratio
 
                     for correction in entry_dict["energy_adjustments"]:
-                        correction["n_atoms"] *= site_ratio
+                        if "n_atoms" in correction:
+                            correction["n_atoms"] *= site_ratio
 
                 entry = (
                     ComputedStructureEntry.from_dict(entry_dict)
