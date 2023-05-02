@@ -23,6 +23,7 @@ mp\_api.client.mprester.MPRester
       ~MPRester.get_database_version
       ~MPRester.get_dos_by_material_id
       ~MPRester.get_download_info
+      ~MPRester.get_emmet_version
       ~MPRester.get_entries
       ~MPRester.get_entries_in_chemsys
       ~MPRester.get_entry_by_material_id

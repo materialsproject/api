@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -42,7 +41,7 @@
 
 
 <div class="viewcode-block" id="ElectrodeRester"><a class="viewcode-back" href="../../../../_autosummary/mp_api.client.routes.electrodes.ElectrodeRester.html#mp_api.client.routes.electrodes.ElectrodeRester">[docs]</a><span class="k">class</span> <span class="nc">ElectrodeRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">InsertionElectrodeDoc</span><span class="p">]):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;insertion_electrodes&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/insertion_electrodes&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">InsertionElectrodeDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;battery_id&quot;</span>
 
@@ -145,9 +144,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">working_ion</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Element</span><span class="p">)):</span>
                 <span class="n">working_ion</span> <span class="o">=</span> <span class="p">[</span><span class="n">working_ion</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;working_ion&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">working_ion</span><span class="p">])}</span>  <span class="c1"># type: ignore</span>
-            <span class="p">)</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;working_ion&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">working_ion</span><span class="p">])})</span>  <span class="c1"># type: ignore</span>
 
         <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -247,7 +244,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

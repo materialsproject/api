@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -42,6 +41,7 @@
 <span class="kn">from</span> <span class="nn">emmet.core.mpid</span> <span class="kn">import</span> <span class="n">MPID</span>
 <span class="kn">from</span> <span class="nn">emmet.core.settings</span> <span class="kn">import</span> <span class="n">EmmetSettings</span>
 <span class="kn">from</span> <span class="nn">emmet.core.vasp.calc_types</span> <span class="kn">import</span> <span class="n">CalcType</span>
+<span class="kn">from</span> <span class="nn">packaging</span> <span class="kn">import</span> <span class="n">version</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.phase_diagram</span> <span class="kn">import</span> <span class="n">PhaseDiagram</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.pourbaix_diagram</span> <span class="kn">import</span> <span class="n">IonEntry</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Structure</span>
@@ -52,6 +52,7 @@
 <span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Session</span><span class="p">,</span> <span class="n">get</span>
 
 <span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.core.settings</span> <span class="kn">import</span> <span class="n">MAPIClientSettings</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.routes</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">AbsorptionRester</span><span class="p">,</span>
@@ -96,6 +97,7 @@
 <span class="p">)</span>
 
 <span class="n">_EMMET_SETTINGS</span> <span class="o">=</span> <span class="n">EmmetSettings</span><span class="p">()</span>
+<span class="n">_MAPI_SETTINGS</span> <span class="o">=</span> <span class="n">MAPIClientSettings</span><span class="p">()</span>
 
 <span class="n">DEFAULT_API_KEY</span> <span class="o">=</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MP_API_KEY&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="n">DEFAULT_ENDPOINT</span> <span class="o">=</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MP_API_ENDPOINT&quot;</span><span class="p">,</span> <span class="s2">&quot;https://api.materialsproject.org/&quot;</span><span class="p">)</span>
@@ -217,6 +219,17 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">contribs</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Problem loading MPContribs client: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+        <span class="c1"># Check if emmet version of server os compatible</span>
+        <span class="n">emmet_version</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_emmet_version</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">emmet_version</span><span class="o">.</span><span class="n">base_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span>
+            <span class="n">_MAPI_SETTINGS</span><span class="o">.</span><span class="n">MIN_EMMET_VERSION</span>
+        <span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;The installed version of the mp-api client may not be compatible with the API server. &quot;</span>
+                <span class="s2">&quot;Please install a previous version if any problems occur.&quot;</span>
+            <span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_all_resters</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="n">notify_db_version</span><span class="p">:</span>
@@ -240,11 +253,24 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_all_resters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rester</span><span class="p">)</span>
 
-            <span class="nb">setattr</span><span class="p">(</span>
-                <span class="bp">self</span><span class="p">,</span>
-                <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">),</span>  <span class="c1"># type: ignore</span>
-                <span class="n">rester</span><span class="p">,</span>
-            <span class="p">)</span></div>
+            <span class="n">suffix_split</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">suffix_split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;materials/core&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;molecules/core&quot;</span><span class="p">,</span>
+            <span class="p">]:</span>
+                <span class="nb">setattr</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">rester</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">suffix_split</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span>
+                    <span class="n">rester</span><span class="p">,</span>
+                <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Support for &quot;with&quot; context.&quot;&quot;&quot;</span>
@@ -334,6 +360,15 @@
 <span class="sd">        Returns: database version as a string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+</span> <span class="s2">&quot;heartbeat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;db_version&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MPRester.get_emmet_version"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_emmet_version">[docs]</a>    <span class="k">def</span> <span class="nf">get_emmet_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the latest version emmet-core and emmet-api used in the</span>
+<span class="sd">        current API service.</span>
+
+<span class="sd">        Returns: version as a string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+</span> <span class="s2">&quot;heartbeat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="MPRester.get_material_id_from_task_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_material_id_from_task_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_material_id_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the current material_id from a given task_id. The</span>
@@ -1356,7 +1391,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
