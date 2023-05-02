@@ -9,7 +9,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class PiezoRester(BaseRester[PiezoelectricDoc]):
-    suffix = "piezoelectric"
+    suffix = "materials/piezoelectric"
     document_model = PiezoelectricDoc  # type: ignore
     primary_key = "material_id"
 
@@ -68,20 +68,10 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
             )
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

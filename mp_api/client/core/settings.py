@@ -59,9 +59,7 @@ class MAPIClientSettings(BaseSettings):
         description="Number of parallel requests to send.",
     )
 
-    MAX_RETRIES: int = Field(
-        _MAX_RETRIES, description="Maximum number of retries for requests."
-    )
+    MAX_RETRIES: int = Field(_MAX_RETRIES, description="Maximum number of retries for requests.")
 
     BACKOFF_FACTOR: float = Field(
         0.1,
@@ -77,6 +75,13 @@ class MAPIClientSettings(BaseSettings):
         _MAX_HTTP_URL_LENGTH,
         description="Number of characters to use to define the maximum length of a given HTTP URL.",
     )
+
+    MAX_HTTP_URL_LENGTH: int = Field(
+        _MAX_HTTP_URL_LENGTH,
+        description="Number of characters to use to define the maximum length of a given HTTP URL.",
+    )
+
+    MIN_EMMET_VERSION: str = Field("0.54.0", description="Minimum compatible version of emmet-core for the client.")
 
     class Config:
         env_prefix = "MPRESTER_"

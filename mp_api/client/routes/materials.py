@@ -13,14 +13,12 @@ _EMMET_SETTINGS = EmmetSettings()
 
 
 class MaterialsRester(BaseRester[MaterialsDoc]):
-    suffix = "materials"
+    suffix = "materials/core"
     document_model = MaterialsDoc  # type: ignore
     supports_versions = True
     primary_key = "material_id"
 
-    def get_structure_by_material_id(
-        self, material_id: str, final: bool = True
-    ) -> Union[Structure, List[Structure]]:
+    def get_structure_by_material_id(self, material_id: str, final: bool = True) -> Union[Structure, List[Structure]]:
         """Get a structure for a given Materials Project ID.
 
         Arguments:
@@ -42,8 +40,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
     def search_material_docs(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
         warnings.warn(
-            "MPRester.materials.search_material_docs is deprecated. "
-            "Please use MPRester.materials.search instead.",
+            "MPRester.materials.search_material_docs is deprecated. " "Please use MPRester.materials.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -141,16 +138,12 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         )
 
         if num_sites:
-            query_params.update(
-                {"nsites_min": num_sites[0], "nsites_max": num_sites[1]}
-            )
+            query_params.update({"nsites_min": num_sites[0], "nsites_max": num_sites[1]})
 
         if num_elements:
             if isinstance(num_elements, int):
                 num_elements = (num_elements, num_elements)
-            query_params.update(
-                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
-            )
+            query_params.update({"nelements_min": num_elements[0], "nelements_max": num_elements[1]})
 
         if volume:
             query_params.update({"volume_min": volume[0], "volume_max": volume[1]})
@@ -159,15 +152,9 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
             num_chunks=num_chunks,

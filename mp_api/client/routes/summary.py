@@ -12,15 +12,14 @@ from mp_api.client.core.utils import validate_ids
 
 
 class SummaryRester(BaseRester[SummaryDoc]):
-    suffix = "summary"
+    suffix = "materials/summary"
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
 
     def search_summary_docs(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
         warnings.warn(
-            "MPRester.summary.search_summary_docs is deprecated. "
-            "Please use MPRester.summary.search instead.",
+            "MPRester.summary.search_summary_docs is deprecated. " "Please use MPRester.summary.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -73,9 +72,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         theoretical: Optional[bool] = None,
         total_energy: Optional[Tuple[float, float]] = None,
         total_magnetization: Optional[Tuple[float, float]] = None,
-        total_magnetization_normalized_formula_units: Optional[
-            Tuple[float, float]
-        ] = None,
+        total_magnetization_normalized_formula_units: Optional[Tuple[float, float]] = None,
         total_magnetization_normalized_vol: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         volume: Optional[Tuple[float, float]] = None,
@@ -270,15 +267,9 @@ class SummaryRester(BaseRester[SummaryDoc]):
             query_params.update({"theoretical": theoretical})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
             num_chunks=num_chunks,

@@ -9,7 +9,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class DielectricRester(BaseRester[DielectricDoc]):
-    suffix = "dielectric"
+    suffix = "materials/dielectric"
     document_model = DielectricDoc  # type: ignore
     primary_key = "material_id"
 
@@ -81,20 +81,10 @@ class DielectricRester(BaseRester[DielectricDoc]):
             query_params.update({"n_min": n[0], "n_max": n[1]})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

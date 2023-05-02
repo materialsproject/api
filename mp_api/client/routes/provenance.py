@@ -7,7 +7,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ProvenanceRester(BaseRester[ProvenanceDoc]):
-    suffix = "provenance"
+    suffix = "materials/provenance"
     document_model = ProvenanceDoc  # type: ignore
     primary_key = "material_id"
 
@@ -44,9 +44,5 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         return super()._search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

@@ -8,15 +8,14 @@ from mp_api.client.core import BaseRester
 
 
 class EOSRester(BaseRester[EOSDoc]):
-    suffix = "eos"
+    suffix = "materials/eos"
     document_model = EOSDoc  # type: ignore
     primary_key = "task_id"
 
     def search_eos_docs(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
         warnings.warn(
-            "MPRester.eos.search_eos_docs is deprecated. "
-            "Please use MPRester.eos.search instead.",
+            "MPRester.eos.search_eos_docs is deprecated. " "Please use MPRester.eos.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -54,25 +53,13 @@ class EOSRester(BaseRester[EOSDoc]):
             query_params.update({"volumes_min": volumes[0], "volumes_max": volumes[1]})
 
         if energies:
-            query_params.update(
-                {"energies_min": energies[0], "energies_max": energies[1]}
-            )
+            query_params.update({"energies_min": energies[0], "energies_max": energies[1]})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

@@ -9,7 +9,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
-    suffix = "grain_boundary"
+    suffix = "materials/grain_boundary"
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "task_id"
 
@@ -75,14 +75,10 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             query_params.update({"gb_plane": ",".join([str(n) for n in gb_plane])})
 
         if gb_energy:
-            query_params.update(
-                {"gb_energy_min": gb_energy[0], "gb_energy_max": gb_energy[1]}
-            )
+            query_params.update({"gb_energy_min": gb_energy[0], "gb_energy_max": gb_energy[1]})
 
         if separation_energy:
-            query_params.update(
-                {"w_sep_min": separation_energy[0], "w_sep_max": separation_energy[1]}
-            )
+            query_params.update({"w_sep_min": separation_energy[0], "w_sep_max": separation_energy[1]})
 
         if rotation_angle:
             query_params.update(
@@ -93,9 +89,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             )
 
         if rotation_axis:
-            query_params.update(
-                {"rotation_axis": ",".join([str(n) for n in rotation_axis])}
-            )
+            query_params.update({"rotation_axis": ",".join([str(n) for n in rotation_axis])})
 
         if sigma:
             query_params.update({"sigma": sigma})
@@ -110,20 +104,10 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             query_params.update({"pretty_formula": pretty_formula})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            all_fields=all_fields,
-            fields=fields,
-            **query_params
+            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
         )

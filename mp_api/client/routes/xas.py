@@ -9,15 +9,14 @@ from mp_api.client.core.utils import validate_ids
 
 
 class XASRester(BaseRester[XASDoc]):
-    suffix = "xas"
+    suffix = "materials/xas"
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
 
     def search_xas_docs(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
         warnings.warn(
-            "MPRester.xas.search_xas_docs is deprecated. "
-            "Please use MPRester.xas.search instead.",
+            "MPRester.xas.search_xas_docs is deprecated. " "Please use MPRester.xas.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -94,9 +93,7 @@ class XASRester(BaseRester[XASDoc]):
             query_params["material_ids"] = ",".join(validate_ids(material_ids))
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
         return super()._search(
             num_chunks=num_chunks,
