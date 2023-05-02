@@ -9,7 +9,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class DielectricRester(BaseRester[DielectricDoc]):
-    suffix = "dielectric"
+    suffix = "materials/dielectric"
     document_model = DielectricDoc  # type: ignore
     primary_key = "material_id"
 

@@ -11,7 +11,7 @@ from mp_api.client.core import BaseRester, MPRestError
 
 
 class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
-    suffix = "synthesis"
+    suffix = "materials/synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
 
     def search_synthesis_text(self, *args, **kwargs):  # pragma: no cover

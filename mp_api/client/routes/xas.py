@@ -9,7 +9,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class XASRester(BaseRester[XASDoc]):
-    suffix = "xas"
+    suffix = "materials/xas"
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
 

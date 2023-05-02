@@ -8,7 +8,7 @@ from mp_api.client.core import BaseRester
 
 
 class EOSRester(BaseRester[EOSDoc]):
-    suffix = "eos"
+    suffix = "materials/eos"
     document_model = EOSDoc  # type: ignore
     primary_key = "task_id"
 

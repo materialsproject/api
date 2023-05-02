@@ -8,7 +8,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ChemenvRester(BaseRester[ChemEnvDoc]):
-    suffix = "chemenv"
+    suffix = "materials/chemenv"
     document_model = ChemEnvDoc  # type: ignore
     primary_key = "material_id"
 

@@ -8,7 +8,7 @@ from mp_api.client.core import BaseRester
 
 
 class SubstratesRester(BaseRester[SubstratesDoc]):
-    suffix = "substrates"
+    suffix = "materials/substrates"
     document_model = SubstratesDoc  # type: ignore
     primary_key = "film_id"
 

@@ -9,7 +9,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
-    suffix = "grain_boundary"
+    suffix = "materials/grain_boundary"
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "task_id"
 

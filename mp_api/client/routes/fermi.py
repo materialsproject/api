@@ -6,7 +6,7 @@ from mp_api.client.core import BaseRester
 
 
 class FermiRester(BaseRester[FermiDoc]):
-    suffix = "fermi"
+    suffix = "materials/fermi"
     document_model = FermiDoc  # type: ignore
     primary_key = "task_id"
 
