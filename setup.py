@@ -32,7 +32,7 @@ setup(
         "emmet-core>=0.54.0",
     ],
     extras_require={
-        "all": ["emmet-core[all]<=0.50.0", "custodian", "mpcontribs-client", "boto3"],
+        "all": ["emmet-core[all]<=0.54.0", "custodian", "mpcontribs-client", "boto3"],
     },
     classifiers=[
         "Programming Language :: Python :: 3",
