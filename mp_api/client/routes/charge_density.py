@@ -87,7 +87,9 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             # from public MinIO buckets.
             if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
                 if self.boto_resource is None:
-                    self.boto_resource = self._get_s3_resource(use_minio=False, unsigned=False)
+                    self.boto_resource = self._get_s3_resource(
+                        use_minio=False, unsigned=False
+                    )
 
                 bucket, obj_prefix = self._extract_s3_url_info(url_doc, use_minio=False)
 
@@ -101,7 +103,9 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
                 except ConnectionError:
                     self.boto_resource = self._get_s3_resource(use_minio=False)
 
-                    bucket, obj_prefix = self._extract_s3_url_info(url_doc, use_minio=False)
+                    bucket, obj_prefix = self._extract_s3_url_info(
+                        url_doc, use_minio=False
+                    )
 
             r = self.boto_resource.Object(bucket, f"{obj_prefix}/{url_doc.fs_id}").get()["Body"]  # type: ignore
 

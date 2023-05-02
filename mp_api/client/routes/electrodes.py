@@ -127,13 +127,17 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         if num_elements:
             if isinstance(num_elements, int):
                 num_elements = (num_elements, num_elements)
-            query_params.update({"nelements_min": num_elements[0], "nelements_max": num_elements[1]})
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if exclude_elements:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         for param, value in locals().items():
             if (
@@ -148,10 +152,16 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
                 and value
             ):
                 if isinstance(value, tuple):
-                    query_params.update({f"{param}_min": value[0], f"{param}_max": value[1]})
+                    query_params.update(
+                        {f"{param}_min": value[0], f"{param}_max": value[1]}
+                    )
                 else:
                     query_params.update({param: value})
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(**query_params)

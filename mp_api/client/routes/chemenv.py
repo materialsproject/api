@@ -62,12 +62,16 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
         if num_sites:
-            query_params.update({"nsites_min": num_sites[0], "nsites_max": num_sites[1]})
+            query_params.update(
+                {"nsites_min": num_sites[0], "nsites_max": num_sites[1]}
+            )
 
         if num_elements:
             if isinstance(num_elements, int):
                 num_elements = (num_elements, num_elements)
-            query_params.update({"nelements_min": num_elements[0], "nelements_max": num_elements[1]})
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -94,10 +98,20 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
             query_params.update({"chemenv_name": ",".join(chemenv_name)})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

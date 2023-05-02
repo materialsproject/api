@@ -16,7 +16,8 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
     def search_molecules_docs(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
         warnings.warn(
-            "MPRester.molecules.search_molecules_docs is deprecated. " "Please use MPRester.molecules.search instead.",
+            "MPRester.molecules.search_molecules_docs is deprecated. "
+            "Please use MPRester.molecules.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -71,7 +72,9 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
             query_params.update({"smiles": smiles})
 
         if nelements:
-            query_params.update({"nelements_min": nelements[0], "nelements_max": nelements[1]})
+            query_params.update(
+                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
+            )
 
         if EA:
             query_params.update({"EA_min": EA[0], "EA_max": EA[1]})
@@ -83,10 +86,20 @@ class MoleculesRester(BaseRester[MoleculesDoc]):
             query_params.update({"charge_min": charge[0], "charge_max": charge[1]})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )

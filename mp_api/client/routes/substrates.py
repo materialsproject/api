@@ -71,10 +71,18 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
             query_params.update({"sub_form": substrate_formula})
 
         if film_orientation:
-            query_params.update({"film_orientation": ",".join([str(i) for i in film_orientation])})
+            query_params.update(
+                {"film_orientation": ",".join([str(i) for i in film_orientation])}
+            )
 
         if substrate_orientation:
-            query_params.update({"substrate_orientation": ",".join([str(i) for i in substrate_orientation])})
+            query_params.update(
+                {
+                    "substrate_orientation": ",".join(
+                        [str(i) for i in substrate_orientation]
+                    )
+                }
+            )
 
         if area:
             query_params.update({"area_min": area[0], "area_max": area[1]})
@@ -83,9 +91,15 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
             query_params.update({"energy_min": energy[0], "energy_max": energy[1]})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
             **query_params,
