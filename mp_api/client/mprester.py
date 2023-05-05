@@ -224,20 +224,20 @@ class MPRester:
 
             suffix_split = cls.suffix.split("/")
 
-            if len(suffix_split) == 1 or cls.suffix in [
-                "materials/core",
-                "molecules/core",
-            ]:
+            att_map = {"legacy/jcesr": "molecules", "materials/core": "materials"}
+
+            if len(suffix_split) == 1:
                 setattr(
                     self,
                     cls.suffix.split("/")[0],
                     rester,
                 )
-
             else:
                 setattr(
                     self,
-                    "_".join(suffix_split[1:]),
+                    att_map[cls.suffix]
+                    if cls.suffix in att_map
+                    else "_".join(suffix_split[1:]),
                     rester,
                 )
 
