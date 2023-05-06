@@ -87,11 +87,9 @@ def test_client(rester):
                         "num_chunks": 1,
                     }
                 doc = search_method(**q)[0].dict()
+
                 for sub_field in sub_doc_fields:
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+                assert doc[project_field if project_field is not None else param] is not None
