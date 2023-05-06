@@ -13,7 +13,14 @@ def rester():
     rester.session.close()
 
 
-excluded_params = ["sort_fields", "chunk_size", "num_chunks", "all_fields", "fields", "volume"]
+excluded_params = [
+    "sort_fields",
+    "chunk_size",
+    "num_chunks",
+    "all_fields",
+    "fields",
+    "volume",
+]
 
 sub_doc_fields = []  # type: list
 
@@ -84,4 +91,7 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )

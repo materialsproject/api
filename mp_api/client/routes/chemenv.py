@@ -1,17 +1,16 @@
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
-from emmet.core.chemenv import ChemEnvDoc
+from emmet.core.chemenv import (
+    COORDINATION_GEOMETRIES,
+    COORDINATION_GEOMETRIES_IUCR,
+    COORDINATION_GEOMETRIES_IUPAC,
+    COORDINATION_GEOMETRIES_NAMES,
+    ChemEnvDoc,
+)
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from emmet.core.chemenv import (
-    ChemEnvDoc,
-    COORDINATION_GEOMETRIES_IUCR,
-    COORDINATION_GEOMETRIES_IUPAC,
-    COORDINATION_GEOMETRIES,
-    COORDINATION_GEOMETRIES_NAMES,
-)
 
 
 class ChemenvRester(BaseRester[ChemEnvDoc]):
@@ -152,5 +151,5 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )
