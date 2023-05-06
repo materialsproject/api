@@ -127,7 +127,7 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
                         f"Invalid type(s) passed for {chemenv_var_name}: {invalid_types}, valid types are: {valid_types}"
                     )
 
-                query_params.update({"chemenv_var_name": ",".join(t_types)})
+                query_params.update({chemenv_var_name: ",".join(t_types)})
 
         if species:
             if isinstance(species, str):
