@@ -92,4 +92,7 @@ def test_client(rester):
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )

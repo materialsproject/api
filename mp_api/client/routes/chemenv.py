@@ -21,10 +21,18 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
     def search(
         self,
         material_ids: Optional[Union[str, List[str]]] = None,
-        chemenv_iucr: Optional[Union[COORDINATION_GEOMETRIES_IUCR, List[COORDINATION_GEOMETRIES_IUCR]]] = None,
-        chemenv_iupac: Optional[Union[COORDINATION_GEOMETRIES_IUPAC, List[COORDINATION_GEOMETRIES_IUPAC]]] = None,
-        chemenv_name: Optional[Union[COORDINATION_GEOMETRIES_NAMES, List[COORDINATION_GEOMETRIES_NAMES]]] = None,
-        chemenv_symbol: Optional[Union[COORDINATION_GEOMETRIES, List[COORDINATION_GEOMETRIES]]] = None,
+        chemenv_iucr: Optional[
+            Union[COORDINATION_GEOMETRIES_IUCR, List[COORDINATION_GEOMETRIES_IUCR]]
+        ] = None,
+        chemenv_iupac: Optional[
+            Union[COORDINATION_GEOMETRIES_IUPAC, List[COORDINATION_GEOMETRIES_IUPAC]]
+        ] = None,
+        chemenv_name: Optional[
+            Union[COORDINATION_GEOMETRIES_NAMES, List[COORDINATION_GEOMETRIES_NAMES]]
+        ] = None,
+        chemenv_symbol: Optional[
+            Union[COORDINATION_GEOMETRIES, List[COORDINATION_GEOMETRIES]]
+        ] = None,
         species: Optional[Union[str, List[str]]] = None,
         elements: Optional[Union[str, List[str]]] = None,
         exclude_elements: Optional[List[str]] = None,
@@ -80,7 +88,9 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
             query_params.update({"density_min": density[0], "density_max": density[1]})
 
         if num_sites:
-            query_params.update({"nsites_min": num_sites[0], "nsites_max": num_sites[1]})
+            query_params.update(
+                {"nsites_min": num_sites[0], "nsites_max": num_sites[1]}
+            )
 
         if elements:
             query_params.update({"elements": ",".join(elements)})
@@ -91,7 +101,9 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
         if num_elements:
             if isinstance(num_elements, int):
                 num_elements = (num_elements, num_elements)
-            query_params.update({"nelements_min": num_elements[0], "nelements_max": num_elements[1]})
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -124,9 +136,15 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
             query_params.update({"species": ",".join(species)})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
             num_chunks=num_chunks,
