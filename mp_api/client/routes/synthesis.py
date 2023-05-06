@@ -1,24 +1,21 @@
+import warnings
 from typing import List, Optional
 
-from mp_api.client.core import BaseRester, MPRestError
 from emmet.core.synthesis import (
+    OperationTypeEnum,
     SynthesisSearchResultModel,
     SynthesisTypeEnum,
-    OperationTypeEnum,
 )
 
-import warnings
+from mp_api.client.core import BaseRester, MPRestError
 
 
 class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
-    suffix = "synthesis"
+    suffix = "materials/synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
 
     def search_synthesis_text(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "search_synthesis_text is deprecated. " "Please use search instead.",
             DeprecationWarning,
@@ -44,8 +41,8 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
         num_chunks: Optional[int] = None,
         chunk_size: Optional[int] = 10,
     ):
-        """
-        Search synthesis recipe text.
+        """Search synthesis recipe text.
+
         Arguments:
             keywords (Optional[List[str]]): List of string keywords to search synthesis paragraph text with
             synthesis_type (Optional[List[SynthesisTypeEnum]]): Type of synthesis to include
@@ -61,10 +58,11 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
             condition_mixing_media (Optional[List[str]]): Required mixing media, such as "alcohol", "water"
             num_chunks (Optional[int]): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (Optional[int]): Number of data entries per chunk.
-        Returns:
-            synthesis_docs ([SynthesisDoc]): List of synthesis documents
-        """
 
+
+        Returns:
+            synthesis_docs ([SynthesisDoc]): List of synthesis documents.
+        """
         # Turn None and empty list into None
         keywords = keywords or None
         synthesis_type = synthesis_type or None

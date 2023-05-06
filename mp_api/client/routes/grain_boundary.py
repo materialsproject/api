@@ -1,25 +1,20 @@
-from typing import List, Optional, Tuple
+import warnings
 from collections import defaultdict
+from typing import List, Optional, Tuple
+
+from emmet.core.grain_boundary import GBTypeEnum, GrainBoundaryDoc
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
-from emmet.core.grain_boundary import GBTypeEnum, GrainBoundaryDoc
-
-import warnings
-
 
 class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
-
-    suffix = "grain_boundary"
+    suffix = "materials/grain_boundary"
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "task_id"
 
     def search_grain_boundary_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.grain_boundary.search_grain_boundary_docs is deprecated. "
             "Please use MPRester.grain_boundary.search instead.",
@@ -47,10 +42,9 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-         Query grain boundary docs using a variety of search criteria.
+        """Query grain boundary docs using a variety of search criteria.
 
-         Arguments:
+        Arguments:
              chemsys (str): Dash-delimited string of elements in the material.
              gb_plane(List[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]
              gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.
@@ -72,7 +66,6 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         Returns:
              ([GrainBoundaryDoc]) List of grain boundary documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:

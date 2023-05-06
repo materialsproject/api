@@ -1,14 +1,14 @@
-from typing import List, Optional, Union
 from collections import defaultdict
+from typing import List, Optional, Union
+
+from emmet.core.alloys import AlloyPairDoc
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from emmet.core.alloys import AlloyPairDoc
 
 
 class AlloysRester(BaseRester[AlloyPairDoc]):
-
-    suffix = "alloys"
+    suffix = "materials/alloys"
     document_model = AlloyPairDoc  # type: ignore
     primary_key = "pair_id"
 
@@ -22,10 +22,9 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ) -> List[AlloyPairDoc]:
-        """
-        Query for hypothetical alloys formed between two commensurate
+        """Query for hypothetical alloys formed between two commensurate
         crystal structures, following the methodology in
-        https://doi.org/10.48550/arXiv.2206.10715
+        https://doi.org/10.48550/arXiv.2206.10715.
 
         Please cite the relevant publication if data provided by this
         endpoint is useful.
@@ -42,10 +41,13 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
         Returns:
             ([AlloyPairDoc]) List of alloy pair documents.
         """
-
         query_params = defaultdict(dict)  # type: dict
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -54,7 +56,9 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         return super()._search(
             formulae=formulae,

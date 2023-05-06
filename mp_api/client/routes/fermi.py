@@ -1,11 +1,12 @@
+from typing import List, Optional
+
 from emmet.core.fermi import FermiDoc
+
 from mp_api.client.core import BaseRester
-from typing import Optional, List
 
 
 class FermiRester(BaseRester[FermiDoc]):
-
-    suffix = "fermi"
+    suffix = "materials/fermi"
     document_model = FermiDoc  # type: ignore
     primary_key = "task_id"
 
@@ -16,8 +17,7 @@ class FermiRester(BaseRester[FermiDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query fermi surface docs using a variety of search criteria.
+        """Query fermi surface docs using a variety of search criteria.
 
         Arguments:
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
@@ -29,7 +29,6 @@ class FermiRester(BaseRester[FermiDoc]):
         Returns:
             ([FermiDoc]) List of material documents
         """
-
         return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,

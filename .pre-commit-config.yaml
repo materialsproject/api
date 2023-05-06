@@ -1,17 +1,34 @@
+default_stages: [commit]
+
+default_install_hook_types: [pre-commit, commit-msg]
+
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.261
     hooks:
-    -   id: check-yaml
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
-    -   id: flake8
+      - id: ruff
+        args: [--fix, --ignore, "D,E501"]
+
   - repo: https://github.com/psf/black
-    rev: 22.8.0
+    rev: 23.3.0
     hooks:
-    - id: black
-      language_version: python3 # Should be a command that runs python3.6+
-  - repo: https://github.com/PyCQA/autoflake
-    rev: v1.5.3
+      - id: black-jupyter
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
     hooks:
-    - id: autoflake
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-yaml
+      - id: destroyed-symlinks
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.4
+    hooks:
+      - id: codespell
+        stages: [commit, commit-msg]
+        exclude_types: [json, bib, svg]
+        args: [--ignore-words-list, "mater,fwe,te"]

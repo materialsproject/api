@@ -1,26 +1,21 @@
-from typing import List, Optional, Tuple, Union
+import warnings
 from collections import defaultdict
+from typing import List, Optional, Tuple, Union
+
+from emmet.core.magnetism import MagnetismDoc
+from pymatgen.analysis.magnetism import Ordering
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from emmet.core.magnetism import MagnetismDoc
-
-from pymatgen.analysis.magnetism import Ordering
-
-import warnings
 
 
 class MagnetismRester(BaseRester[MagnetismDoc]):
-
-    suffix = "magnetism"
+    suffix = "materials/magnetism"
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"
 
     def search_magnetism_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.magnetism.search_magnetism_docs is deprecated. "
             "Please use MPRester.magnetism.search instead.",
@@ -47,8 +42,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query magnetism docs using a variety of search criteria.
+        """Query magnetism docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -72,7 +66,6 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         Returns:
             ([MagnetismDoc]) List of magnetism documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:

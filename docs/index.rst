@@ -3,12 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to the **mp-api** code documentation! 
+Welcome to the **mp-api** code documentation!
 ==================================
 **mp-api** contains the core client implementation for the updated Materials Project API.
 
 This is intended to be barebones documentation for the client classes and their methods.
-For more comprehensive documention on how to use the code to access Materials Project data, `see the main updated documentation <https://next-gen-docs.materialsproject.org/downloading-data/how-do-i-download-the-materials-project-database>`_.
+For more comprehensive documentation on how to use the code to access Materials Project data, `see the main updated documentation <https://next-gen-docs.materialsproject.org/downloading-data/how-do-i-download-the-materials-project-database>`_.
 
 Support
 -------

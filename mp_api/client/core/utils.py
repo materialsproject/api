@@ -8,7 +8,7 @@ from pydantic.utils import lenient_issubclass
 
 
 def validate_ids(id_list: List[str]):
-    """Function to validate material and task IDs
+    """Function to validate material and task IDs.
 
     Args:
         id_list (List[str]): List of material or task IDs.
@@ -33,17 +33,15 @@ def api_sanitize(
     fields_to_leave: Optional[List[str]] = None,
     allow_dict_msonable=False,
 ):
-    """
-    Function to clean up pydantic models for the API by:
+    """Function to clean up pydantic models for the API by:
         1.) Making fields optional
-        2.) Allowing dictionaries in-place of the objects for MSONable quantities
+        2.) Allowing dictionaries in-place of the objects for MSONable quantities.
 
     WARNING: This works in place, so it mutates the model and all sub-models
 
     Args:
         fields_to_leave: list of strings for model fields as "model__name__.field"
     """
-
     models = [
         model
         for model in get_flat_models_from_model(pydantic_model)
@@ -80,14 +78,10 @@ def api_sanitize(
 
 
 def allow_msonable_dict(monty_cls: Type[MSONable]):
-    """
-    Patch Monty to allow for dict values for MSONable
-    """
+    """Patch Monty to allow for dict values for MSONable."""
 
     def validate_monty(cls, v):
-        """
-        Stub validator for MSONable as a dictionary only
-        """
+        """Stub validator for MSONable as a dictionary only."""
         if isinstance(v, cls):
             return v
         elif isinstance(v, dict):
@@ -108,6 +102,6 @@ def allow_msonable_dict(monty_cls: Type[MSONable]):
         else:
             raise ValueError(f"Must provide {cls.__name__} or MSONable dictionary")
 
-    setattr(monty_cls, "validate_monty", classmethod(validate_monty))
+    monty_cls.validate_monty = classmethod(validate_monty)
 
     return monty_cls

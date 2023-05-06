@@ -1,24 +1,20 @@
+import warnings
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
 from emmet.core.polar import DielectricDoc
+
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
-import warnings
-
 
 class DielectricRester(BaseRester[DielectricDoc]):
-
-    suffix = "dielectric"
+    suffix = "materials/dielectric"
     document_model = DielectricDoc  # type: ignore
     primary_key = "material_id"
 
     def search_dielectric_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.dielectric.search_dielectric_docs is deprecated. Please use MPRester.dielectric.search instead.",
             DeprecationWarning,
@@ -40,8 +36,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query dielectric docs using a variety of search criteria.
+        """Query dielectric docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -60,7 +55,6 @@ class DielectricRester(BaseRester[DielectricDoc]):
         Returns:
             ([DielectricDoc]) List of dielectric documents.
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:

@@ -1,13 +1,14 @@
-from mp_api.client.core import BaseRester
-from emmet.core.oxidation_states import OxidationStateDoc
-from mp_api.client.core.utils import validate_ids
-from typing import Optional, Union, List
 from collections import defaultdict
+from typing import List, Optional, Union
+
+from emmet.core.oxidation_states import OxidationStateDoc
+
+from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class OxidationStatesRester(BaseRester[OxidationStateDoc]):
-
-    suffix = "oxidation_states"
+    suffix = "materials/oxidation_states"
     document_model = OxidationStateDoc  # type: ignore
     primary_key = "material_id"
 
@@ -23,8 +24,7 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query oxidation state docs using a variety of search criteria.
+        """Query oxidation state docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -45,7 +45,6 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
         Returns:
             ([OxidationStateDoc]) List of oxidation state documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:

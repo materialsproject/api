@@ -1,8 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.bonds import BondsRester
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.bonds import BondsRester
 
 
 @pytest.fixture
@@ -36,11 +37,8 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
-
     search_method = rester.search
 
     if search_method is not None:

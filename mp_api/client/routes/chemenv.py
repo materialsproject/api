@@ -1,5 +1,7 @@
-from typing import List, Optional, Union, Tuple
 from collections import defaultdict
+from typing import List, Optional, Tuple, Union
+
+from emmet.core.chemenv import ChemEnvDoc
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
@@ -13,7 +15,7 @@ from emmet.core.chemenv import (
 
 
 class ChemenvRester(BaseRester[ChemEnvDoc]):
-    suffix = "chemenv"
+    suffix = "materials/chemenv"
     document_model = ChemEnvDoc  # type: ignore
     primary_key = "material_id"
 
@@ -46,8 +48,7 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ) -> List[ChemEnvDoc]:
-        """
-        Query for chemical environment data.
+        """Query for chemical environment data.
 
         Arguments:
             material_ids (str, List[str]): Search forchemical environment associated with the specified Material IDs.
@@ -76,7 +77,6 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
         Returns:
             ([ChemEnvDoc]) List of chemenv documents.
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if csm:
@@ -152,5 +152,5 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params,
+            **query_params
         )

@@ -1,9 +1,9 @@
 import os
-import pytest
-from mp_api.client.routes.oxidation_states import OxidationStatesRester
-from pymatgen.analysis.magnetism import Ordering
-
 import typing
+
+import pytest
+
+from mp_api.client.routes.oxidation_states import OxidationStatesRester
 
 
 @pytest.fixture
@@ -33,9 +33,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 
@@ -47,7 +45,6 @@ def test_client(rester):
         for entry in param_tuples:
             param = entry[0]
             if param not in excluded_params:
-
                 param_type = entry[1].__args__[0]
                 q = None
 

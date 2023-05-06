@@ -1,32 +1,28 @@
+import warnings
 from typing import List, Optional, Union
 
 from emmet.core.tasks import TaskDoc
+
 from mp_api.client.core import BaseRester, MPRestError
-
-import warnings
-
 from mp_api.client.core.utils import validate_ids
 
 
 class TaskRester(BaseRester[TaskDoc]):
-
-    suffix = "tasks"
+    suffix = "materials/tasks"
     document_model = TaskDoc  # type: ignore
     primary_key = "task_id"
 
     def get_trajectory(self, task_id):
-        """
-        Returns a Trajectory object containing the geometry of the
+        """Returns a Trajectory object containing the geometry of the
         material throughout a calculation. This is most useful for
         observing how a material relaxes during a geometry optimization.
 
         :param task_id: A specified task_id
         :return: List of trajectory objects
         """
-
-        traj_data = self._query_resource_data(suburl=f"trajectory/{task_id}/", use_document_model=False)[0].get(
-            "trajectories", None
-        )
+        traj_data = self._query_resource_data(
+            suburl=f"trajectory/{task_id}/", use_document_model=False
+        )[0].get("trajectories", None)
 
         if traj_data is None:
             raise MPRestError(f"No trajectory data for {task_id} found")
@@ -34,12 +30,10 @@ class TaskRester(BaseRester[TaskDoc]):
         return traj_data
 
     def search_task_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
-            "MPRester.tasks.search_task_docs is deprecated. " "Please use MPRester.tasks.search instead.",
+            "MPRester.tasks.search_task_docs is deprecated. "
+            "Please use MPRester.tasks.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -58,8 +52,7 @@ class TaskRester(BaseRester[TaskDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query core task docs using a variety of search criteria.
+        """Query core task docs using a variety of search criteria.
 
         Arguments:
             task_ids (List[str]): List of Materials Project IDs to return data for.
@@ -79,7 +72,6 @@ class TaskRester(BaseRester[TaskDoc]):
         Returns:
             ([TaskDoc]) List of task documents
         """
-
         query_params = {}  # type: dict
 
         if task_ids:

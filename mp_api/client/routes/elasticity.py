@@ -1,23 +1,19 @@
+import warnings
 from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from emmet.core.elasticity_legacy import ElasticityDoc
-from mp_api.client.core import BaseRester
 
-import warnings
+from mp_api.client.core import BaseRester
 
 
 class ElasticityRester(BaseRester[ElasticityDoc]):
-
-    suffix = "elasticity"
+    suffix = "materials/elasticity"
     document_model = ElasticityDoc  # type: ignore
     primary_key = "task_id"
 
     def search_elasticity_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.elasticity.search_elasticity_docs is deprecated. Please use MPRester.elasticity.search instead.",
             DeprecationWarning,
@@ -42,8 +38,7 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query elasticity docs using a variety of search criteria.
+        """Query elasticity docs using a variety of search criteria.
 
         Arguments:
             elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for
@@ -72,7 +67,6 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
         Returns:
             ([ElasticityDoc]) List of elasticity documents.
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if k_voigt:
