@@ -4,3 +4,5 @@
 [![codecov](https://codecov.io/gh/materialsproject/api/branch/main/graph/badge.svg)](https://codecov.io/gh/materialsproject/api)
 
 This repository is the development environment for the new Materials Project API. A core client implementation will reside here. For information on how to use the API, please see the updated [documentation](https://next-gen-docs.materialsproject.org/downloading-data/how-do-i-download-the-materials-project-database).
+
+OpenAPI specification at <https://api.materialsproject.org/openapi.json>.

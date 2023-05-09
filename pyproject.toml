@@ -3,7 +3,7 @@ target-version = "py38"
 select = [
     "B",   # flake8-bugbear
     "D",   # pydocstyle
-    "E",   # pycodestyle
+    "E",   # pycodestyle error
     "F",   # pyflakes
     "I",   # isort
     "PLE", # pylint error
@@ -13,7 +13,7 @@ select = [
     "SIM", # flake8-simplify
     "TID", # tidy imports
     "UP",  # pyupgrade
-    "W",   # pycodestyle
+    "W",   # pycodestyle warning
     "YTT", # flake8-2020
 ]
 ignore = [
