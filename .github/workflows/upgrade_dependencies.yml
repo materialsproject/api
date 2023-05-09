@@ -24,7 +24,6 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip pip-tools
-          cd ${{ matrix.package }}
           python -m piptools compile -q --upgrade --resolver=backtracking -o requirements/requirements-${{ matrix.os }}_py${{ matrix.python-version }}.txt pyproject.toml
           python -m piptools compile -q --upgrade --resolver=backtracking --all-extras -o requirements/requirements-${{ matrix.os }}_py${{ matrix.python-version }}_extras.txt pyproject.toml
       - name: Detect changes
