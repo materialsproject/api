@@ -341,7 +341,7 @@ class MPRester:
         """
         return get(url=self.endpoint + "heartbeat").json()["version"]
 
-    def get_material_id_from_task_id(self, task_id: str) -> Union[str, None]:
+    def get_material_id_from_task_id(self, task_id: str) -> str | None:
         """Returns the current material_id from a given task_id. The
         material_id should rarely change, and is usually chosen from
         among the smallest numerical id from the group of task_ids for
