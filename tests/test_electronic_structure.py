@@ -70,14 +70,14 @@ def test_es_client(es_rester):
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
-                elif param_type == typing.Tuple[int, int]:
+                elif param_type == tuple[int, int]:
                     project_field = es_alt_name_dict.get(param, None)
                     q = {
                         param: (-1000, 1000),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
-                elif param_type == typing.Tuple[float, float]:
+                elif param_type == tuple[float, float]:
                     project_field = es_alt_name_dict.get(param, None)
                     q = {
                         param: (-1000.1234, 1000.1234),

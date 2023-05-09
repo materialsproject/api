@@ -46,14 +46,14 @@ def test_client(rester):
                 param_type = entry[1].__args__[0]
                 q = None
 
-                if param_type == typing.Tuple[int, int]:
+                if param_type == tuple[int, int]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
                         param: (-100, 100),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
-                elif param_type == typing.Tuple[float, float]:
+                elif param_type == tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
                         param: (-100.12, 100.12),
