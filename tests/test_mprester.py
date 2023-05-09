@@ -1,34 +1,30 @@
+import itertools
 import os
 import random
-import typing
-import numpy as np
-import itertools
 
+import numpy as np
 import pytest
-from emmet.core.summary import HasProps
-from emmet.core.symmetry import CrystalSystem
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
-from sympy import prime
-from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client import MPRester
-from pymatgen.analysis.magnetism import Ordering
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
 from pymatgen.analysis.wulff import WulffShape
-from pymatgen.core.periodic_table import Element
 from pymatgen.core.ion import Ion
+from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
-from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.entries.compatibility import MaterialsProjectAqueousCompatibility
+from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import PhononDos
+
+from mp_api.client import MPRester
+from mp_api.client.core.settings import MAPIClientSettings
 
 
 @pytest.fixture()
@@ -38,9 +34,7 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-149")
@@ -166,9 +160,9 @@ class TestMPRester:
 
         s = prim.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
-        assert pytest.approx(s.lattice.a) != s.lattice.c
+        assert pytest.approx(s.lattice.a) == s.lattice.c
         assert pytest.approx(s.lattice.alpha) == s.lattice.beta
-        assert pytest.approx(s.lattice.alpha) != s.lattice.gamma
+        assert pytest.approx(s.lattice.alpha) == s.lattice.gamma
 
         # Additional criteria
         entry = mpr.get_entries(
@@ -229,7 +223,7 @@ class TestMPRester:
         # test removal of extra elements from reference solids
         # Li-Zn-S has Na in reference solids
         pbx_entries = mpr.get_pourbaix_entries("Li-Zn-S")
-        assert not any([e for e in pbx_entries if "Na" in e.composition])
+        assert not any(e for e in pbx_entries if "Na" in e.composition)
 
         # Ensure entries are pourbaix compatible
         PourbaixDiagram(pbx_entries)

@@ -1,15 +1,14 @@
 import os
+import typing
+
 import pytest
+from pymatgen.analysis.magnetism import Ordering
+
 from mp_api.client.routes.electronic_structure import (
     BandStructureRester,
     DosRester,
     ElectronicStructureRester,
 )
-
-from pymatgen.analysis.magnetism import Ordering
-
-import inspect
-import typing
 
 
 @pytest.fixture
@@ -47,9 +46,7 @@ es_custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_es_client(es_rester):
     search_method = es_rester.search
 
@@ -61,7 +58,6 @@ def test_es_client(es_rester):
         for entry in param_tuples:
             param = entry[0]
             if param not in es_excluded_params:
-
                 param_type = entry[1].__args__[0]
                 q = None
 
@@ -122,9 +118,7 @@ def bs_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_bs_client(bs_rester):
     # Get specific search method
     search_method = bs_rester.search
@@ -169,9 +163,7 @@ def dos_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_dos_client(dos_rester):
     search_method = dos_rester.search
 

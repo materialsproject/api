@@ -1,12 +1,13 @@
+from typing import List, Optional, Union
+
+from emmet.core.provenance import ProvenanceDoc
+
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from emmet.core.provenance import ProvenanceDoc
-from typing import Optional, List, Union
 
 
 class ProvenanceRester(BaseRester[ProvenanceDoc]):
-
-    suffix = "provenance"
+    suffix = "materials/provenance"
     document_model = ProvenanceDoc  # type: ignore
     primary_key = "material_id"
 
@@ -19,8 +20,7 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query provenance docs using a variety of search criteria.
+        """Query provenance docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -35,7 +35,6 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
         Returns:
             ([ProvenanceDoc]) List of provenance documents
         """
-
         query_params = {"deprecated": deprecated}  # type: dict
 
         if material_ids:

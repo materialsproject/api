@@ -1,11 +1,10 @@
-import inspect
 import os
 from typing import List
 
 import pytest
+from emmet.core.synthesis import SynthesisRecipe, SynthesisTypeEnum
 
 from mp_api.client.routes.synthesis import SynthesisRester
-from emmet.core.synthesis import SynthesisTypeEnum, SynthesisRecipe
 
 
 @pytest.fixture
@@ -15,9 +14,7 @@ def rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 
@@ -31,9 +28,7 @@ def test_client(rester):
         assert doc.synthesis_type is not None
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_keywords(rester):
     search_method = rester.search
 
@@ -45,9 +40,7 @@ def test_filters_keywords(rester):
         assert "silicon" in " ".join([x["value"] for x in highlighted]).lower()
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_synthesis_type(rester):
     search_method = rester.search
 
@@ -61,9 +54,7 @@ def test_filters_synthesis_type(rester):
         assert all(x.synthesis_type == SynthesisTypeEnum.sol_gel for x in doc)
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 @pytest.mark.xfail  # Needs fixing
 def test_filters_temperature_range(rester):
     search_method = rester.search
@@ -81,9 +72,7 @@ def test_filters_temperature_range(rester):
                         assert 700 <= val <= 1000
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 @pytest.mark.xfail  # Needs fixing
 def test_filters_time_range(rester):
     search_method = rester.search
@@ -99,15 +88,14 @@ def test_filters_time_range(rester):
                         assert 7 <= val <= 11
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_atmosphere(rester):
     search_method = rester.search
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_heating_atmosphere=["air", "O2"], num_chunks=5,
+            condition_heating_atmosphere=["air", "O2"],
+            num_chunks=5,
         )
         for doc in docs:
             found = False
@@ -118,15 +106,14 @@ def test_filters_atmosphere(rester):
             assert found
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_mixing_device(rester):
     search_method = rester.search
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_mixing_device=["zirconia", "Al2O3"], num_chunks=5,
+            condition_mixing_device=["zirconia", "Al2O3"],
+            num_chunks=5,
         )
         for doc in docs:
             found = False
@@ -136,15 +123,14 @@ def test_filters_mixing_device(rester):
             assert found
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 def test_filters_mixing_media(rester):
     search_method = rester.search
 
     if search_method is not None:
         docs: List[SynthesisRecipe] = search_method(
-            condition_mixing_media=["water", "alcohol"], num_chunks=5,
+            condition_mixing_media=["water", "alcohol"],
+            num_chunks=5,
         )
         for doc in docs:
             found = False

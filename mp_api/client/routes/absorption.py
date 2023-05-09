@@ -1,57 +1,51 @@
 from collections import defaultdict
 from typing import List, Optional, Union
 
-from emmet.core.oxidation_states import OxidationStateDoc
+from emmet.core.absorption import AbsorptionDoc
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class OxidationStatesRester(BaseRester[OxidationStateDoc]):
-    suffix = "materials/oxidation_states"
-    document_model = OxidationStateDoc  # type: ignore
+class AbsorptionRester(BaseRester[AbsorptionDoc]):
+    suffix = "materials/absorption"
+    document_model = AbsorptionDoc  # type: ignore
     primary_key = "material_id"
 
     def search(
         self,
         material_ids: Optional[Union[str, List[str]]] = None,
         chemsys: Optional[Union[str, List[str]]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        possible_species: Optional[Union[str, List[str]]] = None,
+        elements: Optional[List[str]] = None,
+        exclude_elements: Optional[List[str]] = None,
+        formula: Optional[List[str]] = None,
         sort_fields: Optional[List[str]] = None,
         num_chunks: Optional[int] = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
-    ):
-        """Query oxidation state docs using a variety of search criteria.
+    ) -> List[AbsorptionDoc]:
+        """Query for optical absorption spectra data.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
-                (e.g., mp-149, [mp-149, mp-13]).
+            material_ids (str, List[str]): Search for optical absorption data associated with the specified Material IDs
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
+            elements (List[str]): A list of elements.
+            exclude_elements (List[str]): A list of elements to exclude.
             formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
-            possible_species (List[str]): A list of element symbols appended with oxidation states (e.g. [Cr2+, O2-]]).
             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in OxidationStateDoc to return data for.
-                Default is material_id, last_updated, and formula_pretty if all_fields is False.
+            fields (List[str]): List of fields in AbsorptionDoc to return data for.
 
         Returns:
-            ([OxidationStateDoc]) List of oxidation state documents
+            ([AbsorptionDoc]) List of optical absorption documents.
         """
         query_params = defaultdict(dict)  # type: dict
-
-        if material_ids:
-            if isinstance(material_ids, str):
-                material_ids = [material_ids]
-
-            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if formula:
             if isinstance(formula, str):
@@ -65,8 +59,17 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
 
             query_params.update({"chemsys": ",".join(chemsys)})
 
-        if possible_species:
-            query_params.update({"possible_species": ",".join(possible_species)})
+        if elements:
+            query_params.update({"elements": ",".join(elements)})
+
+        if exclude_elements:
+            query_params.update({"exclude_elements": ",".join(exclude_elements)})
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if sort_fields:
             query_params.update(
@@ -80,6 +83,7 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
         }
 
         return super()._search(
+            formulae=formula,
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

@@ -12,16 +12,12 @@ from mp_api.client.core.utils import validate_ids
 
 
 class SummaryRester(BaseRester[SummaryDoc]):
-
-    suffix = "summary"
+    suffix = "materials/summary"
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
 
     def search_summary_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.summary.search_summary_docs is deprecated. "
             "Please use MPRester.summary.search instead.",
@@ -91,8 +87,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query core data using a variety of search criteria.
+        """Query core data using a variety of search criteria.
 
         Arguments:
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
@@ -168,7 +163,6 @@ class SummaryRester(BaseRester[SummaryDoc]):
         Returns:
             ([SummaryDoc]) List of SummaryDoc documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         min_max_name_dict = {

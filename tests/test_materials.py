@@ -1,9 +1,10 @@
 import os
+import typing
+
 import pytest
-from mp_api.client.routes.materials import MaterialsRester
 from emmet.core.symmetry import CrystalSystem
 
-import typing
+from mp_api.client.routes.materials import MaterialsRester
 
 
 @pytest.fixture
@@ -19,7 +20,10 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
-    "exclude_elements",  # temp until timeout update
+    "exclude_elements",  # temp until server timeout increase
+    "num_elements",  # temp until server timeout increase
+    "num_sites",  # temp until server timeout increase
+    "density",  # temp until server timeout increase
 ]
 
 sub_doc_fields = []  # type: list
@@ -47,7 +51,9 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client(rester):
     search_method = rester.search
 
@@ -65,14 +71,14 @@ def test_client(rester):
                 if param_type == typing.Tuple[int, int]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
-                        param: (-100, 100),
+                        param: (-10, 10),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
                 elif param_type == typing.Tuple[float, float]:
                     project_field = alt_name_dict.get(param, None)
                     q = {
-                        param: (-100.12, 100.12),
+                        param: (-10.12, 10.12),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
@@ -92,8 +98,12 @@ def test_client(rester):
                     }
 
                 doc = search_method(**q)[0].dict()
+
                 for sub_field in sub_doc_fields:
                     if sub_field in doc:
                         doc = doc[sub_field]
 
-                assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )

@@ -20,16 +20,12 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
-
-    suffix = "electronic_structure"
+    suffix = "materials/electronic_structure"
     document_model = ElectronicStructureDoc  # type: ignore
     primary_key = "material_id"
 
     def search_electronic_structure_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.electronic_structure.search_electronic_structure_docs is deprecated. "
             "Please use MPRester.electronic_structure.search instead.",
@@ -58,8 +54,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query electronic structure docs using a variety of search criteria.
+        """Query electronic structure docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -87,7 +82,6 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:
@@ -159,15 +153,11 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
 
 class BandStructureRester(BaseRester):
-
-    suffix = "electronic_structure/bandstructure"
+    suffix = "materials/electronic_structure/bandstructure"
     document_model = ElectronicStructureDoc  # type: ignore
 
     def search_bandstructure_summary(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.electronic_structure_bandstructure.search_bandstructure_summary is deprecated. "
             "Please use MPRester.electronic_structure_bandstructure.search instead.",
@@ -191,8 +181,7 @@ class BandStructureRester(BaseRester):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query band structure summary data in electronic structure docs using a variety of search criteria.
+        """Query band structure summary data in electronic structure docs using a variety of search criteria.
 
         Arguments:
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
@@ -211,7 +200,6 @@ class BandStructureRester(BaseRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         query_params["path_type"] = path_type.value
@@ -253,8 +241,7 @@ class BandStructureRester(BaseRester):
         )
 
     def get_bandstructure_from_task_id(self, task_id: str):
-        """
-        Get the band structure pymatgen object associated with a given task ID.
+        """Get the band structure pymatgen object associated with a given task ID.
 
         Arguments:
             task_id (str): Task ID for the band structure calculation
@@ -262,7 +249,6 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-
         result = self._query_resource(
             criteria={"task_id": task_id, "_all_fields": True},
             suburl="object",
@@ -282,8 +268,7 @@ class BandStructureRester(BaseRester):
         path_type: BSPathType = BSPathType.setyawan_curtarolo,
         line_mode=True,
     ):
-        """
-        Get the band structure pymatgen object associated with a Materials Project ID.
+        """Get the band structure pymatgen object associated with a Materials Project ID.
 
         Arguments:
             materials_id (str): Materials Project ID for a material
@@ -293,7 +278,6 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-
         es_rester = ElectronicStructureRester(
             endpoint=self.base_endpoint, api_key=self.api_key
         )
@@ -349,15 +333,11 @@ class BandStructureRester(BaseRester):
 
 
 class DosRester(BaseRester):
-
-    suffix = "electronic_structure/dos"
+    suffix = "materials/electronic_structure/dos"
     document_model = ElectronicStructureDoc  # type: ignore
 
     def search_dos_summary(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.electronic_structure_dos.search_dos_summary is deprecated. "
             "Please use MPRester.electronic_structure_dos.search instead.",
@@ -382,8 +362,7 @@ class DosRester(BaseRester):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query density of states summary data in electronic structure docs using a variety of search criteria.
+        """Query density of states summary data in electronic structure docs using a variety of search criteria.
 
         Arguments:
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
@@ -403,7 +382,6 @@ class DosRester(BaseRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         query_params["projection_type"] = projection_type.value
@@ -446,8 +424,7 @@ class DosRester(BaseRester):
         )
 
     def get_dos_from_task_id(self, task_id: str):
-        """
-        Get the density of states pymatgen object associated with a given calculation ID.
+        """Get the density of states pymatgen object associated with a given calculation ID.
 
         Arguments:
             task_id (str): Task ID for the density of states calculation
@@ -455,7 +432,6 @@ class DosRester(BaseRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-
         result = self._query_resource(
             criteria={"task_id": task_id, "_all_fields": True},
             suburl="object",
@@ -470,8 +446,7 @@ class DosRester(BaseRester):
             raise MPRestError("No object found")
 
     def get_dos_from_material_id(self, material_id: str):
-        """
-        Get the complete density of states pymatgen object associated with a Materials Project ID.
+        """Get the complete density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
             materials_id (str): Materials Project ID for a material
@@ -479,7 +454,6 @@ class DosRester(BaseRester):
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-
         es_rester = ElectronicStructureRester(
             endpoint=self.base_endpoint, api_key=self.api_key
         )

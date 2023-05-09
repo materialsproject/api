@@ -1,10 +1,11 @@
-from pydantic import BaseSettings, Field
-from mp_api.client import __file__ as root_dir
+import os
 from multiprocessing import cpu_count
 from typing import List
-from pymatgen.core import _load_pmg_settings
-import os
 
+from pydantic import BaseSettings, Field
+from pymatgen.core import _load_pmg_settings
+
+from mp_api.client import __file__ as root_dir
 
 PMG_SETTINGS = _load_pmg_settings()
 _NUM_PARALLEL_REQUESTS = PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 8)
@@ -19,9 +20,8 @@ except NotImplementedError:
 
 
 class MAPIClientSettings(BaseSettings):
-    """
-    Special class to store settings for MAPI client
-    python module
+    """Special class to store settings for MAPI client
+    python module.
     """
 
     TEST_FILES: str = Field(
@@ -63,6 +63,11 @@ class MAPIClientSettings(BaseSettings):
         _MAX_RETRIES, description="Maximum number of retries for requests."
     )
 
+    BACKOFF_FACTOR: float = Field(
+        0.1,
+        description="A backoff factor to apply between retry attempts. To disable, set to 0.",
+    )
+
     MUTE_PROGRESS_BARS: bool = Field(
         _MUTE_PROGRESS_BAR,
         description="Whether to mute progress bars when data is retrieved.",
@@ -71,6 +76,10 @@ class MAPIClientSettings(BaseSettings):
     MAX_HTTP_URL_LENGTH: int = Field(
         _MAX_HTTP_URL_LENGTH,
         description="Number of characters to use to define the maximum length of a given HTTP URL.",
+    )
+
+    MIN_EMMET_VERSION: str = Field(
+        "0.54.0", description="Minimum compatible version of emmet-core for the client."
     )
 
     class Config:

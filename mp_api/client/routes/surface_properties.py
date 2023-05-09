@@ -1,23 +1,19 @@
-from typing import List, Optional, Tuple
+import warnings
 from collections import defaultdict
+from typing import List, Optional, Tuple
 
-from mp_api.client.core import BaseRester
 from emmet.core.surface_properties import SurfacePropDoc
 
-import warnings
+from mp_api.client.core import BaseRester
 
 
 class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
-
-    suffix = "surface_properties"
+    suffix = "materials/surface_properties"
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "task_id"
 
     def search_surface_properties_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.surface_properties.search_surface_properties_docs is deprecated. "
             "Please use MPRester.surface_properties.search instead.",
@@ -40,8 +36,7 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query surface properties docs using a variety of search criteria.
+        """Query surface properties docs using a variety of search criteria.
 
         Arguments:
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
@@ -61,7 +56,6 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
         Returns:
             ([SurfacePropDoc]) List of surface properties documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if weighted_surface_energy:

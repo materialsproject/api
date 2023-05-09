@@ -1,10 +1,10 @@
-from mp_api.client.core import BaseRester
 from emmet.core.phonon import PhononBSDOSDoc
+
+from mp_api.client.core import BaseRester
 
 
 class PhononRester(BaseRester[PhononBSDOSDoc]):
-
-    suffix = "phonon"
+    suffix = "materials/phonon"
     document_model = PhononBSDOSDoc  # type: ignore
     primary_key = "material_id"
 

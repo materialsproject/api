@@ -13,8 +13,7 @@ _EMMET_SETTINGS = EmmetSettings()
 
 
 class MaterialsRester(BaseRester[MaterialsDoc]):
-
-    suffix = "materials"
+    suffix = "materials/core"
     document_model = MaterialsDoc  # type: ignore
     supports_versions = True
     primary_key = "material_id"
@@ -22,8 +21,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True
     ) -> Union[Structure, List[Structure]]:
-        """
-        Get a structure for a given Materials Project ID.
+        """Get a structure for a given Materials Project ID.
 
         Arguments:
             material_id (str): Materials project ID
@@ -42,10 +40,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             return response.initial_structures if response is not None else response  # type: ignore
 
     def search_material_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.materials.search_material_docs is deprecated. "
             "Please use MPRester.materials.search instead.",
@@ -77,8 +72,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query core material docs using a variety of search criteria.
+        """Query core material docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -109,7 +103,6 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         Returns:
             ([MaterialsDoc]) List of material documents
         """
-
         query_params = {"deprecated": deprecated}  # type: dict
 
         if material_ids:
@@ -181,7 +174,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )
 
     def find_structure(
@@ -192,8 +185,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
         allow_multiple_results=False,
     ) -> Union[List[str], str]:
-        """
-        Finds matching structures from the Materials Project database.
+        """Finds matching structures from the Materials Project database.
 
         Multiple results may be returned of "similar" structures based on
         distance using the pymatgen StructureMatcher algorithm, however only
@@ -213,7 +205,6 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         Raises:
             MPRestError
         """
-
         params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "_limit": 1}
 
         if isinstance(filename_or_structure, str):

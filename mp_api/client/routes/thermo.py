@@ -1,8 +1,8 @@
 import warnings
-import numpy as np
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
+import numpy as np
 from emmet.core.thermo import ThermoDoc, ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
@@ -12,19 +12,16 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
-
-    suffix = "thermo"
+    suffix = "materials/thermo"
     document_model = ThermoDoc  # type: ignore
     supports_versions = True
     primary_key = "thermo_id"
 
     def search_thermo_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
-            "MPRester.thermo.search_thermo_docs is deprecated. " "Please use MPRester.thermo.search instead.",
+            "MPRester.thermo.search_thermo_docs is deprecated. "
+            "Please use MPRester.thermo.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -42,7 +39,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         material_ids: Optional[List[str]] = None,
         num_elements: Optional[Tuple[int, int]] = None,
         thermo_ids: Optional[List[str]] = None,
-        thermo_types: Optional[List[Union[ThermoType, str]]] = [ThermoType.GGA_GGA_U],
+        thermo_types: Optional[List[Union[ThermoType, str]]] = None,
         total_energy: Optional[Tuple[float, float]] = None,
         uncorrected_energy: Optional[Tuple[float, float]] = None,
         sort_fields: Optional[List[str]] = None,
@@ -51,8 +48,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query core material docs using a variety of search criteria.
+        """Query core material docs using a variety of search criteria.
 
         Arguments:
             chemsys (str, List[str]): A chemical system or list of chemical systems
@@ -83,7 +79,6 @@ class ThermoRester(BaseRester[ThermoDoc]):
         Returns:
             ([ThermoDoc]) List of thermo documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if formula:
@@ -108,19 +103,25 @@ class ThermoRester(BaseRester[ThermoDoc]):
             t_types = {t if isinstance(t, str) else t.value for t in thermo_types}
             valid_types = {*map(str, ThermoType.__members__.values())}
             if invalid_types := t_types - valid_types:
-                raise ValueError(f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}"
+                )
             query_params.update({"thermo_types": ",".join(t_types)})
 
         if num_elements:
             if isinstance(num_elements, int):
                 num_elements = (num_elements, num_elements)
-            query_params.update({"nelements_min": num_elements[0], "nelements_max": num_elements[1]})
+            query_params.update(
+                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
+            )
 
         if is_stable is not None:
             query_params.update({"is_stable": is_stable})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         name_dict = {
             "total_energy": "energy_per_atom",
@@ -139,7 +140,11 @@ class ThermoRester(BaseRester[ThermoDoc]):
                     }
                 )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
             num_chunks=num_chunks,
@@ -150,23 +155,25 @@ class ThermoRester(BaseRester[ThermoDoc]):
         )
 
     def get_phase_diagram_from_chemsys(
-        self, chemsys: str, thermo_type: Union[ThermoType, str] = ThermoType.GGA_GGA_U
+        self, chemsys: str, thermo_type: Union[ThermoType, str]
     ) -> PhaseDiagram:
-        """
-        Get a pre-computed phase diagram for a given chemsys.
+        """Get a pre-computed phase diagram for a given chemsys.
 
         Arguments:
             chemsys (str): A chemical system (e.g. Li-Fe-O)
             thermo_type (ThermoType): The thermo type for the phase diagram.
                 Defaults to ThermoType.GGA_GGA_U.
+
+
         Returns:
             phase_diagram (PhaseDiagram): Pymatgen phase diagram object.
         """
-
         t_type = thermo_type if isinstance(thermo_type, str) else thermo_type.value
         valid_types = {*map(str, ThermoType.__members__.values())}
         if invalid_types := {t_type} - valid_types:
-            raise ValueError(f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}")
+            raise ValueError(
+                f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}"
+            )
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
         phase_diagram_id = f"{sorted_chemsys}_{t_type}"

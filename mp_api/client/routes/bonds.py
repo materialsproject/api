@@ -1,24 +1,20 @@
-from typing import List, Optional, Tuple, Union
+import warnings
 from collections import defaultdict
+from typing import List, Optional, Tuple, Union
+
+from emmet.core.bonds import BondingDoc
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
-from emmet.core.bonds import BondingDoc
-
-import warnings
 
 
 class BondsRester(BaseRester[BondingDoc]):
-
-    suffix = "bonds"
+    suffix = "materials/bonds"
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
 
     def search_bonds_docs(self, *args, **kwargs):  # pragma: no cover
-        """
-        Deprecated
-        """
-
+        """Deprecated."""
         warnings.warn(
             "MPRester.bonds.search_bonds_docs is deprecated. Please use MPRester.bonds.search instead.",
             DeprecationWarning,
@@ -41,8 +37,7 @@ class BondsRester(BaseRester[BondingDoc]):
         all_fields: bool = True,
         fields: Optional[List[str]] = None,
     ):
-        """
-        Query bonding docs using a variety of search criteria.
+        """Query bonding docs using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): Search for bonding data for the specified Material IDs
@@ -65,7 +60,6 @@ class BondsRester(BaseRester[BondingDoc]):
         Returns:
             ([BondingDoc]) List of bonding documents.
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:
