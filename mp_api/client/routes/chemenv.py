@@ -21,32 +21,32 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        chemenv_iucr: Optional[
-            Union[COORDINATION_GEOMETRIES_IUCR, List[COORDINATION_GEOMETRIES_IUCR]]
-        ] = None,
-        chemenv_iupac: Optional[
-            Union[COORDINATION_GEOMETRIES_IUPAC, List[COORDINATION_GEOMETRIES_IUPAC]]
-        ] = None,
-        chemenv_name: Optional[
-            Union[COORDINATION_GEOMETRIES_NAMES, List[COORDINATION_GEOMETRIES_NAMES]]
-        ] = None,
-        chemenv_symbol: Optional[
-            Union[COORDINATION_GEOMETRIES, List[COORDINATION_GEOMETRIES]]
-        ] = None,
-        species: Optional[Union[str, List[str]]] = None,
-        elements: Optional[Union[str, List[str]]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        csm: Optional[Tuple[float, float]] = None,
-        density: Optional[Tuple[float, float]] = None,
-        num_elements: Optional[Tuple[int, int]] = None,
-        num_sites: Optional[Tuple[int, int]] = None,
-        volume: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        chemenv_iucr: COORDINATION_GEOMETRIES_IUCR
+        | list[COORDINATION_GEOMETRIES_IUCR]
+        | None = None,
+        chemenv_iupac: COORDINATION_GEOMETRIES_IUPAC
+        | list[COORDINATION_GEOMETRIES_IUPAC]
+        | None = None,
+        chemenv_name: COORDINATION_GEOMETRIES_NAMES
+        | list[COORDINATION_GEOMETRIES_NAMES]
+        | None = None,
+        chemenv_symbol: COORDINATION_GEOMETRIES
+        | list[COORDINATION_GEOMETRIES]
+        | None = None,
+        species: str | list[str] | None = None,
+        elements: str | list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        csm: tuple[float, float] | None = None,
+        density: tuple[float, float] | None = None,
+        num_elements: tuple[int, int] | None = None,
+        num_sites: tuple[int, int] | None = None,
+        volume: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query for chemical environment data.
 
