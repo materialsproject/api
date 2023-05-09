@@ -38,8 +38,8 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add ${{ matrix.package }}/requirementsrequirements-${{ matrix.os }}_py${{ matrix.python-version }}.txt
-          git add ${{ matrix.package }}/requirements/requirements-${{ matrix.os }}_py${{ matrix.python-version }}_extras.txt
+          git add requirements/requirements-${{ matrix.os }}_py${{ matrix.python-version }}.txt
+          git add requirements/requirements-${{ matrix.os }}_py${{ matrix.python-version }}_extras.txt
           git commit -m "Update ${{ matrix.os }} dependencies for ${{ matrix.package }}"
           git push -f origin ${{ github.ref_name }}:auto-dependency-upgrades-${{ matrix.package }}-${{ matrix.os }}-py${{ matrix.python-version }}
 
