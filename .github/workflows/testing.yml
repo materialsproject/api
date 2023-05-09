@@ -28,8 +28,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-testing.txt
+          pip install -r requirements/requirements-${{ matrix.os }}_py${{ matrix.python-version }}.txt
+          pip install -r requirements/requirements-${{ matrix.os }}_py${{ matrix.python-version }}_extras.txt
 
       - name: Set SSL_CERT_FILE (Linux)
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
