@@ -18,7 +18,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
-    suffix = "charge_density"
+    suffix = "materials/charge_density"
     primary_key = "fs_id"
     document_model = ChgcarDataDoc  # type: ignore
     boto_resource = None

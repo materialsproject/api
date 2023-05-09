@@ -11,7 +11,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
-    suffix = "insertion_electrodes"
+    suffix = "materials/insertion_electrodes"
     document_model = InsertionElectrodeDoc  # type: ignore
     primary_key = "battery_id"
 
@@ -114,9 +114,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             if isinstance(working_ion, (str, Element)):
                 working_ion = [working_ion]  # type: ignore
 
-            query_params.update(
-                {"working_ion": ",".join([str(ele) for ele in working_ion])}  # type: ignore
-            )
+            query_params.update({"working_ion": ",".join([str(ele) for ele in working_ion])})  # type: ignore
 
         if formula:
             if isinstance(formula, str):

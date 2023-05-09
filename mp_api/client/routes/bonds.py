@@ -10,7 +10,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class BondsRester(BaseRester[BondingDoc]):
-    suffix = "bonds"
+    suffix = "materials/bonds"
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
 

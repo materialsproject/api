@@ -9,25 +9,25 @@ from mp_api.client import MPRester
 # -- Rester name data for generic tests
 
 key_only_resters = {
-    "phonon": "mp-11703",
-    "similarity": "mp-149",
+    "materials_phonon": "mp-11703",
+    "materials_similarity": "mp-149",
     "doi": "mp-149",
-    "wulff": "mp-149",
-    "charge_density": "mp-1936745",
-    "provenance": "mp-149",
-    "robocrys": "mp-1025395",
+    "materials_wulff": "mp-149",
+    "materials_charge_density": "mp-1936745",
+    "materials_provenance": "mp-149",
+    "materials_robocrys": "mp-1025395",
 }
 
 search_only_resters = [
-    "grain_boundary",
-    "electronic_structure_bandstructure",
-    "electronic_structure_dos",
-    "substrates",
-    "synthesis",
+    "materials_grain_boundary",
+    "materials_electronic_structure_bandstructure",
+    "materials_electronic_structure_dos",
+    "materials_substrates",
+    "materials_synthesis",
 ]
 
 special_resters = [
-    "charge_density",
+    "materials_charge_density",
 ]
 
 ignore_generic = [
@@ -35,9 +35,9 @@ ignore_generic = [
     "_general_store",
     # "tasks",
     # "bonds",
-    "xas",
-    "elasticity",
-    "fermi",
+    "materials_xas",
+    "materials_elasticity",
+    "materials_fermi",
     # "alloys",
     # "summary",
 ]  # temp

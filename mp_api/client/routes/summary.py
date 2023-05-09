@@ -13,7 +13,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class SummaryRester(BaseRester[SummaryDoc]):
-    suffix = "summary"
+    suffix = "materials/summary"
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
 

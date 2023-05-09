@@ -9,7 +9,7 @@ from mp_api.client.core import BaseRester
 
 
 class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
-    suffix = "surface_properties"
+    suffix = "materials/surface_properties"
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "task_id"
 

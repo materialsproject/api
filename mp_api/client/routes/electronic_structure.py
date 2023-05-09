@@ -21,7 +21,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
-    suffix = "electronic_structure"
+    suffix = "materials/electronic_structure"
     document_model = ElectronicStructureDoc  # type: ignore
     primary_key = "material_id"
 
@@ -154,7 +154,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
 
 class BandStructureRester(BaseRester):
-    suffix = "electronic_structure/bandstructure"
+    suffix = "materials/electronic_structure/bandstructure"
     document_model = ElectronicStructureDoc  # type: ignore
 
     def search_bandstructure_summary(self, *args, **kwargs):  # pragma: no cover
@@ -334,7 +334,7 @@ class BandStructureRester(BaseRester):
 
 
 class DosRester(BaseRester):
-    suffix = "electronic_structure/dos"
+    suffix = "materials/electronic_structure/dos"
     document_model = ElectronicStructureDoc  # type: ignore
 
     def search_dos_summary(self, *args, **kwargs):  # pragma: no cover

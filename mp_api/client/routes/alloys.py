@@ -9,7 +9,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class AlloysRester(BaseRester[AlloyPairDoc]):
-    suffix = "alloys"
+    suffix = "materials/alloys"
     document_model = AlloyPairDoc  # type: ignore
     primary_key = "pair_id"
 

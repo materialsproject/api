@@ -9,7 +9,7 @@ from mp_api.client.core.utils import validate_ids
 
 
 class TaskRester(BaseRester[TaskDoc]):
-    suffix = "tasks"
+    suffix = "materials/tasks"
     document_model = TaskDoc  # type: ignore
     primary_key = "task_id"
 

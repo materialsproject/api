@@ -8,7 +8,7 @@ from mp_api.client.core import BaseRester, MPRestError
 
 
 class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
-    suffix = "robocrys"
+    suffix = "materials/robocrys"
     document_model = RobocrystallogapherDoc  # type: ignore
     primary_key = "material_id"
 
