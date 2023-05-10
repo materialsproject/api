@@ -73,7 +73,7 @@ jobs:
       - name: Open pull request if needed
         if: steps.changes.outputs.count > 0
         env:
-          GITHUB_TOKEN: ${{ secrets.VER_BUMP_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         # Only open a PR if the branch is not attached to an existing one
         run: |
           PR=$(gh pr list --head auto-dependency-upgrades --json number -q '.[0].number')
