@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import os
-
 import pytest
 
 from mp_api.client.routes.robocrys import RobocrysRester
+from tests import skip_if_no_api_key
 
 
 @pytest.fixture
@@ -14,7 +13,7 @@ def rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@skip_if_no_api_key
 def test_client(rester):
     search_method = rester.search
 

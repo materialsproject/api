@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import typing
 
 import pytest
@@ -11,6 +10,7 @@ from mp_api.client.routes.electronic_structure import (
     DosRester,
     ElectronicStructureRester,
 )
+from tests import skip_if_no_api_key
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ es_custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@skip_if_no_api_key
 def test_es_client(es_rester):
     search_method = es_rester.search
 
@@ -120,7 +120,7 @@ def bs_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@skip_if_no_api_key
 def test_bs_client(bs_rester):
     # Get specific search method
     search_method = bs_rester.search
@@ -165,7 +165,7 @@ def dos_rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@skip_if_no_api_key
 def test_dos_client(dos_rester):
     search_method = dos_rester.search
 

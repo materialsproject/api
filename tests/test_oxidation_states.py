@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import os
 import typing
 
 import pytest
 
 from mp_api.client.routes.oxidation_states import OxidationStatesRester
+from tests import skip_if_no_api_key
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@skip_if_no_api_key
 def test_client(rester):
     search_method = rester.search
 

@@ -27,6 +27,7 @@ from pymatgen.phonon.dos import PhononDos
 
 from mp_api.client import MPRester
 from mp_api.client.core.settings import MAPIClientSettings
+from tests import skip_if_no_api_key
 
 
 @pytest.fixture()
@@ -36,7 +37,7 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@skip_if_no_api_key
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s1 = mpr.get_structure_by_material_id("mp-149")

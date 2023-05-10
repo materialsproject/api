@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import os
 import typing
 
 import pytest
 
 from mp_api.client.routes.provenance import ProvenanceRester
+from tests import skip_if_no_api_key
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ alt_name_dict = {"material_ids": "material_id"}  # type: dict
 custom_field_tests = {"material_ids": ["mp-149"]}  # type: dict
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@skip_if_no_api_key
 def test_client(rester):
     search_method = rester.search
 
