@@ -14,7 +14,7 @@ from copy import copy
 from json import JSONDecodeError
 from math import ceil
 from os import environ
-from typing import Generic, TypeVar
+from typing import Generic, Optional, TypeVar, Union
 from urllib.parse import quote, urljoin
 
 import requests
@@ -45,17 +45,17 @@ T = TypeVar("T")
 class BaseRester(Generic[T]):
     """Base client class with core stubs."""
 
-    suffix: str | None = None
+    suffix: Optional[str] = None  # noqa: UP007
     document_model: BaseModel = None  # type: ignore
     supports_versions: bool = False
     primary_key: str = "material_id"
 
     def __init__(
         self,
-        api_key: str | None = None,
+        api_key: Optional[str] = None,  # noqa: UP007
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
-        session: requests.Session | None = None,
+        session: Optional[requests.Session] = None,  # noqa: UP007
         debug: bool = False,
         monty_decode: bool = True,
         use_document_model: bool = True,
@@ -164,9 +164,9 @@ class BaseRester(Generic[T]):
     def _post_resource(
         self,
         body: dict = None,
-        params: dict | None = None,
-        suburl: str | None = None,
-        use_document_model: bool | None = None,
+        params: Optional[dict] = None,  # noqa: UP007
+        suburl: Optional[str] = None,  # noqa: UP007
+        use_document_model: Optional[bool] = None,  # noqa: UP007
     ) -> dict:
         """Post data to the endpoint for a Resource.
 
@@ -233,14 +233,14 @@ class BaseRester(Generic[T]):
 
     def _query_resource(
         self,
-        criteria: dict | None = None,
-        fields: list[str] | None = None,
-        suburl: str | None = None,
-        use_document_model: bool | None = None,
-        parallel_param: str | None = None,
-        num_chunks: int | None = None,
-        chunk_size: int | None = None,
-        timeout: int | None = None,
+        criteria: Optional[dict] = None,  # noqa: UP007
+        fields: list[Optional[str]] = None,  # noqa: UP007
+        suburl: Optional[str] = None,  # noqa: UP007
+        use_document_model: Optional[bool] = None,  # noqa: UP007
+        parallel_param: Optional[str] = None,  # noqa: UP007
+        num_chunks: Optional[int] = None,  # noqa: UP007
+        chunk_size: Optional[int] = None,  # noqa: UP007
+        timeout: Optional[int] = None,  # noqa: UP007
     ) -> dict:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
@@ -807,12 +807,12 @@ class BaseRester(Generic[T]):
 
     def _query_resource_data(
         self,
-        criteria: dict | None = None,
-        fields: list[str] | None = None,
-        suburl: str | None = None,
-        use_document_model: bool | None = None,
-        timeout: int | None = None,
-    ) -> list[T] | list[dict]:
+        criteria: Optional[dict] = None,  # noqa: UP007
+        fields: list[Optional[str]] = None,  # noqa: UP007
+        suburl: Optional[str] = None,  # noqa: UP007
+        use_document_model: Optional[bool] = None,  # noqa: UP007
+        timeout: Optional[int] = None,  # noqa: UP007
+    ) -> Union[list[T], list[dict]]:  # noqa: UP007
         """Query the endpoint for a list of documents without associated meta information. Only
         returns a single page of results.
 
@@ -838,7 +838,7 @@ class BaseRester(Generic[T]):
     def get_data_by_id(
         self,
         document_id: str,
-        fields: list[str] | None = None,
+        fields: list[Optional[str]] = None,  # noqa: UP007
     ) -> T:
         """Query the endpoint for a single document.
 
@@ -910,12 +910,12 @@ class BaseRester(Generic[T]):
 
     def _search(
         self,
-        num_chunks: int | None = None,
+        num_chunks: Optional[int] = None,  # noqa: UP007
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: list[str] | None = None,
+        fields: list[Optional[str]] = None,  # noqa: UP007
         **kwargs,
-    ) -> list[T] | list[dict]:
+    ) -> Union[list[T], list[dict]]:  # noqa: UP007
         """A generic search method to retrieve documents matching specific parameters.
 
         Arguments:
@@ -953,7 +953,7 @@ class BaseRester(Generic[T]):
         fields=None,
         chunk_size=1000,
         num_chunks=None,
-    ) -> list[T] | list[dict]:
+    ) -> Union[list[T], list[dict]]:  # noqa: UP007
         """Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
         implementation for the search_* methods on various endpoints. See
@@ -995,7 +995,7 @@ class BaseRester(Generic[T]):
 
         return results["data"]
 
-    def count(self, criteria: dict | None = None) -> int | str:
+    def count(self, criteria: Optional[dict] = None) -> Union[int, str]:  # noqa: UP007
         """Return a count of total documents.
         :param criteria: As in .query()
         :return:

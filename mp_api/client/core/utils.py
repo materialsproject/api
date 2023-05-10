@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import get_args
+from typing import Optional, get_args
 
 from monty.json import MSONable
 from pydantic import BaseModel
@@ -32,7 +32,7 @@ def validate_ids(id_list: list[str]):
 
 def api_sanitize(
     pydantic_model: type[BaseModel],
-    fields_to_leave: list[str] | None = None,
+    fields_to_leave: Optional[list[str]] = None,  # noqa: UP007
     allow_dict_msonable=False,
 ):
     """Function to clean up pydantic models for the API by:
