@@ -33,6 +33,18 @@ setup(
     ],
     extras_require={
         "all": ["emmet-core[all]>=0.54.0", "custodian", "mpcontribs-client", "boto3"],
+        "testing": ["pre-commit==2.17.0",
+                    "pytest==7.1.1",
+                    "pytest-asyncio==0.18.3",
+                    "pytest-cov==3.0.0",
+                    "pytest-mock==3.7.0",
+                    "flake8==4.0.1",
+                    "pycodestyle==2.8.0",
+                    "mypy==0.942",
+                    "mypy-extensions==0.4.3",
+                    "typing-extensions==4.1.1",
+                    "types-pkg_resources==0.1.3"
+                    "types-requests==2.27.15"]
     },
     classifiers=[
         "Programming Language :: Python :: 3",
