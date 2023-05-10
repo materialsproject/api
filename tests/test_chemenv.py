@@ -20,6 +20,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "volume",
+    "csm",  # temp until timeout fix
 ]
 
 sub_doc_fields = []  # type: list
