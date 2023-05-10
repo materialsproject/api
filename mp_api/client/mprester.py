@@ -24,6 +24,10 @@ from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes import (
+    GeneralStoreRester,
+    UserSettingsRester,
+)
+from mp_api.client.routes.materials import (
     AbsorptionRester,
     AlloysRester,
     BandStructureRester,
@@ -38,7 +42,6 @@ from mp_api.client.routes import (
     ElectronicStructureRester,
     EOSRester,
     FermiRester,
-    GeneralStoreRester,
     GrainBoundaryRester,
     MagnetismRester,
     MaterialsRester,
@@ -55,7 +58,6 @@ from mp_api.client.routes import (
     SynthesisRester,
     TaskRester,
     ThermoRester,
-    UserSettingsRester,
     XASRester,
 )
 
