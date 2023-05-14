@@ -4,14 +4,13 @@ import os
 import typing
 
 import pytest
-from pymatgen.core.trajectory import Trajectory
 
 from mp_api.client.routes.tasks import TaskRester
 
 
 @pytest.fixture
 def rester():
-    rester = TaskRester()
+    rester = TaskRester(monty_decode=False)
     yield rester
     rester.session.close()
 
@@ -111,7 +110,7 @@ def test_client(rester):
 
 
 def test_get_trajectories(rester):
-    trajectories = rester.get_trajectory("mp-149")
+    trajectories = [traj for traj in rester.get_trajectory("mp-149")]
 
     for traj in trajectories:
-        assert isinstance(traj, Trajectory)
+        assert ("@module", "pymatgen.core.trajectory") in traj.items()
