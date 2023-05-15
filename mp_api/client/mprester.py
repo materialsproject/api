@@ -843,6 +843,8 @@ class MPRester:
         """
         ion_data = self.get_ion_reference_data()
 
+        if isinstance(chemsys, str):
+            chemsys = chemsys.split("-")
         return [d for d in ion_data if d["data"]["MajElements"] in chemsys]
 
     def get_ion_entries(
