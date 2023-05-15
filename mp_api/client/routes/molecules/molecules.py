@@ -1,26 +1,24 @@
+import warnings
 from typing import List, Optional, Tuple, Union
 
-from pymatgen.core.structure import Molecule
-
-from emmet.core.settings import EmmetSettings
-from emmet.core.qchem.molecule import MoleculeDoc
 from emmet.core.mpid import MPculeID
-
-import warnings
+from emmet.core.qchem.molecule import MoleculeDoc
+from emmet.core.settings import EmmetSettings
+from pymatgen.core.structure import Molecule
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
-
 
 _EMMET_SETTINGS = EmmetSettings()
 
 
 class BaseMoleculeRester(BaseRester[MoleculeDoc]):
-    suffix = None
     document_model = MoleculeDoc
     primary_key = "molecule_id"
 
-    def get_molecule_by_mpculeid(self, mpcule_id: str, final: bool = True) -> Union[Molecule, List[Molecule]]:
+    def get_molecule_by_mpculeid(
+        self, mpcule_id: str, final: bool = True
+    ) -> Union[Molecule, List[Molecule]]:
         """
         Get a molecule object for a given Materials Project molecules ID (MPculeID).
 
@@ -79,7 +77,11 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
 
         results = self._post_resource(
             body=m.as_dict(),
-            params={"tolerance": tolerance, "charge": charge, "spin_multiplicity": spin_multiplicity},
+            params={
+                "tolerance": tolerance,
+                "charge": charge,
+                "spin_multiplicity": spin_multiplicity,
+            },
             suburl="find_molecule",
             use_document_model=False,
         ).get("data")
@@ -143,6 +145,11 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
             ([MoleculeDoc]) List of molecules documents
         """
 
+        warnings.warn(
+            "Data from this endpoint is from the NEW molecules database release. "
+            "For previous molecules data please use MPRester.legacy_jcesr.search!"
+        )
+
         query_params = {"deprecated": deprecated}  # type: dict
 
         if molecule_ids:
@@ -182,12 +189,22 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
             query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
-            num_chunks=num_chunks, chunk_size=chunk_size, all_fields=all_fields, fields=fields, **query_params
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            all_fields=all_fields,
+            fields=fields,
+            **query_params
         )
 
 
@@ -196,4 +213,4 @@ class AssociatedMoleculeRester(BaseMoleculeRester):
 
 
 class MoleculeRester(BaseMoleculeRester):
-    suffix = "molecules/molecules"
+    suffix = "molecules/core"

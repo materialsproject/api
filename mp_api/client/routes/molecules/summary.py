@@ -1,16 +1,14 @@
-import warnings
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
-from emmet.core.mpid import MPculeID
 from emmet.core.molecules.summary import HasProps, MoleculeSummaryDoc
+from emmet.core.mpid import MPculeID
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import validate_ids
 
 
 class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
-    suffix = "molecules"
+    suffix = "molecules/summary"
     document_model = MoleculeSummaryDoc  # type: ignore
     primary_key = "molecule_id"
 
@@ -128,9 +126,15 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
             query_params.update({"has_props": ",".join([i.value for i in has_props])})
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
-        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
             num_chunks=num_chunks,
