@@ -874,6 +874,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ion_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ion_reference_data</span><span class="p">()</span>
 
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">chemsys</span> <span class="o">=</span> <span class="n">chemsys</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">ion_data</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;MajElements&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chemsys</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="MPRester.get_ion_entries"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_ion_entries">[docs]</a>    <span class="k">def</span> <span class="nf">get_ion_entries</span><span class="p">(</span>
@@ -1391,7 +1393,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
