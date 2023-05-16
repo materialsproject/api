@@ -24,6 +24,11 @@ from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes import (
+    GeneralStoreRester,
+    UserSettingsRester,
+)
+from mp_api.client.routes.legacy import LegacyMoleculesRester
+from mp_api.client.routes.materials import (
     AbsorptionRester,
     AlloysRester,
     BandStructureRester,
@@ -38,7 +43,6 @@ from mp_api.client.routes import (
     ElectronicStructureRester,
     EOSRester,
     FermiRester,
-    GeneralStoreRester,
     GrainBoundaryRester,
     MagnetismRester,
     MaterialsRester,
@@ -55,8 +59,20 @@ from mp_api.client.routes import (
     SynthesisRester,
     TaskRester,
     ThermoRester,
-    UserSettingsRester,
     XASRester,
+)
+from mp_api.client.routes.molecules import (
+    AssociatedMoleculeRester,
+    MoleculeRester,
+    MoleculesBondRester,
+    MoleculesOrbitalsRester,
+    MoleculesPartialChargesRester,
+    MoleculesPartialSpinsRester,
+    MoleculesRedoxRester,
+    MoleculesSummaryRester,
+    MoleculesTaskRester,
+    MoleculesThermoRester,
+    MoleculesVibrationRester,
 )
 
 _DEPRECATION_WARNING = (
@@ -79,6 +95,8 @@ class MPRester:
     # To re-generate this list, use:
     # for rester in MPRester()._all_resters:
     #     print(f"{rester.suffix.replace('/', '_')}: {rester.__class__.__name__}")
+
+    # Materials
     eos: EOSRester
     materials: MaterialsRester
     similarity: SimilarityRester
@@ -92,7 +110,6 @@ class MPRester:
     elasticity: ElasticityRester
     thermo: ThermoRester
     dielectric: DielectricRester
-    doi: DOIRester
     piezoelectric: PiezoRester
     magnetism: MagnetismRester
     summary: SummaryRester
@@ -110,6 +127,25 @@ class MPRester:
     alloys: AlloysRester
     absorption: AbsorptionRester
     chemenv: ChemenvRester
+
+    # Molecules
+    molecules_bonding: MoleculesBondRester
+    molecules_associated: AssociatedMoleculeRester
+    molecules: MoleculeRester
+    molecules_orbital: MoleculesOrbitalsRester
+    molecules_partial_charges: MoleculesPartialChargesRester
+    molecules_partial_spins: MoleculesPartialSpinsRester
+    molecules_redox: MoleculesRedoxRester
+    molecules_summary: MoleculesSummaryRester
+    molecules_tasks: MoleculesTaskRester
+    molecules_thermo: MoleculesThermoRester
+    molecules_vibrations: MoleculesVibrationRester
+
+    # Legacy
+    legacy_jcesr: LegacyMoleculesRester
+
+    # Generic
+    doi: DOIRester
     _user_settings: UserSettingsRester
     _general_store: GeneralStoreRester
 
@@ -207,39 +243,49 @@ class MPRester:
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        for cls in BaseRester.__subclasses__():
-            rester = cls(
-                api_key=api_key,
-                endpoint=endpoint,
-                include_user_agent=include_user_agent,
-                session=self.session,
-                monty_decode=monty_decode
-                if cls not in [TaskRester, ProvenanceRester]  # type: ignore
-                else False,  # Disable monty decode on nested data which may give errors
-                use_document_model=use_document_model,
-                headers=self.headers,
-            )  # type: BaseRester
+        for _cls in BaseRester.__subclasses__():
+            sub_resters = _cls.__subclasses__()
 
-            self._all_resters.append(rester)
+            resters = sub_resters if sub_resters else [_cls]
 
-            suffix_split = cls.suffix.split("/")
+            for cls in resters:
+                rester = cls(
+                    api_key=api_key,
+                    endpoint=endpoint,
+                    include_user_agent=include_user_agent,
+                    session=self.session,
+                    monty_decode=monty_decode
+                    if cls not in [TaskRester, ProvenanceRester]  # type: ignore
+                    else False,  # Disable monty decode on nested data which may give errors
+                    use_document_model=use_document_model,
+                    headers=self.headers,
+                )  # type: BaseRester
 
-            att_map = {"legacy/jcesr": "molecules", "materials/core": "materials"}
+                self._all_resters.append(rester)
 
-            if len(suffix_split) == 1:
-                setattr(
-                    self,
-                    cls.suffix.split("/")[0],
-                    rester,
-                )
-            else:
-                setattr(
-                    self,
-                    att_map[cls.suffix]
-                    if cls.suffix in att_map
-                    else "_".join(suffix_split[1:]),
-                    rester,
-                )
+                suffix_split = cls.suffix.split("/")
+
+                att_map = {"molecules/core": "molecules", "materials/core": "materials"}
+
+                if len(suffix_split) == 1:
+                    setattr(
+                        self,
+                        suffix_split[0],
+                        rester,
+                    )
+                else:
+                    if cls.suffix in att_map:
+                        attr = att_map[cls.suffix]
+                    elif "materials" in suffix_split:
+                        attr = "_".join(suffix_split[1:])
+                    else:
+                        attr = "_".join(suffix_split)
+
+                    setattr(
+                        self,
+                        attr,
+                        rester,
+                    )
 
     def __enter__(self):
         """Support for "with" context."""
