@@ -1,12 +1,9 @@
 from typing import List, Optional, Tuple, Union
 
-from mp_api.client.core import BaseRester, MPRestError
 from emmet.core.molecules.redox import RedoxDoc
 from emmet.core.mpid import MPculeID
 
-import warnings
-
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core import BaseRester
 
 
 class MoleculesRedoxRester(BaseRester[RedoxDoc]):

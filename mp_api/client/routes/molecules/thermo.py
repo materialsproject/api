@@ -1,12 +1,9 @@
 from typing import List, Optional, Tuple, Union
 
-from mp_api.client.core import BaseRester, MPRestError
 from emmet.core.molecules.thermo import MoleculeThermoDoc
 from emmet.core.mpid import MPculeID
 
-import warnings
-
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core import BaseRester
 
 
 class MoleculesThermoRester(BaseRester[MoleculeThermoDoc]):
@@ -110,7 +107,7 @@ class MoleculesThermoRester(BaseRester[MoleculeThermoDoc]):
             "translational_entropy",
             "rotational_entropy",
             "vibrational_entropy",
-            "free_energy"
+            "free_energy",
         ]
 
         for param, value in locals().items():
@@ -152,7 +149,9 @@ class MoleculesThermoRester(BaseRester[MoleculeThermoDoc]):
             query_params.update({"lot_solvent": lot_solvent})
 
         if correction_level_of_theory:
-            query_params.update({"correction_level_of_theory": correction_level_of_theory})
+            query_params.update(
+                {"correction_level_of_theory": correction_level_of_theory}
+            )
 
         if correction_solvent:
             query_params.update({"correction_solvent": correction_solvent})

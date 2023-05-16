@@ -1,9 +1,10 @@
-from emmet.core.molecules.summary import HasProps
-from mp_api.client.routes.mpcules.summary import MoleculesSummaryRester
 import os
-import pytest
-
 import typing
+
+import pytest
+from emmet.core.molecules.summary import HasProps
+
+from mp_api.client.routes.mpcules.summary import MoleculesSummaryRester
 
 excluded_params = [
     "sort_fields",
@@ -33,7 +34,9 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client():
     search_method = MoleculesSummaryRester().search
 

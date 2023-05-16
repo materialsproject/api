@@ -1,10 +1,8 @@
 from typing import List, Optional, Union
 
 from emmet.core.qchem.task import TaskDocument
-from mp_api.client.core import BaseRester, MPRestError
 
-import warnings
-
+from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 

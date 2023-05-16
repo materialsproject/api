@@ -1,12 +1,9 @@
 from typing import List, Optional, Tuple, Union
 
-from mp_api.client.core import BaseRester, MPRestError
 from emmet.core.molecules.orbitals import OrbitalDoc
 from emmet.core.mpid import MPculeID
 
-import warnings
-
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core import BaseRester
 
 
 class MoleculesOrbitalsRester(BaseRester[OrbitalDoc]):
@@ -251,7 +248,9 @@ class MoleculesOrbitalsRester(BaseRester[OrbitalDoc]):
             query_params.update({"bond_type": bond_type})
 
         if electron_type_interaction:
-            query_params.update({"electron_type_interaction": electron_type_interaction})
+            query_params.update(
+                {"electron_type_interaction": electron_type_interaction}
+            )
 
         if donor_type:
             query_params.update({"donor_type": donor_type})
