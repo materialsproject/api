@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.chemenv import ChemenvRester
+from mp_api.client.routes.materials.chemenv import ChemenvRester
 
 
 @pytest.fixture

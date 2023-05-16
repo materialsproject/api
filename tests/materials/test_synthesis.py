@@ -4,7 +4,7 @@ from typing import List
 import pytest
 from emmet.core.synthesis import SynthesisRecipe, SynthesisTypeEnum
 
-from mp_api.client.routes.synthesis import SynthesisRester
+from mp_api.client.routes.materials.synthesis import SynthesisRester
 
 
 @pytest.fixture

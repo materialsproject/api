@@ -5,7 +5,7 @@ import pytest
 from emmet.core.thermo import ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
-from mp_api.client.routes.thermo import ThermoRester
+from mp_api.client.routes.materials.thermo import ThermoRester
 
 
 @pytest.fixture

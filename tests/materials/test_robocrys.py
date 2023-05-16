@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from mp_api.client.routes.robocrys import RobocrysRester
+from mp_api.client.routes.materials.robocrys import RobocrysRester
 
 
 @pytest.fixture

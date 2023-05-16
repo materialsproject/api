@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.tasks import TaskRester
+from mp_api.client.routes.materials.tasks import TaskRester
 
 
 @pytest.fixture

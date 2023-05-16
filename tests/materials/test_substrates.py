@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.substrates import SubstratesRester
+from mp_api.client.routes.materials.substrates import SubstratesRester
 
 
 @pytest.fixture

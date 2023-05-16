@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.piezo import PiezoRester
+from mp_api.client.routes.materials.piezo import PiezoRester
 
 
 @pytest.fixture

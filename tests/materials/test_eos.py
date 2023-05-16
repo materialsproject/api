@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.eos import EOSRester
+from mp_api.client.routes.materials.eos import EOSRester
 
 
 @pytest.fixture

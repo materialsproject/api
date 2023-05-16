@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.oxidation_states import OxidationStatesRester
+from mp_api.client.routes.materials.oxidation_states import OxidationStatesRester
 
 
 @pytest.fixture

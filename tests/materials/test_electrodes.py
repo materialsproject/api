@@ -4,7 +4,7 @@ import typing
 import pytest
 from pymatgen.core.periodic_table import Element
 
-from mp_api.client.routes.electrodes import ElectrodeRester
+from mp_api.client.routes.materials.electrodes import ElectrodeRester
 
 
 @pytest.fixture

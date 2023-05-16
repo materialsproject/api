@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.bonds import BondsRester
+from mp_api.client.routes.materials.bonds import BondsRester
 
 
 @pytest.fixture

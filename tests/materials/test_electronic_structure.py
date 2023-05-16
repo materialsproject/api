@@ -4,7 +4,7 @@ import typing
 import pytest
 from pymatgen.analysis.magnetism import Ordering
 
-from mp_api.client.routes.electronic_structure import (
+from mp_api.client.routes.materials.electronic_structure import (
     BandStructureRester,
     DosRester,
     ElectronicStructureRester,

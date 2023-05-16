@@ -6,7 +6,7 @@ from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
 from pymatgen.analysis.magnetism import Ordering
 
-from mp_api.client.routes.summary import SummaryRester
+from mp_api.client.routes.materials.summary import SummaryRester
 
 excluded_params = [
     "sort_fields",

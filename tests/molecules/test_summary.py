@@ -4,7 +4,7 @@ import typing
 import pytest
 from emmet.core.molecules.summary import HasProps
 
-from mp_api.client.routes.mpcules.summary import MoleculesSummaryRester
+from mp_api.client.routes.molecules.summary import MoleculesSummaryRester
 
 excluded_params = [
     "sort_fields",

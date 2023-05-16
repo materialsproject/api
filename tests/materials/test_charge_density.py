@@ -4,7 +4,7 @@ import typing
 import pytest
 from emmet.core.charge_density import ChgcarDataDoc
 
-from mp_api.client.routes.charge_density import ChargeDensityRester
+from mp_api.client.routes.materials.charge_density import ChargeDensityRester
 
 
 @pytest.fixture

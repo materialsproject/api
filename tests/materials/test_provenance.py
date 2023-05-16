@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.provenance import ProvenanceRester
+from mp_api.client.routes.materials.provenance import ProvenanceRester
 
 
 @pytest.fixture

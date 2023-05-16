@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.dielectric import DielectricRester
+from mp_api.client.routes.materials.dielectric import DielectricRester
 
 
 @pytest.fixture

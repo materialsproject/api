@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.elasticity import ElasticityRester
+from mp_api.client.routes.materials.elasticity import ElasticityRester
 
 
 @pytest.fixture

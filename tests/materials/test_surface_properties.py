@@ -3,7 +3,7 @@ import typing
 
 import pytest
 
-from mp_api.client.routes.surface_properties import SurfacePropertiesRester
+from mp_api.client.routes.materials.surface_properties import SurfacePropertiesRester
 
 
 @pytest.fixture

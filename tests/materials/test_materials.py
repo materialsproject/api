@@ -4,7 +4,7 @@ import typing
 import pytest
 from emmet.core.symmetry import CrystalSystem
 
-from mp_api.client.routes.materials import MaterialsRester
+from mp_api.client.routes.materials.materials import MaterialsRester
 
 
 @pytest.fixture
