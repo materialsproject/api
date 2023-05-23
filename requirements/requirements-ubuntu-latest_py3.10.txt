@@ -85,7 +85,7 @@ pytz==2023.3
     # via pandas
 pyyaml==6.0
     # via pybtex
-requests==2.30.0
+requests==2.31.0
     # via
     #   mp-api
     #   mp-api (setup.py)

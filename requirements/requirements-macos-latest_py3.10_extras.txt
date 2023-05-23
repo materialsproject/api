@@ -280,7 +280,7 @@ pyyaml==6.0
     #   pre-commit
     #   pybtex
     #   swagger-spec-validator
-requests==2.30.0
+requests==2.31.0
     # via
     #   bravado
     #   bravado-core
