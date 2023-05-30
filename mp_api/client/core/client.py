@@ -141,7 +141,7 @@ class BaseRester(Generic[T]):
             read=max_retry_num,
             connect=max_retry_num,
             respect_retry_after_header=True,
-            status_forcelist=[429],  # rate limiting
+            status_forcelist=[429, 504, 502],  # rate limiting
             backoff_factor=settings.BACKOFF_FACTOR,
         )
         adapter = HTTPAdapter(max_retries=retry)
