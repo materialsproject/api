@@ -115,9 +115,7 @@ class BaseRester(Generic[T]):
     @property
     def session(self) -> requests.Session:
         if not self._session:
-            self._session = self._create_session(
-                self.api_key, self.include_user_agent, self.headers
-            )
+            self._session = self._create_session(self.api_key, self.include_user_agent, self.headers)
         return self._session
 
     @staticmethod
@@ -130,9 +128,7 @@ class BaseRester(Generic[T]):
             pymatgen_info = "pymatgen/" + pmg_version
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
-            session.headers[
-                "user-agent"
-            ] = f"{pymatgen_info} ({python_info} {platform_info})"
+            session.headers["user-agent"] = f"{pymatgen_info} ({python_info} {platform_info})"
 
         settings = MAPIClientSettings()
         max_retry_num = settings.MAX_RETRIES
@@ -216,9 +212,7 @@ class BaseRester(Generic[T]):
                     message = data
                 else:
                     try:
-                        message = ", ".join(
-                            f"{entry['loc'][1]} - {entry['msg']}" for entry in data
-                        )
+                        message = ", ".join(f"{entry['loc'][1]} - {entry['msg']}" for entry in data)
                     except (KeyError, IndexError):
                         message = str(data)
 
@@ -342,17 +336,13 @@ class BaseRester(Generic[T]):
                     url_string += f"{key}={parsed_val}&"
 
             bare_url_len = len(url_string)
-            max_param_str_length = (
-                MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len
-            )
+            max_param_str_length = MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len
 
             # Next, check if default number of parallel requests works.
             # If not, make slice size the minimum number of param entries
             # contained in any substring of length max_param_str_length.
             param_length = len(criteria[parallel_param].split(","))
-            slice_size = (
-                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
-            )
+            slice_size = int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
 
             url_param_string = quote(criteria[parallel_param])
 
@@ -363,9 +353,7 @@ class BaseRester(Generic[T]):
             ]
 
             if len(parallel_param_str_chunks) > 0:
-                params_min_chunk = min(
-                    parallel_param_str_chunks, key=lambda x: len(x.split("%2C"))
-                )
+                params_min_chunk = min(parallel_param_str_chunks, key=lambda x: len(x.split("%2C")))
 
                 num_params_min_chunk = len(params_min_chunk.split("%2C"))
 
@@ -395,11 +383,7 @@ class BaseRester(Generic[T]):
             # Split list and generate multiple criteria
             new_criteria = [
                 {
-                    **{
-                        key: criteria[key]
-                        for key in criteria
-                        if key not in [parallel_param, "_limit"]
-                    },
+                    **{key: criteria[key] for key in criteria if key not in [parallel_param, "_limit"]},
                     parallel_param: ",".join(list_chunk),
                     "_limit": new_limits[list_num],
                 }
@@ -422,13 +406,9 @@ class BaseRester(Generic[T]):
         subtotals = []
         remaining_docs_avail = {}
 
-        initial_params_list = [
-            {"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria
-        ]
+        initial_params_list = [{"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria]
 
-        initial_data_tuples = self._multi_thread(
-            use_document_model, initial_params_list
-        )
+        initial_data_tuples = self._multi_thread(use_document_model, initial_params_list)
 
         for data, subtotal, crit_ind in initial_data_tuples:
             subtotals.append(subtotal)
@@ -440,9 +420,7 @@ class BaseRester(Generic[T]):
 
         # Rebalance if some parallel queries produced too few results
         if len(remaining_docs_avail) > 1 and len(total_data["data"]) < chunk_size:
-            remaining_docs_avail = dict(
-                sorted(remaining_docs_avail.items(), key=lambda item: item[1])
-            )
+            remaining_docs_avail = dict(sorted(remaining_docs_avail.items(), key=lambda item: item[1]))
 
             # Redistribute missing docs from initial chunk among queries
             # which have head room with respect to remaining document number.
@@ -469,18 +447,14 @@ class BaseRester(Generic[T]):
                         new_limits[crit_ind] += fill_docs
                         fill_docs = 0
 
-                    rebalance_params.append(
-                        {"url": url, "verify": True, "params": copy(crit)}
-                    )
+                    rebalance_params.append({"url": url, "verify": True, "params": copy(crit)})
 
                     new_criteria[crit_ind]["_skip"] += crit["_limit"]
                     new_criteria[crit_ind]["_limit"] = chunk_size
 
             # Obtain missing initial data after rebalancing
             if len(rebalance_params) > 0:
-                rebalance_data_tuples = self._multi_thread(
-                    use_document_model, rebalance_params
-                )
+                rebalance_data_tuples = self._multi_thread(use_document_model, rebalance_params)
 
                 for data, _, _ in rebalance_data_tuples:
                     total_data["data"].extend(data["data"])
@@ -494,9 +468,7 @@ class BaseRester(Generic[T]):
             total_data["meta"] = last_data_entry["meta"]
 
         # Get max number of response pages
-        max_pages = (
-            num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
-        )
+        max_pages = num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
 
         # Get total number of docs needed
         num_docs_needed = min((max_pages * chunk_size), total_num_docs)
@@ -610,21 +582,15 @@ class BaseRester(Generic[T]):
         """
         return_data = []
 
-        params_gen = iter(
-            params_list
-        )  # Iter necessary for islice to keep track of what has been accessed
+        params_gen = iter(params_list)  # Iter necessary for islice to keep track of what has been accessed
 
         params_ind = 0
 
-        with ThreadPoolExecutor(
-            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
-        ) as executor:
+        with ThreadPoolExecutor(max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS) as executor:
             # Get list of initial futures defined by max number of parallel requests
             futures = set()
 
-            for params in itertools.islice(
-                params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
-            ):
+            for params in itertools.islice(params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS):
                 future = executor.submit(
                     self._submit_request_and_process,
                     use_document_model=use_document_model,
@@ -690,9 +656,7 @@ class BaseRester(Generic[T]):
                 headers=self.headers,
             )
         except requests.exceptions.ConnectTimeout:
-            raise MPRestError(
-                f"REST query timed out on URL {url}. Try again with a smaller request."
-            )
+            raise MPRestError(f"REST query timed out on URL {url}. Try again with a smaller request.")
 
         if response.status_code == 200:
             if self.monty_decode:
@@ -706,18 +670,10 @@ class BaseRester(Generic[T]):
                 raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 if len(raw_doc_list) > 0:
-                    data_model, set_fields, _ = self._generate_returned_model(
-                        raw_doc_list[0]
-                    )
+                    data_model, set_fields, _ = self._generate_returned_model(raw_doc_list[0])
 
                     data["data"] = [
-                        data_model(
-                            **{
-                                field: value
-                                for field, value in raw_doc.dict().items()
-                                if field in set_fields
-                            }
-                        )
+                        data_model(**{field: value for field, value in raw_doc.dict().items() if field in set_fields})
                         for raw_doc in raw_doc_list
                     ]
 
@@ -736,9 +692,7 @@ class BaseRester(Generic[T]):
                 message = data
             else:
                 try:
-                    message = ", ".join(
-                        f"{entry['loc'][1]} - {entry['msg']}" for entry in data
-                    )
+                    message = ", ".join(f"{entry['loc'][1]} - {entry['msg']}" for entry in data)
                 except (KeyError, IndexError):
                     message = str(data)
 
@@ -748,9 +702,7 @@ class BaseRester(Generic[T]):
             )
 
     def _generate_returned_model(self, doc):
-        set_fields = [
-            field for field, _ in doc if field in doc.dict(exclude_unset=True)
-        ]
+        set_fields = [field for field, _ in doc if field in doc.dict(exclude_unset=True)]
         unset_fields = [field for field in doc.__fields__ if field not in set_fields]
 
         data_model = create_model(
@@ -760,19 +712,12 @@ class BaseRester(Generic[T]):
         )
 
         data_model.__fields__ = {
-            **{
-                name: description
-                for name, description in data_model.__fields__.items()
-                if name in set_fields
-            },
+            **{name: description for name, description in data_model.__fields__.items() if name in set_fields},
             "fields_not_requested": data_model.__fields__["fields_not_requested"],
         }
 
         def new_repr(self) -> str:
-            extra = ",\n".join(
-                f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-                for n in data_model.__fields__
-            )
+            extra = ",\n".join(f"\033[1m{n}\033[0;0m={getattr(self, n)!r}" for n in data_model.__fields__)
 
             s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m(\n{extra}\n)"  # noqa: E501
             return s
@@ -794,13 +739,16 @@ class BaseRester(Generic[T]):
                     " A full list of unrequested fields can be found in `fields_not_requested`."
                 )
             else:
-                raise AttributeError(
-                    f"{self.__class__.__name__!r} object has no attribute {attr!r}"
-                )
+                raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")
+
+        def new_dict(self, *args, **kwargs):
+            d = super(data_model, self).dict(*args, **kwargs)
+            return jsanitize(d)
 
         data_model.__repr__ = new_repr
         data_model.__str__ = new_str
         data_model.__getattr__ = new_getattr
+        data_model.dict = new_dict
 
         return data_model, set_fields, unset_fields
 
@@ -849,10 +797,7 @@ class BaseRester(Generic[T]):
             A single document.
         """
         if document_id is None:
-            raise ValueError(
-                "Please supply a specific ID. You can use the query method to find "
-                "ids of interest."
-            )
+            raise ValueError("Please supply a specific ID. You can use the query method to find " "ids of interest.")
 
         if self.primary_key in ["material_id", "task_id"]:
             validate_ids([document_id])
@@ -901,9 +846,7 @@ class BaseRester(Generic[T]):
         if not results:
             raise MPRestError(f"No result for record {document_id}.")
         elif len(results) > 1:  # pragma: no cover
-            raise ValueError(
-                f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
-            )
+            raise ValueError(f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug.")
         else:
             return results[0]
 
@@ -1006,9 +949,7 @@ class BaseRester(Generic[T]):
                 False,
                 False,
             )  # do not waste cycles decoding
-            results = self._query_resource(
-                criteria=criteria, num_chunks=1, chunk_size=1
-            )
+            results = self._query_resource(criteria=criteria, num_chunks=1, chunk_size=1)
             self.monty_decode, self.use_document_model = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover
