@@ -803,9 +803,14 @@ class BaseRester(Generic[T]):
                     f"{self.__class__.__name__!r} object has no attribute {attr!r}"
                 )
 
+        def new_dict(self, *args, **kwargs):
+            d = super(data_model, self).dict(*args, **kwargs)
+            return jsanitize(d)
+
         data_model.__repr__ = new_repr
         data_model.__str__ = new_str
         data_model.__getattr__ = new_getattr
+        data_model.dict = new_dict
 
         return data_model, set_fields, unset_fields
 
