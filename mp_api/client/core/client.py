@@ -694,6 +694,11 @@ class BaseRester(Generic[T]):
                 f"REST query timed out on URL {url}. Try again with a smaller request."
             )
 
+        if response.status_code in [400, 404]:
+            warnings.warn(
+                f"The server does not support the request made to {response.url}. This may be due to an outdated mp-api package, or a problem with the query."
+            )
+
         if response.status_code == 200:
             if self.monty_decode:
                 data = json.loads(response.text, cls=MontyDecoder)

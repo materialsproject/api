@@ -23,10 +23,7 @@ from requests import Session, get
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import validate_ids
-from mp_api.client.routes import (
-    GeneralStoreRester,
-    UserSettingsRester,
-)
+from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
 from mp_api.client.routes.legacy import LegacyMoleculesRester
 from mp_api.client.routes.materials import (
     AbsorptionRester,
@@ -148,6 +145,7 @@ class MPRester:
     doi: DOIRester
     _user_settings: UserSettingsRester
     _general_store: GeneralStoreRester
+    _messages: MessagesRester
 
     def __init__(
         self,
