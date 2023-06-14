@@ -20,7 +20,8 @@ class MessagesRester(BaseRester[MessagesDoc]):  # pragma: no cover
         type: MessageType = MessageType.generic,
         authors: List[str] = None,
     ):  # pragma: no cover
-        """Set user settings
+        """
+        Set user settings
 
         Args:
             title: Message title
