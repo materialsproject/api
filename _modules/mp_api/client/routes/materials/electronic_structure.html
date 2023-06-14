@@ -29,19 +29,15 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.materials.electronic_structure</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">base64</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">zlib</span>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">msgpack</span>
 <span class="kn">from</span> <span class="nn">emmet.core.electronic_structure</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">BSPathType</span><span class="p">,</span>
     <span class="n">DOSProjectionType</span><span class="p">,</span>
     <span class="n">ElectronicStructureDoc</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">monty.serialization</span> <span class="kn">import</span> <span class="n">MontyDecoder</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.magnetism.analyzer</span> <span class="kn">import</span> <span class="n">Ordering</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
 <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.core</span> <span class="kn">import</span> <span class="n">OrbitalType</span><span class="p">,</span> <span class="n">Spin</span>
@@ -487,12 +483,9 @@
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No density of states data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">dos_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_task_id</span><span class="p">(</span><span class="n">dos_task_id</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">dos_obj</span><span class="p">:</span>
-            <span class="n">b64_bytes</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">dos_obj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">packed_bytes</span> <span class="o">=</span> <span class="n">zlib</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">b64_bytes</span><span class="p">)</span>
-            <span class="n">json_data</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">unpackb</span><span class="p">(</span><span class="n">packed_bytes</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">process_decoded</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
-            <span class="k">return</span> <span class="n">data</span>
+            <span class="k">return</span> <span class="n">dos_obj</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No density of states object found.&quot;</span><span class="p">)</span></div></div>
 </pre></div>
