@@ -6,7 +6,14 @@ from emmet.core.molecules.summary import HasProps
 
 from mp_api.client.routes.molecules.summary import MoleculesSummaryRester
 
-excluded_params = ["sort_fields", "chunk_size", "num_chunks", "all_fields", "fields", "exclude_elements"]
+excluded_params = [
+    "sort_fields",
+    "chunk_size",
+    "num_chunks",
+    "all_fields",
+    "fields",
+    "exclude_elements",
+]
 
 alt_name = {"formula": "formula_alphabetical", "molecule_ids": "molecule_id"}
 
@@ -25,7 +32,9 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skipif(
+    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
+)
 def test_client():
     search_method = MoleculesSummaryRester().search
 

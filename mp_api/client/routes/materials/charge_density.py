@@ -1,15 +1,8 @@
-import zlib
-from os import environ
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Union
 
-import boto3
-import msgpack
-from botocore import UNSIGNED
-from botocore.client import Config
-from botocore.exceptions import ConnectionError
 from emmet.core.charge_density import ChgcarDataDoc
-from monty.serialization import MontyDecoder, dumpfn
+from monty.serialization import dumpfn
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
