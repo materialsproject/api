@@ -1,6 +1,8 @@
 import base64
 import warnings
 import zlib
+import gzip
+from monty.serialization import MontyDecoder
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
@@ -109,9 +111,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
         if band_gap:
-            query_params.update(
-                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
-            )
+            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -122,9 +122,7 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         if num_elements:
             if isinstance(num_elements, int):
                 num_elements = (num_elements, num_elements)
-            query_params.update(
-                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
-            )
+            query_params.update({"nelements_min": num_elements[0], "nelements_max": num_elements[1]})
 
         if is_gap_direct is not None:
             query_params.update({"is_gap_direct": is_gap_direct})
@@ -133,15 +131,9 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             query_params.update({"is_metal": is_metal})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
             num_chunks=num_chunks,
@@ -205,9 +197,7 @@ class BandStructureRester(BaseRester):
         query_params["path_type"] = path_type.value
 
         if band_gap:
-            query_params.update(
-                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
-            )
+            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -222,15 +212,9 @@ class BandStructureRester(BaseRester):
             query_params.update({"is_metal": is_metal})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
             num_chunks=num_chunks,
@@ -249,13 +233,8 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        result = self._query_resource(
-            criteria={"task_id": task_id, "_all_fields": True},
-            suburl="object",
-            use_document_model=False,
-            num_chunks=1,
-            chunk_size=1,
-        )
+
+        result = self._query_open_data(bucket="materialsproject-parsed", prefix="bandstructures", key=task_id)
 
         if result.get("data", None) is not None:
             return result["data"]
@@ -278,56 +257,37 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        es_rester = ElectronicStructureRester(
-            endpoint=self.base_endpoint, api_key=self.api_key
-        )
+        es_rester = ElectronicStructureRester(endpoint=self.base_endpoint, api_key=self.api_key)
 
         if line_mode:
-            bs_data = es_rester.get_data_by_id(
-                document_id=material_id, fields=["bandstructure"]
-            ).bandstructure
+            bs_data = es_rester.get_data_by_id(document_id=material_id, fields=["bandstructure"]).bandstructure
 
             if bs_data is None:
-                raise MPRestError(
-                    f"No {path_type.value} band structure data found for {material_id}"
-                )
+                raise MPRestError(f"No {path_type.value} band structure data found for {material_id}")
             else:
                 bs_data = bs_data.dict()
 
             if bs_data.get(path_type.value, None):
                 bs_task_id = bs_data[path_type.value]["task_id"]
             else:
-                raise MPRestError(
-                    f"No {path_type.value} band structure data found for {material_id}"
-                )
+                raise MPRestError(f"No {path_type.value} band structure data found for {material_id}")
         else:
-            bs_data = es_rester.get_data_by_id(
-                document_id=material_id, fields=["dos"]
-            ).dos
+            bs_data = es_rester.get_data_by_id(document_id=material_id, fields=["dos"]).dos
 
             if bs_data is None:
-                raise MPRestError(
-                    f"No uniform band structure data found for {material_id}"
-                )
+                raise MPRestError(f"No uniform band structure data found for {material_id}")
             else:
                 bs_data = bs_data.dict()
 
             if bs_data.get("total", None):
                 bs_task_id = bs_data["total"]["1"]["task_id"]
             else:
-                raise MPRestError(
-                    f"No uniform band structure data found for {material_id}"
-                )
+                raise MPRestError(f"No uniform band structure data found for {material_id}")
 
         bs_obj = self.get_bandstructure_from_task_id(bs_task_id)
 
         if bs_obj:
-            b64_bytes = base64.b64decode(bs_obj[0], validate=True)
-            packed_bytes = zlib.decompress(b64_bytes)
-            json_data = msgpack.unpackb(packed_bytes, raw=False)
-            data = MontyDecoder().process_decoded(json_data["data"])
-
-            return data
+            return bs_obj
         else:
             raise MPRestError("No band structure object found.")
 
@@ -394,9 +354,7 @@ class DosRester(BaseRester):
             query_params["orbital"] = orbital.value
 
         if band_gap:
-            query_params.update(
-                {"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]}
-            )
+            query_params.update({"band_gap_min": band_gap[0], "band_gap_max": band_gap[1]})
 
         if efermi:
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
@@ -405,15 +363,9 @@ class DosRester(BaseRester):
             query_params.update({"magnetic_ordering": magnetic_ordering.value})
 
         if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
+            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
 
-        query_params = {
-            entry: query_params[entry]
-            for entry in query_params
-            if query_params[entry] is not None
-        }
+        query_params = {entry: query_params[entry] for entry in query_params if query_params[entry] is not None}
 
         return super()._search(
             num_chunks=num_chunks,
@@ -432,13 +384,7 @@ class DosRester(BaseRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-        result = self._query_resource(
-            criteria={"task_id": task_id, "_all_fields": True},
-            suburl="object",
-            use_document_model=False,
-            num_chunks=1,
-            chunk_size=1,
-        )
+        result = self._query_open_data(bucket="materialsproject-parsed", prefix="dos", key=task_id)
 
         if result.get("data", None) is not None:
             return result["data"]
@@ -454,13 +400,9 @@ class DosRester(BaseRester):
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-        es_rester = ElectronicStructureRester(
-            endpoint=self.base_endpoint, api_key=self.api_key
-        )
+        es_rester = ElectronicStructureRester(endpoint=self.base_endpoint, api_key=self.api_key)
 
-        dos_data = es_rester.get_data_by_id(
-            document_id=material_id, fields=["dos"]
-        ).dict()
+        dos_data = es_rester.get_data_by_id(document_id=material_id, fields=["dos"]).dict()
 
         if dos_data["dos"]:
             dos_task_id = dos_data["dos"]["total"]["1"]["task_id"]
