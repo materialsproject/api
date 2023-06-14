@@ -249,12 +249,9 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        result = self._query_resource(
-            criteria={"task_id": task_id, "_all_fields": True},
-            suburl="object",
-            use_document_model=False,
-            num_chunks=1,
-            chunk_size=1,
+
+        result = self._query_open_data(
+            bucket="materialsproject-parsed", prefix="bandstructures", key=task_id
         )
 
         if result.get("data", None) is not None:
@@ -322,12 +319,7 @@ class BandStructureRester(BaseRester):
         bs_obj = self.get_bandstructure_from_task_id(bs_task_id)
 
         if bs_obj:
-            b64_bytes = base64.b64decode(bs_obj[0], validate=True)
-            packed_bytes = zlib.decompress(b64_bytes)
-            json_data = msgpack.unpackb(packed_bytes, raw=False)
-            data = MontyDecoder().process_decoded(json_data["data"])
-
-            return data
+            return bs_obj
         else:
             raise MPRestError("No band structure object found.")
 
@@ -432,12 +424,8 @@ class DosRester(BaseRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-        result = self._query_resource(
-            criteria={"task_id": task_id, "_all_fields": True},
-            suburl="object",
-            use_document_model=False,
-            num_chunks=1,
-            chunk_size=1,
+        result = self._query_open_data(
+            bucket="materialsproject-parsed", prefix="dos", key=task_id
         )
 
         if result.get("data", None) is not None:

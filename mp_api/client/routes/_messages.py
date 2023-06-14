@@ -18,9 +18,10 @@ class MessagesRester(BaseRester[MessagesDoc]):  # pragma: no cover
         title: str,
         body: str,
         type: MessageType = MessageType.generic,
-        authors: List[str] = [],
+        authors: List[str] = None,
     ):  # pragma: no cover
-        """Set user settings
+        """
+        Set user settings
 
         Args:
             title: Message title
@@ -34,7 +35,7 @@ class MessagesRester(BaseRester[MessagesDoc]):  # pragma: no cover
         Raises:
             MPRestError.
         """
-        d = {"title": title, "body": body, "type": type.value, "authors": authors}
+        d = {"title": title, "body": body, "type": type.value, "authors": authors or []}
 
         return self._post_resource(body=d).get("data")
 

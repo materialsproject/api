@@ -3,6 +3,7 @@ API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
 
+import gzip
 import itertools
 import json
 import platform
@@ -13,9 +14,10 @@ from copy import copy
 from json import JSONDecodeError
 from math import ceil
 from os import environ
-from typing import Dict, Generic, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
 from urllib.parse import quote, urljoin
 
+import boto3
 import requests
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
@@ -55,6 +57,7 @@ class BaseRester(Generic[T]):
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
         session: Optional[requests.Session] = None,
+        s3_resource: Optional[Any] = None,
         debug: bool = False,
         monty_decode: bool = True,
         use_document_model: bool = True,
@@ -108,6 +111,11 @@ class BaseRester(Generic[T]):
         else:
             self._session = None  # type: ignore
 
+        if s3_resource:
+            self._s3_resource = s3_resource
+        else:
+            self._s3_resource = None
+
         self.document_model = (
             api_sanitize(self.document_model) if self.document_model is not None else None  # type: ignore
         )
@@ -119,6 +127,12 @@ class BaseRester(Generic[T]):
                 self.api_key, self.include_user_agent, self.headers
             )
         return self._session
+
+    @property
+    def s3_resource(self):
+        if not self._s3_resource:
+            self._s3_resource = boto3.resource("s3")
+        return self._s3_resource
 
     @staticmethod
     def _create_session(api_key, include_user_agent, headers):
@@ -229,6 +243,26 @@ class BaseRester(Generic[T]):
 
         except RequestException as ex:
             raise MPRestError(str(ex))
+
+    def _query_open_data(self, bucket: str, prefix: str, key: str) -> dict:
+        """Query Materials Project AWS open data s3 buckets
+
+        Args:
+            bucket (str): Materials project bucket name
+            prefix (str): Full set of file prefixes
+            key (str): Key for file
+
+        Returns:
+            dict: MontyDecoded data
+        """
+        ref = self.s3_resource.Object(bucket, f"{prefix}/{key}.json.gz")  # type: ignore
+        bytes = ref.get()["Body"]  # type: ignore
+
+        with gzip.GzipFile(fileobj=bytes) as gzipfile:
+            content = gzipfile.read()
+            result = MontyDecoder().decode(content)
+
+        return result
 
     def _query_resource(
         self,
