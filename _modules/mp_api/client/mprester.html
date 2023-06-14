@@ -36,10 +36,10 @@
 <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">emmet.core.charge_density</span> <span class="kn">import</span> <span class="n">ChgcarDataDoc</span>
 <span class="kn">from</span> <span class="nn">emmet.core.electronic_structure</span> <span class="kn">import</span> <span class="n">BSPathType</span>
 <span class="kn">from</span> <span class="nn">emmet.core.mpid</span> <span class="kn">import</span> <span class="n">MPID</span>
 <span class="kn">from</span> <span class="nn">emmet.core.settings</span> <span class="kn">import</span> <span class="n">EmmetSettings</span>
+<span class="kn">from</span> <span class="nn">emmet.core.tasks</span> <span class="kn">import</span> <span class="n">TaskDoc</span>
 <span class="kn">from</span> <span class="nn">emmet.core.vasp.calc_types</span> <span class="kn">import</span> <span class="n">CalcType</span>
 <span class="kn">from</span> <span class="nn">packaging</span> <span class="kn">import</span> <span class="n">version</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.phase_diagram</span> <span class="kn">import</span> <span class="n">PhaseDiagram</span>
@@ -54,7 +54,9 @@
 <span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.core.settings</span> <span class="kn">import</span> <span class="n">MAPIClientSettings</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
-<span class="kn">from</span> <span class="nn">mp_api.client.routes</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.routes</span> <span class="kn">import</span> <span class="n">GeneralStoreRester</span><span class="p">,</span> <span class="n">MessagesRester</span><span class="p">,</span> <span class="n">UserSettingsRester</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.routes.legacy</span> <span class="kn">import</span> <span class="n">LegacyMoleculesRester</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.routes.materials</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">AbsorptionRester</span><span class="p">,</span>
     <span class="n">AlloysRester</span><span class="p">,</span>
     <span class="n">BandStructureRester</span><span class="p">,</span>
@@ -69,7 +71,6 @@
     <span class="n">ElectronicStructureRester</span><span class="p">,</span>
     <span class="n">EOSRester</span><span class="p">,</span>
     <span class="n">FermiRester</span><span class="p">,</span>
-    <span class="n">GeneralStoreRester</span><span class="p">,</span>
     <span class="n">GrainBoundaryRester</span><span class="p">,</span>
     <span class="n">MagnetismRester</span><span class="p">,</span>
     <span class="n">MaterialsRester</span><span class="p">,</span>
@@ -86,8 +87,20 @@
     <span class="n">SynthesisRester</span><span class="p">,</span>
     <span class="n">TaskRester</span><span class="p">,</span>
     <span class="n">ThermoRester</span><span class="p">,</span>
-    <span class="n">UserSettingsRester</span><span class="p">,</span>
     <span class="n">XASRester</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.routes.molecules</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AssociatedMoleculeRester</span><span class="p">,</span>
+    <span class="n">MoleculeRester</span><span class="p">,</span>
+    <span class="n">MoleculesBondRester</span><span class="p">,</span>
+    <span class="n">MoleculesOrbitalsRester</span><span class="p">,</span>
+    <span class="n">MoleculesPartialChargesRester</span><span class="p">,</span>
+    <span class="n">MoleculesPartialSpinsRester</span><span class="p">,</span>
+    <span class="n">MoleculesRedoxRester</span><span class="p">,</span>
+    <span class="n">MoleculesSummaryRester</span><span class="p">,</span>
+    <span class="n">MoleculesTaskRester</span><span class="p">,</span>
+    <span class="n">MoleculesThermoRester</span><span class="p">,</span>
+    <span class="n">MoleculesVibrationRester</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">_DEPRECATION_WARNING</span> <span class="o">=</span> <span class="p">(</span>
@@ -110,6 +123,8 @@
     <span class="c1"># To re-generate this list, use:</span>
     <span class="c1"># for rester in MPRester()._all_resters:</span>
     <span class="c1">#     print(f&quot;{rester.suffix.replace(&#39;/&#39;, &#39;_&#39;)}: {rester.__class__.__name__}&quot;)</span>
+
+    <span class="c1"># Materials</span>
     <span class="n">eos</span><span class="p">:</span> <span class="n">EOSRester</span>
     <span class="n">materials</span><span class="p">:</span> <span class="n">MaterialsRester</span>
     <span class="n">similarity</span><span class="p">:</span> <span class="n">SimilarityRester</span>
@@ -123,7 +138,6 @@
     <span class="n">elasticity</span><span class="p">:</span> <span class="n">ElasticityRester</span>
     <span class="n">thermo</span><span class="p">:</span> <span class="n">ThermoRester</span>
     <span class="n">dielectric</span><span class="p">:</span> <span class="n">DielectricRester</span>
-    <span class="n">doi</span><span class="p">:</span> <span class="n">DOIRester</span>
     <span class="n">piezoelectric</span><span class="p">:</span> <span class="n">PiezoRester</span>
     <span class="n">magnetism</span><span class="p">:</span> <span class="n">MagnetismRester</span>
     <span class="n">summary</span><span class="p">:</span> <span class="n">SummaryRester</span>
@@ -141,8 +155,28 @@
     <span class="n">alloys</span><span class="p">:</span> <span class="n">AlloysRester</span>
     <span class="n">absorption</span><span class="p">:</span> <span class="n">AbsorptionRester</span>
     <span class="n">chemenv</span><span class="p">:</span> <span class="n">ChemenvRester</span>
+
+    <span class="c1"># Molecules</span>
+    <span class="n">molecules_bonding</span><span class="p">:</span> <span class="n">MoleculesBondRester</span>
+    <span class="n">molecules_associated</span><span class="p">:</span> <span class="n">AssociatedMoleculeRester</span>
+    <span class="n">molecules</span><span class="p">:</span> <span class="n">MoleculeRester</span>
+    <span class="n">molecules_orbital</span><span class="p">:</span> <span class="n">MoleculesOrbitalsRester</span>
+    <span class="n">molecules_partial_charges</span><span class="p">:</span> <span class="n">MoleculesPartialChargesRester</span>
+    <span class="n">molecules_partial_spins</span><span class="p">:</span> <span class="n">MoleculesPartialSpinsRester</span>
+    <span class="n">molecules_redox</span><span class="p">:</span> <span class="n">MoleculesRedoxRester</span>
+    <span class="n">molecules_summary</span><span class="p">:</span> <span class="n">MoleculesSummaryRester</span>
+    <span class="n">molecules_tasks</span><span class="p">:</span> <span class="n">MoleculesTaskRester</span>
+    <span class="n">molecules_thermo</span><span class="p">:</span> <span class="n">MoleculesThermoRester</span>
+    <span class="n">molecules_vibrations</span><span class="p">:</span> <span class="n">MoleculesVibrationRester</span>
+
+    <span class="c1"># Legacy</span>
+    <span class="n">legacy_jcesr</span><span class="p">:</span> <span class="n">LegacyMoleculesRester</span>
+
+    <span class="c1"># Generic</span>
+    <span class="n">doi</span><span class="p">:</span> <span class="n">DOIRester</span>
     <span class="n">_user_settings</span><span class="p">:</span> <span class="n">UserSettingsRester</span>
     <span class="n">_general_store</span><span class="p">:</span> <span class="n">GeneralStoreRester</span>
+    <span class="n">_messages</span><span class="p">:</span> <span class="n">MessagesRester</span>
 
 <div class="viewcode-block" id="MPRester.__init__"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -238,39 +272,49 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
 
-        <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">BaseRester</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
-            <span class="n">rester</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
-                <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span>
-                <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span>
-                <span class="n">include_user_agent</span><span class="o">=</span><span class="n">include_user_agent</span><span class="p">,</span>
-                <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
-                <span class="n">monty_decode</span><span class="o">=</span><span class="n">monty_decode</span>
-                <span class="k">if</span> <span class="bp">cls</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">TaskRester</span><span class="p">,</span> <span class="n">ProvenanceRester</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-                <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Disable monty decode on nested data which may give errors</span>
-                <span class="n">use_document_model</span><span class="o">=</span><span class="n">use_document_model</span><span class="p">,</span>
-                <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: BaseRester</span>
+        <span class="k">for</span> <span class="n">_cls</span> <span class="ow">in</span> <span class="n">BaseRester</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
+            <span class="n">sub_resters</span> <span class="o">=</span> <span class="n">_cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_all_resters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rester</span><span class="p">)</span>
+            <span class="n">resters</span> <span class="o">=</span> <span class="n">sub_resters</span> <span class="k">if</span> <span class="n">sub_resters</span> <span class="k">else</span> <span class="p">[</span><span class="n">_cls</span><span class="p">]</span>
 
-            <span class="n">suffix_split</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">resters</span><span class="p">:</span>
+                <span class="n">rester</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
+                    <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span>
+                    <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span>
+                    <span class="n">include_user_agent</span><span class="o">=</span><span class="n">include_user_agent</span><span class="p">,</span>
+                    <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+                    <span class="n">monty_decode</span><span class="o">=</span><span class="n">monty_decode</span>
+                    <span class="k">if</span> <span class="bp">cls</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">TaskRester</span><span class="p">,</span> <span class="n">ProvenanceRester</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+                    <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Disable monty decode on nested data which may give errors</span>
+                    <span class="n">use_document_model</span><span class="o">=</span><span class="n">use_document_model</span><span class="p">,</span>
+                    <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+                <span class="p">)</span>  <span class="c1"># type: BaseRester</span>
 
-            <span class="n">att_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;legacy/jcesr&quot;</span><span class="p">:</span> <span class="s2">&quot;molecules&quot;</span><span class="p">,</span> <span class="s2">&quot;materials/core&quot;</span><span class="p">:</span> <span class="s2">&quot;materials&quot;</span><span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_all_resters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rester</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">suffix_split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="nb">setattr</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="p">,</span>
-                    <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="n">rester</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="nb">setattr</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="p">,</span>
-                    <span class="n">att_map</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span> <span class="ow">in</span> <span class="n">att_map</span>
-                    <span class="k">else</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">suffix_split</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span>
-                    <span class="n">rester</span><span class="p">,</span>
-                <span class="p">)</span></div>
+                <span class="n">suffix_split</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+                <span class="n">att_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;molecules/core&quot;</span><span class="p">:</span> <span class="s2">&quot;molecules&quot;</span><span class="p">,</span> <span class="s2">&quot;materials/core&quot;</span><span class="p">:</span> <span class="s2">&quot;materials&quot;</span><span class="p">}</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">suffix_split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span>
+                        <span class="n">suffix_split</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">rester</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span> <span class="ow">in</span> <span class="n">att_map</span><span class="p">:</span>
+                        <span class="n">attr</span> <span class="o">=</span> <span class="n">att_map</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="s2">&quot;materials&quot;</span> <span class="ow">in</span> <span class="n">suffix_split</span><span class="p">:</span>
+                        <span class="n">attr</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">suffix_split</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">attr</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">suffix_split</span><span class="p">)</span>
+
+                    <span class="nb">setattr</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span>
+                        <span class="n">attr</span><span class="p">,</span>
+                        <span class="n">rester</span><span class="p">,</span>
+                    <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Support for &quot;with&quot; context.&quot;&quot;&quot;</span>
@@ -1222,14 +1266,23 @@
         <span class="n">task_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_ids_associated_with_material_id</span><span class="p">(</span>
             <span class="n">material_id</span><span class="p">,</span> <span class="n">calc_types</span><span class="o">=</span><span class="p">[</span><span class="n">CalcType</span><span class="o">.</span><span class="n">GGA_Static</span><span class="p">,</span> <span class="n">CalcType</span><span class="o">.</span><span class="n">GGA_U_Static</span><span class="p">]</span>
         <span class="p">)</span>
-        <span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ChgcarDataDoc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_density</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">task_ids</span><span class="o">=</span><span class="n">task_ids</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TaskDoc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">task_ids</span><span class="o">=</span><span class="n">task_ids</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;last_updated&quot;</span><span class="p">,</span> <span class="s2">&quot;task_id&quot;</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">latest_doc</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">last_updated</span><span class="p">)</span>
 
-        <span class="n">chgcar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_density</span><span class="o">.</span><span class="n">get_charge_density_from_file_id</span><span class="p">(</span><span class="n">latest_doc</span><span class="o">.</span><span class="n">fs_id</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
+                <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
+                <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;chgcars&quot;</span><span class="p">,</span>
+                <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">latest_doc</span><span class="o">.</span><span class="n">task_id</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="ow">or</span> <span class="p">{}</span>
+        <span class="p">)</span>
+
+        <span class="n">chgcar</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">chgcar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No charge density fetched for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>

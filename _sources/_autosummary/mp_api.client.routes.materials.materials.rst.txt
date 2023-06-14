@@ -1,0 +1,31 @@
+mp\_api.client.routes.materials.materials
+=========================================
+
+.. automodule:: mp_api.client.routes.materials.materials
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      MaterialsRester
+   
+   
+
+   
+   
+   
+
+
+

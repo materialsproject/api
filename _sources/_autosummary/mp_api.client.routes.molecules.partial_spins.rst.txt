@@ -1,0 +1,31 @@
+mp\_api.client.routes.molecules.partial\_spins
+==============================================
+
+.. automodule:: mp_api.client.routes.molecules.partial_spins
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      MoleculesPartialSpinsRester
+   
+   
+
+   
+   
+   
+
+
+

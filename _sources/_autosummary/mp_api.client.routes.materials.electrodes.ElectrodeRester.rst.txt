@@ -1,0 +1,40 @@
+mp\_api.client.routes.materials.electrodes.ElectrodeRester
+==========================================================
+
+.. currentmodule:: mp_api.client.routes.materials.electrodes
+
+.. autoclass:: ElectrodeRester
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~ElectrodeRester.__init__
+      ~ElectrodeRester.count
+      ~ElectrodeRester.get_data_by_id
+      ~ElectrodeRester.search
+      ~ElectrodeRester.search_electrode_docs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ElectrodeRester.available_fields
+      ~ElectrodeRester.primary_key
+      ~ElectrodeRester.s3_resource
+      ~ElectrodeRester.session
+      ~ElectrodeRester.suffix
+      ~ElectrodeRester.supports_versions
+   
+   

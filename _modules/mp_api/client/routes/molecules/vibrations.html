@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mp_api.client.routes.molecules.vibrations &#8212; mp-api 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css" />
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for mp_api.client.routes.molecules.vibrations</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">emmet.core.molecules.vibration</span> <span class="kn">import</span> <span class="n">VibrationDoc</span>
+<span class="kn">from</span> <span class="nn">emmet.core.mpid</span> <span class="kn">import</span> <span class="n">MPculeID</span>
+
+<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span>
+
+
+<div class="viewcode-block" id="MoleculesVibrationRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.vibrations.MoleculesVibrationRester.html#mp_api.client.routes.molecules.vibrations.MoleculesVibrationRester">[docs]</a><span class="k">class</span> <span class="nc">MoleculesVibrationRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">VibrationDoc</span><span class="p">]):</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/vibrations&quot;</span>
+    <span class="n">document_model</span> <span class="o">=</span> <span class="n">VibrationDoc</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;property_id&quot;</span>
+
+<div class="viewcode-block" id="MoleculesVibrationRester.search"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.vibrations.MoleculesVibrationRester.html#mp_api.client.routes.molecules.vibrations.MoleculesVibrationRester.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">molecule_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">MPculeID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">MPculeID</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">property_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">charge</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">spin_multiplicity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">level_of_theory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">solvent</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">lot_solvent</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">formula</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">elements</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">exclude_elements</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">chemsys</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_chunks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sort_fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Query molecules vibration docs using a variety of search criteria.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            molecule_ids (MPculeID, List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data</span>
+<span class="sd">                for.</span>
+<span class="sd">            property_ids (str, List[str]): List of property IDs to return data for.</span>
+<span class="sd">            charge (Tuple[int, int]): Minimum and maximum charge for the molecule.</span>
+<span class="sd">            spin_multiplicity (Tuple[int, int]): Minimum and maximum spin for the molecule.</span>
+<span class="sd">            level_of_theory (str): Desired level of theory (e.g. &quot;wB97X-V/def2-TZVPPD/SMD&quot;)</span>
+<span class="sd">            solvent (str): Desired solvent (e.g. &quot;SOLVENT=WATER&quot;)</span>
+<span class="sd">            lot_solvent (str): Desired combination of level of theory and solvent</span>
+<span class="sd">                (e.g. &quot;wB97X-V/def2-TZVPPD/SMD(SOLVENT=THF)&quot;)</span>
+<span class="sd">            correction_level_of_theory (str): Desired correction level of theory (e.g. &quot;wB97X-V/def2-TZVPPD/SMD&quot;)</span>
+<span class="sd">            correction_solvent (str): Desired correction solvent (e.g. &quot;SOLVENT=WATER&quot;)</span>
+<span class="sd">            correction_lot_solvent (str): Desired correction combination of level of theory and solvent</span>
+<span class="sd">                (e.g. &quot;wB97X-V/def2-TZVPPD/SMD(SOLVENT=THF)&quot;)</span>
+<span class="sd">            combined_lot_solvent (str): Desired combination of level of theory and solvent including both main</span>
+<span class="sd">                thermo calculation and single-point energy correction</span>
+<span class="sd">                (e.g. &quot;wB97X-D/def2-SVPD/VACUUM//wB97X-V/def2-TZVPPD/SMD(SOLVENT=THF)&quot;)</span>
+<span class="sd">            electronic_energy (Tuple[float, float]): Minimum and maximum electronic energy</span>
+<span class="sd">            zero_point_energy (Tuple[float, float]): Minimum and maximum zero-point energy</span>
+<span class="sd">            total_enthalpy (Tuple[float, float]): Minimum and maximum total enthalpy</span>
+<span class="sd">            total_entropy (Tuple[float, float]): Minimum and maximum total entropy</span>
+<span class="sd">            translational_enthalpy (Tuple[float, float]): Minimum and maximum translational enthalpy</span>
+<span class="sd">            rotational_enthalpy (Tuple[float, float]): Minimum and maximum rotational enthalpy</span>
+<span class="sd">            vibrational_enthalpy (Tuple[float, float]): Minimum and maximum vibrational enthalpy</span>
+<span class="sd">            translational_entropy (Tuple[float, float]): Minimum and maximum translational enthalpy</span>
+<span class="sd">            rotational_entropy (Tuple[float, float]): Minimum and maximum rotational enthalpy</span>
+<span class="sd">            vibrational_entropy (Tuple[float, float]): Minimum and maximum vibrational enthalpy</span>
+<span class="sd">            free_energy (Tuple[float, float]): Minimum and maximum free energy</span>
+<span class="sd">            formula (str, List[str]): An alphabetical formula or list of formulas</span>
+<span class="sd">                (e.g. &quot;C2 Li2 O4&quot;, [&quot;C2 H4&quot;, &quot;C2 H6&quot;]).</span>
+<span class="sd">            elements (List[str]): A list of elements.</span>
+<span class="sd">            exclude_elements (List(str)): List of elements to exclude.</span>
+<span class="sd">            chemsys (str, List[str]): A chemical system, list of chemical systems</span>
+<span class="sd">                (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).</span>
+<span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
+<span class="sd">            sort_fields (List[str]): Fields used to sort results. Prefix with &#39;-&#39; to sort in descending order.</span>
+<span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
+<span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
+<span class="sd">            fields (List[str]): List of fields in MoleculeDoc to return data for.</span>
+<span class="sd">                Default is &quot;molecule_id&quot;, &quot;property_id&quot;, &quot;solvent&quot;, &quot;method&quot;, &quot;last_updated&quot;</span>
+<span class="sd">                if all_fields is False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ([VibrationDoc]) List of molecule vibration documents</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: dict</span>
+
+        <span class="k">if</span> <span class="n">molecule_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">molecule_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">molecule_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">molecule_ids</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;molecule_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">molecule_ids</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">property_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">property_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">property_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">property_ids</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;property_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">property_ids</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">charge</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;charge&quot;</span><span class="p">:</span> <span class="n">charge</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">spin_multiplicity</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;spin_multiplicity&quot;</span><span class="p">:</span> <span class="n">spin_multiplicity</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">level_of_theory</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;level_of_theory&quot;</span><span class="p">:</span> <span class="n">level_of_theory</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">solvent</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;solvent&quot;</span><span class="p">:</span> <span class="n">solvent</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">lot_solvent</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;lot_solvent&quot;</span><span class="p">:</span> <span class="n">lot_solvent</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">formula</span> <span class="o">=</span> <span class="p">[</span><span class="n">formula</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">formula</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">chemsys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">chemsys</span> <span class="o">=</span> <span class="p">[</span><span class="n">chemsys</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;chemsys&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chemsys</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">exclude_elements</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;exclude_elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_elements</span><span class="p">)})</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span>
+            <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+            <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../../index.html">mp-api</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=materialsproject&repo=api&type=star&v=2&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules.html">Project Modules</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, The Materials Project.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/materialsproject/api" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

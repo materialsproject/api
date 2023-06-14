@@ -13,14 +13,6 @@ mp\_api.client.routes.molecules
 
    
    
-   .. rubric:: Classes
-
-   .. autosummary::
-      :toctree:
-      :template: custom-class-template.rst
-   
-      MoleculesRester
-   
    
 
    
@@ -28,4 +20,22 @@ mp\_api.client.routes.molecules
    
 
 
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   mp_api.client.routes.molecules.bonds
+   mp_api.client.routes.molecules.molecules
+   mp_api.client.routes.molecules.orbitals
+   mp_api.client.routes.molecules.partial_charges
+   mp_api.client.routes.molecules.partial_spins
+   mp_api.client.routes.molecules.redox
+   mp_api.client.routes.molecules.summary
+   mp_api.client.routes.molecules.tasks
+   mp_api.client.routes.molecules.thermo
+   mp_api.client.routes.molecules.vibrations
 

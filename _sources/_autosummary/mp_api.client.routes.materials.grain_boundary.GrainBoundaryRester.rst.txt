@@ -1,0 +1,40 @@
+mp\_api.client.routes.materials.grain\_boundary.GrainBoundaryRester
+===================================================================
+
+.. currentmodule:: mp_api.client.routes.materials.grain_boundary
+
+.. autoclass:: GrainBoundaryRester
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GrainBoundaryRester.__init__
+      ~GrainBoundaryRester.count
+      ~GrainBoundaryRester.get_data_by_id
+      ~GrainBoundaryRester.search
+      ~GrainBoundaryRester.search_grain_boundary_docs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GrainBoundaryRester.available_fields
+      ~GrainBoundaryRester.primary_key
+      ~GrainBoundaryRester.s3_resource
+      ~GrainBoundaryRester.session
+      ~GrainBoundaryRester.suffix
+      ~GrainBoundaryRester.supports_versions
+   
+   

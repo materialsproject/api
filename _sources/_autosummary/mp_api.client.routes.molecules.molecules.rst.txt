@@ -1,0 +1,33 @@
+mp\_api.client.routes.molecules.molecules
+=========================================
+
+.. automodule:: mp_api.client.routes.molecules.molecules
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      AssociatedMoleculeRester
+      BaseMoleculeRester
+      MoleculeRester
+   
+   
+
+   
+   
+   
+
+
+

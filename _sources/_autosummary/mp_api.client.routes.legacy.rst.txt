@@ -1,0 +1,32 @@
+mp\_api.client.routes.legacy
+============================
+
+.. automodule:: mp_api.client.routes.legacy
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   mp_api.client.routes.legacy.jcesr
+

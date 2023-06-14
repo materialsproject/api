@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mp_api.client.routes.molecules.molecules &#8212; mp-api 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css" />
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for mp_api.client.routes.molecules.molecules</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">emmet.core.mpid</span> <span class="kn">import</span> <span class="n">MPculeID</span>
+<span class="kn">from</span> <span class="nn">emmet.core.qchem.molecule</span> <span class="kn">import</span> <span class="n">MoleculeDoc</span>
+<span class="kn">from</span> <span class="nn">emmet.core.settings</span> <span class="kn">import</span> <span class="n">EmmetSettings</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Molecule</span>
+
+<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
+
+<span class="n">_EMMET_SETTINGS</span> <span class="o">=</span> <span class="n">EmmetSettings</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="BaseMoleculeRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester">[docs]</a><span class="k">class</span> <span class="nc">BaseMoleculeRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">MoleculeDoc</span><span class="p">]):</span>
+    <span class="n">document_model</span> <span class="o">=</span> <span class="n">MoleculeDoc</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;molecule_id&quot;</span>
+
+<div class="viewcode-block" id="BaseMoleculeRester.get_molecule_by_mpculeid"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.get_molecule_by_mpculeid">[docs]</a>    <span class="k">def</span> <span class="nf">get_molecule_by_mpculeid</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">mpcule_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">final</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Molecule</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Molecule</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a molecule object for a given Materials Project molecules ID (MPculeID).</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            mpcule_id (str): Materials project molecule ID</span>
+<span class="sd">            final (bool): Whether to get the final (optimized) molecule, or the list of initial</span>
+<span class="sd">                (pre-optimized) structures. Defaults to True.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            molecule (Union[Molecule, List[Molecule]]): Pymatgen Molecule object or list of</span>
+<span class="sd">                pymatgen Molecule objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">final</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span><span class="n">mpcule_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;molecule&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">molecule</span> <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">response</span>  <span class="c1"># type: ignore</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span><span class="n">mpcule_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;initial_molecules&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">initial_molecules</span> <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">response</span>  <span class="c1"># type: ignore</span></div>
+
+<div class="viewcode-block" id="BaseMoleculeRester.find_molecule"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.find_molecule">[docs]</a>    <span class="k">def</span> <span class="nf">find_molecule</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">filename_or_molecule</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">],</span>
+        <span class="n">charge</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">spin_multiplicity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">allow_multiple_results</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds matching molecules from the Materials Project molecules database (MPcules).</span>
+
+<span class="sd">        Multiple results may be returned of &quot;similar&quot; molecules based on</span>
+<span class="sd">        distance using the pymatgen MoleculeMatcher algorithm.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename_or_molecule: filename or Molecule object</span>
+<span class="sd">            charge: Molecule charge. Default is None, meaning that the charge will not be used to</span>
+<span class="sd">                restrict the output.</span>
+<span class="sd">            spin_multiplicity: Molecule&#39;s spin multiplicity. Default is None, meaning that the output will</span>
+<span class="sd">                not be restricted by spin multiplicity.</span>
+<span class="sd">            tolerance: RMSD difference threshold for MoleculeMatcher</span>
+<span class="sd">            allow_multiple_results: changes return type for either</span>
+<span class="sd">            a single mpcule_id or list of mpcule_ids</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            A matching mpcule_id if one is found or list of results if allow_multiple_results</span>
+<span class="sd">            is True</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            MPRestError</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename_or_molecule</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filename_or_molecule</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename_or_molecule</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">):</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">filename_or_molecule</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;Provide filename or Structure object.&quot;</span><span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_resource</span><span class="p">(</span>
+            <span class="n">body</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;tolerance&quot;</span><span class="p">:</span> <span class="n">tolerance</span><span class="p">,</span>
+                <span class="s2">&quot;charge&quot;</span><span class="p">:</span> <span class="n">charge</span><span class="p">,</span>
+                <span class="s2">&quot;spin_multiplicity&quot;</span><span class="p">:</span> <span class="n">spin_multiplicity</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;find_molecule&quot;</span><span class="p">,</span>
+            <span class="n">use_document_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_multiple_results</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Multiple matches found for this combination of tolerances, but &quot;</span>
+                    <span class="s2">&quot;`allow_multiple_results` set to False.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">results</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;molecule_id&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="BaseMoleculeRester.search"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">charge</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">spin_multiplicity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">nelements</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">chemsys</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">deprecated</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">elements</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">exclude_elements</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">formula</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">molecule_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">MPculeID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">MPculeID</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">task_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sort_fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_chunks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Query molecule docs using a variety of search criteria.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            charge (Tuple[int, int]): Minimum and maximum charge for the molecule.</span>
+<span class="sd">            spin_multiplicity (Tuple[int, int]): Minimum and maximum spin for the molecule.</span>
+<span class="sd">            nelements (Tuple[int, int]): Minimum and maximum number of elements</span>
+<span class="sd">            chemsys (str, List[str]): A chemical system, list of chemical systems</span>
+<span class="sd">                (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).</span>
+<span class="sd">            deprecated (bool): Whether the material is tagged as deprecated.</span>
+<span class="sd">            elements (List[str]): A list of elements.</span>
+<span class="sd">            exclude_elements (List(str)): List of elements to exclude.</span>
+<span class="sd">            formula (str, List[str]): An alphabetical formula or list of formulas</span>
+<span class="sd">                (e.g. &quot;C2 Li2 O4&quot;, [&quot;C2 H4&quot;, &quot;C2 H6&quot;]).</span>
+<span class="sd">            molecule_ids (MPculeID, List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data</span>
+<span class="sd">                for.</span>
+<span class="sd">            task_ids (str, List[str]): List of Materials Project IDs to return data for.</span>
+<span class="sd">            sort_fields (List[str]): Fields used to sort results. Prefix with &#39;-&#39; to sort in descending order.</span>
+<span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
+<span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
+<span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
+<span class="sd">            fields (List[str]): List of fields in MoleculeDoc to return data for.</span>
+<span class="sd">                Default is molecule_id, last_updated, and formula_alphabetical if all_fields is False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ([MoleculeDoc]) List of molecules documents</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Data from this endpoint is from the NEW molecules database release. &quot;</span>
+            <span class="s2">&quot;For previous molecules data please use MPRester.legacy_jcesr.search!&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">}</span>  <span class="c1"># type: dict</span>
+
+        <span class="k">if</span> <span class="n">molecule_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">molecule_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">molecule_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">molecule_ids</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;molecule_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">molecule_ids</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">charge</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;charge&quot;</span><span class="p">:</span> <span class="n">charge</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">spin_multiplicity</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;spin_multiplicity&quot;</span><span class="p">:</span> <span class="n">spin_multiplicity</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">formula</span> <span class="o">=</span> <span class="p">[</span><span class="n">formula</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">formula</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">chemsys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">chemsys</span> <span class="o">=</span> <span class="p">[</span><span class="n">chemsys</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;chemsys&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chemsys</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">exclude_elements</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;exclude_elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_elements</span><span class="p">)})</span>
+
+        <span class="k">if</span> <span class="n">task_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">task_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">task_ids</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;task_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">task_ids</span><span class="p">))})</span>
+
+        <span class="k">if</span> <span class="n">sort_fields</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;_sort_fields&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_fields</span><span class="p">])}</span>
+            <span class="p">)</span>
+
+        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">query_params</span>
+            <span class="k">if</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span>
+            <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+            <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">query_params</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="AssociatedMoleculeRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.AssociatedMoleculeRester.html#mp_api.client.routes.molecules.molecules.AssociatedMoleculeRester">[docs]</a><span class="k">class</span> <span class="nc">AssociatedMoleculeRester</span><span class="p">(</span><span class="n">BaseMoleculeRester</span><span class="p">):</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/assoc&quot;</span></div>
+
+
+<div class="viewcode-block" id="MoleculeRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.MoleculeRester.html#mp_api.client.routes.molecules.molecules.MoleculeRester">[docs]</a><span class="k">class</span> <span class="nc">MoleculeRester</span><span class="p">(</span><span class="n">BaseMoleculeRester</span><span class="p">):</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/core&quot;</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../../index.html">mp-api</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=materialsproject&repo=api&type=star&v=2&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules.html">Project Modules</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, The Materials Project.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/materialsproject/api" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
