@@ -26,6 +26,8 @@ from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
+from botocore import UNSIGNED
+from botocore.config import Config
 
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import api_sanitize, validate_ids
@@ -131,7 +133,7 @@ class BaseRester(Generic[T]):
     @property
     def s3_resource(self):
         if not self._s3_resource:
-            self._s3_resource = boto3.resource("s3")
+            self._s3_resource = boto3.resource("s3", config=Config(signature_version=UNSIGNED))
         return self._s3_resource
 
     @staticmethod
