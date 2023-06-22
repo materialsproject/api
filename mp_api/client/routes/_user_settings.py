@@ -43,7 +43,7 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
 
         return self._patch_resource(
             body={"settings.message_last_read": time.isoformat()},
-            params={"consumer_id": consumer_id}
+            params={"consumer_id": consumer_id},
         ).get("data")
 
     def get_user_settings(self, consumer_id):  # pragma: no cover

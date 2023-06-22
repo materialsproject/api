@@ -133,7 +133,9 @@ class BaseRester(Generic[T]):
     @property
     def s3_resource(self):
         if not self._s3_resource:
-            self._s3_resource = boto3.resource("s3", config=Config(signature_version=UNSIGNED))
+            self._s3_resource = boto3.resource(
+                "s3", config=Config(signature_version=UNSIGNED)
+            )
         return self._s3_resource
 
     @staticmethod
