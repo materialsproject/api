@@ -246,6 +246,76 @@ class BaseRester(Generic[T]):
         except RequestException as ex:
             raise MPRestError(str(ex))
 
+    def _patch_resource(
+        self,
+        body: Dict = None,
+        params: Optional[Dict] = None,
+        suburl: Optional[str] = None,
+        use_document_model: Optional[bool] = None,
+    ) -> Dict:
+        """Patch data to the endpoint for a Resource.
+
+        Arguments:
+            body: body json to send in patch request
+            params: extra params to send in patch request
+            suburl: make a request to a specified sub-url
+            use_document_model: if None, will defer to the self.use_document_model attribute
+
+        Returns:
+            A Resource, a dict with two keys, "data" containing a list of documents, and
+            "meta" containing meta information, e.g. total number of documents
+            available.
+        """
+        if use_document_model is None:
+            use_document_model = self.use_document_model
+
+        payload = jsanitize(body)
+
+        try:
+            url = self.endpoint
+            if suburl:
+                url = urljoin(self.endpoint, suburl)
+                if not url.endswith("/"):
+                    url += "/"
+            response = self.session.patch(url, json=payload, verify=True, params=params)
+
+            if response.status_code == 200:
+                if self.monty_decode:
+                    data = json.loads(response.text, cls=MontyDecoder)
+                else:
+                    data = json.loads(response.text)
+
+                if self.document_model and use_document_model:
+                    if isinstance(data["data"], dict):
+                        data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
+                    elif isinstance(data["data"], list):
+                        data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+
+                return data
+
+            else:
+                try:
+                    data = json.loads(response.text)["detail"]
+                except (JSONDecodeError, KeyError):
+                    data = f"Response {response.text}"
+                if isinstance(data, str):
+                    message = data
+                else:
+                    try:
+                        message = ", ".join(
+                            f"{entry['loc'][1]} - {entry['msg']}" for entry in data
+                        )
+                    except (KeyError, IndexError):
+                        message = str(data)
+
+                raise MPRestError(
+                    f"REST post query returned with error status code {response.status_code} "
+                    f"on URL {response.url} with message:\n{message}"
+                )
+
+        except RequestException as ex:
+            raise MPRestError(str(ex))
+
     def _query_open_data(self, bucket: str, prefix: str, key: str) -> dict:
         """Query Materials Project AWS open data s3 buckets
 
