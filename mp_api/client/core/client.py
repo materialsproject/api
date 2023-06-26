@@ -19,6 +19,8 @@ from urllib.parse import quote, urljoin
 
 import boto3
 import requests
+from botocore import UNSIGNED
+from botocore.config import Config
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
@@ -26,8 +28,6 @@ from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
-from botocore import UNSIGNED
-from botocore.config import Config
 
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import api_sanitize, validate_ids
