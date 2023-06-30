@@ -207,6 +207,9 @@ class MPRester:
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
 
+        # Check if emmet version of server is compatible
+        emmet_version = version.parse(self.get_emmet_version())
+
         try:
             from mpcontribs.client import Client
 
@@ -221,9 +224,6 @@ class MPRester:
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
-
-        # Check if emmet version of server is compatible
-        emmet_version = version.parse(self.get_emmet_version())
 
         if version.parse(emmet_version.base_version) < version.parse(_MAPI_SETTINGS.MIN_EMMET_VERSION):
             warnings.warn(
