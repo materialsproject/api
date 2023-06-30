@@ -238,6 +238,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="n">use_document_model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="o">=</span> <span class="n">monty_decode</span>
 
+        <span class="c1"># Check if emmet version of server is compatible</span>
+        <span class="n">emmet_version</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_emmet_version</span><span class="p">())</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">mpcontribs.client</span> <span class="kn">import</span> <span class="n">Client</span>
 
@@ -252,9 +255,6 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">contribs</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Problem loading MPContribs client: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Check if emmet version of server os compatible</span>
-        <span class="n">emmet_version</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_emmet_version</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">emmet_version</span><span class="o">.</span><span class="n">base_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span>
             <span class="n">_MAPI_SETTINGS</span><span class="o">.</span><span class="n">MIN_EMMET_VERSION</span>
@@ -412,7 +412,14 @@
 
 <span class="sd">        Returns: version as a string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+</span> <span class="s2">&quot;heartbeat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span></div>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+</span> <span class="s2">&quot;heartbeat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+        <span class="n">error</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="MPRester.get_material_id_from_task_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_material_id_from_task_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_material_id_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the current material_id from a given task_id. The</span>
