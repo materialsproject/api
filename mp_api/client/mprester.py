@@ -207,6 +207,9 @@ class MPRester:
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
 
+        # Check if emmet version of server is compatible
+        emmet_version = version.parse(self.get_emmet_version())
+
         try:
             from mpcontribs.client import Client
 
@@ -221,9 +224,6 @@ class MPRester:
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
-
-        # Check if emmet version of server os compatible
-        emmet_version = version.parse(self.get_emmet_version())
 
         if version.parse(emmet_version.base_version) < version.parse(
             _MAPI_SETTINGS.MIN_EMMET_VERSION
@@ -381,7 +381,14 @@ class MPRester:
 
         Returns: version as a string
         """
-        return get(url=self.endpoint + "heartbeat").json()["version"]
+
+        response = get(url=self.endpoint + "heartbeat").json()
+
+        error = response.get("error", None)
+        if error:
+            raise MPRestError(error)
+
+        return response["version"]
 
     def get_material_id_from_task_id(self, task_id: str) -> Union[str, None]:
         """Returns the current material_id from a given task_id. The
