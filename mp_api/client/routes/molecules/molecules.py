@@ -1,4 +1,3 @@
-import warnings
 from typing import List, Optional, Tuple, Union
 
 from emmet.core.mpid import MPculeID
@@ -144,11 +143,6 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
         Returns:
             ([MoleculeDoc]) List of molecules documents
         """
-
-        warnings.warn(
-            "Data from this endpoint is from the NEW molecules database release. "
-            "For previous molecules data please use MPRester.legacy_jcesr.search!"
-        )
 
         query_params = {"deprecated": deprecated}  # type: dict
 
