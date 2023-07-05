@@ -5,10 +5,10 @@ from json import loads
 from os import environ
 from typing import Dict, List, Literal, Optional, Union
 
-from emmet.core.charge_density import ChgcarDataDoc
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
+from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
@@ -207,6 +207,9 @@ class MPRester:
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
 
+        # Check if emmet version of server is compatible
+        emmet_version = version.parse(self.get_emmet_version())
+
         try:
             from mpcontribs.client import Client
 
@@ -221,9 +224,6 @@ class MPRester:
         except Exception as error:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
-
-        # Check if emmet version of server os compatible
-        emmet_version = version.parse(self.get_emmet_version())
 
         if version.parse(emmet_version.base_version) < version.parse(
             _MAPI_SETTINGS.MIN_EMMET_VERSION
@@ -390,7 +390,14 @@ class MPRester:
 
         Returns: version as a string
         """
-        return get(url=self.endpoint + "heartbeat").json()["version"]
+
+        response = get(url=self.endpoint + "heartbeat").json()
+
+        error = response.get("error", None)
+        if error:
+            raise MPRestError(error)
+
+        return response["version"]
 
     def get_material_id_from_task_id(self, task_id: str) -> Union[str, None]:
         """Returns the current material_id from a given task_id. The
@@ -1244,14 +1251,23 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results: List[ChgcarDataDoc] = self.charge_density.search(task_ids=task_ids)  # type: ignore
+        results: List[TaskDoc] = self.tasks.search(task_ids=task_ids, fields=["last_updated", "task_id"])  # type: ignore
 
         if len(results) == 0:
             return None
 
         latest_doc = max(results, key=lambda x: x.last_updated)
 
-        chgcar = self.charge_density.get_charge_density_from_file_id(latest_doc.fs_id)
+        result = (
+            self.tasks._query_open_data(
+                bucket="materialsproject-parsed",
+                prefix="chgcars",
+                key=str(latest_doc.task_id),
+            )
+            or {}
+        )
+
+        chgcar = result.get("data", None)
 
         if chgcar is None:
             raise MPRestError(f"No charge density fetched for {material_id}.")

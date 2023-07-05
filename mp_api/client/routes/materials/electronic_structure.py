@@ -1,16 +1,12 @@
-import base64
 import warnings
-import zlib
 from collections import defaultdict
 from typing import List, Optional, Tuple, Union
 
-import msgpack
 from emmet.core.electronic_structure import (
     BSPathType,
     DOSProjectionType,
     ElectronicStructureDoc,
 )
-from monty.serialization import MontyDecoder
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType, Spin
@@ -249,12 +245,9 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        result = self._query_resource(
-            criteria={"task_id": task_id, "_all_fields": True},
-            suburl="object",
-            use_document_model=False,
-            num_chunks=1,
-            chunk_size=1,
+
+        result = self._query_open_data(
+            bucket="materialsproject-parsed", prefix="bandstructures", key=task_id
         )
 
         if result.get("data", None) is not None:
@@ -322,12 +315,7 @@ class BandStructureRester(BaseRester):
         bs_obj = self.get_bandstructure_from_task_id(bs_task_id)
 
         if bs_obj:
-            b64_bytes = base64.b64decode(bs_obj[0], validate=True)
-            packed_bytes = zlib.decompress(b64_bytes)
-            json_data = msgpack.unpackb(packed_bytes, raw=False)
-            data = MontyDecoder().process_decoded(json_data["data"])
-
-            return data
+            return bs_obj
         else:
             raise MPRestError("No band structure object found.")
 
@@ -432,12 +420,8 @@ class DosRester(BaseRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-        result = self._query_resource(
-            criteria={"task_id": task_id, "_all_fields": True},
-            suburl="object",
-            use_document_model=False,
-            num_chunks=1,
-            chunk_size=1,
+        result = self._query_open_data(
+            bucket="materialsproject-parsed", prefix="dos", key=task_id
         )
 
         if result.get("data", None) is not None:
@@ -468,11 +452,8 @@ class DosRester(BaseRester):
             raise MPRestError(f"No density of states data found for {material_id}")
 
         dos_obj = self.get_dos_from_task_id(dos_task_id)
+
         if dos_obj:
-            b64_bytes = base64.b64decode(dos_obj[0], validate=True)
-            packed_bytes = zlib.decompress(b64_bytes)
-            json_data = msgpack.unpackb(packed_bytes, raw=False)
-            data = MontyDecoder().process_decoded(json_data["data"])
-            return data
+            return dos_obj
         else:
             raise MPRestError("No density of states object found.")

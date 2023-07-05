@@ -31,11 +31,13 @@ special_resters = [
 ignore_generic = [
     "_user_settings",
     "_general_store",
+    "_messages",
     # "tasks",
     # "bonds",
     "materials_xas",
     "materials_elasticity",
     "materials_fermi",
+    "molecules_vibrations",
     # "alloys",
     # "summary",
 ]  # temp

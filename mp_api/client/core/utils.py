@@ -43,7 +43,9 @@ def api_sanitize(
         fields_to_leave: list of strings for model fields as "model__name__.field"
     """
     models = [
-        model for model in get_flat_models_from_model(pydantic_model) if issubclass(model, BaseModel)
+        model
+        for model in get_flat_models_from_model(pydantic_model)
+        if issubclass(model, BaseModel)
     ]  # type: List[Type[BaseModel]]
 
     fields_to_leave = fields_to_leave or []
@@ -92,7 +94,9 @@ def allow_msonable_dict(monty_cls: Type[MSONable]):
                 errors.append("@class")
 
             if len(errors) > 0:
-                raise ValueError("Missing Monty seriailzation fields in dictionary: {errors}")
+                raise ValueError(
+                    "Missing Monty seriailzation fields in dictionary: {errors}"
+                )
 
             return v
         else:

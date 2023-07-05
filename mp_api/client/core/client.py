@@ -3,6 +3,7 @@ API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
 
+import gzip
 import itertools
 import json
 import platform
@@ -13,10 +14,13 @@ from copy import copy
 from json import JSONDecodeError
 from math import ceil
 from os import environ
-from typing import Dict, Generic, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
 from urllib.parse import quote, urljoin
 
+import boto3
 import requests
+from botocore import UNSIGNED
+from botocore.config import Config
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
@@ -55,6 +59,7 @@ class BaseRester(Generic[T]):
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
         session: Optional[requests.Session] = None,
+        s3_resource: Optional[Any] = None,
         debug: bool = False,
         monty_decode: bool = True,
         use_document_model: bool = True,
@@ -108,6 +113,11 @@ class BaseRester(Generic[T]):
         else:
             self._session = None  # type: ignore
 
+        if s3_resource:
+            self._s3_resource = s3_resource
+        else:
+            self._s3_resource = None
+
         self.document_model = (
             api_sanitize(self.document_model) if self.document_model is not None else None  # type: ignore
         )
@@ -119,6 +129,14 @@ class BaseRester(Generic[T]):
                 self.api_key, self.include_user_agent, self.headers
             )
         return self._session
+
+    @property
+    def s3_resource(self):
+        if not self._s3_resource:
+            self._s3_resource = boto3.resource(
+                "s3", config=Config(signature_version=UNSIGNED)
+            )
+        return self._s3_resource
 
     @staticmethod
     def _create_session(api_key, include_user_agent, headers):
@@ -229,6 +247,96 @@ class BaseRester(Generic[T]):
 
         except RequestException as ex:
             raise MPRestError(str(ex))
+
+    def _patch_resource(
+        self,
+        body: Dict = None,
+        params: Optional[Dict] = None,
+        suburl: Optional[str] = None,
+        use_document_model: Optional[bool] = None,
+    ) -> Dict:
+        """Patch data to the endpoint for a Resource.
+
+        Arguments:
+            body: body json to send in patch request
+            params: extra params to send in patch request
+            suburl: make a request to a specified sub-url
+            use_document_model: if None, will defer to the self.use_document_model attribute
+
+        Returns:
+            A Resource, a dict with two keys, "data" containing a list of documents, and
+            "meta" containing meta information, e.g. total number of documents
+            available.
+        """
+        if use_document_model is None:
+            use_document_model = self.use_document_model
+
+        payload = jsanitize(body)
+
+        try:
+            url = self.endpoint
+            if suburl:
+                url = urljoin(self.endpoint, suburl)
+                if not url.endswith("/"):
+                    url += "/"
+            response = self.session.patch(url, json=payload, verify=True, params=params)
+
+            if response.status_code == 200:
+                if self.monty_decode:
+                    data = json.loads(response.text, cls=MontyDecoder)
+                else:
+                    data = json.loads(response.text)
+
+                if self.document_model and use_document_model:
+                    if isinstance(data["data"], dict):
+                        data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
+                    elif isinstance(data["data"], list):
+                        data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+
+                return data
+
+            else:
+                try:
+                    data = json.loads(response.text)["detail"]
+                except (JSONDecodeError, KeyError):
+                    data = f"Response {response.text}"
+                if isinstance(data, str):
+                    message = data
+                else:
+                    try:
+                        message = ", ".join(
+                            f"{entry['loc'][1]} - {entry['msg']}" for entry in data
+                        )
+                    except (KeyError, IndexError):
+                        message = str(data)
+
+                raise MPRestError(
+                    f"REST post query returned with error status code {response.status_code} "
+                    f"on URL {response.url} with message:\n{message}"
+                )
+
+        except RequestException as ex:
+            raise MPRestError(str(ex))
+
+    def _query_open_data(self, bucket: str, prefix: str, key: str) -> dict:
+        """Query Materials Project AWS open data s3 buckets
+
+        Args:
+            bucket (str): Materials project bucket name
+            prefix (str): Full set of file prefixes
+            key (str): Key for file
+
+        Returns:
+            dict: MontyDecoded data
+        """
+        ref = self.s3_resource.Object(bucket, f"{prefix}/{key}.json.gz")  # type: ignore
+        bytes = ref.get()["Body"]  # type: ignore
+
+        with gzip.GzipFile(fileobj=bytes) as gzipfile:
+            content = gzipfile.read()
+            result = MontyDecoder().decode(content)
+
+        return result
 
     def _query_resource(
         self,

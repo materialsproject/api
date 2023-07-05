@@ -27,6 +27,25 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
             body=settings, params={"consumer_id": consumer_id}
         ).get("data")
 
+    def patch_user_time_settings(self, consumer_id, time):  # pragma: no cover
+        """Set user settings.
+
+        Args:
+            consumer_id: Consumer ID for the user
+            time: utc datetime object for when the user last see messages
+        Returns:
+            Dictionary with consumer_id and write status.
+
+
+        Raises:
+            MPRestError.
+        """
+
+        return self._patch_resource(
+            body={"settings.message_last_read": time.isoformat()},
+            params={"consumer_id": consumer_id},
+        ).get("data")
+
     def get_user_settings(self, consumer_id):  # pragma: no cover
         """Get user settings.
 

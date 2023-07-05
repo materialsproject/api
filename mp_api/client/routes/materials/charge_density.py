@@ -1,15 +1,8 @@
-import zlib
-from os import environ
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Union
 
-import boto3
-import msgpack
-from botocore import UNSIGNED
-from botocore.client import Config
-from botocore.exceptions import ConnectionError
 from emmet.core.charge_density import ChgcarDataDoc
-from monty.serialization import MontyDecoder, dumpfn
+from monty.serialization import dumpfn
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
@@ -76,67 +69,3 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             fields=["last_updated", "task_id", "fs_id"],
             **query_params,
         )
-
-    def get_charge_density_from_file_id(self, fs_id: str):
-        url_doc = self.get_data_by_id(fs_id)
-
-        if url_doc:
-            # The check below is performed to see if the client is being
-            # used by our internal AWS deployment. If it is, we pull charge
-            # density data from a private S3 bucket. Else, we pull data
-            # from public MinIO buckets.
-            if environ.get("AWS_EXECUTION_ENV", None) == "AWS_ECS_FARGATE":
-                if self.boto_resource is None:
-                    self.boto_resource = self._get_s3_resource(
-                        use_minio=False, unsigned=False
-                    )
-
-                bucket, obj_prefix = self._extract_s3_url_info(url_doc, use_minio=False)
-
-            else:
-                try:
-                    if self.boto_resource is None:
-                        self.boto_resource = self._get_s3_resource()
-
-                    bucket, obj_prefix = self._extract_s3_url_info(url_doc)
-
-                except ConnectionError:
-                    self.boto_resource = self._get_s3_resource(use_minio=False)
-
-                    bucket, obj_prefix = self._extract_s3_url_info(
-                        url_doc, use_minio=False
-                    )
-
-            r = self.boto_resource.Object(bucket, f"{obj_prefix}/{url_doc.fs_id}").get()["Body"]  # type: ignore
-
-            packed_bytes = r.read()
-
-            packed_bytes = zlib.decompress(packed_bytes)
-            json_data = msgpack.unpackb(packed_bytes, raw=False)
-            chgcar = MontyDecoder().process_decoded(json_data["data"])
-
-            return chgcar
-
-        else:
-            return None
-
-    def _extract_s3_url_info(self, url_doc, use_minio: bool = True):
-        if use_minio:
-            url_list = url_doc.url.split("/")
-            bucket = url_list[3]
-            obj_prefix = url_list[4]
-        else:
-            url_list = url_doc.s3_url_prefix.split("/")
-            bucket = url_list[2].split(".")[0]
-            obj_prefix = url_list[3]
-
-        return (bucket, obj_prefix)
-
-    def _get_s3_resource(self, use_minio: bool = True, unsigned: bool = True):
-        resource = boto3.resource(
-            "s3",
-            endpoint_url="https://minio.materialsproject.org" if use_minio else None,
-            config=Config(signature_version=UNSIGNED) if unsigned else None,
-        )
-
-        return resource
