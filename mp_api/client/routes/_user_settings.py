@@ -23,9 +23,7 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
         Raises:
             MPRestError.
         """
-        return self._post_resource(
-            body=settings, params={"consumer_id": consumer_id}
-        ).get("data")
+        return self._post_resource(body=settings, params={"consumer_id": consumer_id}).get("data")
 
     def patch_user_time_settings(self, consumer_id, time):  # pragma: no cover
         """Set user settings.
@@ -46,11 +44,12 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
             params={"consumer_id": consumer_id},
         ).get("data")
 
-    def get_user_settings(self, consumer_id):  # pragma: no cover
+    def get_user_settings(self, consumer_id, fields):  # pragma: no cover
         """Get user settings.
 
         Args:
             consumer_id: Consumer ID for the user
+            fields: List of fields to project
         Returns:
             Dictionary with consumer_id and settings.
 
@@ -58,4 +57,4 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
         Raises:
             MPRestError.
         """
-        return self.get_data_by_id(consumer_id)
+        return self.get_data_by_id(consumer_id, fields)
