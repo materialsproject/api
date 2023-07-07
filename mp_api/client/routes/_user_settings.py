@@ -23,7 +23,9 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
         Raises:
             MPRestError.
         """
-        return self._post_resource(body=settings, params={"consumer_id": consumer_id}).get("data")
+        return self._post_resource(
+            body=settings, params={"consumer_id": consumer_id}
+        ).get("data")
 
     def patch_user_time_settings(self, consumer_id, time):  # pragma: no cover
         """Set user settings.

@@ -67,7 +67,9 @@ class MessagesRester(BaseRester[MessagesDoc]):  # pragma: no cover
         query_params = {}
 
         if sort_fields:
-            query_params.update({"_sort_fields": ",".join([s.strip() for s in sort_fields])})
+            query_params.update(
+                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
+            )
 
         return self._search(
             last_updated=last_updated,
