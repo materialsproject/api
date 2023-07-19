@@ -25,7 +25,7 @@ setup(
     install_requires=[
         "setuptools",
         "msgpack",
-        "pymatgen>=2022.3.7",
+        "pymatgen>=2023.7.17",
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
         "monty>=2021.3.12",
