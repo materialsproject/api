@@ -29,14 +29,23 @@ setup(
         "typing-extensions>=3.7.4.1",
         "requests>=2.23.0",
         "monty>=2021.3.12",
-        "emmet-core<=0.50.0",
+        "emmet-core>=0.54.0",
     ],
     extras_require={
-        "all": [
-            "emmet-core[all]<=0.50.0",
-            "custodian",
-            "mpcontribs-client",
-            "boto3"
+        "all": ["emmet-core[all]>=0.54.0", "custodian", "mpcontribs-client", "boto3"],
+        "test": [
+            "pre-commit",
+            "pytest",
+            "pytest-asyncio",
+            "pytest-cov",
+            "pytest-mock",
+            "flake8",
+            "pycodestyle",
+            "mypy",
+            "mypy-extensions",
+            "typing-extensions",
+            "types-pkg_resources",
+            "types-requests",
         ],
     },
     classifiers=[

@@ -1,0 +1,33 @@
+[tool.ruff]
+target-version = "py38"
+select = [
+    "B",   # flake8-bugbear
+    "D",   # pydocstyle
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "I",   # isort
+    "PLE", # pylint error
+    "PLW", # pylint warning
+    "PYI", # flakes8-pyi
+    "Q",   # flake8-quotes
+    "SIM", # flake8-simplify
+    "TID", # tidy imports
+    "UP",  # pyupgrade
+    "W",   # pycodestyle
+    "YTT", # flake8-2020
+]
+ignore = [
+    "B019",    # Use of functools.lru_cache or functools.cache on methods can lead to memory leaks
+    "B028",    # No explicit stacklevel keyword argument found
+    "B904",    # Within an except clause, raise exceptions with raise ... from err
+    "D100",    # Missing docstring in public module
+    "D104",    # Missing docstring in public package
+    "D205",    # 1 blank line required between summary line and description
+    "PLW2901", # Outer for loop variable overwritten by inner assignment target
+    "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
+    "SIM115",  # Use context handler for opening files
+]
+pydocstyle.convention = "google"
+
+[tool.ruff.per-file-ignores]
+"*/__init__.py" = ["F401"] # F401: imported but unused

@@ -1,9 +1,9 @@
-"""
-This module provides classes to interface with the Materials Project REST
+"""This module provides classes to interface with the Materials Project REST
 API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
 
+import gzip
 import itertools
 import json
 import platform
@@ -14,10 +14,13 @@ from copy import copy
 from json import JSONDecodeError
 from math import ceil
 from os import environ
-from typing import Dict, Generic, List, Optional, Tuple, TypeVar, Union
-from urllib.parse import urljoin, quote
+from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
+from urllib.parse import quote, urljoin
 
+import boto3
 import requests
+from botocore import UNSIGNED
+from botocore.config import Config
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
@@ -27,7 +30,7 @@ from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import validate_ids, api_sanitize
+from mp_api.client.core.utils import api_sanitize, validate_ids
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
@@ -43,9 +46,7 @@ T = TypeVar("T")
 
 
 class BaseRester(Generic[T]):
-    """
-    Base client class with core stubs
-    """
+    """Base client class with core stubs."""
 
     suffix: Optional[str] = None
     document_model: BaseModel = None  # type: ignore
@@ -58,41 +59,40 @@ class BaseRester(Generic[T]):
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
         session: Optional[requests.Session] = None,
+        s3_resource: Optional[Any] = None,
         debug: bool = False,
         monty_decode: bool = True,
         use_document_model: bool = True,
         timeout: int = 20,
         headers: dict = None,
     ):
+        """Args:
+        api_key (str): A String API key for accessing the MaterialsProject
+        REST interface. Please obtain your API key at
+        https://www.materialsproject.org/dashboard. If this is None,
+        the code will check if there is a "PMG_MAPI_KEY" setting.
+        If so, it will use that environment variable. This makes
+        easier for heavy users to simply add this environment variable to
+        their setups and MPRester can then be called without any arguments.
+        endpoint (str): Url of endpoint to access the MaterialsProject REST
+        interface. Defaults to the standard Materials Project REST
+        address at "https://api.materialsproject.org", but
+        can be changed to other urls implementing a similar interface.
+        include_user_agent (bool): If True, will include a user agent with the
+        HTTP request including information on pymatgen and system version
+        making the API request. This helps MP support pymatgen users, and
+        is similar to what most web browsers send with each page request.
+        Set to False to disable the user agent.
+        session: requests Session object with which to connect to the API, for
+        advanced usage only.
+        debug: if True, print the URL for every request
+        monty_decode: Decode the data using monty into python objects
+        use_document_model: If False, skip the creating the document model and return data
+        as a dictionary. This can be simpler to work with but bypasses data validation
+        and will not give auto-complete for available fields.
+        timeout: Time in seconds to wait until a request timeout error is thrown
+        headers (dict): Custom headers for localhost connections.
         """
-        Args:
-            api_key (str): A String API key for accessing the MaterialsProject
-                REST interface. Please obtain your API key at
-                https://www.materialsproject.org/dashboard. If this is None,
-                the code will check if there is a "PMG_MAPI_KEY" setting.
-                If so, it will use that environment variable. This makes
-                easier for heavy users to simply add this environment variable to
-                their setups and MPRester can then be called without any arguments.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST
-                interface. Defaults to the standard Materials Project REST
-                address at "https://api.materialsproject.org", but
-                can be changed to other urls implementing a similar interface.
-            include_user_agent (bool): If True, will include a user agent with the
-                HTTP request including information on pymatgen and system version
-                making the API request. This helps MP support pymatgen users, and
-                is similar to what most web browsers send with each page request.
-                Set to False to disable the user agent.
-            session: requests Session object with which to connect to the API, for
-                advanced usage only.
-            debug: if True, print the URL for every request
-            monty_decode: Decode the data using monty into python objects
-            use_document_model: If False, skip the creating the document model and return data
-                as a dictionary. This can be simpler to work with but bypasses data validation
-                and will not give auto-complete for available fields.
-            timeout: Time in seconds to wait until a request timeout error is thrown
-            headers (dict): Custom headers for localhost connections.
-        """
-
         self.api_key = api_key or DEFAULT_API_KEY
         self.base_endpoint = endpoint
         self.endpoint = endpoint
@@ -113,6 +113,11 @@ class BaseRester(Generic[T]):
         else:
             self._session = None  # type: ignore
 
+        if s3_resource:
+            self._s3_resource = s3_resource
+        else:
+            self._s3_resource = None
+
         self.document_model = (
             api_sanitize(self.document_model) if self.document_model is not None else None  # type: ignore
         )
@@ -120,8 +125,18 @@ class BaseRester(Generic[T]):
     @property
     def session(self) -> requests.Session:
         if not self._session:
-            self._session = self._create_session(self.api_key, self.include_user_agent, self.headers)
+            self._session = self._create_session(
+                self.api_key, self.include_user_agent, self.headers
+            )
         return self._session
+
+    @property
+    def s3_resource(self):
+        if not self._s3_resource:
+            self._s3_resource = boto3.resource(
+                "s3", config=Config(signature_version=UNSIGNED)
+            )
+        return self._s3_resource
 
     @staticmethod
     def _create_session(api_key, include_user_agent, headers):
@@ -133,7 +148,9 @@ class BaseRester(Generic[T]):
             pymatgen_info = "pymatgen/" + pmg_version
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
-            session.headers["user-agent"] = f"{pymatgen_info} ({python_info} {platform_info})"
+            session.headers[
+                "user-agent"
+            ] = f"{pymatgen_info} ({python_info} {platform_info})"
 
         settings = MAPIClientSettings()
         max_retry_num = settings.MAX_RETRIES
@@ -142,8 +159,8 @@ class BaseRester(Generic[T]):
             read=max_retry_num,
             connect=max_retry_num,
             respect_retry_after_header=True,
-            status_forcelist=[429],  # rate limiting
-            backoff_factor=settings.BACKOFF_FACTOR
+            status_forcelist=[429, 504, 502],  # rate limiting
+            backoff_factor=settings.BACKOFF_FACTOR,
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
@@ -152,15 +169,11 @@ class BaseRester(Generic[T]):
         return session
 
     def __enter__(self):  # pragma: no cover
-        """
-        Support for "with" context.
-        """
+        """Support for "with" context."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):  # pragma: no cover
-        """
-        Support for "with" context.
-        """
+        """Support for "with" context."""
         if self.session is not None:
             self.session.close()
         self._session = None
@@ -172,8 +185,7 @@ class BaseRester(Generic[T]):
         suburl: Optional[str] = None,
         use_document_model: Optional[bool] = None,
     ) -> Dict:
-        """
-        Post data to the endpoint for a Resource.
+        """Post data to the endpoint for a Resource.
 
         Arguments:
             body: body json to send in post request
@@ -186,7 +198,6 @@ class BaseRester(Generic[T]):
             "meta" containing meta information, e.g. total number of documents
             available.
         """
-
         if use_document_model is None:
             use_document_model = self.use_document_model
 
@@ -201,7 +212,6 @@ class BaseRester(Generic[T]):
             response = self.session.post(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
-
                 if self.monty_decode:
                     data = json.loads(response.text, cls=MontyDecoder)
                 else:
@@ -224,7 +234,9 @@ class BaseRester(Generic[T]):
                     message = data
                 else:
                     try:
-                        message = ", ".join(f"{entry['loc'][1]} - {entry['msg']}" for entry in data)
+                        message = ", ".join(
+                            f"{entry['loc'][1]} - {entry['msg']}" for entry in data
+                        )
                     except (KeyError, IndexError):
                         message = str(data)
 
@@ -234,8 +246,97 @@ class BaseRester(Generic[T]):
                 )
 
         except RequestException as ex:
-
             raise MPRestError(str(ex))
+
+    def _patch_resource(
+        self,
+        body: Dict = None,
+        params: Optional[Dict] = None,
+        suburl: Optional[str] = None,
+        use_document_model: Optional[bool] = None,
+    ) -> Dict:
+        """Patch data to the endpoint for a Resource.
+
+        Arguments:
+            body: body json to send in patch request
+            params: extra params to send in patch request
+            suburl: make a request to a specified sub-url
+            use_document_model: if None, will defer to the self.use_document_model attribute
+
+        Returns:
+            A Resource, a dict with two keys, "data" containing a list of documents, and
+            "meta" containing meta information, e.g. total number of documents
+            available.
+        """
+        if use_document_model is None:
+            use_document_model = self.use_document_model
+
+        payload = jsanitize(body)
+
+        try:
+            url = self.endpoint
+            if suburl:
+                url = urljoin(self.endpoint, suburl)
+                if not url.endswith("/"):
+                    url += "/"
+            response = self.session.patch(url, json=payload, verify=True, params=params)
+
+            if response.status_code == 200:
+                if self.monty_decode:
+                    data = json.loads(response.text, cls=MontyDecoder)
+                else:
+                    data = json.loads(response.text)
+
+                if self.document_model and use_document_model:
+                    if isinstance(data["data"], dict):
+                        data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
+                    elif isinstance(data["data"], list):
+                        data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+
+                return data
+
+            else:
+                try:
+                    data = json.loads(response.text)["detail"]
+                except (JSONDecodeError, KeyError):
+                    data = f"Response {response.text}"
+                if isinstance(data, str):
+                    message = data
+                else:
+                    try:
+                        message = ", ".join(
+                            f"{entry['loc'][1]} - {entry['msg']}" for entry in data
+                        )
+                    except (KeyError, IndexError):
+                        message = str(data)
+
+                raise MPRestError(
+                    f"REST post query returned with error status code {response.status_code} "
+                    f"on URL {response.url} with message:\n{message}"
+                )
+
+        except RequestException as ex:
+            raise MPRestError(str(ex))
+
+    def _query_open_data(self, bucket: str, prefix: str, key: str) -> dict:
+        """Query Materials Project AWS open data s3 buckets
+
+        Args:
+            bucket (str): Materials project bucket name
+            prefix (str): Full set of file prefixes
+            key (str): Key for file
+
+        Returns:
+            dict: MontyDecoded data
+        """
+        ref = self.s3_resource.Object(bucket, f"{prefix}/{key}.json.gz")  # type: ignore
+        bytes = ref.get()["Body"]  # type: ignore
+
+        with gzip.GzipFile(fileobj=bytes) as gzipfile:
+            content = gzipfile.read()
+            result = MontyDecoder().decode(content)
+
+        return result
 
     def _query_resource(
         self,
@@ -248,8 +349,7 @@ class BaseRester(Generic[T]):
         chunk_size: Optional[int] = None,
         timeout: Optional[int] = None,
     ) -> Dict:
-        """
-        Query the endpoint for a Resource containing a list of documents
+        """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
 
         For the end-user, methods .query() and .count() are intended to be
@@ -270,7 +370,6 @@ class BaseRester(Generic[T]):
             "meta" containing meta information, e.g. total number of documents
             available.
         """
-
         if use_document_model is None:
             use_document_model = self.use_document_model
 
@@ -307,7 +406,6 @@ class BaseRester(Generic[T]):
             return data
 
         except RequestException as ex:
-
             raise MPRestError(str(ex))
 
     def _submit_requests(
@@ -320,8 +418,7 @@ class BaseRester(Generic[T]):
         chunk_size=None,
         timeout=None,
     ) -> Dict:
-        """
-        Handle submitting requests. Parallel requests supported if possible.
+        """Handle submitting requests. Parallel requests supported if possible.
         Parallelization will occur either over the largest list of supported
         query parameters used and/or over pagination.
 
@@ -339,13 +436,11 @@ class BaseRester(Generic[T]):
         Returns:
             Dictionary containing data and metadata
         """
-
         # Generate new sets of criteria dicts to be run in parallel
         # with new appropriate limit values. New limits obtained from
         # trying to evenly divide num_chunks by the total number of new
         # criteria dicts.
         if parallel_param is not None:
-
             # Determine slice size accounting for character maximum in HTTP URL
             # First get URl length without parallel param
             url_string = ""
@@ -355,13 +450,17 @@ class BaseRester(Generic[T]):
                     url_string += f"{key}={parsed_val}&"
 
             bare_url_len = len(url_string)
-            max_param_str_length = MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len
+            max_param_str_length = (
+                MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len
+            )
 
             # Next, check if default number of parallel requests works.
             # If not, make slice size the minimum number of param entries
             # contained in any substring of length max_param_str_length.
             param_length = len(criteria[parallel_param].split(","))
-            slice_size = int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
+            slice_size = (
+                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
+            )
 
             url_param_string = quote(criteria[parallel_param])
 
@@ -372,8 +471,9 @@ class BaseRester(Generic[T]):
             ]
 
             if len(parallel_param_str_chunks) > 0:
-
-                params_min_chunk = min(parallel_param_str_chunks, key=lambda x: len(x.split("%2C")))
+                params_min_chunk = min(
+                    parallel_param_str_chunks, key=lambda x: len(x.split("%2C"))
+                )
 
                 num_params_min_chunk = len(params_min_chunk.split("%2C"))
 
@@ -403,7 +503,11 @@ class BaseRester(Generic[T]):
             # Split list and generate multiple criteria
             new_criteria = [
                 {
-                    **{key: criteria[key] for key in criteria if key not in [parallel_param, "_limit"]},
+                    **{
+                        key: criteria[key]
+                        for key in criteria
+                        if key not in [parallel_param, "_limit"]
+                    },
                     parallel_param: ",".join(list_chunk),
                     "_limit": new_limits[list_num],
                 }
@@ -426,12 +530,15 @@ class BaseRester(Generic[T]):
         subtotals = []
         remaining_docs_avail = {}
 
-        initial_params_list = [{"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria]
+        initial_params_list = [
+            {"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria
+        ]
 
-        initial_data_tuples = self._multi_thread(use_document_model, initial_params_list)
+        initial_data_tuples = self._multi_thread(
+            use_document_model, initial_params_list
+        )
 
         for data, subtotal, crit_ind in initial_data_tuples:
-
             subtotals.append(subtotal)
             sub_diff = subtotal - new_limits[crit_ind]
             remaining_docs_avail[crit_ind] = sub_diff
@@ -441,7 +548,9 @@ class BaseRester(Generic[T]):
 
         # Rebalance if some parallel queries produced too few results
         if len(remaining_docs_avail) > 1 and len(total_data["data"]) < chunk_size:
-            remaining_docs_avail = dict(sorted(remaining_docs_avail.items(), key=lambda item: item[1]))
+            remaining_docs_avail = dict(
+                sorted(remaining_docs_avail.items(), key=lambda item: item[1])
+            )
 
             # Redistribute missing docs from initial chunk among queries
             # which have head room with respect to remaining document number.
@@ -468,15 +577,18 @@ class BaseRester(Generic[T]):
                         new_limits[crit_ind] += fill_docs
                         fill_docs = 0
 
-                    rebalance_params.append({"url": url, "verify": True, "params": copy(crit)})
+                    rebalance_params.append(
+                        {"url": url, "verify": True, "params": copy(crit)}
+                    )
 
                     new_criteria[crit_ind]["_skip"] += crit["_limit"]
                     new_criteria[crit_ind]["_limit"] = chunk_size
 
             # Obtain missing initial data after rebalancing
             if len(rebalance_params) > 0:
-
-                rebalance_data_tuples = self._multi_thread(use_document_model, rebalance_params)
+                rebalance_data_tuples = self._multi_thread(
+                    use_document_model, rebalance_params
+                )
 
                 for data, _, _ in rebalance_data_tuples:
                     total_data["data"].extend(data["data"])
@@ -490,7 +602,9 @@ class BaseRester(Generic[T]):
             total_data["meta"] = last_data_entry["meta"]
 
         # Get max number of response pages
-        max_pages = num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
+        max_pages = (
+            num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
+        )
 
         # Get total number of docs needed
         num_docs_needed = min((max_pages * chunk_size), total_num_docs)
@@ -590,8 +704,7 @@ class BaseRester(Generic[T]):
         progress_bar: tqdm = None,
         timeout: int = None,
     ):
-        """
-        Handles setting up a threadpool and sending parallel requests
+        """Handles setting up a threadpool and sending parallel requests.
 
         Arguments:
             use_document_model (bool): if None, will defer to the self.use_document_model attribute
@@ -603,27 +716,30 @@ class BaseRester(Generic[T]):
             Tuples with data, total number of docs in matching the query in the database,
             and the index of the criteria dictionary in the provided parameter list
         """
-
         return_data = []
 
-        params_gen = iter(params_list)  # Iter necessary for islice to keep track of what has been accessed
+        params_gen = iter(
+            params_list
+        )  # Iter necessary for islice to keep track of what has been accessed
 
         params_ind = 0
 
-        with ThreadPoolExecutor(max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS) as executor:
-
+        with ThreadPoolExecutor(
+            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
+        ) as executor:
             # Get list of initial futures defined by max number of parallel requests
             futures = set()
 
-            for params in itertools.islice(params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS):
-
+            for params in itertools.islice(
+                params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
+            ):
                 future = executor.submit(
                     self._submit_request_and_process,
                     use_document_model=use_document_model,
                     **params,
                 )
 
-                setattr(future, "crit_ind", params_ind)
+                future.crit_ind = params_ind
                 futures.add(future)
                 params_ind += 1
 
@@ -632,7 +748,6 @@ class BaseRester(Generic[T]):
                 finished, futures = wait(futures, return_when=FIRST_COMPLETED)
 
                 for future in finished:
-
                     data, subtotal = future.result()
 
                     if progress_bar is not None:
@@ -641,7 +756,6 @@ class BaseRester(Generic[T]):
 
                 # Populate more futures to replace finished
                 for params in itertools.islice(params_gen, len(finished)):
-
                     new_future = executor.submit(
                         self._submit_request_and_process,
                         use_document_model=use_document_model,
@@ -649,7 +763,7 @@ class BaseRester(Generic[T]):
                         **params,
                     )
 
-                    setattr(new_future, "crit_ind", params_ind)
+                    new_future.crit_ind = params_ind
                     futures.add(new_future)
                     params_ind += 1
 
@@ -663,8 +777,7 @@ class BaseRester(Generic[T]):
         use_document_model: bool,
         timeout: int = None,
     ) -> Tuple[Dict, int]:
-        """
-        Submits GET request and handles the response.
+        """Submits GET request and handles the response.
 
         Arguments:
             url: URL to send request to
@@ -677,12 +790,24 @@ class BaseRester(Generic[T]):
             Tuple with data and total number of docs in matching the query in the database.
         """
         try:
-            response = self.session.get(url=url, verify=verify, params=params, timeout=timeout, headers=self.headers)
+            response = self.session.get(
+                url=url,
+                verify=verify,
+                params=params,
+                timeout=timeout,
+                headers=self.headers,
+            )
         except requests.exceptions.ConnectTimeout:
-            raise MPRestError(f"REST query timed out on URL {url}. Try again with a smaller request.")
+            raise MPRestError(
+                f"REST query timed out on URL {url}. Try again with a smaller request."
+            )
+
+        if response.status_code in [400, 404]:
+            warnings.warn(
+                f"The server does not support the request made to {response.url}. This may be due to an outdated mp-api package, or a problem with the query."
+            )
 
         if response.status_code == 200:
-
             if self.monty_decode:
                 data = json.loads(response.text, cls=MontyDecoder)
             else:
@@ -691,14 +816,21 @@ class BaseRester(Generic[T]):
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-
                 raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
 
                 if len(raw_doc_list) > 0:
-                    data_model, set_fields, _ = self._generate_returned_model(raw_doc_list[0])
+                    data_model, set_fields, _ = self._generate_returned_model(
+                        raw_doc_list[0]
+                    )
 
                     data["data"] = [
-                        data_model(**{field: value for field, value in raw_doc.dict().items() if field in set_fields})
+                        data_model(
+                            **{
+                                field: value
+                                for field, value in raw_doc.dict().items()
+                                if field in set_fields
+                            }
+                        )
                         for raw_doc in raw_doc_list
                     ]
 
@@ -717,7 +849,9 @@ class BaseRester(Generic[T]):
                 message = data
             else:
                 try:
-                    message = ", ".join(f"{entry['loc'][1]} - {entry['msg']}" for entry in data)
+                    message = ", ".join(
+                        f"{entry['loc'][1]} - {entry['msg']}" for entry in data
+                    )
                 except (KeyError, IndexError):
                     message = str(data)
 
@@ -727,8 +861,9 @@ class BaseRester(Generic[T]):
             )
 
     def _generate_returned_model(self, doc):
-
-        set_fields = [field for field, _ in doc if field in doc.dict(exclude_unset=True)]
+        set_fields = [
+            field for field, _ in doc if field in doc.dict(exclude_unset=True)
+        ]
         unset_fields = [field for field in doc.__fields__ if field not in set_fields]
 
         data_model = create_model(
@@ -738,12 +873,19 @@ class BaseRester(Generic[T]):
         )
 
         data_model.__fields__ = {
-            **{name: description for name, description in data_model.__fields__.items() if name in set_fields},
+            **{
+                name: description
+                for name, description in data_model.__fields__.items()
+                if name in set_fields
+            },
             "fields_not_requested": data_model.__fields__["fields_not_requested"],
         }
 
         def new_repr(self) -> str:
-            extra = ",\n".join(f"\033[1m{n}\033[0;0m={getattr(self, n)!r}" for n in data_model.__fields__)
+            extra = ",\n".join(
+                f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
+                for n in data_model.__fields__
+            )
 
             s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m(\n{extra}\n)"  # noqa: E501
             return s
@@ -765,11 +907,18 @@ class BaseRester(Generic[T]):
                     " A full list of unrequested fields can be found in `fields_not_requested`."
                 )
             else:
-                raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")
+                raise AttributeError(
+                    f"{self.__class__.__name__!r} object has no attribute {attr!r}"
+                )
+
+        def new_dict(self, *args, **kwargs):
+            d = super(data_model, self).dict(*args, **kwargs)
+            return jsanitize(d)
 
         data_model.__repr__ = new_repr
         data_model.__str__ = new_str
         data_model.__getattr__ = new_getattr
+        data_model.dict = new_dict
 
         return data_model, set_fields, unset_fields
 
@@ -781,8 +930,7 @@ class BaseRester(Generic[T]):
         use_document_model: Optional[bool] = None,
         timeout: Optional[int] = None,
     ) -> Union[List[T], List[Dict]]:
-        """
-        Query the endpoint for a list of documents without associated meta information. Only
+        """Query the endpoint for a list of documents without associated meta information. Only
         returns a single page of results.
 
         Arguments:
@@ -795,7 +943,6 @@ class BaseRester(Generic[T]):
         Returns:
             A list of documents
         """
-
         return self._query_resource(  # type: ignore
             criteria=criteria,
             fields=fields,
@@ -810,8 +957,7 @@ class BaseRester(Generic[T]):
         document_id: str,
         fields: Optional[List[str]] = None,
     ) -> T:
-        """
-        Query the endpoint for a single document.
+        """Query the endpoint for a single document.
 
         Arguments:
             document_id: the unique key for this kind of document, typically a task_id
@@ -820,9 +966,11 @@ class BaseRester(Generic[T]):
         Returns:
             A single document.
         """
-
         if document_id is None:
-            raise ValueError("Please supply a specific ID. You can use the query method to find " "ids of interest.")
+            raise ValueError(
+                "Please supply a specific ID. You can use the query method to find "
+                "ids of interest."
+            )
 
         if self.primary_key in ["material_id", "task_id"]:
             validate_ids([document_id])
@@ -840,7 +988,6 @@ class BaseRester(Generic[T]):
         try:
             results = self._query_resource_data(criteria=criteria, fields=fields, suburl=document_id)  # type: ignore
         except MPRestError:
-
             if self.primary_key == "material_id":
                 # see if the material_id has changed, perhaps a task_id was supplied
                 # this should likely be re-thought
@@ -857,7 +1004,6 @@ class BaseRester(Generic[T]):
                     docs = mpr.search(task_ids=[document_id], fields=["material_id"])
 
                 if len(docs) > 0:
-
                     new_document_id = docs[0].get("material_id", None)
 
                     if new_document_id is not None:
@@ -873,7 +1019,9 @@ class BaseRester(Generic[T]):
         if not results:
             raise MPRestError(f"No result for record {document_id}.")
         elif len(results) > 1:  # pragma: no cover
-            raise ValueError(f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug.")
+            raise ValueError(
+                f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
+            )
         else:
             return results[0]
 
@@ -885,8 +1033,7 @@ class BaseRester(Generic[T]):
         fields: Optional[List[str]] = None,
         **kwargs,
     ) -> Union[List[T], List[Dict]]:
-        """
-        A generic search method to retrieve documents matching specific parameters.
+        """A generic search method to retrieve documents matching specific parameters.
 
         Arguments:
             mute (bool): Whether to mute progress bars.
@@ -924,13 +1071,11 @@ class BaseRester(Generic[T]):
         chunk_size=1000,
         num_chunks=None,
     ) -> Union[List[T], List[Dict]]:
-        """
-        Iterates over pages until all documents are retrieved. Displays
+        """Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
         implementation for the search_* methods on various endpoints. See
         materials endpoint for an example of this in use.
         """
-
         if chunk_size <= 0:
             raise MPRestError("Chunk size must be greater than zero")
 
@@ -968,8 +1113,7 @@ class BaseRester(Generic[T]):
         return results["data"]
 
     def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
-        """
-        Return a count of total documents.
+        """Return a count of total documents.
         :param criteria: As in .query()
         :return:
         """
@@ -980,7 +1124,9 @@ class BaseRester(Generic[T]):
                 False,
                 False,
             )  # do not waste cycles decoding
-            results = self._query_resource(criteria=criteria, num_chunks=1, chunk_size=1)
+            results = self._query_resource(
+                criteria=criteria, num_chunks=1, chunk_size=1
+            )
             self.monty_decode, self.use_document_model = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover
@@ -1005,6 +1151,4 @@ class BaseRester(Generic[T]):
 
 
 class MPRestError(Exception):
-    """
-    Raised when the query has problems, e.g., bad query format.
-    """
+    """Raised when the query has problems, e.g., bad query format."""
