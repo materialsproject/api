@@ -385,13 +385,11 @@ class MPRester:
         return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
     def get_emmet_version(self):
-        """
-        Get the latest version emmet-core and emmet-api used in the
+        """Get the latest version emmet-core and emmet-api used in the
         current API service.
 
         Returns: version as a string
         """
-
         response = get(url=self.endpoint + "heartbeat").json()
 
         error = response.get("error", None)
@@ -734,7 +732,6 @@ class MPRester:
         # imports are not top-level due to expense
         from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
         from pymatgen.entries.compatibility import (
-            Compatibility,
             MaterialsProject2020Compatibility,
             MaterialsProjectAqueousCompatibility,
             MaterialsProjectCompatibility,
@@ -745,8 +742,6 @@ class MPRester:
             solid_compat = MaterialsProjectCompatibility()
         elif solid_compat == "MaterialsProject2020Compatibility":
             solid_compat = MaterialsProject2020Compatibility()
-        elif isinstance(solid_compat, Compatibility):
-            solid_compat = solid_compat
         else:
             raise ValueError(
                 "Solid compatibility can only be 'MaterialsProjectCompatibility', "
