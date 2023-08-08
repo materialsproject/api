@@ -71,7 +71,6 @@ mp\_api.client.mprester.MPRester
       ~MPRester.magnetism
       ~MPRester.summary
       ~MPRester.robocrys
-      ~MPRester.molecules
       ~MPRester.synthesis
       ~MPRester.insertion_electrodes
       ~MPRester.charge_density
@@ -86,6 +85,7 @@ mp\_api.client.mprester.MPRester
       ~MPRester.chemenv
       ~MPRester.molecules_bonding
       ~MPRester.molecules_associated
+      ~MPRester.molecules
       ~MPRester.molecules_orbital
       ~MPRester.molecules_partial_charges
       ~MPRester.molecules_partial_spins
