@@ -35,10 +35,10 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
                     f"Invalid setting key {key}. Must be one of institution, sector, job_role, is_email_subscribed"
                 )
             body[f"settings.{key}"] = settings[key]
-        
-        return self._patch_resource(
-            body=body, params={"consumer_id": consumer_id}
-        ).get("data")
+
+        return self._patch_resource(body=body, params={"consumer_id": consumer_id}).get(
+            "data"
+        )
 
     def patch_user_time_settings(self, consumer_id, time):  # pragma: no cover
         """Set user settings.
