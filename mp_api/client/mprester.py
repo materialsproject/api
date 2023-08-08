@@ -43,7 +43,6 @@ from mp_api.client.routes.materials import (
     GrainBoundaryRester,
     MagnetismRester,
     MaterialsRester,
-    MoleculesRester,
     OxidationStatesRester,
     PhononRester,
     PiezoRester,
@@ -111,7 +110,6 @@ class MPRester:
     magnetism: MagnetismRester
     summary: SummaryRester
     robocrys: RobocrysRester
-    molecules: MoleculesRester
     synthesis: SynthesisRester
     insertion_electrodes: ElectrodeRester
     charge_density: ChargeDensityRester
@@ -242,12 +240,34 @@ class MPRester:
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
+        # Set rester attributes
+        resters = []
+
         for _cls in BaseRester.__subclasses__():
             sub_resters = _cls.__subclasses__()
+            if sub_resters:
+                resters.extend(sub_resters)
+            else:
+                resters.append(_cls)
 
-            resters = sub_resters if sub_resters else [_cls]
+        core_suffix = ["molecules/core", "materials/core"]
 
-            for cls in resters:
+        core_resters = {
+            cls.suffix.split("/")[0]: cls(
+                api_key=api_key,
+                endpoint=endpoint,
+                include_user_agent=include_user_agent,
+                session=self.session,
+                monty_decode=monty_decode,
+                use_document_model=use_document_model,
+                headers=self.headers,
+            )
+            for cls in resters
+            if cls.suffix in core_suffix
+        }
+
+        for cls in resters:
+            if cls.suffix not in core_suffix:
                 rester = cls(
                     api_key=api_key,
                     endpoint=endpoint,
@@ -264,8 +284,6 @@ class MPRester:
 
                 suffix_split = cls.suffix.split("/")
 
-                att_map = {"molecules/core": "molecules", "materials/core": "materials"}
-
                 if len(suffix_split) == 1:
                     setattr(
                         self,
@@ -273,18 +291,26 @@ class MPRester:
                         rester,
                     )
                 else:
-                    if cls.suffix in att_map:
-                        attr = att_map[cls.suffix]
-                    elif "materials" in suffix_split:
-                        attr = "_".join(suffix_split[1:])
-                    else:
-                        attr = "_".join(suffix_split)
+                    attr = "_".join(suffix_split[1:])
+                    if "materials" in suffix_split:
+                        setattr(
+                            core_resters["materials"],
+                            attr,
+                            rester,
+                        )
+                    elif "molecules" in suffix_split:
+                        setattr(
+                            core_resters["molecules"],
+                            attr,
+                            rester,
+                        )
 
-                    setattr(
-                        self,
-                        attr,
-                        rester,
-                    )
+        for attr, rester in core_resters.items():
+            setattr(
+                self,
+                attr,
+                rester,
+            )
 
     def __enter__(self):
         """Support for "with" context."""
@@ -295,12 +321,51 @@ class MPRester:
         self.session.close()
 
     def __getattribute__(self, attr):
+        _deprecated_attributes = [
+            "eos",
+            "similarity",
+            "tasks",
+            "xas",
+            "fermi",
+            "grain_boundary",
+            "substrates",
+            "surface_properties",
+            "phonon",
+            "elasticity",
+            "thermo",
+            "dielectric",
+            "piezoelectric",
+            "magnetism",
+            "summary",
+            "robocrys",
+            "synthesis",
+            "insertion_electrodes",
+            "charge_density",
+            "electronic_structure",
+            "electronic_structure_bandstructure",
+            "electronic_structure_dos",
+            "oxidation_states",
+            "provenance",
+            "bonds",
+            "alloys",
+            "absorption",
+            "chemenv",
+        ]
+
         if "molecules" in attr:
             warnings.warn(
                 "NOTE: You are accessing a new set of molecules data to be officially released very soon. "
                 "This dataset includes many new properties, and is designed to be more easily expanded. "
-                "For the previous (legacy) molecules data, use the MPRester.legacy_jcesr rester. "
+                "For the previous (legacy) molecules data, use the MPRester.molecules.jcesr rester. "
             )
+        elif attr in _deprecated_attributes:
+            warnings.warn(
+                f"Accessing {attr} data through MPRester.{attr} is deprecated. "
+                f"Please use MPRester.materials.{attr} instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return super().__getattribute__("materials").__getattribute__(attr)
         return super().__getattribute__(attr)
 
     def __getattr__(self, attr):
@@ -314,6 +379,7 @@ class MPRester:
                 "boto3 not installed. "
                 "To query charge density data first install with: 'pip install boto3'"
             )
+
         else:
             raise AttributeError(
                 f"{self.__class__.__name__!r} object has no attribute {attr!r}"

@@ -9,7 +9,7 @@ from mp_api.client.core import BaseRester
 
 
 class MoleculesRester(BaseRester[MoleculesDoc]):
-    suffix = "legacy/jcesr"
+    suffix = "molecules/jcesr"
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
 
