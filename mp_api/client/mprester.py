@@ -58,7 +58,6 @@ from mp_api.client.routes.materials import (
 )
 from mp_api.client.routes.molecules import MoleculeRester
 
-
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
     "read more about these changes at https://docs.materialsproject.org/api. The current "
