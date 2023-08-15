@@ -55,7 +55,6 @@
 <span class="kn">from</span> <span class="nn">mp_api.client.core.settings</span> <span class="kn">import</span> <span class="n">MAPIClientSettings</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.routes</span> <span class="kn">import</span> <span class="n">GeneralStoreRester</span><span class="p">,</span> <span class="n">MessagesRester</span><span class="p">,</span> <span class="n">UserSettingsRester</span>
-<span class="kn">from</span> <span class="nn">mp_api.client.routes.legacy</span> <span class="kn">import</span> <span class="n">LegacyMoleculesRester</span>
 <span class="kn">from</span> <span class="nn">mp_api.client.routes.materials</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">AbsorptionRester</span><span class="p">,</span>
     <span class="n">AlloysRester</span><span class="p">,</span>
@@ -88,19 +87,7 @@
     <span class="n">ThermoRester</span><span class="p">,</span>
     <span class="n">XASRester</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">mp_api.client.routes.molecules</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">AssociatedMoleculeRester</span><span class="p">,</span>
-    <span class="n">MoleculeRester</span><span class="p">,</span>
-    <span class="n">MoleculesBondRester</span><span class="p">,</span>
-    <span class="n">MoleculesOrbitalsRester</span><span class="p">,</span>
-    <span class="n">MoleculesPartialChargesRester</span><span class="p">,</span>
-    <span class="n">MoleculesPartialSpinsRester</span><span class="p">,</span>
-    <span class="n">MoleculesRedoxRester</span><span class="p">,</span>
-    <span class="n">MoleculesSummaryRester</span><span class="p">,</span>
-    <span class="n">MoleculesTaskRester</span><span class="p">,</span>
-    <span class="n">MoleculesThermoRester</span><span class="p">,</span>
-    <span class="n">MoleculesVibrationRester</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.routes.molecules</span> <span class="kn">import</span> <span class="n">MoleculeRester</span>
 
 <span class="n">_DEPRECATION_WARNING</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">&quot;MPRester is being modernized. Please use the new method suggested and &quot;</span>
@@ -155,20 +142,7 @@
     <span class="n">chemenv</span><span class="p">:</span> <span class="n">ChemenvRester</span>
 
     <span class="c1"># Molecules</span>
-    <span class="n">molecules_bonding</span><span class="p">:</span> <span class="n">MoleculesBondRester</span>
-    <span class="n">molecules_associated</span><span class="p">:</span> <span class="n">AssociatedMoleculeRester</span>
     <span class="n">molecules</span><span class="p">:</span> <span class="n">MoleculeRester</span>
-    <span class="n">molecules_orbital</span><span class="p">:</span> <span class="n">MoleculesOrbitalsRester</span>
-    <span class="n">molecules_partial_charges</span><span class="p">:</span> <span class="n">MoleculesPartialChargesRester</span>
-    <span class="n">molecules_partial_spins</span><span class="p">:</span> <span class="n">MoleculesPartialSpinsRester</span>
-    <span class="n">molecules_redox</span><span class="p">:</span> <span class="n">MoleculesRedoxRester</span>
-    <span class="n">molecules_summary</span><span class="p">:</span> <span class="n">MoleculesSummaryRester</span>
-    <span class="n">molecules_tasks</span><span class="p">:</span> <span class="n">MoleculesTaskRester</span>
-    <span class="n">molecules_thermo</span><span class="p">:</span> <span class="n">MoleculesThermoRester</span>
-    <span class="n">molecules_vibrations</span><span class="p">:</span> <span class="n">MoleculesVibrationRester</span>
-
-    <span class="c1"># Legacy</span>
-    <span class="n">legacy_jcesr</span><span class="p">:</span> <span class="n">LegacyMoleculesRester</span>
 
     <span class="c1"># Generic</span>
     <span class="n">doi</span><span class="p">:</span> <span class="n">DOIRester</span>

@@ -83,18 +83,7 @@ mp\_api.client.mprester.MPRester
       ~MPRester.alloys
       ~MPRester.absorption
       ~MPRester.chemenv
-      ~MPRester.molecules_bonding
-      ~MPRester.molecules_associated
       ~MPRester.molecules
-      ~MPRester.molecules_orbital
-      ~MPRester.molecules_partial_charges
-      ~MPRester.molecules_partial_spins
-      ~MPRester.molecules_redox
-      ~MPRester.molecules_summary
-      ~MPRester.molecules_tasks
-      ~MPRester.molecules_thermo
-      ~MPRester.molecules_vibrations
-      ~MPRester.legacy_jcesr
       ~MPRester.doi
    
    

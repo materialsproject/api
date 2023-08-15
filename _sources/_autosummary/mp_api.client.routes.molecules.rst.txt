@@ -29,6 +29,7 @@ mp\_api.client.routes.molecules
    :recursive:
 
    mp_api.client.routes.molecules.bonds
+   mp_api.client.routes.molecules.jcesr
    mp_api.client.routes.molecules.molecules
    mp_api.client.routes.molecules.orbitals
    mp_api.client.routes.molecules.partial_charges
