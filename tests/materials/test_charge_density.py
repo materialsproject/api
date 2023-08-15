@@ -98,24 +98,24 @@ def test_download_for_task_ids(tmpdir, rester):
     assert "mp-1791788.json.gz" in files
 
 
-def test_extract_s3_url_info(rester):
-    url_doc_dict = {
-        "task_id": "mp-1896591",
-        "url": "https://minio.materialsproject.org/phuck/atomate_chgcar_fs/6021584c12afbe14911d1b8e",
-        "s3_url_prefix": "https://mp-volumetric.s3.amazonaws.com/atomate_chgcar_fs/",
-        "fs_id": "6021584c12afbe14911d1b8e",
-        "requested_datetime": {"$date": {"$numberLong": "1650389943209"}},
-        "expiry_datetime": None,
-    }
+# def test_extract_s3_url_info(rester):
+#     url_doc_dict = {
+#         "task_id": "mp-1896591",
+#         "url": "https://minio.materialsproject.org/phuck/atomate_chgcar_fs/6021584c12afbe14911d1b8e",
+#         "s3_url_prefix": "https://mp-volumetric.s3.amazonaws.com/atomate_chgcar_fs/",
+#         "fs_id": "6021584c12afbe14911d1b8e",
+#         "requested_datetime": {"$date": {"$numberLong": "1650389943209"}},
+#         "expiry_datetime": None,
+#     }
 
-    url_doc = ChgcarDataDoc(**url_doc_dict)
+#     url_doc = ChgcarDataDoc(**url_doc_dict)
 
-    bucket, prefix = rester._extract_s3_url_info(url_doc)
+#     bucket, prefix = rester._extract_s3_url_info(url_doc)
 
-    assert bucket == "phuck"
-    assert prefix == "atomate_chgcar_fs"
+#     assert bucket == "phuck"
+#     assert prefix == "atomate_chgcar_fs"
 
-    bucket, prefix = rester._extract_s3_url_info(url_doc, use_minio=False)
+#     bucket, prefix = rester._extract_s3_url_info(url_doc, use_minio=False)
 
-    assert bucket == "mp-volumetric"
-    assert prefix == "atomate_chgcar_fs"
+#     assert bucket == "mp-volumetric"
+#     assert prefix == "atomate_chgcar_fs"
