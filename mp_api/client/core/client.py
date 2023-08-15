@@ -136,13 +136,12 @@ class BaseRester(Generic[T]):
 
     @property
     def s3_resource(self):
-
         if boto3 is None:
             raise MPRestError(
-                    "boto3 not installed. To query charge density, "
-                    "band structure, or density of states data first "
-                    "install with: 'pip install boto3'"
-                )
+                "boto3 not installed. To query charge density, "
+                "band structure, or density of states data first "
+                "install with: 'pip install boto3'"
+            )
 
         if not self._s3_resource:
             self._s3_resource = boto3.resource(
