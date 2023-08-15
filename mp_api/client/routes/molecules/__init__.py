@@ -1,4 +1,5 @@
 from .bonds import MoleculesBondRester
+from .jcesr import JcesrMoleculesRester
 from .molecules import AssociatedMoleculeRester, MoleculeRester
 from .orbitals import MoleculesOrbitalsRester
 from .partial_charges import MoleculesPartialChargesRester

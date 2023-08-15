@@ -24,7 +24,6 @@ from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
-from mp_api.client.routes.legacy import LegacyMoleculesRester
 from mp_api.client.routes.materials import (
     AbsorptionRester,
     AlloysRester,
@@ -57,19 +56,7 @@ from mp_api.client.routes.materials import (
     ThermoRester,
     XASRester,
 )
-from mp_api.client.routes.molecules import (
-    AssociatedMoleculeRester,
-    MoleculeRester,
-    MoleculesBondRester,
-    MoleculesOrbitalsRester,
-    MoleculesPartialChargesRester,
-    MoleculesPartialSpinsRester,
-    MoleculesRedoxRester,
-    MoleculesSummaryRester,
-    MoleculesTaskRester,
-    MoleculesThermoRester,
-    MoleculesVibrationRester,
-)
+from mp_api.client.routes.molecules import MoleculeRester
 
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
@@ -124,20 +111,7 @@ class MPRester:
     chemenv: ChemenvRester
 
     # Molecules
-    molecules_bonding: MoleculesBondRester
-    molecules_associated: AssociatedMoleculeRester
     molecules: MoleculeRester
-    molecules_orbital: MoleculesOrbitalsRester
-    molecules_partial_charges: MoleculesPartialChargesRester
-    molecules_partial_spins: MoleculesPartialSpinsRester
-    molecules_redox: MoleculesRedoxRester
-    molecules_summary: MoleculesSummaryRester
-    molecules_tasks: MoleculesTaskRester
-    molecules_thermo: MoleculesThermoRester
-    molecules_vibrations: MoleculesVibrationRester
-
-    # Legacy
-    legacy_jcesr: LegacyMoleculesRester
 
     # Generic
     doi: DOIRester

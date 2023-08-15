@@ -37,7 +37,6 @@ ignore_generic = [
     "materials_xas",
     "materials_elasticity",
     "materials_fermi",
-    "molecules_vibrations",
     # "alloys",
     # "summary",
 ]  # temp
@@ -45,14 +44,20 @@ ignore_generic = [
 
 mpr = MPRester()
 
+# Temporarily ignore molecules resters while molecules query operators are changed
+resters_to_test = [
+    rester for rester in mpr._all_resters if "molecule" not in rester.suffix
+]
+
 
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
-@pytest.mark.parametrize("rester", mpr._all_resters)
+@pytest.mark.parametrize("rester", resters_to_test)
 def test_generic_get_methods(rester):
     # -- Test generic search and get_data_by_id methods
     name = rester.suffix.replace("/", "_")
+
     if name not in ignore_generic:
         if name not in key_only_resters:
             doc = rester._query_resource_data(

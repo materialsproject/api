@@ -17,7 +17,6 @@ from os import environ
 from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
 from urllib.parse import quote, urljoin
 
-import boto3
 import requests
 from botocore import UNSIGNED
 from botocore.config import Config
@@ -31,6 +30,11 @@ from urllib3.util.retry import Retry
 
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import api_sanitize, validate_ids
+
+try:
+    import boto3
+except ImportError:
+    boto3 = None
 
 try:
     from pymatgen.core import __version__ as pmg_version  # type: ignore
@@ -132,6 +136,13 @@ class BaseRester(Generic[T]):
 
     @property
     def s3_resource(self):
+        if boto3 is None:
+            raise MPRestError(
+                "boto3 not installed. To query charge density, "
+                "band structure, or density of states data first "
+                "install with: 'pip install boto3'"
+            )
+
         if not self._s3_resource:
             self._s3_resource = boto3.resource(
                 "s3", config=Config(signature_version=UNSIGNED)
@@ -329,6 +340,7 @@ class BaseRester(Generic[T]):
         Returns:
             dict: MontyDecoded data
         """
+
         ref = self.s3_resource.Object(bucket, f"{prefix}/{key}.json.gz")  # type: ignore
         bytes = ref.get()["Body"]  # type: ignore
 

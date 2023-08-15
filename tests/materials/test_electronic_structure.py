@@ -58,7 +58,11 @@ def test_es_client(es_rester):
         for entry in param_tuples:
             param = entry[0]
             if param not in es_excluded_params:
-                param_type = entry[1].__args__[0]
+                try:
+                    param_type = entry[1].__args__[0]
+                except AttributeError:
+                    param_type = entry[1]
+
                 q = None
 
                 if param in es_custom_field_tests:

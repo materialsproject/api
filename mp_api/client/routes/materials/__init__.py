@@ -15,7 +15,6 @@ from .fermi import FermiRester
 from .grain_boundary import GrainBoundaryRester
 from .magnetism import MagnetismRester
 from .materials import MaterialsRester
-from .molecules import MoleculesRester
 from .oxidation_states import OxidationStatesRester
 from .phonon import PhononRester
 from .piezo import PiezoRester
