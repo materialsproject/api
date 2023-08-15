@@ -8,3 +8,4 @@ from .summary import MoleculesSummaryRester
 from .tasks import MoleculesTaskRester
 from .thermo import MoleculesThermoRester
 from .vibrations import MoleculesVibrationRester
+from .jcesr import JcesrMoleculesRester
