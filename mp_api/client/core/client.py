@@ -18,8 +18,7 @@ from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
 from urllib.parse import quote, urljoin
 
 import requests
-from botocore import UNSIGNED
-from botocore.config import Config
+
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
@@ -33,6 +32,8 @@ from mp_api.client.core.utils import api_sanitize, validate_ids
 
 try:
     import boto3
+    from botocore import UNSIGNED
+    from botocore.config import Config
 except ImportError:
     boto3 = None
 
