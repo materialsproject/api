@@ -18,7 +18,6 @@ from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
 from urllib.parse import quote, urljoin
 
 import requests
-
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
