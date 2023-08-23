@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from emmet.core.molecules.redox import RedoxDoc
 from emmet.core.mpid import MPculeID
 

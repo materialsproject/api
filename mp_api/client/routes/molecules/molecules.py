@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from emmet.core.mpid import MPculeID
 from emmet.core.qchem.molecule import MoleculeDoc
 from emmet.core.settings import EmmetSettings

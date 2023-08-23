@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from emmet.core.provenance import ProvenanceDoc
 
 from mp_api.client.core import BaseRester

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from emmet.core._general_store import GeneralStoreDoc
 
 from mp_api.client.core import BaseRester

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import defaultdict
 
 from emmet.core.molecules_jcesr import MoleculesDoc

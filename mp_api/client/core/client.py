@@ -2,7 +2,7 @@
 API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
-
+from __future__ import annotations
 
 import gzip
 import itertools
