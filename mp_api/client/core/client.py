@@ -1126,8 +1126,12 @@ class BaseRester(Generic[T]):
 
     def count(self, criteria: dict | None = None) -> int | str:
         """Return a count of total documents.
-        :param criteria: As in .query()
-        :return:
+
+        Args:
+            criteria (dict | None): As in .query(). Defaults to None
+
+        Returns:
+            (int | str): Count of total results, or string indicating error
         """
         try:
             criteria = criteria or {}

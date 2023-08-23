@@ -1221,22 +1221,6 @@ class MPRester:
         """
         return self.phonon.get_data_by_id(material_id, fields=["ph_bs"]).ph_bs
 
-    def submit_structures(self, structures, public_name, public_email):
-        """Submits a list of structures to the Materials Project.
-
-        Note that public_name and public_email will be used to credit the
-        submitter on the Materials Project website.
-
-        Args:
-            structures: A list of Structure objects
-
-
-        Returns:
-            ?
-        """
-        # TODO: call new MPComplete endpoint
-        raise NotImplementedError
-
     def get_wulff_shape(self, material_id: str):
         """Constructs a Wulff shape for a material.
 

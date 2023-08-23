@@ -47,7 +47,6 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
         task_ids: list[str] | None = None,
         num_chunks: int | None = 1,
         chunk_size: int = 10,
-        **kwargs,
     ) -> list[ChgcarDataDoc] | list[dict]:  # type: ignore
         """A search method to find what charge densities are available via this API.
 

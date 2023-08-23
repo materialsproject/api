@@ -264,7 +264,7 @@ class BandStructureRester(BaseRester):
         """Get the band structure pymatgen object associated with a Materials Project ID.
 
         Arguments:
-            materials_id (str): Materials Project ID for a material
+            material_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
             line_mode (bool): Whether to return data for a line-mode calculation
 
@@ -433,7 +433,7 @@ class DosRester(BaseRester):
         """Get the complete density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
-            materials_id (str): Materials Project ID for a material
+            material_id (str): Materials Project ID for a material
 
         Returns:
             dos (CompleteDos): CompleteDos object

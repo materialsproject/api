@@ -119,6 +119,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
+            is_stable (bool): Whether the material lies on the convex energy hull.
             k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average
                 of the bulk modulus.
             k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt average

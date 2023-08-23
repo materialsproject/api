@@ -87,6 +87,8 @@ ignore = [
     "D104",    # Missing docstring in public package
     "D101",    # Missing docstring in public class
     "D102",    # Missing docstring in public method
+    "D105",    # Missing docstring in magic method
+    "D106",    # Missing docstring in public nested class
     "D205",    # 1 blank line required between summary line and description
     "PLW2901", # Outer for loop variable overwritten by inner assignment target
     "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass

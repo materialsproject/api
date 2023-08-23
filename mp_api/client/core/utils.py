@@ -42,7 +42,11 @@ def api_sanitize(
     WARNING: This works in place, so it mutates the model and all sub-models
 
     Args:
-        fields_to_leave: list of strings for model fields as "model__name__.field"
+        pydantic_model (BaseModel): Pydantic model to alter
+        fields_to_leave (list[str] | None): list of strings for model fields as "model__name__.field".
+            Defaults to None.
+        allow_dict_msonable (bool): Whether to allow dictionaries in place of MSONable quantities.
+            Defaults to False
     """
     models = [
         model
