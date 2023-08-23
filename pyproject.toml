@@ -62,7 +62,7 @@ log_cli_level = "info"
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py38"
 select = [
     "B",   # flake8-bugbear
     "D",   # pydocstyle
@@ -97,7 +97,7 @@ pydocstyle.convention = "google"
 
 [tool.mypy]
 files = "mp_api"
-python_version = "3.11"
+python_version = "3.8"
 strict = true
 show_error_codes = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
