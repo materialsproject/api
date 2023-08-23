@@ -62,7 +62,7 @@ log_cli_level = "info"
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py311"
 select = [
     "B",   # flake8-bugbear
     "D",   # pydocstyle
