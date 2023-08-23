@@ -31,7 +31,7 @@ def validate_ids(id_list: list[str]):
 
 
 def api_sanitize(
-    pydantic_model: type[BaseModel],
+    pydantic_model: BaseModel,
     fields_to_leave: list[str] | None = None,
     allow_dict_msonable=False,
 ):
@@ -52,7 +52,7 @@ def api_sanitize(
         model
         for model in get_flat_models_from_model(pydantic_model)
         if issubclass(model, BaseModel)
-    ]  # type: List[Type[BaseModel]]
+    ]  # type: list[BaseModel]
 
     fields_to_leave = fields_to_leave or []
     fields_tuples = [f.split(".") for f in fields_to_leave]
