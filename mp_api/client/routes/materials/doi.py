@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from emmet.core.dois import DOIDoc
 
 from mp_api.client.core import BaseRester

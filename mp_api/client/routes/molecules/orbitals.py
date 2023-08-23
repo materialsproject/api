@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from emmet.core.molecules.orbitals import OrbitalDoc
 from emmet.core.mpid import MPculeID
 

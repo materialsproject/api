@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from emmet.core.molecules.atomic import PartialSpinsDoc
 from emmet.core.mpid import MPculeID
 

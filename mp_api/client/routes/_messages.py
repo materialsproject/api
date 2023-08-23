@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime
 
 from emmet.core._messages import MessagesDoc, MessageType

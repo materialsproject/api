@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from emmet.core.molecules.vibration import VibrationDoc
 from emmet.core.mpid import MPculeID
 

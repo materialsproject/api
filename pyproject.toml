@@ -98,7 +98,6 @@ ignore = [
 exclude = ["docs", ".ruff_cache", "requirements", "test*"]
 pydocstyle.convention = "google"
 flake8-unused-arguments.ignore-variadic-names = true
-isort.required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.per-file-ignores]
 "*/__init__.py" = ["F401"] # F401: imported but unused

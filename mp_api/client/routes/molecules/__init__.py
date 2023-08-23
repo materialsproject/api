@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from .bonds import MoleculesBondRester
 from .jcesr import JcesrMoleculesRester
 from .molecules import AssociatedMoleculeRester, MoleculeRester

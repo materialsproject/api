@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from emmet.core.fermi import FermiDoc
 
 from mp_api.client.core import BaseRester

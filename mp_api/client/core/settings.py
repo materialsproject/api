@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 import os
 from multiprocessing import cpu_count
-
+from typing import List
 from pydantic import BaseSettings, Field
 from pymatgen.core import _load_pmg_settings
 
@@ -30,7 +28,7 @@ class MAPIClientSettings(BaseSettings):
         description="Directory with test files",
     )
 
-    QUERY_NO_PARALLEL: list[str] = Field(
+    QUERY_NO_PARALLEL: List[str] = Field(
         [
             "elements",
             "exclude_elements",
