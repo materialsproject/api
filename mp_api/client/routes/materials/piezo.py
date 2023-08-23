@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.polar import PiezoelectricDoc
 
@@ -26,13 +27,13 @@ class PiezoRester(BaseRester[PiezoelectricDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        piezoelectric_modulus: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        piezoelectric_modulus: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query equations of state docs using a variety of search criteria.
 

@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import warnings
-from typing import List, Optional
 
 from emmet.core.synthesis import (
     OperationTypeEnum,
@@ -26,20 +27,20 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
 
     def search(
         self,
-        keywords: Optional[List[str]] = None,
-        synthesis_type: Optional[List[SynthesisTypeEnum]] = None,
-        target_formula: Optional[str] = None,
-        precursor_formula: Optional[str] = None,
-        operations: Optional[List[OperationTypeEnum]] = None,
-        condition_heating_temperature_min: Optional[float] = None,
-        condition_heating_temperature_max: Optional[float] = None,
-        condition_heating_time_min: Optional[float] = None,
-        condition_heating_time_max: Optional[float] = None,
-        condition_heating_atmosphere: Optional[List[str]] = None,
-        condition_mixing_device: Optional[List[str]] = None,
-        condition_mixing_media: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 10,
+        keywords: list[str] | None = None,
+        synthesis_type: list[SynthesisTypeEnum] | None = None,
+        target_formula: str | None = None,
+        precursor_formula: str | None = None,
+        operations: list[OperationTypeEnum] | None = None,
+        condition_heating_temperature_min: float | None = None,
+        condition_heating_temperature_max: float | None = None,
+        condition_heating_time_min: float | None = None,
+        condition_heating_time_max: float | None = None,
+        condition_heating_atmosphere: list[str] | None = None,
+        condition_mixing_device: list[str] | None = None,
+        condition_mixing_media: list[str] | None = None,
+        num_chunks: int | None = None,
+        chunk_size: int | None = 10,
     ):
         """Search synthesis recipe text.
 

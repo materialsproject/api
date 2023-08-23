@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import List, Optional, Union
 
 from emmet.core.absorption import AbsorptionDoc
 
@@ -14,17 +15,17 @@ class AbsorptionRester(BaseRester[AbsorptionDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        formula: Optional[List[str]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        chemsys: str | list[str] | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        formula: list[str] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
-    ) -> List[AbsorptionDoc]:
+        fields: list[str] | None = None,
+    ) -> list[AbsorptionDoc]:
         """Query for optical absorption spectra data.
 
         Arguments:

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import re
-from typing import List, Optional, Type, get_args
+from typing import get_args
 
 from monty.json import MSONable
 from pydantic import BaseModel
@@ -7,7 +9,7 @@ from pydantic.schema import get_flat_models_from_model
 from pydantic.utils import lenient_issubclass
 
 
-def validate_ids(id_list: List[str]):
+def validate_ids(id_list: list[str]):
     """Function to validate material and task IDs.
 
     Args:
@@ -29,8 +31,8 @@ def validate_ids(id_list: List[str]):
 
 
 def api_sanitize(
-    pydantic_model: Type[BaseModel],
-    fields_to_leave: Optional[List[str]] = None,
+    pydantic_model: type[BaseModel],
+    fields_to_leave: list[str] | None = None,
     allow_dict_msonable=False,
 ):
     """Function to clean up pydantic models for the API by:
@@ -77,7 +79,7 @@ def api_sanitize(
     return pydantic_model
 
 
-def allow_msonable_dict(monty_cls: Type[MSONable]):
+def allow_msonable_dict(monty_cls: type[MSONable]):
     """Patch Monty to allow for dict values for MSONable."""
 
     def validate_monty(cls, v):

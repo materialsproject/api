@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from __future__ import annotations
 
 from emmet.core.mpid import MPculeID
 from emmet.core.qchem.molecule import MoleculeDoc
@@ -17,9 +17,8 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
 
     def get_molecule_by_mpculeid(
         self, mpcule_id: str, final: bool = True
-    ) -> Union[Molecule, List[Molecule]]:
-        """
-        Get a molecule object for a given Materials Project molecules ID (MPculeID).
+    ) -> Molecule | list[Molecule]:
+        """Get a molecule object for a given Materials Project molecules ID (MPculeID).
 
         Arguments:
             mpcule_id (str): Materials project molecule ID
@@ -39,14 +38,13 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
 
     def find_molecule(
         self,
-        filename_or_molecule: Union[str, Molecule],
-        charge: Optional[int] = None,
-        spin_multiplicity: Optional[int] = None,
+        filename_or_molecule: str | Molecule,
+        charge: int | None = None,
+        spin_multiplicity: int | None = None,
         tolerance: float = 0.01,
         allow_multiple_results: bool = False,
-    ) -> Union[List[str], str]:
-        """
-        Finds matching molecules from the Materials Project molecules database (MPcules).
+    ) -> list[str] | str:
+        """Finds matching molecules from the Materials Project molecules database (MPcules).
 
         Multiple results may be returned of "similar" molecules based on
         distance using the pymatgen MoleculeMatcher algorithm.
@@ -66,7 +64,6 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
         Raises:
             MPRestError
         """
-
         if isinstance(filename_or_molecule, str):
             m = Molecule.from_file(filename_or_molecule)
         elif isinstance(filename_or_molecule, Molecule):
@@ -100,24 +97,23 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
 
     def search(
         self,
-        charge: Optional[Tuple[int, int]] = None,
-        spin_multiplicity: Optional[Tuple[int, int]] = None,
-        nelements: Optional[Tuple[int, int]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        deprecated: Optional[bool] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        molecule_ids: Optional[Union[MPculeID, List[MPculeID]]] = None,
-        task_ids: Optional[Union[str, List[str]]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        charge: tuple[int, int] | None = None,
+        spin_multiplicity: tuple[int, int] | None = None,
+        nelements: tuple[int, int] | None = None,
+        chemsys: str | list[str] | None = None,
+        deprecated: bool | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        formula: str | list[str] | None = None,
+        molecule_ids: MPculeID | list[MPculeID] | None = None,
+        task_ids: str | list[str] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
-        """
-        Query molecule docs using a variety of search criteria.
+        """Query molecule docs using a variety of search criteria.
 
         Arguments:
             charge (Tuple[int, int]): Minimum and maximum charge for the molecule.
@@ -143,7 +139,6 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
         Returns:
             ([MoleculeDoc]) List of molecules documents
         """
-
         query_params = {"deprecated": deprecated}  # type: dict
 
         if molecule_ids:

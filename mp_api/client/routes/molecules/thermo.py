@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from __future__ import annotations
 
 from emmet.core.molecules.thermo import MoleculeThermoDoc
 from emmet.core.mpid import MPculeID
@@ -13,40 +13,39 @@ class MoleculesThermoRester(BaseRester[MoleculeThermoDoc]):
 
     def search(
         self,
-        molecule_ids: Optional[Union[MPculeID, List[MPculeID]]] = None,
-        property_ids: Optional[Union[str, List[str]]] = None,
-        charge: Optional[int] = None,
-        spin_multiplicity: Optional[int] = None,
-        level_of_theory: Optional[str] = None,
-        solvent: Optional[str] = None,
-        lot_solvent: Optional[str] = None,
-        correction_level_of_theory: Optional[str] = None,
-        correction_solvent: Optional[str] = None,
-        correction_lot_solvent: Optional[str] = None,
-        combined_lot_solvent: Optional[str] = None,
-        electronic_energy: Optional[Tuple[float, float]] = None,
-        zero_point_energy: Optional[Tuple[float, float]] = None,
-        total_enthalpy: Optional[Tuple[float, float]] = None,
-        total_entropy: Optional[Tuple[float, float]] = None,
-        translational_enthalpy: Optional[Tuple[float, float]] = None,
-        rotational_enthalpy: Optional[Tuple[float, float]] = None,
-        vibrational_enthalpy: Optional[Tuple[float, float]] = None,
-        translational_entropy: Optional[Tuple[float, float]] = None,
-        rotational_entropy: Optional[Tuple[float, float]] = None,
-        vibrational_entropy: Optional[Tuple[float, float]] = None,
-        free_energy: Optional[Tuple[float, float]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        num_chunks: Optional[int] = None,
-        sort_fields: Optional[List[str]] = None,
+        molecule_ids: MPculeID | list[MPculeID] | None = None,
+        property_ids: str | list[str] | None = None,
+        charge: int | None = None,
+        spin_multiplicity: int | None = None,
+        level_of_theory: str | None = None,
+        solvent: str | None = None,
+        lot_solvent: str | None = None,
+        correction_level_of_theory: str | None = None,
+        correction_solvent: str | None = None,
+        correction_lot_solvent: str | None = None,
+        combined_lot_solvent: str | None = None,
+        electronic_energy: tuple[float, float] | None = None,
+        zero_point_energy: tuple[float, float] | None = None,
+        total_enthalpy: tuple[float, float] | None = None,
+        total_entropy: tuple[float, float] | None = None,
+        translational_enthalpy: tuple[float, float] | None = None,
+        rotational_enthalpy: tuple[float, float] | None = None,
+        vibrational_enthalpy: tuple[float, float] | None = None,
+        translational_entropy: tuple[float, float] | None = None,
+        rotational_entropy: tuple[float, float] | None = None,
+        vibrational_entropy: tuple[float, float] | None = None,
+        free_energy: tuple[float, float] | None = None,
+        formula: str | list[str] | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        chemsys: str | list[str] | None = None,
+        num_chunks: int | None = None,
+        sort_fields: list[str] | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
-        """
-        Query molecules thermo docs using a variety of search criteria.
+        """Query molecules thermo docs using a variety of search criteria.
 
         Arguments:
             molecule_ids (MPculeID, List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data
@@ -93,7 +92,6 @@ class MoleculesThermoRester(BaseRester[MoleculeThermoDoc]):
         Returns:
             ([MoleculeThermoDoc]) List of molecule thermo documents
         """
-
         query_params = {}  # type: dict
 
         min_max = [

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple
 
 from emmet.core.surface_properties import SurfacePropDoc
 
@@ -25,16 +26,16 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
 
     def search(
         self,
-        has_reconstructed: Optional[bool] = None,
-        shape_factor: Optional[Tuple[float, float]] = None,
-        surface_energy_anisotropy: Optional[Tuple[float, float]] = None,
-        weighted_surface_energy: Optional[Tuple[float, float]] = None,
-        weighted_work_function: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        has_reconstructed: bool | None = None,
+        shape_factor: tuple[float, float] | None = None,
+        surface_energy_anisotropy: tuple[float, float] | None = None,
+        weighted_surface_energy: tuple[float, float] | None = None,
+        weighted_work_function: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query surface properties docs using a variety of search criteria.
 

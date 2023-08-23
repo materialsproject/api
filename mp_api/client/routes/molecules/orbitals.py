@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from __future__ import annotations
 
 from emmet.core.molecules.orbitals import OrbitalDoc
 from emmet.core.mpid import MPculeID
@@ -13,56 +13,55 @@ class MoleculesOrbitalsRester(BaseRester[OrbitalDoc]):
 
     def search(
         self,
-        molecule_ids: Optional[Union[MPculeID, List[MPculeID]]] = None,
-        property_ids: Optional[Union[str, List[str]]] = None,
-        charge: Optional[int] = None,
-        spin_multiplicity: Optional[int] = None,
-        level_of_theory: Optional[str] = None,
-        solvent: Optional[str] = None,
-        lot_solvent: Optional[str] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        electron_type_population: Optional[str] = None,
-        core_electrons: Optional[Tuple[float, float]] = None,
-        valence_electrons: Optional[Tuple[float, float]] = None,
-        rydberg_electrons: Optional[Tuple[float, float]] = None,
-        total_electrons: Optional[Tuple[float, float]] = None,
-        electron_type_lp: Optional[str] = None,
-        lp_type: Optional[str] = None,
-        s_character: Optional[Tuple[float, float]] = None,
-        p_character: Optional[Tuple[float, float]] = None,
-        d_character: Optional[Tuple[float, float]] = None,
-        f_character: Optional[Tuple[float, float]] = None,
-        lp_occupancy: Optional[Tuple[float, float]] = None,
-        electron_type_bond: Optional[str] = None,
-        bond_type: Optional[str] = None,
-        s_character_atom1: Optional[Tuple[float, float]] = None,
-        s_character_atom2: Optional[Tuple[float, float]] = None,
-        p_character_atom1: Optional[Tuple[float, float]] = None,
-        p_character_atom2: Optional[Tuple[float, float]] = None,
-        d_character_atom1: Optional[Tuple[float, float]] = None,
-        d_character_atom2: Optional[Tuple[float, float]] = None,
-        f_character_atom1: Optional[Tuple[float, float]] = None,
-        f_character_atom2: Optional[Tuple[float, float]] = None,
-        polarization_atom1: Optional[Tuple[float, float]] = None,
-        polarization_atom2: Optional[Tuple[float, float]] = None,
-        bond_occupancy: Optional[Tuple[float, float]] = None,
-        electron_type_interaction: Optional[str] = None,
-        donor_type: Optional[str] = None,
-        acceptor_type: Optional[str] = None,
-        perturbation_energy: Optional[Tuple[float, float]] = None,
-        energy_difference: Optional[Tuple[float, float]] = None,
-        fock_element: Optional[Tuple[float, float]] = None,
-        num_chunks: Optional[int] = None,
-        sort_fields: Optional[List[str]] = None,
+        molecule_ids: MPculeID | list[MPculeID] | None = None,
+        property_ids: str | list[str] | None = None,
+        charge: int | None = None,
+        spin_multiplicity: int | None = None,
+        level_of_theory: str | None = None,
+        solvent: str | None = None,
+        lot_solvent: str | None = None,
+        formula: str | list[str] | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        chemsys: str | list[str] | None = None,
+        electron_type_population: str | None = None,
+        core_electrons: tuple[float, float] | None = None,
+        valence_electrons: tuple[float, float] | None = None,
+        rydberg_electrons: tuple[float, float] | None = None,
+        total_electrons: tuple[float, float] | None = None,
+        electron_type_lp: str | None = None,
+        lp_type: str | None = None,
+        s_character: tuple[float, float] | None = None,
+        p_character: tuple[float, float] | None = None,
+        d_character: tuple[float, float] | None = None,
+        f_character: tuple[float, float] | None = None,
+        lp_occupancy: tuple[float, float] | None = None,
+        electron_type_bond: str | None = None,
+        bond_type: str | None = None,
+        s_character_atom1: tuple[float, float] | None = None,
+        s_character_atom2: tuple[float, float] | None = None,
+        p_character_atom1: tuple[float, float] | None = None,
+        p_character_atom2: tuple[float, float] | None = None,
+        d_character_atom1: tuple[float, float] | None = None,
+        d_character_atom2: tuple[float, float] | None = None,
+        f_character_atom1: tuple[float, float] | None = None,
+        f_character_atom2: tuple[float, float] | None = None,
+        polarization_atom1: tuple[float, float] | None = None,
+        polarization_atom2: tuple[float, float] | None = None,
+        bond_occupancy: tuple[float, float] | None = None,
+        electron_type_interaction: str | None = None,
+        donor_type: str | None = None,
+        acceptor_type: str | None = None,
+        perturbation_energy: tuple[float, float] | None = None,
+        energy_difference: tuple[float, float] | None = None,
+        fock_element: tuple[float, float] | None = None,
+        num_chunks: int | None = None,
+        sort_fields: list[str] | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
-        """
-        Query molecules redox docs using a variety of search criteria.
+        """Query molecules redox docs using a variety of search criteria.
 
         Arguments:
             molecule_ids (MPculeID, List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data
@@ -147,7 +146,6 @@ class MoleculesOrbitalsRester(BaseRester[OrbitalDoc]):
         Returns:
             ([RedoxDoc]) List of molecule redox documents
         """
-
         query_params = {}  # type: dict
 
         min_max = [

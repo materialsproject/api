@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import List, Optional, Union
 
 from emmet.core.oxidation_states import OxidationStateDoc
 
@@ -14,15 +15,15 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        possible_species: Optional[Union[str, List[str]]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        chemsys: str | list[str] | None = None,
+        formula: str | list[str] | None = None,
+        possible_species: str | list[str] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query oxidation state docs using a variety of search criteria.
 

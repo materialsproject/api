@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import itertools
 import warnings
 from functools import lru_cache
 from json import loads
 from os import environ
-from typing import Dict, List, Literal, Optional, Union
+from typing import Literal
 
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
@@ -121,7 +123,7 @@ class MPRester:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         endpoint: str = DEFAULT_ENDPOINT,
         notify_db_version: bool = False,
         include_user_agent: bool = True,
@@ -130,37 +132,36 @@ class MPRester:
         session: Session = None,
         headers: dict = None,
     ):
-        """
-        Args:
-            api_key (str): A String API key for accessing the MaterialsProject
-                REST interface. Please obtain your API key at
-                https://next-gen.materialsproject.org/api. If this is None,
-                the code will check if there is a "MP_API_KEY" setting.
-                If so, it will use that environment variable. This makes
-                easier for heavy users to simply add this environment variable to
-                their setups and MPRester can then be called without any arguments.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST
-                interface. Defaults to the standard Materials Project REST
-                address at "https://api.materialsproject.org", but
-                can be changed to other urls implementing a similar interface.
-            notify_db_version (bool): If True, the current MP database version will
-                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
-                version changes, you will be notified. The current database version is
-                also printed on instantiation. These local logs are not sent to
-                materialsproject.org and are not associated with your API key, so be
-                aware that a notification may not be presented if you run MPRester
-                from multiple computing environments.
-            include_user_agent (bool): If True, will include a user agent with the
-                HTTP request including information on pymatgen and system version
-                making the API request. This helps MP support pymatgen users, and
-                is similar to what most web browsers send with each page request.
-                Set to False to disable the user agent.
-            monty_decode: Decode the data using monty into python objects
-            use_document_model: If False, skip the creating the document model and return data
-                as a dictionary. This can be simpler to work with but bypasses data validation
-                and will not give auto-complete for available fields.
-            session (Session): Session object to use. By default (None), the client will create one.
-            headers (dict): Custom headers for localhost connections.
+        """Args:
+        api_key (str): A String API key for accessing the MaterialsProject
+        REST interface. Please obtain your API key at
+        https://next-gen.materialsproject.org/api. If this is None,
+        the code will check if there is a "MP_API_KEY" setting.
+        If so, it will use that environment variable. This makes
+        easier for heavy users to simply add this environment variable to
+        their setups and MPRester can then be called without any arguments.
+        endpoint (str): Url of endpoint to access the MaterialsProject REST
+        interface. Defaults to the standard Materials Project REST
+        address at "https://api.materialsproject.org", but
+        can be changed to other urls implementing a similar interface.
+        notify_db_version (bool): If True, the current MP database version will
+        be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
+        version changes, you will be notified. The current database version is
+        also printed on instantiation. These local logs are not sent to
+        materialsproject.org and are not associated with your API key, so be
+        aware that a notification may not be presented if you run MPRester
+        from multiple computing environments.
+        include_user_agent (bool): If True, will include a user agent with the
+        HTTP request including information on pymatgen and system version
+        making the API request. This helps MP support pymatgen users, and
+        is similar to what most web browsers send with each page request.
+        Set to False to disable the user agent.
+        monty_decode: Decode the data using monty into python objects
+        use_document_model: If False, skip the creating the document model and return data
+        as a dictionary. This can be simpler to work with but bypasses data validation
+        and will not give auto-complete for available fields.
+        session (Session): Session object to use. By default (None), the client will create one.
+        headers (dict): Custom headers for localhost connections.
         """
         if api_key and len(api_key) != 32:
             raise ValueError(
@@ -360,8 +361,8 @@ class MPRester:
             )
 
     def get_task_ids_associated_with_material_id(
-        self, material_id: str, calc_types: Optional[List[CalcType]] = None
-    ) -> List[str]:
+        self, material_id: str, calc_types: list[CalcType] | None = None
+    ) -> list[str]:
         """:param material_id:
         :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
         :return:
@@ -378,7 +379,7 @@ class MPRester:
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
-    ) -> Union[Structure, List[Structure]]:
+    ) -> Structure | list[Structure]:
         """Get a Structure corresponding to a material_id.
 
         Args:
@@ -425,13 +426,11 @@ class MPRester:
         return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
     def get_emmet_version(self):
-        """
-        Get the latest version emmet-core and emmet-api used in the
+        """Get the latest version emmet-core and emmet-api used in the
         current API service.
 
         Returns: version as a string
         """
-
         response = get(url=self.endpoint + "heartbeat").json()
 
         error = response.get("error", None)
@@ -440,7 +439,7 @@ class MPRester:
 
         return response["version"]
 
-    def get_material_id_from_task_id(self, task_id: str) -> Union[str, None]:
+    def get_material_id_from_task_id(self, task_id: str) -> str | None:
         """Returns the current material_id from a given task_id. The
         material_id should rarely change, and is usually chosen from
         among the smallest numerical id from the group of task_ids for
@@ -466,7 +465,7 @@ class MPRester:
             )
             return None
 
-    def get_materials_id_from_task_id(self, task_id: str) -> Union[str, None]:
+    def get_materials_id_from_task_id(self, task_id: str) -> str | None:
         """This method is deprecated, please use get_material_id_from_task_id."""
         warnings.warn(
             "This method is deprecated, please use get_material_id_from_task_id.",
@@ -474,7 +473,7 @@ class MPRester:
         )
         return self.get_material_id_from_task_id(task_id)
 
-    def get_material_id_references(self, material_id: str) -> List[str]:
+    def get_material_id_references(self, material_id: str) -> list[str]:
         """Returns all references for a material id.
 
         Args:
@@ -485,7 +484,7 @@ class MPRester:
         """
         return self.provenance.get_data_by_id(material_id).references
 
-    def get_materials_id_references(self, material_id: str) -> List[str]:
+    def get_materials_id_references(self, material_id: str) -> list[str]:
         """This method is deprecated, please use get_material_id_references."""
         warnings.warn(
             "This method is deprecated, please use get_material_id_references instead.",
@@ -495,8 +494,8 @@ class MPRester:
 
     def get_material_ids(
         self,
-        chemsys_formula: Union[str, List[str]],
-    ) -> List[MPID]:
+        chemsys_formula: str | list[str],
+    ) -> list[MPID]:
         """Get all materials ids for a formula or chemsys.
 
         Args:
@@ -524,8 +523,8 @@ class MPRester:
 
     def get_materials_ids(
         self,
-        chemsys_formula: Union[str, List[str]],
-    ) -> List[MPID]:
+        chemsys_formula: str | list[str],
+    ) -> list[MPID]:
         """This method is deprecated, please use get_material_ids."""
         warnings.warn(
             "This method is deprecated, please use get_material_ids.",
@@ -534,8 +533,8 @@ class MPRester:
         return self.get_material_ids(chemsys_formula)
 
     def get_structures(
-        self, chemsys_formula: Union[str, List[str]], final=True
-    ) -> List[Structure]:
+        self, chemsys_formula: str | list[str], final=True
+    ) -> list[Structure]:
         """Get a list of Structures corresponding to a chemical system or formula.
 
         Args:
@@ -577,12 +576,12 @@ class MPRester:
 
     def find_structure(
         self,
-        filename_or_structure: Union[str, Structure],
+        filename_or_structure: str | Structure,
         ltol: float = _EMMET_SETTINGS.LTOL,
         stol: float = _EMMET_SETTINGS.STOL,
         angle_tol: float = _EMMET_SETTINGS.ANGLE_TOL,
         allow_multiple_results: bool = False,
-    ) -> Union[List[str], str]:
+    ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.
 
         Multiple results may be returned of "similar" structures based on
@@ -613,14 +612,14 @@ class MPRester:
 
     def get_entries(
         self,
-        chemsys_formula_mpids: Union[str, List[str]],
+        chemsys_formula_mpids: str | list[str],
         compatible_only: bool = True,
         inc_structure: bool = None,
-        property_data: List[str] = None,
+        property_data: list[str] = None,
         conventional_unit_cell: bool = False,
         sort_by_e_above_hull: bool = False,
         additional_criteria: dict = None,
-    ) -> List[ComputedStructureEntry]:
+    ) -> list[ComputedStructureEntry]:
         """Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula.
 
@@ -748,9 +747,9 @@ class MPRester:
 
     def get_pourbaix_entries(
         self,
-        chemsys: Union[str, List],
+        chemsys: str | list,
         solid_compat="MaterialsProject2020Compatibility",
-        use_gibbs: Optional[Literal[300]] = None,
+        use_gibbs: Literal[300] | None = None,
     ):
         """A helper function to get all entries necessary to generate
         a Pourbaix diagram from the rest interface.
@@ -873,7 +872,7 @@ class MPRester:
         return pbx_entries
 
     @lru_cache
-    def get_ion_reference_data(self) -> List[Dict]:
+    def get_ion_reference_data(self) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
         Use this method to examine the ion reference data and to add additional
@@ -907,9 +906,7 @@ class MPRester:
             paginate=True,
         ).get("data")
 
-    def get_ion_reference_data_for_chemsys(
-        self, chemsys: Union[str, List]
-    ) -> List[Dict]:
+    def get_ion_reference_data_for_chemsys(self, chemsys: str | list) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
 
         Use this method to examine the ion reference data and to add additional
@@ -949,8 +946,8 @@ class MPRester:
         return [d for d in ion_data if d["data"]["MajElements"] in chemsys]
 
     def get_ion_entries(
-        self, pd: PhaseDiagram, ion_ref_data: List[dict] = None
-    ) -> List[IonEntry]:
+        self, pd: PhaseDiagram, ion_ref_data: list[dict] = None
+    ) -> list[IonEntry]:
         """Retrieve IonEntry objects that can be used in the construction of
         Pourbaix Diagrams. The energies of the IonEntry are calculaterd from
         the solid energies in the provided Phase Diagram to be
@@ -1043,7 +1040,7 @@ class MPRester:
         material_id: str,
         compatible_only: bool = True,
         inc_structure: bool = None,
-        property_data: List[str] = None,
+        property_data: list[str] = None,
         conventional_unit_cell: bool = False,
     ):
         """Get all ComputedEntry objects corresponding to a material_id.
@@ -1081,11 +1078,11 @@ class MPRester:
 
     def get_entries_in_chemsys(
         self,
-        elements: Union[str, List[str]],
-        use_gibbs: Optional[int] = None,
+        elements: str | list[str],
+        use_gibbs: int | None = None,
         compatible_only: bool = True,
         inc_structure: bool = None,
-        property_data: List[str] = None,
+        property_data: list[str] = None,
         conventional_unit_cell: bool = False,
         additional_criteria=None,
     ):
@@ -1271,7 +1268,7 @@ class MPRester:
 
     def get_charge_density_from_material_id(
         self, material_id: str, inc_task_doc: bool = False
-    ) -> Optional[Chgcar]:
+    ) -> Chgcar | None:
         """Get charge density data for a given Materials Project ID.
 
         Arguments:
@@ -1292,7 +1289,7 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results: List[TaskDoc] = self.tasks.search(task_ids=task_ids, fields=["last_updated", "task_id"])  # type: ignore
+        results: list[TaskDoc] = self.tasks.search(task_ids=task_ids, fields=["last_updated", "task_id"])  # type: ignore
 
         if len(results) == 0:
             return None
@@ -1384,8 +1381,8 @@ class MPRester:
         urls = [prefix + tids for tids in nomad_exist_task_ids]
         return meta, urls
 
-    def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> List[str]:
-        nomad_exist_task_ids: List[str] = []
+    def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> list[str]:
+        nomad_exist_task_ids: list[str] = []
         prefix = prefix.replace("/raw/query", "/repo/")
         for task_id in task_ids:
             url = prefix + task_id

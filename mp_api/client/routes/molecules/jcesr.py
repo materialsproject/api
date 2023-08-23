@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import List, Optional, Tuple
 
 from emmet.core.molecules_jcesr import MoleculesDoc
 from pymatgen.core.periodic_table import Element
@@ -14,21 +15,20 @@ class JcesrMoleculesRester(BaseRester[MoleculesDoc]):
 
     def search(
         self,
-        charge: Optional[Tuple[float, float]] = None,
-        elements: Optional[List[Element]] = None,
-        EA: Optional[Tuple[float, float]] = None,
-        IE: Optional[Tuple[float, float]] = None,
-        nelements: Optional[Tuple[float, float]] = None,
-        pointgroup: Optional[str] = None,
-        smiles: Optional[str] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        charge: tuple[float, float] | None = None,
+        elements: list[Element] | None = None,
+        EA: tuple[float, float] | None = None,
+        IE: tuple[float, float] | None = None,
+        nelements: tuple[float, float] | None = None,
+        pointgroup: str | None = None,
+        smiles: str | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
-        """
-        Query equations of state docs using a variety of search criteria.
+        """Query equations of state docs using a variety of search criteria.
 
         Arguments:
             charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
@@ -49,7 +49,6 @@ class JcesrMoleculesRester(BaseRester[MoleculesDoc]):
         Returns:
             ([MoleculesDoc]) List of molecule documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         if elements:

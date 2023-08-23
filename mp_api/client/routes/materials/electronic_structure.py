@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.electronic_structure import (
     BSPathType,
@@ -33,22 +34,22 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        band_gap: Optional[Tuple[float, float]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        efermi: Optional[Tuple[float, float]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
+        material_ids: str | list[str] | None = None,
+        band_gap: tuple[float, float] | None = None,
+        chemsys: str | list[str] | None = None,
+        efermi: tuple[float, float] | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        formula: str | list[str] | None = None,
         is_gap_direct: bool = None,
         is_metal: bool = None,
-        magnetic_ordering: Optional[Ordering] = None,
-        num_elements: Optional[Tuple[int, int]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        magnetic_ordering: Ordering | None = None,
+        num_elements: tuple[int, int] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query electronic structure docs using a variety of search criteria.
 
@@ -165,17 +166,17 @@ class BandStructureRester(BaseRester):
 
     def search(
         self,
-        band_gap: Optional[Tuple[float, float]] = None,
-        efermi: Optional[Tuple[float, float]] = None,
+        band_gap: tuple[float, float] | None = None,
+        efermi: tuple[float, float] | None = None,
         is_gap_direct: bool = None,
         is_metal: bool = None,
-        magnetic_ordering: Optional[Ordering] = None,
+        magnetic_ordering: Ordering | None = None,
         path_type: BSPathType = BSPathType.setyawan_curtarolo,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query band structure summary data in electronic structure docs using a variety of search criteria.
 
@@ -245,7 +246,6 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-
         result = self._query_open_data(
             bucket="materialsproject-parsed", prefix="bandstructures", key=task_id
         )
@@ -337,18 +337,18 @@ class DosRester(BaseRester):
 
     def search(
         self,
-        band_gap: Optional[Tuple[float, float]] = None,
-        efermi: Optional[Tuple[float, float]] = None,
-        element: Optional[Element] = None,
-        magnetic_ordering: Optional[Ordering] = None,
-        orbital: Optional[OrbitalType] = None,
+        band_gap: tuple[float, float] | None = None,
+        efermi: tuple[float, float] | None = None,
+        element: Element | None = None,
+        magnetic_ordering: Ordering | None = None,
+        orbital: OrbitalType | None = None,
         projection_type: DOSProjectionType = DOSProjectionType.total,
         spin: Spin = Spin.up,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query density of states summary data in electronic structure docs using a variety of search criteria.
 

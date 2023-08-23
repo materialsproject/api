@@ -1,4 +1,4 @@
-from typing import List, Optional
+from __future__ import annotations
 
 from emmet.core.fermi import FermiDoc
 
@@ -12,10 +12,10 @@ class FermiRester(BaseRester[FermiDoc]):
 
     def search(
         self,
-        num_chunks: Optional[int] = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query fermi surface docs using a variety of search criteria.
 

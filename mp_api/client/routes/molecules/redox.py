@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from __future__ import annotations
 
 from emmet.core.molecules.redox import RedoxDoc
 from emmet.core.mpid import MPculeID
@@ -13,36 +13,35 @@ class MoleculesRedoxRester(BaseRester[RedoxDoc]):
 
     def search(
         self,
-        molecule_ids: Optional[Union[MPculeID, List[MPculeID]]] = None,
-        property_ids: Optional[Union[str, List[str]]] = None,
-        charge: Optional[int] = None,
-        spin_multiplicity: Optional[int] = None,
-        level_of_theory: Optional[str] = None,
-        solvent: Optional[str] = None,
-        lot_solvent: Optional[str] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        electrode: Optional[str] = None,
-        min_reduction_potential: Optional[float] = None,
-        max_reduction_potential: Optional[float] = None,
-        min_oxidation_potential: Optional[float] = None,
-        max_oxidation_potential: Optional[float] = None,
-        electron_affinity: Optional[Tuple[float, float]] = None,
-        ionization_energy: Optional[Tuple[float, float]] = None,
-        reduction_energy: Optional[Tuple[float, float]] = None,
-        reduction_free_energy: Optional[Tuple[float, float]] = None,
-        oxidation_energy: Optional[Tuple[float, float]] = None,
-        oxidation_free_energy: Optional[Tuple[float, float]] = None,
-        num_chunks: Optional[int] = None,
-        sort_fields: Optional[List[str]] = None,
+        molecule_ids: MPculeID | list[MPculeID] | None = None,
+        property_ids: str | list[str] | None = None,
+        charge: int | None = None,
+        spin_multiplicity: int | None = None,
+        level_of_theory: str | None = None,
+        solvent: str | None = None,
+        lot_solvent: str | None = None,
+        formula: str | list[str] | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        chemsys: str | list[str] | None = None,
+        electrode: str | None = None,
+        min_reduction_potential: float | None = None,
+        max_reduction_potential: float | None = None,
+        min_oxidation_potential: float | None = None,
+        max_oxidation_potential: float | None = None,
+        electron_affinity: tuple[float, float] | None = None,
+        ionization_energy: tuple[float, float] | None = None,
+        reduction_energy: tuple[float, float] | None = None,
+        reduction_free_energy: tuple[float, float] | None = None,
+        oxidation_energy: tuple[float, float] | None = None,
+        oxidation_free_energy: tuple[float, float] | None = None,
+        num_chunks: int | None = None,
+        sort_fields: list[str] | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
-        """
-        Query molecules redox docs using a variety of search criteria.
+        """Query molecules redox docs using a variety of search criteria.
 
         Arguments:
             molecule_ids (MPculeID, List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data
@@ -83,7 +82,6 @@ class MoleculesRedoxRester(BaseRester[RedoxDoc]):
         Returns:
             ([RedoxDoc]) List of molecule redox documents
         """
-
         query_params = {}  # type: dict
 
         min_max = [

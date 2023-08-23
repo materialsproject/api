@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from emmet.core.thermo import ThermoDoc, ThermoType
@@ -30,23 +31,23 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
     def search(
         self,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        energy_above_hull: Optional[Tuple[float, float]] = None,
-        equilibrium_reaction_energy: Optional[Tuple[float, float]] = None,
-        formation_energy: Optional[Tuple[float, float]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        is_stable: Optional[bool] = None,
-        material_ids: Optional[List[str]] = None,
-        num_elements: Optional[Tuple[int, int]] = None,
-        thermo_ids: Optional[List[str]] = None,
-        thermo_types: Optional[List[Union[ThermoType, str]]] = None,
-        total_energy: Optional[Tuple[float, float]] = None,
-        uncorrected_energy: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        chemsys: str | list[str] | None = None,
+        energy_above_hull: tuple[float, float] | None = None,
+        equilibrium_reaction_energy: tuple[float, float] | None = None,
+        formation_energy: tuple[float, float] | None = None,
+        formula: str | list[str] | None = None,
+        is_stable: bool | None = None,
+        material_ids: list[str] | None = None,
+        num_elements: tuple[int, int] | None = None,
+        thermo_ids: list[str] | None = None,
+        thermo_types: list[ThermoType | str] | None = None,
+        total_energy: tuple[float, float] | None = None,
+        uncorrected_energy: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query core material docs using a variety of search criteria.
 
@@ -155,7 +156,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         )
 
     def get_phase_diagram_from_chemsys(
-        self, chemsys: str, thermo_type: Union[ThermoType, str]
+        self, chemsys: str, thermo_type: ThermoType | str
     ) -> PhaseDiagram:
         """Get a pre-computed phase diagram for a given chemsys.
 

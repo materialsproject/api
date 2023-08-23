@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from __future__ import annotations
 
 from emmet.core.qchem.task import TaskDocument
 
@@ -15,18 +15,17 @@ class MoleculesTaskRester(BaseRester[TaskDocument]):
 
     def search(
         self,
-        task_ids: Optional[List[str]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        num_chunks: Optional[int] = None,
+        task_ids: list[str] | None = None,
+        chemsys: str | list[str] | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        formula: str | list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
-        """
-        Query core task docs using a variety of search criteria.
+        """Query core task docs using a variety of search criteria.
 
         Arguments:
             task_ids (List[str]): List of Materials Project IDs to return data for.
@@ -44,7 +43,6 @@ class MoleculesTaskRester(BaseRester[TaskDocument]):
         Returns:
             ([TaskDocument]) List of task documents
         """
-
         query_params = {}  # type: dict
 
         if task_ids:

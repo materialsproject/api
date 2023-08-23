@@ -1,4 +1,4 @@
-from typing import Dict
+from __future__ import annotations
 
 from emmet.core._general_store import GeneralStoreDoc
 
@@ -12,7 +12,7 @@ class GeneralStoreRester(BaseRester[GeneralStoreDoc]):  # pragma: no cover
     monty_decode = False
     use_document_model = False
 
-    def add_item(self, kind: str, markdown: str, meta: Dict):  # pragma: no cover
+    def add_item(self, kind: str, markdown: str, meta: dict):  # pragma: no cover
         """Set general store data.
 
         Args:
