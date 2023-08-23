@@ -85,6 +85,8 @@ ignore = [
     "B904",    # Within an except clause, raise exceptions with raise ... from err
     "D100",    # Missing docstring in public module
     "D104",    # Missing docstring in public package
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
     "D205",    # 1 blank line required between summary line and description
     "PLW2901", # Outer for loop variable overwritten by inner assignment target
     "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
