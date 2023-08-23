@@ -786,7 +786,7 @@ class MPRester:
         elif solid_compat == "MaterialsProject2020Compatibility":
             solid_compat = MaterialsProject2020Compatibility()
         elif isinstance(solid_compat, Compatibility):
-            solid_compat = solid_compat
+            pass
         else:
             raise ValueError(
                 "Solid compatibility can only be 'MaterialsProjectCompatibility', "

@@ -84,5 +84,5 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )
