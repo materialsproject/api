@@ -95,9 +95,10 @@ ignore = [
     "SIM115",  # Use context handler for opening files,
     "E501",
 ]
-exclude = ["docs", ".ruff_cache", "requirements", "test*"]
+exclude = ["docs", ".ruff_cache", "requirements", "test*", "settings.py"]
 pydocstyle.convention = "google"
 flake8-unused-arguments.ignore-variadic-names = true
+isort.required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.per-file-ignores]
 "*/__init__.py" = ["F401"] # F401: imported but unused
