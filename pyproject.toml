@@ -94,17 +94,3 @@ pydocstyle.convention = "google"
 
 [tool.ruff.per-file-ignores]
 "*/__init__.py" = ["F401"] # F401: imported but unused
-
-[tool.mypy]
-files = "mp_api"
-python_version = "3.8"
-strict = true
-show_error_codes = true
-enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-warn_unreachable = true
-
-
-# You can disable imports or control per-module/file settings here
-# [[tool.mypy.overrides]]
-# module = ["numpy.*"]
-# ignore_missing_imports = true
