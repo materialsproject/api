@@ -52,3 +52,7 @@ include = ["mp_api*"]
 namespaces = true
 
 [tool.setuptools_scm]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests", "integration"]
