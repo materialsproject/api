@@ -1,5 +1,5 @@
 import os
-import typing
+from core_function import client_search_testing
 
 import pytest
 from pymatgen.analysis.magnetism import Ordering
@@ -50,56 +50,9 @@ es_custom_field_tests = {
 def test_es_client(es_rester):
     search_method = es_rester.search
 
-    if search_method is not None:
-        # Get list of parameters
-        param_tuples = list(typing.get_type_hints(search_method).items())
-
-        # Query API for each numeric and boolean parameter and check if returned
-        for entry in param_tuples:
-            param = entry[0]
-            if param not in es_excluded_params:
-                try:
-                    param_type = entry[1].__args__[0]
-                except AttributeError:
-                    param_type = entry[1]
-
-                q = None
-
-                if param in es_custom_field_tests:
-                    project_field = es_alt_name_dict.get(param, None)
-                    q = {
-                        param: es_custom_field_tests[param],
-                        "chunk_size": 1,
-                        "num_chunks": 1,
-                    }
-                elif param_type == typing.Tuple[int, int]:
-                    project_field = es_alt_name_dict.get(param, None)
-                    q = {
-                        param: (-1000, 1000),
-                        "chunk_size": 1,
-                        "num_chunks": 1,
-                    }
-                elif param_type == typing.Tuple[float, float]:
-                    project_field = es_alt_name_dict.get(param, None)
-                    q = {
-                        param: (-1000.1234, 1000.1234),
-                        "chunk_size": 1,
-                        "num_chunks": 1,
-                    }
-                elif param_type is bool:
-                    project_field = es_alt_name_dict.get(param, None)
-                    q = {
-                        param: False,
-                        "chunk_size": 1,
-                        "num_chunks": 1,
-                    }
-
-                doc = search_method(**q)[0].dict()
-
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+    client_search_testing(search_method=search_method, excluded_params=es_excluded_params,
+                        alt_name_dict=es_alt_name_dict, custom_field_tests=es_custom_field_tests,
+                        sub_doc_fields=sub_doc_fields)
 
 
 bs_custom_field_tests = {

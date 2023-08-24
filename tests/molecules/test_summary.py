@@ -1,5 +1,5 @@
 import os
-import typing
+from core_function import client_search_testing
 
 import pytest
 from emmet.core.molecules.summary import HasProps
@@ -15,7 +15,7 @@ excluded_params = [
     "exclude_elements",
 ]
 
-alt_name = {"formula": "formula_alphabetical", "molecule_ids": "molecule_id"}
+alt_name_dict = {"formula": "formula_alphabetical", "molecule_ids": "molecule_id"}
 
 custom_field_tests = {
     "molecule_ids": ["351ef090ebd90b661a4e1205756f6957-C1Mg1N2O1S1-m2-1"],
@@ -38,48 +38,6 @@ custom_field_tests = {
 def test_client():
     search_method = MoleculesSummaryRester().search
 
-    # Get list of parameters
-    param_tuples = list(typing.get_type_hints(search_method).items())
-
-    # Query API for each numeric and boolean parameter and check if returned
-    for entry in param_tuples:
-        param = entry[0]
-        if param not in excluded_params:
-            param_type = entry[1].__args__[0]
-            q = None
-
-            print(param)
-
-            if param in custom_field_tests:
-                q = {
-                    param: custom_field_tests[param],
-                    "chunk_size": 1,
-                    "num_chunks": 1,
-                }
-            elif param_type == typing.Tuple[int, int]:
-                q = {
-                    param: (-100, 100),
-                    "chunk_size": 1,
-                    "num_chunks": 1,
-                }
-            elif param_type == typing.Tuple[float, float]:
-                q = {
-                    param: (-3000.12, 3000.12),
-                    "chunk_size": 1,
-                    "num_chunks": 1,
-                }
-            elif param_type is bool:
-                q = {
-                    param: False,
-                    "chunk_size": 1,
-                    "num_chunks": 1,
-                }
-
-            docs = search_method(**q)
-
-            if len(docs) > 0:
-                doc = docs[0].dict()
-            else:
-                raise ValueError("No documents returned")
-
-            assert doc[alt_name.get(param, param)] is not None
+    client_search_testing(search_method=search_method, excluded_params=excluded_params,
+                          alt_name_dict=alt_name_dict, custom_field_tests=custom_field_tests,
+                          sub_doc_fields=[])

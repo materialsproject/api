@@ -1,5 +1,5 @@
 import os
-import typing
+from core_function import client_search_testing
 
 import pytest
 
@@ -37,52 +37,6 @@ custom_field_tests = {
 def test_client(rester):
     search_method = rester.search
 
-    if search_method is not None:
-        # Get list of parameters
-        param_tuples = list(typing.get_type_hints(search_method).items())
-
-        # Query API for each numeric and boolean parameter and check if returned
-        for entry in param_tuples:
-            param = entry[0]
-            if param not in excluded_params:
-                param_type = entry[1].__args__[0]
-                q = None
-
-                if param_type == typing.Tuple[int, int]:
-                    project_field = alt_name_dict.get(param, None)
-                    q = {
-                        param: (-100, 100),
-                        "chunk_size": 1,
-                        "num_chunks": 1,
-                    }
-                elif param_type == typing.Tuple[float, float]:
-                    project_field = alt_name_dict.get(param, None)
-                    q = {
-                        param: (-100.12, 100.12),
-                        "chunk_size": 1,
-                        "num_chunks": 1,
-                    }
-                elif param_type is bool:
-                    project_field = alt_name_dict.get(param, None)
-                    q = {
-                        param: False,
-                        "chunk_size": 1,
-                        "num_chunks": 1,
-                    }
-                elif param in custom_field_tests:
-                    project_field = alt_name_dict.get(param, None)
-                    q = {
-                        param: custom_field_tests[param],
-                        "chunk_size": 1,
-                        "num_chunks": 1,
-                    }
-
-                doc = search_method(**q)[0].dict()
-                for sub_field in sub_doc_fields:
-                    if sub_field in doc:
-                        doc = doc[sub_field]
-
-                assert (
-                    doc[project_field if project_field is not None else param]
-                    is not None
-                )
+    client_search_testing(search_method=search_method, excluded_params=excluded_params,
+                          alt_name_dict=alt_name_dict, custom_field_tests=custom_field_tests,
+                          sub_doc_fields=sub_doc_fields)
