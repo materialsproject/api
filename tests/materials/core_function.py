@@ -38,7 +38,7 @@ def client_search_testing(search_method: Callable,
                 elif "tuple[float, float]" in param_type:
                     project_field = alt_name_dict.get(param, None)
                     q = {
-                        param: (0, 100.12),
+                        param: (-100.12, 100.12),
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
