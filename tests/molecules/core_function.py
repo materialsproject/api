@@ -1,11 +1,14 @@
 from __future__ import annotations
 from typing import Callable, Any
 
-def client_search_testing(search_method: Callable, 
-                          excluded_params: list[str], 
-                          alt_name_dict: dict[str, str], 
-                          custom_field_tests: dict[str, Any],
-                          sub_doc_fields: list[str]):
+
+def client_search_testing(
+    search_method: Callable,
+    excluded_params: list[str],
+    alt_name_dict: dict[str, str],
+    custom_field_tests: dict[str, Any],
+    sub_doc_fields: list[str],
+):
     """
     Function to test a client using its search method.
     Each parameter is used to query for data, which is then checked.
@@ -15,8 +18,8 @@ def client_search_testing(search_method: Callable,
         excluded_params (list[str]): List of parameters to exclude from testing
         alt_name_dict (dict[str, str]): Alternative names for parameters used in the projection and subsequent data checking
         custom_field_tests (dict[str, Any]): Custom queries for specific fields.
-        sub_doc_fields (list[str]): Prefixes for fields to check in resulting data. Useful when data to be tested is nested. 
-    """    
+        sub_doc_fields (list[str]): Prefixes for fields to check in resulting data. Useful when data to be tested is nested.
+    """
     if search_method is not None:
         # Get list of parameters
         param_tuples = list(search_method.__annotations__.items())
@@ -60,4 +63,3 @@ def client_search_testing(search_method: Callable,
                     raise ValueError("No documents returned")
 
                 assert doc[alt_name_dict.get(param, param)] is not None
-

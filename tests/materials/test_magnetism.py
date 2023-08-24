@@ -33,6 +33,10 @@ custom_field_tests = {"material_ids": ["mp-149"], "ordering": Ordering.FM}  # ty
 def test_client(rester):
     search_method = rester.search
 
-    client_search_testing(search_method=search_method, excluded_params=excluded_params,
-                        alt_name_dict=alt_name_dict, custom_field_tests=custom_field_tests,
-                        sub_doc_fields=sub_doc_fields)
+    client_search_testing(
+        search_method=search_method,
+        excluded_params=excluded_params,
+        alt_name_dict=alt_name_dict,
+        custom_field_tests=custom_field_tests,
+        sub_doc_fields=sub_doc_fields,
+    )

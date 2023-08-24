@@ -50,9 +50,13 @@ es_custom_field_tests = {
 def test_es_client(es_rester):
     search_method = es_rester.search
 
-    client_search_testing(search_method=search_method, excluded_params=es_excluded_params,
-                        alt_name_dict=es_alt_name_dict, custom_field_tests=es_custom_field_tests,
-                        sub_doc_fields=sub_doc_fields)
+    client_search_testing(
+        search_method=search_method,
+        excluded_params=es_excluded_params,
+        alt_name_dict=es_alt_name_dict,
+        custom_field_tests=es_custom_field_tests,
+        sub_doc_fields=sub_doc_fields,
+    )
 
 
 bs_custom_field_tests = {
