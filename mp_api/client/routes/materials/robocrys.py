@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import warnings
-from typing import List, Optional
 
 from emmet.core.robocrys import RobocrystallogapherDoc
 
@@ -23,9 +24,9 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
 
     def search(
         self,
-        keywords: List[str],
-        num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = 100,
+        keywords: list[str],
+        num_chunks: int | None = None,
+        chunk_size: int | None = 100,
     ):
         """Search text generated from Robocrystallographer.
 

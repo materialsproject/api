@@ -1,18 +1,26 @@
 default_stages: [commit]
-
 default_install_hook_types: [pre-commit, commit-msg]
 
+ci:
+  autoupdate_commit_msg: "chore: update pre-commit hooks"
+
 repos:
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.261
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.284
     hooks:
       - id: ruff
-        args: [--fix, --ignore, "D,E501"]
+        args: [--fix, --show-fixes]
 
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 23.7.0
     hooks:
-      - id: black-jupyter
+      - id: black
+
+  - repo: https://github.com/asottile/blacken-docs
+    rev: "1.15.0"
+    hooks:
+      - id: blacken-docs
+        additional_dependencies: [black>=23.7.0]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0

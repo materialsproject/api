@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.bonds import BondingDoc
 
@@ -25,17 +26,17 @@ class BondsRester(BaseRester[BondingDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        coordination_envs: Optional[List[str]] = None,
-        coordination_envs_anonymous: Optional[List[str]] = None,
-        max_bond_length: Optional[Tuple[float, float]] = None,
-        mean_bond_length: Optional[Tuple[float, float]] = None,
-        min_bond_length: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        coordination_envs: list[str] | None = None,
+        coordination_envs_anonymous: list[str] | None = None,
+        max_bond_length: tuple[float, float] | None = None,
+        mean_bond_length: tuple[float, float] | None = None,
+        min_bond_length: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query bonding docs using a variety of search criteria.
 
@@ -116,5 +117,5 @@ class BondsRester(BaseRester[BondingDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )

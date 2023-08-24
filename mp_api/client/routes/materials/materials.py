@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import warnings
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
@@ -20,7 +21,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True
-    ) -> Union[Structure, List[Structure]]:
+    ) -> Structure | list[Structure]:
         """Get a structure for a given Materials Project ID.
 
         Arguments:
@@ -52,25 +53,25 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        crystal_system: Optional[CrystalSystem] = None,
-        density: Optional[Tuple[float, float]] = None,
-        deprecated: Optional[bool] = False,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        num_elements: Optional[Tuple[int, int]] = None,
-        num_sites: Optional[Tuple[int, int]] = None,
-        spacegroup_number: Optional[int] = None,
-        spacegroup_symbol: Optional[str] = None,
-        task_ids: Optional[List[str]] = None,
-        volume: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        chemsys: str | list[str] | None = None,
+        crystal_system: CrystalSystem | None = None,
+        density: tuple[float, float] | None = None,
+        deprecated: bool | None = False,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        formula: str | list[str] | None = None,
+        num_elements: tuple[int, int] | None = None,
+        num_sites: tuple[int, int] | None = None,
+        spacegroup_number: int | None = None,
+        spacegroup_symbol: str | None = None,
+        task_ids: list[str] | None = None,
+        volume: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query core material docs using a variety of search criteria.
 
@@ -184,7 +185,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         stol=_EMMET_SETTINGS.STOL,
         angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
         allow_multiple_results=False,
-    ) -> Union[List[str], str]:
+    ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.
 
         Multiple results may be returned of "similar" structures based on

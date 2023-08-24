@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.polar import DielectricDoc
 
@@ -25,16 +26,16 @@ class DielectricRester(BaseRester[DielectricDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        e_total: Optional[Tuple[float, float]] = None,
-        e_ionic: Optional[Tuple[float, float]] = None,
-        e_electronic: Optional[Tuple[float, float]] = None,
-        n: Optional[Tuple[float, float]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        e_total: tuple[float, float] | None = None,
+        e_ionic: tuple[float, float] | None = None,
+        e_electronic: tuple[float, float] | None = None,
+        n: tuple[float, float] | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query dielectric docs using a variety of search criteria.
 
@@ -96,5 +97,5 @@ class DielectricRester(BaseRester[DielectricDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )

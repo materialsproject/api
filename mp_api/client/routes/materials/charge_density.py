@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Union
+from typing import Literal
 
 from emmet.core.charge_density import ChgcarDataDoc
 from monty.serialization import dumpfn
@@ -17,7 +19,7 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
     def download_for_task_ids(
         self,
         path: str,
-        task_ids: List[str],
+        task_ids: list[str],
         ext: Literal["json.gz", "json", "mpk", "mpk.gz"] = "json.gz",  # type: ignore
     ) -> int:
         """Download a set of charge densities.
@@ -42,11 +44,10 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
 
     def search(  # type: ignore
         self,
-        task_ids: Optional[List[str]] = None,
-        num_chunks: Optional[int] = 1,
+        task_ids: list[str] | None = None,
+        num_chunks: int | None = 1,
         chunk_size: int = 10,
-        **kwargs,
-    ) -> Union[List[ChgcarDataDoc], List[Dict]]:  # type: ignore
+    ) -> list[ChgcarDataDoc] | list[dict]:  # type: ignore
         """A search method to find what charge densities are available via this API.
 
         Arguments:

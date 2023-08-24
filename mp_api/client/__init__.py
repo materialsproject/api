@@ -1,4 +1,6 @@
 """Primary MAPI module."""
+from __future__ import annotations
+
 import os
 from importlib.metadata import PackageNotFoundError, version
 

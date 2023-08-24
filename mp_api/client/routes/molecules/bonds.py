@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from __future__ import annotations
 
 from emmet.core.molecules.bonds import MoleculeBondingDoc
 from emmet.core.mpid import MPculeID
@@ -13,29 +13,28 @@ class MoleculesBondRester(BaseRester[MoleculeBondingDoc]):
 
     def search(
         self,
-        molecule_ids: Optional[Union[MPculeID, List[MPculeID]]] = None,
-        property_ids: Optional[Union[str, List[str]]] = None,
-        method: Optional[str] = None,
-        bond_type: Optional[str] = None,
-        max_bond_length: Optional[float] = None,
-        min_bond_length: Optional[float] = None,
-        charge: Optional[int] = None,
-        spin_multiplicity: Optional[int] = None,
-        level_of_theory: Optional[str] = None,
-        solvent: Optional[str] = None,
-        lot_solvent: Optional[str] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        num_chunks: Optional[int] = None,
-        sort_fields: Optional[List[str]] = None,
+        molecule_ids: MPculeID | list[MPculeID] | None = None,
+        property_ids: str | list[str] | None = None,
+        method: str | None = None,
+        bond_type: str | None = None,
+        max_bond_length: float | None = None,
+        min_bond_length: float | None = None,
+        charge: int | None = None,
+        spin_multiplicity: int | None = None,
+        level_of_theory: str | None = None,
+        solvent: str | None = None,
+        lot_solvent: str | None = None,
+        formula: str | list[str] | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        chemsys: str | list[str] | None = None,
+        num_chunks: int | None = None,
+        sort_fields: list[str] | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
-        """
-        Query molecules bonding docs using a variety of search criteria.
+        """Query molecules bonding docs using a variety of search criteria.
 
         Arguments:
             molecule_ids (MPculeID, List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data
@@ -69,7 +68,6 @@ class MoleculesBondRester(BaseRester[MoleculeBondingDoc]):
         Returns:
             ([MoleculeBondingDoc]) List of bonding documents
         """
-
         query_params = {}  # type: dict
 
         if molecule_ids:

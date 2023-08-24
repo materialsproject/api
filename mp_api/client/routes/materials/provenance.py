@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from __future__ import annotations
 
 from emmet.core.provenance import ProvenanceDoc
 
@@ -13,12 +13,12 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
 
     def search(
         self,
-        material_ids: Optional[Union[str, List[str]]] = None,
-        deprecated: Optional[bool] = False,
-        num_chunks: Optional[int] = None,
+        material_ids: str | list[str] | None = None,
+        deprecated: bool | None = False,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query provenance docs using a variety of search criteria.
 
@@ -48,5 +48,5 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )

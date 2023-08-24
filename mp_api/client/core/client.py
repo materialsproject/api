@@ -2,6 +2,7 @@
 API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
+from __future__ import annotations
 
 import gzip
 import itertools
@@ -14,7 +15,7 @@ from copy import copy
 from json import JSONDecodeError
 from math import ceil
 from os import environ
-from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Generic, TypeVar
 from urllib.parse import quote, urljoin
 
 import requests
@@ -52,18 +53,18 @@ T = TypeVar("T")
 class BaseRester(Generic[T]):
     """Base client class with core stubs."""
 
-    suffix: Optional[str] = None
+    suffix: str | None = None
     document_model: BaseModel = None  # type: ignore
     supports_versions: bool = False
     primary_key: str = "material_id"
 
     def __init__(
         self,
-        api_key: Union[str, None] = None,
+        api_key: str | None = None,
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
-        session: Optional[requests.Session] = None,
-        s3_resource: Optional[Any] = None,
+        session: requests.Session | None = None,
+        s3_resource: Any | None = None,
         debug: bool = False,
         monty_decode: bool = True,
         use_document_model: bool = True,
@@ -191,11 +192,11 @@ class BaseRester(Generic[T]):
 
     def _post_resource(
         self,
-        body: Dict = None,
-        params: Optional[Dict] = None,
-        suburl: Optional[str] = None,
-        use_document_model: Optional[bool] = None,
-    ) -> Dict:
+        body: dict = None,
+        params: dict | None = None,
+        suburl: str | None = None,
+        use_document_model: bool | None = None,
+    ) -> dict:
         """Post data to the endpoint for a Resource.
 
         Arguments:
@@ -261,11 +262,11 @@ class BaseRester(Generic[T]):
 
     def _patch_resource(
         self,
-        body: Dict = None,
-        params: Optional[Dict] = None,
-        suburl: Optional[str] = None,
-        use_document_model: Optional[bool] = None,
-    ) -> Dict:
+        body: dict = None,
+        params: dict | None = None,
+        suburl: str | None = None,
+        use_document_model: bool | None = None,
+    ) -> dict:
         """Patch data to the endpoint for a Resource.
 
         Arguments:
@@ -330,7 +331,7 @@ class BaseRester(Generic[T]):
             raise MPRestError(str(ex))
 
     def _query_open_data(self, bucket: str, prefix: str, key: str) -> dict:
-        """Query Materials Project AWS open data s3 buckets
+        """Query Materials Project AWS open data s3 buckets.
 
         Args:
             bucket (str): Materials project bucket name
@@ -340,7 +341,6 @@ class BaseRester(Generic[T]):
         Returns:
             dict: MontyDecoded data
         """
-
         ref = self.s3_resource.Object(bucket, f"{prefix}/{key}.json.gz")  # type: ignore
         bytes = ref.get()["Body"]  # type: ignore
 
@@ -352,15 +352,15 @@ class BaseRester(Generic[T]):
 
     def _query_resource(
         self,
-        criteria: Optional[Dict] = None,
-        fields: Optional[List[str]] = None,
-        suburl: Optional[str] = None,
-        use_document_model: Optional[bool] = None,
-        parallel_param: Optional[str] = None,
-        num_chunks: Optional[int] = None,
-        chunk_size: Optional[int] = None,
-        timeout: Optional[int] = None,
-    ) -> Dict:
+        criteria: dict | None = None,
+        fields: list[str] | None = None,
+        suburl: str | None = None,
+        use_document_model: bool | None = None,
+        parallel_param: str | None = None,
+        num_chunks: int | None = None,
+        chunk_size: int | None = None,
+        timeout: int | None = None,
+    ) -> dict:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
 
@@ -429,7 +429,7 @@ class BaseRester(Generic[T]):
         num_chunks=None,
         chunk_size=None,
         timeout=None,
-    ) -> Dict:
+    ) -> dict:
         """Handle submitting requests. Parallel requests supported if possible.
         Parallelization will occur either over the largest list of supported
         query parameters used and/or over pagination.
@@ -712,7 +712,7 @@ class BaseRester(Generic[T]):
     def _multi_thread(
         self,
         use_document_model: bool,
-        params_list: List[dict],
+        params_list: list[dict],
         progress_bar: tqdm = None,
         timeout: int = None,
     ):
@@ -788,7 +788,7 @@ class BaseRester(Generic[T]):
         params: dict,
         use_document_model: bool,
         timeout: int = None,
-    ) -> Tuple[Dict, int]:
+    ) -> tuple[dict, int]:
         """Submits GET request and handles the response.
 
         Arguments:
@@ -936,12 +936,12 @@ class BaseRester(Generic[T]):
 
     def _query_resource_data(
         self,
-        criteria: Optional[Dict] = None,
-        fields: Optional[List[str]] = None,
-        suburl: Optional[str] = None,
-        use_document_model: Optional[bool] = None,
-        timeout: Optional[int] = None,
-    ) -> Union[List[T], List[Dict]]:
+        criteria: dict | None = None,
+        fields: list[str] | None = None,
+        suburl: str | None = None,
+        use_document_model: bool | None = None,
+        timeout: int | None = None,
+    ) -> list[T] | list[dict]:
         """Query the endpoint for a list of documents without associated meta information. Only
         returns a single page of results.
 
@@ -967,7 +967,7 @@ class BaseRester(Generic[T]):
     def get_data_by_id(
         self,
         document_id: str,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ) -> T:
         """Query the endpoint for a single document.
 
@@ -1039,12 +1039,12 @@ class BaseRester(Generic[T]):
 
     def _search(
         self,
-        num_chunks: Optional[int] = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
         **kwargs,
-    ) -> Union[List[T], List[Dict]]:
+    ) -> list[T] | list[dict]:
         """A generic search method to retrieve documents matching specific parameters.
 
         Arguments:
@@ -1082,7 +1082,7 @@ class BaseRester(Generic[T]):
         fields=None,
         chunk_size=1000,
         num_chunks=None,
-    ) -> Union[List[T], List[Dict]]:
+    ) -> list[T] | list[dict]:
         """Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
         implementation for the search_* methods on various endpoints. See
@@ -1124,10 +1124,14 @@ class BaseRester(Generic[T]):
 
         return results["data"]
 
-    def count(self, criteria: Optional[Dict] = None) -> Union[int, str]:
+    def count(self, criteria: dict | None = None) -> int | str:
         """Return a count of total documents.
-        :param criteria: As in .query()
-        :return:
+
+        Args:
+            criteria (dict | None): As in .query(). Defaults to None
+
+        Returns:
+            (int | str): Count of total results, or string indicating error
         """
         try:
             criteria = criteria or {}
@@ -1145,7 +1149,7 @@ class BaseRester(Generic[T]):
             return "Problem getting count"
 
     @property
-    def available_fields(self) -> List[str]:
+    def available_fields(self) -> list[str]:
         if self.document_model is None:
             return ["Unknown fields."]
         return list(self.document_model.schema()["properties"].keys())  # type: ignore

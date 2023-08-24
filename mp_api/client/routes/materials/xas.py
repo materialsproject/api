@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import warnings
-from typing import List, Optional, Union
 
 from emmet.core.xas import Edge, Type, XASDoc
 from pymatgen.core.periodic_table import Element
@@ -26,18 +27,18 @@ class XASRester(BaseRester[XASDoc]):
 
     def search(
         self,
-        edge: Optional[Edge] = None,
-        absorbing_element: Optional[Element] = None,
-        formula: Optional[str] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        elements: Optional[List[str]] = None,
-        material_ids: Optional[List[str]] = None,
-        spectrum_type: Optional[Type] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        edge: Edge | None = None,
+        absorbing_element: Element | None = None,
+        formula: str | None = None,
+        chemsys: str | list[str] | None = None,
+        elements: list[str] | None = None,
+        material_ids: list[str] | None = None,
+        spectrum_type: Type | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query core XAS docs using a variety of search criteria.
 

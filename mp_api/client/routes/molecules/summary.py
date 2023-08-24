@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
 
 from emmet.core.molecules.summary import HasProps, MoleculeSummaryDoc
 from emmet.core.mpid import MPculeID
@@ -14,29 +15,28 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
 
     def search(
         self,
-        charge: Optional[int] = None,
-        spin_multiplicity: Optional[int] = None,
-        nelements: Optional[Tuple[int, int]] = None,
-        chemsys: Optional[Union[str, List[str]]] = None,
-        deprecated: Optional[bool] = None,
-        elements: Optional[List[str]] = None,
-        exclude_elements: Optional[List[str]] = None,
-        formula: Optional[Union[str, List[str]]] = None,
-        has_props: Optional[List[HasProps]] = None,
-        molecule_ids: Optional[List[MPculeID]] = None,
+        charge: int | None = None,
+        spin_multiplicity: int | None = None,
+        nelements: tuple[int, int] | None = None,
+        chemsys: str | list[str] | None = None,
+        deprecated: bool | None = None,
+        elements: list[str] | None = None,
+        exclude_elements: list[str] | None = None,
+        formula: str | list[str] | None = None,
+        has_props: list[HasProps] | None = None,
+        molecule_ids: list[MPculeID] | None = None,
         # has_solvent: Optional[Union[str, List[str]]] = None,
         # has_level_of_theory: Optional[Union[str, List[str]]] = None,
         # has_lot_solvent: Optional[Union[str, List[str]]] = None,
         # with_solvent: Optional[str] = None,
         # num_sites: Optional[Tuple[int, int]] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
-        """
-        Query core data using a variety of search criteria.
+        """Query core data using a variety of search criteria.
 
         Arguments:
             charge (int): Minimum and maximum charge for the molecule.
@@ -70,7 +70,6 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
         Returns:
             ([MoleculeSummaryDoc]) List of molecules summary documents
         """
-
         query_params = defaultdict(dict)  # type: dict
 
         min_max = [

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple
 
 from emmet.core.grain_boundary import GBTypeEnum, GrainBoundaryDoc
 
@@ -26,21 +27,21 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
 
     def search(
         self,
-        chemsys: Optional[str] = None,
-        gb_plane: Optional[List[str]] = None,
-        gb_energy: Optional[Tuple[float, float]] = None,
-        material_ids: Optional[List[str]] = None,
-        pretty_formula: Optional[str] = None,
-        rotation_axis: Optional[List[str]] = None,
-        rotation_angle: Optional[Tuple[float, float]] = None,
-        separation_energy: Optional[Tuple[float, float]] = None,
-        sigma: Optional[int] = None,
-        type: Optional[GBTypeEnum] = None,
-        sort_fields: Optional[List[str]] = None,
-        num_chunks: Optional[int] = None,
+        chemsys: str | None = None,
+        gb_plane: list[str] | None = None,
+        gb_energy: tuple[float, float] | None = None,
+        material_ids: list[str] | None = None,
+        pretty_formula: str | None = None,
+        rotation_axis: list[str] | None = None,
+        rotation_angle: tuple[float, float] | None = None,
+        separation_energy: tuple[float, float] | None = None,
+        sigma: int | None = None,
+        type: GBTypeEnum | None = None,
+        sort_fields: list[str] | None = None,
+        num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
     ):
         """Query grain boundary docs using a variety of search criteria.
 
@@ -125,5 +126,5 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
-            **query_params
+            **query_params,
         )

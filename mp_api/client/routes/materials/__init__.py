@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .absorption import AbsorptionRester
 from .bonds import BondsRester
 from .chemenv import ChemenvRester
