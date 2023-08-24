@@ -44,7 +44,6 @@ mp\_api.client.mprester.MPRester
       ~MPRester.get_task_ids_associated_with_material_id
       ~MPRester.get_wulff_shape
       ~MPRester.query
-      ~MPRester.submit_structures
    
    
 

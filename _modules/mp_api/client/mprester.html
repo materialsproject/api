@@ -29,12 +29,14 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.mprester</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">loads</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span>
 
 <span class="kn">from</span> <span class="nn">emmet.core.electronic_structure</span> <span class="kn">import</span> <span class="n">BSPathType</span>
 <span class="kn">from</span> <span class="nn">emmet.core.mpid</span> <span class="kn">import</span> <span class="n">MPID</span>
@@ -152,7 +154,7 @@
 
 <div class="viewcode-block" id="MPRester.__init__"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_ENDPOINT</span><span class="p">,</span>
         <span class="n">notify_db_version</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">include_user_agent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -161,37 +163,36 @@
         <span class="n">session</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Args:</span>
-<span class="sd">            api_key (str): A String API key for accessing the MaterialsProject</span>
-<span class="sd">                REST interface. Please obtain your API key at</span>
-<span class="sd">                https://next-gen.materialsproject.org/api. If this is None,</span>
-<span class="sd">                the code will check if there is a &quot;MP_API_KEY&quot; setting.</span>
-<span class="sd">                If so, it will use that environment variable. This makes</span>
-<span class="sd">                easier for heavy users to simply add this environment variable to</span>
-<span class="sd">                their setups and MPRester can then be called without any arguments.</span>
-<span class="sd">            endpoint (str): Url of endpoint to access the MaterialsProject REST</span>
-<span class="sd">                interface. Defaults to the standard Materials Project REST</span>
-<span class="sd">                address at &quot;https://api.materialsproject.org&quot;, but</span>
-<span class="sd">                can be changed to other urls implementing a similar interface.</span>
-<span class="sd">            notify_db_version (bool): If True, the current MP database version will</span>
-<span class="sd">                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database</span>
-<span class="sd">                version changes, you will be notified. The current database version is</span>
-<span class="sd">                also printed on instantiation. These local logs are not sent to</span>
-<span class="sd">                materialsproject.org and are not associated with your API key, so be</span>
-<span class="sd">                aware that a notification may not be presented if you run MPRester</span>
-<span class="sd">                from multiple computing environments.</span>
-<span class="sd">            include_user_agent (bool): If True, will include a user agent with the</span>
-<span class="sd">                HTTP request including information on pymatgen and system version</span>
-<span class="sd">                making the API request. This helps MP support pymatgen users, and</span>
-<span class="sd">                is similar to what most web browsers send with each page request.</span>
-<span class="sd">                Set to False to disable the user agent.</span>
-<span class="sd">            monty_decode: Decode the data using monty into python objects</span>
-<span class="sd">            use_document_model: If False, skip the creating the document model and return data</span>
-<span class="sd">                as a dictionary. This can be simpler to work with but bypasses data validation</span>
-<span class="sd">                and will not give auto-complete for available fields.</span>
-<span class="sd">            session (Session): Session object to use. By default (None), the client will create one.</span>
-<span class="sd">            headers (dict): Custom headers for localhost connections.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Args:</span>
+<span class="sd">        api_key (str): A String API key for accessing the MaterialsProject</span>
+<span class="sd">        REST interface. Please obtain your API key at</span>
+<span class="sd">        https://next-gen.materialsproject.org/api. If this is None,</span>
+<span class="sd">        the code will check if there is a &quot;MP_API_KEY&quot; setting.</span>
+<span class="sd">        If so, it will use that environment variable. This makes</span>
+<span class="sd">        easier for heavy users to simply add this environment variable to</span>
+<span class="sd">        their setups and MPRester can then be called without any arguments.</span>
+<span class="sd">        endpoint (str): Url of endpoint to access the MaterialsProject REST</span>
+<span class="sd">        interface. Defaults to the standard Materials Project REST</span>
+<span class="sd">        address at &quot;https://api.materialsproject.org&quot;, but</span>
+<span class="sd">        can be changed to other urls implementing a similar interface.</span>
+<span class="sd">        notify_db_version (bool): If True, the current MP database version will</span>
+<span class="sd">        be retrieved and logged locally in the ~/.mprester.log.yaml. If the database</span>
+<span class="sd">        version changes, you will be notified. The current database version is</span>
+<span class="sd">        also printed on instantiation. These local logs are not sent to</span>
+<span class="sd">        materialsproject.org and are not associated with your API key, so be</span>
+<span class="sd">        aware that a notification may not be presented if you run MPRester</span>
+<span class="sd">        from multiple computing environments.</span>
+<span class="sd">        include_user_agent (bool): If True, will include a user agent with the</span>
+<span class="sd">        HTTP request including information on pymatgen and system version</span>
+<span class="sd">        making the API request. This helps MP support pymatgen users, and</span>
+<span class="sd">        is similar to what most web browsers send with each page request.</span>
+<span class="sd">        Set to False to disable the user agent.</span>
+<span class="sd">        monty_decode: Decode the data using monty into python objects</span>
+<span class="sd">        use_document_model: If False, skip the creating the document model and return data</span>
+<span class="sd">        as a dictionary. This can be simpler to work with but bypasses data validation</span>
+<span class="sd">        and will not give auto-complete for available fields.</span>
+<span class="sd">        session (Session): Session object to use. By default (None), the client will create one.</span>
+<span class="sd">        headers (dict): Custom headers for localhost connections.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">api_key</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">32</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -391,8 +392,8 @@
             <span class="p">)</span>
 
 <div class="viewcode-block" id="MPRester.get_task_ids_associated_with_material_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_task_ids_associated_with_material_id</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">calc_types</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">CalcType</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">calc_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CalcType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;:param material_id:</span>
 <span class="sd">        :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]</span>
 <span class="sd">        :return:</span>
@@ -409,7 +410,7 @@
 
 <div class="viewcode-block" id="MPRester.get_structure_by_material_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_structure_by_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_structure_by_material_id</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">final</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Structure</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Structure</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Structure</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Structure</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a Structure corresponding to a material_id.</span>
 
 <span class="sd">        Args:</span>
@@ -456,13 +457,11 @@
         <span class="k">return</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+</span> <span class="s2">&quot;heartbeat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;db_version&quot;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="MPRester.get_emmet_version"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_emmet_version">[docs]</a>    <span class="k">def</span> <span class="nf">get_emmet_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the latest version emmet-core and emmet-api used in the</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the latest version emmet-core and emmet-api used in the</span>
 <span class="sd">        current API service.</span>
 
 <span class="sd">        Returns: version as a string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">response</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+</span> <span class="s2">&quot;heartbeat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
         <span class="n">error</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -471,7 +470,7 @@
 
         <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="MPRester.get_material_id_from_task_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_material_id_from_task_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_material_id_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<div class="viewcode-block" id="MPRester.get_material_id_from_task_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_material_id_from_task_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_material_id_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the current material_id from a given task_id. The</span>
 <span class="sd">        material_id should rarely change, and is usually chosen from</span>
 <span class="sd">        among the smallest numerical id from the group of task_ids for</span>
@@ -497,7 +496,7 @@
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="MPRester.get_materials_id_from_task_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_materials_id_from_task_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_materials_id_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<div class="viewcode-block" id="MPRester.get_materials_id_from_task_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_materials_id_from_task_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_materials_id_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;This method is deprecated, please use get_material_id_from_task_id.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;This method is deprecated, please use get_material_id_from_task_id.&quot;</span><span class="p">,</span>
@@ -505,7 +504,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_material_id_from_task_id</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MPRester.get_material_id_references"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_material_id_references">[docs]</a>    <span class="k">def</span> <span class="nf">get_material_id_references</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="MPRester.get_material_id_references"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_material_id_references">[docs]</a>    <span class="k">def</span> <span class="nf">get_material_id_references</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns all references for a material id.</span>
 
 <span class="sd">        Args:</span>
@@ -516,7 +515,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">provenance</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span><span class="n">material_id</span><span class="p">)</span><span class="o">.</span><span class="n">references</span></div>
 
-<div class="viewcode-block" id="MPRester.get_materials_id_references"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_materials_id_references">[docs]</a>    <span class="k">def</span> <span class="nf">get_materials_id_references</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="MPRester.get_materials_id_references"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_materials_id_references">[docs]</a>    <span class="k">def</span> <span class="nf">get_materials_id_references</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;This method is deprecated, please use get_material_id_references.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;This method is deprecated, please use get_material_id_references instead.&quot;</span><span class="p">,</span>
@@ -526,8 +525,8 @@
 
 <div class="viewcode-block" id="MPRester.get_material_ids"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_material_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_material_ids</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">chemsys_formula</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MPID</span><span class="p">]:</span>
+        <span class="n">chemsys_formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">MPID</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all materials ids for a formula or chemsys.</span>
 
 <span class="sd">        Args:</span>
@@ -555,8 +554,8 @@
 
 <div class="viewcode-block" id="MPRester.get_materials_ids"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_materials_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_materials_ids</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">chemsys_formula</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MPID</span><span class="p">]:</span>
+        <span class="n">chemsys_formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">MPID</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;This method is deprecated, please use get_material_ids.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;This method is deprecated, please use get_material_ids.&quot;</span><span class="p">,</span>
@@ -565,8 +564,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_material_ids</span><span class="p">(</span><span class="n">chemsys_formula</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MPRester.get_structures"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_structures">[docs]</a>    <span class="k">def</span> <span class="nf">get_structures</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">chemsys_formula</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Structure</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">chemsys_formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Structure</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of Structures corresponding to a chemical system or formula.</span>
 
 <span class="sd">        Args:</span>
@@ -608,12 +607,12 @@
 
 <div class="viewcode-block" id="MPRester.find_structure"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.find_structure">[docs]</a>    <span class="k">def</span> <span class="nf">find_structure</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">filename_or_structure</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Structure</span><span class="p">],</span>
+        <span class="n">filename_or_structure</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Structure</span><span class="p">,</span>
         <span class="n">ltol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_EMMET_SETTINGS</span><span class="o">.</span><span class="n">LTOL</span><span class="p">,</span>
         <span class="n">stol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_EMMET_SETTINGS</span><span class="o">.</span><span class="n">STOL</span><span class="p">,</span>
         <span class="n">angle_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_EMMET_SETTINGS</span><span class="o">.</span><span class="n">ANGLE_TOL</span><span class="p">,</span>
         <span class="n">allow_multiple_results</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds matching structures from the Materials Project database.</span>
 
 <span class="sd">        Multiple results may be returned of &quot;similar&quot; structures based on</span>
@@ -644,14 +643,14 @@
 
 <div class="viewcode-block" id="MPRester.get_entries"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_entries">[docs]</a>    <span class="k">def</span> <span class="nf">get_entries</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">chemsys_formula_mpids</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+        <span class="n">chemsys_formula_mpids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">compatible_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">inc_structure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">property_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">property_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">sort_by_e_above_hull</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">additional_criteria</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of ComputedEntries or ComputedStructureEntries corresponding</span>
 <span class="sd">        to a chemical system or formula.</span>
 
@@ -779,9 +778,9 @@
 
 <div class="viewcode-block" id="MPRester.get_pourbaix_entries"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_pourbaix_entries">[docs]</a>    <span class="k">def</span> <span class="nf">get_pourbaix_entries</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">chemsys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">],</span>
+        <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">,</span>
         <span class="n">solid_compat</span><span class="o">=</span><span class="s2">&quot;MaterialsProject2020Compatibility&quot;</span><span class="p">,</span>
-        <span class="n">use_gibbs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">300</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_gibbs</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">300</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A helper function to get all entries necessary to generate</span>
 <span class="sd">        a Pourbaix diagram from the rest interface.</span>
@@ -817,7 +816,7 @@
         <span class="k">elif</span> <span class="n">solid_compat</span> <span class="o">==</span> <span class="s2">&quot;MaterialsProject2020Compatibility&quot;</span><span class="p">:</span>
             <span class="n">solid_compat</span> <span class="o">=</span> <span class="n">MaterialsProject2020Compatibility</span><span class="p">()</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solid_compat</span><span class="p">,</span> <span class="n">Compatibility</span><span class="p">):</span>
-            <span class="n">solid_compat</span> <span class="o">=</span> <span class="n">solid_compat</span>
+            <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Solid compatibility can only be &#39;MaterialsProjectCompatibility&#39;, &quot;</span>
@@ -904,7 +903,7 @@
         <span class="k">return</span> <span class="n">pbx_entries</span></div>
 
 <div class="viewcode-block" id="MPRester.get_ion_reference_data"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_ion_reference_data">[docs]</a>    <span class="nd">@lru_cache</span>
-    <span class="k">def</span> <span class="nf">get_ion_reference_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">get_ion_reference_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Download aqueous ion reference data used in the construction of Pourbaix diagrams.</span>
 
 <span class="sd">        Use this method to examine the ion reference data and to add additional</span>
@@ -938,9 +937,7 @@
             <span class="n">paginate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MPRester.get_ion_reference_data_for_chemsys"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys">[docs]</a>    <span class="k">def</span> <span class="nf">get_ion_reference_data_for_chemsys</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<div class="viewcode-block" id="MPRester.get_ion_reference_data_for_chemsys"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_ion_reference_data_for_chemsys">[docs]</a>    <span class="k">def</span> <span class="nf">get_ion_reference_data_for_chemsys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Download aqueous ion reference data used in the construction of Pourbaix diagrams.</span>
 
 <span class="sd">        Use this method to examine the ion reference data and to add additional</span>
@@ -980,8 +977,8 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">ion_data</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;MajElements&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chemsys</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="MPRester.get_ion_entries"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_ion_entries">[docs]</a>    <span class="k">def</span> <span class="nf">get_ion_entries</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">pd</span><span class="p">:</span> <span class="n">PhaseDiagram</span><span class="p">,</span> <span class="n">ion_ref_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">IonEntry</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">pd</span><span class="p">:</span> <span class="n">PhaseDiagram</span><span class="p">,</span> <span class="n">ion_ref_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">IonEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve IonEntry objects that can be used in the construction of</span>
 <span class="sd">        Pourbaix Diagrams. The energies of the IonEntry are calculaterd from</span>
 <span class="sd">        the solid energies in the provided Phase Diagram to be</span>
@@ -1074,7 +1071,7 @@
         <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">compatible_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">inc_structure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">property_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">property_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all ComputedEntry objects corresponding to a material_id.</span>
@@ -1112,11 +1109,11 @@
 
 <div class="viewcode-block" id="MPRester.get_entries_in_chemsys"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_entries_in_chemsys">[docs]</a>    <span class="k">def</span> <span class="nf">get_entries_in_chemsys</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">elements</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
-        <span class="n">use_gibbs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">elements</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">use_gibbs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">compatible_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">inc_structure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">property_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">property_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">additional_criteria</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
@@ -1255,22 +1252,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phonon</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ph_bs&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">ph_bs</span></div>
 
-<div class="viewcode-block" id="MPRester.submit_structures"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.submit_structures">[docs]</a>    <span class="k">def</span> <span class="nf">submit_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">public_name</span><span class="p">,</span> <span class="n">public_email</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Submits a list of structures to the Materials Project.</span>
-
-<span class="sd">        Note that public_name and public_email will be used to credit the</span>
-<span class="sd">        submitter on the Materials Project website.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            structures: A list of Structure objects</span>
-
-
-<span class="sd">        Returns:</span>
-<span class="sd">            ?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO: call new MPComplete endpoint</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
-
 <div class="viewcode-block" id="MPRester.get_wulff_shape"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_wulff_shape">[docs]</a>    <span class="k">def</span> <span class="nf">get_wulff_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs a Wulff shape for a material.</span>
 
@@ -1302,7 +1283,7 @@
 
 <div class="viewcode-block" id="MPRester.get_charge_density_from_material_id"><a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_charge_density_from_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_charge_density_from_material_id</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">inc_task_doc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Chgcar</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Chgcar</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get charge density data for a given Materials Project ID.</span>
 
 <span class="sd">        Arguments:</span>
@@ -1323,7 +1304,7 @@
         <span class="n">task_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_ids_associated_with_material_id</span><span class="p">(</span>
             <span class="n">material_id</span><span class="p">,</span> <span class="n">calc_types</span><span class="o">=</span><span class="p">[</span><span class="n">CalcType</span><span class="o">.</span><span class="n">GGA_Static</span><span class="p">,</span> <span class="n">CalcType</span><span class="o">.</span><span class="n">GGA_U_Static</span><span class="p">]</span>
         <span class="p">)</span>
-        <span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TaskDoc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">task_ids</span><span class="o">=</span><span class="n">task_ids</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;last_updated&quot;</span><span class="p">,</span> <span class="s2">&quot;task_id&quot;</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
+        <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TaskDoc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">task_ids</span><span class="o">=</span><span class="n">task_ids</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;last_updated&quot;</span><span class="p">,</span> <span class="s2">&quot;task_id&quot;</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -1415,8 +1396,8 @@
         <span class="n">urls</span> <span class="o">=</span> <span class="p">[</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">tids</span> <span class="k">for</span> <span class="n">tids</span> <span class="ow">in</span> <span class="n">nomad_exist_task_ids</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">meta</span><span class="p">,</span> <span class="n">urls</span></div>
 
-    <span class="k">def</span> <span class="nf">_check_get_download_info_url_by_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">task_ids</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="n">nomad_exist_task_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="nf">_check_get_download_info_url_by_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">task_ids</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="n">nomad_exist_task_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/raw/query&quot;</span><span class="p">,</span> <span class="s2">&quot;/repo/&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">task_id</span> <span class="ow">in</span> <span class="n">task_ids</span><span class="p">:</span>
             <span class="n">url</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">task_id</span>
