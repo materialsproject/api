@@ -77,21 +77,21 @@ def api_sanitize(
 
     for model in models:
         model_fields_to_leave = {f[1] for f in fields_tuples if model.__name__ == f[0]}
-        for name in model.__fields__:
-            field = model.__fields__[name]
+        for name in model.model_fields:
+            field = model.model_fields[name]
             field_type = field.annotation
-
-            if name not in model_fields_to_leave:
-                new_field = FieldInfo.from_annotated_attribute(Optional[field_type], None)
-                model.__fields__[name] = new_field
 
             if field_type is not None and allow_dict_msonable:
                 if lenient_issubclass(field_type, MSONable):
-                    field.annotation = allow_msonable_dict(field_type)
+                    field_type = allow_msonable_dict(field_type)
                 else:
                     for sub_type in get_args(field_type):
                         if lenient_issubclass(sub_type, MSONable):
                             allow_msonable_dict(sub_type)
+
+            if name not in model_fields_to_leave:
+                new_field = FieldInfo.from_annotated_attribute(Optional[field_type], None)
+                model.model_fields[name] = new_field
 
         model.model_rebuild(force=True)
 

@@ -880,17 +880,17 @@ class BaseRester(Generic[T]):
 
         data_model = create_model(
             "MPDataDoc",
-            fields_not_requested=unset_fields,
+            fields_not_requested=(list[str], unset_fields),
             __base__=self.document_model,
         )
 
-        data_model.__fields__ = {
+        data_model.model_fields = {
             **{
                 name: description
-                for name, description in data_model.__fields__.items()
+                for name, description in data_model.model_fields.items()
                 if name in set_fields
             },
-            "fields_not_requested": data_model.__fields__["fields_not_requested"],
+            "fields_not_requested": data_model.model_fields["fields_not_requested"],
         }
 
         def new_repr(self) -> str:
