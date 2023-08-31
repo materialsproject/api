@@ -2,7 +2,8 @@ import os
 from multiprocessing import cpu_count
 from typing import List
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 from pymatgen.core import _load_pmg_settings
 
 from mp_api.client import __file__ as root_dir
