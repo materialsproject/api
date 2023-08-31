@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import get_args
+from typing import get_args, Optional
 
 from monty.json import MSONable
 from pydantic import BaseModel
@@ -82,7 +82,7 @@ def api_sanitize(
             field_type = field.annotation
 
             if name not in model_fields_to_leave:
-                new_field = FieldInfo.from_annotated_attribute(field_type, None)
+                new_field = FieldInfo.from_annotated_attribute(Optional[field_type], None)
                 model.__fields__[name] = new_field
 
             if field_type is not None and allow_dict_msonable:
@@ -92,6 +92,8 @@ def api_sanitize(
                     for sub_type in get_args(field_type):
                         if lenient_issubclass(sub_type, MSONable):
                             allow_msonable_dict(sub_type)
+
+        model.model_rebuild(force=True)
 
     return pydantic_model
 
