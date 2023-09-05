@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import warnings
-from functools import lru_cache
+from functools import lru_cache, cache
 from json import loads
 from os import environ
 from typing import Literal
@@ -182,7 +182,7 @@ class MPRester:
         self.monty_decode = monty_decode
 
         # Check if emmet version of server is compatible
-        emmet_version = version.parse(self.get_emmet_version())
+        emmet_version = MPRester.get_emmet_version(self.endpoint)
 
         try:
             from mpcontribs.client import Client
@@ -452,19 +452,21 @@ class MPRester:
         """
         return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
-    def get_emmet_version(self):
+    @cache
+    @staticmethod
+    def get_emmet_version(endpoint):
         """Get the latest version emmet-core and emmet-api used in the
         current API service.
 
         Returns: version as a string
         """
-        response = get(url=self.endpoint + "heartbeat").json()
+        response = get(url=endpoint + "heartbeat").json()
 
         error = response.get("error", None)
         if error:
             raise MPRestError(error)
 
-        return response["version"]
+        return version.parse(response["version"])
 
     def get_material_id_from_task_id(self, task_id: str) -> str | None:
         """Returns the current material_id from a given task_id. The
