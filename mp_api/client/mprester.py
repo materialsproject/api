@@ -215,9 +215,12 @@ class MPRester:
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        # Set rester attributes
+        ### Dynamically set rester attributes.
+        ### First, materials and molecules top level resters are set.
+        ### Nested rested are then setup to be loaded dyanmically with custom __getattr__ functions.
         resters = []
 
+        # Get all rester classes
         for _cls in BaseRester.__subclasses__():
             sub_resters = _cls.__subclasses__()
             if sub_resters:
@@ -225,6 +228,7 @@ class MPRester:
             else:
                 resters.append(_cls)
 
+        # Instantiate top level molecules and materials resters and set them as attributes
         core_suffix = ["molecules/core", "materials/core"]
 
         core_resters = {
@@ -241,9 +245,16 @@ class MPRester:
             if cls.suffix in core_suffix
         }
 
+        # Set remaining top level resters, or get an attribute-class name mapping
+        # for all sub-resters
+        _sub_rester_suffix_map = {"materials": {}, "molecules": {}}
+
         for cls in resters:
             if cls.suffix not in core_suffix:
-                rester = cls(
+                suffix_split = cls.suffix.split("/")
+
+                if len(suffix_split) == 1:
+                    rester = cls(
                     api_key=api_key,
                     endpoint=endpoint,
                     include_user_agent=include_user_agent,
@@ -254,12 +265,6 @@ class MPRester:
                     use_document_model=use_document_model,
                     headers=self.headers,
                 )  # type: BaseRester
-
-                self._all_resters.append(rester)
-
-                suffix_split = cls.suffix.split("/")
-
-                if len(suffix_split) == 1:
                     setattr(
                         self,
                         suffix_split[0],
@@ -268,17 +273,50 @@ class MPRester:
                 else:
                     attr = "_".join(suffix_split[1:])
                     if "materials" in suffix_split:
-                        setattr(
-                            core_resters["materials"],
-                            attr,
-                            rester,
-                        )
+                        _sub_rester_suffix_map["materials"][attr] = cls
                     elif "molecules" in suffix_split:
-                        setattr(
-                            core_resters["molecules"],
-                            attr,
-                            rester,
+                        _sub_rester_suffix_map["molecules"][attr] = cls
+
+        # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
+        def __core_custom_getattr(_self, _attr, _rester_map):
+                if _attr in _rester_map:
+                    cls = _rester_map[_attr]
+                    rester = cls(
+                            api_key=api_key,
+                            endpoint=endpoint,
+                            include_user_agent=include_user_agent,
+                            session=self.session,
+                            monty_decode=monty_decode
+                            if cls not in [TaskRester, ProvenanceRester]  # type: ignore
+                            else False,  # Disable monty decode on nested data which may give errors
+                            use_document_model=use_document_model,
+                            headers=self.headers,
+                        )  # type: BaseRester
+
+                    setattr(
+                        _self,
+                        _attr,
+                        rester,
                         )
+
+                    return rester
+                else:
+                    raise AttributeError(
+                        f"{_self.__class__.__name__!r} object has no attribute {attr!r}"
+                    )
+
+        def __materials_getattr__(_self, attr):
+            _rester_map = _sub_rester_suffix_map["materials"]
+            rester = __core_custom_getattr(_self, attr, _rester_map)
+            return rester
+
+        def __molecules_getattr__(_self, attr):
+            _rester_map = _sub_rester_suffix_map["molecules"]
+            rester = __core_custom_getattr(_self, attr, _rester_map)
+            return rester
+
+        MaterialsRester.__getattr__ = __materials_getattr__
+        MoleculeRester.__getattr__ = __molecules_getattr__
 
         for attr, rester in core_resters.items():
             setattr(
@@ -296,6 +334,16 @@ class MPRester:
         self.session.close()
 
     def __getattribute__(self, attr):
+        if "molecules" in attr:
+            warnings.warn(
+                "NOTE: You are accessing a new set of molecules data to be officially released very soon. "
+                "This dataset includes many new properties, and is designed to be more easily expanded. "
+                "For the previous (legacy) molecules data, use the MPRester.molecules.jcesr rester. "
+            )
+
+        return super().__getattribute__(attr)
+
+    def __getattr__(self, attr):
         _deprecated_attributes = [
             "eos",
             "similarity",
@@ -326,35 +374,14 @@ class MPRester:
             "absorption",
             "chemenv",
         ]
-
-        if "molecules" in attr:
-            warnings.warn(
-                "NOTE: You are accessing a new set of molecules data to be officially released very soon. "
-                "This dataset includes many new properties, and is designed to be more easily expanded. "
-                "For the previous (legacy) molecules data, use the MPRester.molecules.jcesr rester. "
-            )
-        elif attr in _deprecated_attributes:
+        if attr in _deprecated_attributes:
             warnings.warn(
                 f"Accessing {attr} data through MPRester.{attr} is deprecated. "
                 f"Please use MPRester.materials.{attr} instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
-            return super().__getattribute__("materials").__getattribute__(attr)
-        return super().__getattribute__(attr)
-
-    def __getattr__(self, attr):
-        if attr == "alloys":
-            raise MPRestError(
-                "Alloy addon package not installed. "
-                "To query alloy data first install with: 'pip install pymatgen-analysis-alloys'"
-            )
-        elif attr == "charge_density":
-            raise MPRestError(
-                "boto3 not installed. "
-                "To query charge density data first install with: 'pip install boto3'"
-            )
-
+            return getattr(super().__getattribute__("materials"), attr)
         else:
             raise AttributeError(
                 f"{self.__class__.__name__!r} object has no attribute {attr!r}"
