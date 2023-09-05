@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import get_args, Optional
 
+from functools import cache
 from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
@@ -46,7 +47,7 @@ def get_flat_models_from_model(model: BaseModel, known_models: set[BaseModel] = 
 
     return known_models
 
-
+@cache
 def api_sanitize(
     pydantic_model: BaseModel,
     fields_to_leave: list[str] | None = None,
@@ -65,6 +66,7 @@ def api_sanitize(
         allow_dict_msonable (bool): Whether to allow dictionaries in place of MSONable quantities.
             Defaults to False
     """
+
     models = [
         model
         for model in get_flat_models_from_model(pydantic_model)
