@@ -207,8 +207,6 @@ class MPRester:
                 "Please install a previous version if any problems occur."
             )
 
-        self._all_resters = []
-
         if notify_db_version:
             raise NotImplementedError("This has not yet been implemented.")
 
@@ -218,15 +216,15 @@ class MPRester:
         ### Dynamically set rester attributes.
         ### First, materials and molecules top level resters are set.
         ### Nested rested are then setup to be loaded dyanmically with custom __getattr__ functions.
-        resters = []
+        self._all_resters = []
 
         # Get all rester classes
         for _cls in BaseRester.__subclasses__():
             sub_resters = _cls.__subclasses__()
             if sub_resters:
-                resters.extend(sub_resters)
+                self._all_resters.extend(sub_resters)
             else:
-                resters.append(_cls)
+                self._all_resters.append(_cls)
 
         # Instantiate top level molecules and materials resters and set them as attributes
         core_suffix = ["molecules/core", "materials/core"]
@@ -241,7 +239,7 @@ class MPRester:
                 use_document_model=use_document_model,
                 headers=self.headers,
             )
-            for cls in resters
+            for cls in self._all_resters
             if cls.suffix in core_suffix
         }
 
@@ -249,7 +247,7 @@ class MPRester:
         # for all sub-resters
         _sub_rester_suffix_map = {"materials": {}, "molecules": {}}
 
-        for cls in resters:
+        for cls in self._all_resters:
             if cls.suffix not in core_suffix:
                 suffix_split = cls.suffix.split("/")
 
