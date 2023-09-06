@@ -42,8 +42,8 @@ alt_name_dict = {
 custom_field_tests = {
     "material_ids": ["mp-149"],
     "formula": "Si",
-    "chemsys": "Si-O",
-    "elements": ["Si", "O"],
+    "chemsys": "Si-P",
+    "elements": ["Si", "P"],
     "task_ids": ["mp-149"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
