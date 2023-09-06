@@ -876,7 +876,7 @@ class BaseRester(Generic[T]):
         set_fields = [
             field for field, _ in doc if field in doc.dict(exclude_unset=True)
         ]
-        unset_fields = [field for field in doc.__fields__ if field not in set_fields]
+        unset_fields = [field for field in doc.model_fields if field not in set_fields]
 
         data_model = create_model(
             "MPDataDoc",
@@ -896,7 +896,7 @@ class BaseRester(Generic[T]):
         def new_repr(self) -> str:
             extra = ",\n".join(
                 f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-                for n in data_model.__fields__
+                for n in data_model.model_fields
             )
 
             s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m(\n{extra}\n)"  # noqa: E501
@@ -905,7 +905,7 @@ class BaseRester(Generic[T]):
         def new_str(self) -> str:
             extra = ",\n".join(
                 f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-                for n in data_model.__fields__
+                for n in data_model.model_fields
                 if n != "fields_not_requested"
             )
 
