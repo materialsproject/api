@@ -8,6 +8,7 @@ from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
 from pydantic.fields import FieldInfo
+from emmet.core.utils import get_flat_models_from_model
 
 def validate_ids(id_list: list[str]):
     """Function to validate material and task IDs.
@@ -28,24 +29,6 @@ def validate_ids(id_list: list[str]):
             raise ValueError(f"{entry} is not formatted correctly!")
 
     return id_list
-
-def get_flat_models_from_model(model: BaseModel, known_models: set[BaseModel] = set()):
-    """Get all sub-models from a pydantic model.
-
-    Args:
-        model (BaseModel): Pydantic model
-        known_models (set, optional): Set with known models. Defaults to set().
-
-    Returns:
-        (set[BaseModel]): Set of pydantic models
-    """
-    known_models.add(model)
-    for field_info in model.model_fields.values():
-        field_type = field_info.annotation
-        if lenient_issubclass(field_type, BaseModel):
-            get_flat_models_from_model(field_type, known_models)
-
-    return known_models
 
 @cache
 def api_sanitize(
