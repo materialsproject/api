@@ -8,7 +8,7 @@ from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
 from pydantic.fields import FieldInfo
-from emmet.core.utils import get_flat_models_from_model
+from maggma.core.utils import get_flat_models_from_model
 
 def validate_ids(id_list: list[str]):
     """Function to validate material and task IDs.
@@ -86,7 +86,7 @@ def api_sanitize(
 def allow_msonable_dict(monty_cls: type[MSONable]):
     """Patch Monty to allow for dict values for MSONable."""
 
-    def validate_monty(cls, v):
+    def validate_monty(cls, v, _):
         """Stub validator for MSONable as a dictionary only."""
         if isinstance(v, cls):
             return v
@@ -108,6 +108,6 @@ def allow_msonable_dict(monty_cls: type[MSONable]):
         else:
             raise ValueError(f"Must provide {cls.__name__} or MSONable dictionary")
 
-    monty_cls.validate_monty = classmethod(validate_monty)
+    monty_cls.validate_monty_v2 = classmethod(validate_monty)
 
     return monty_cls
