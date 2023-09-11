@@ -38,5 +38,34 @@ mp\_api.client.routes.materials.materials.MaterialsRester
       ~MaterialsRester.session
       ~MaterialsRester.suffix
       ~MaterialsRester.supports_versions
+      ~MaterialsRester.eos
+      ~MaterialsRester.materials
+      ~MaterialsRester.similarity
+      ~MaterialsRester.tasks
+      ~MaterialsRester.xas
+      ~MaterialsRester.fermi
+      ~MaterialsRester.grain_boundary
+      ~MaterialsRester.substrates
+      ~MaterialsRester.surface_properties
+      ~MaterialsRester.phonon
+      ~MaterialsRester.elasticity
+      ~MaterialsRester.thermo
+      ~MaterialsRester.dielectric
+      ~MaterialsRester.piezoelectric
+      ~MaterialsRester.magnetism
+      ~MaterialsRester.summary
+      ~MaterialsRester.robocrys
+      ~MaterialsRester.synthesis
+      ~MaterialsRester.insertion_electrodes
+      ~MaterialsRester.charge_density
+      ~MaterialsRester.electronic_structure
+      ~MaterialsRester.electronic_structure_bandstructure
+      ~MaterialsRester.electronic_structure_dos
+      ~MaterialsRester.oxidation_states
+      ~MaterialsRester.provenance
+      ~MaterialsRester.bonds
+      ~MaterialsRester.alloys
+      ~MaterialsRester.absorption
+      ~MaterialsRester.chemenv
    
    

@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mp_api.client.routes.materials.tasks &#8212; mp-api 2022 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=039e1c02" />
-    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=78de3d3a"></script>
+    <script src="../../../../../_static/documentation_options.js?v=001ecc8c"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
    
@@ -39,12 +39,16 @@
 <span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
 
 
-<div class="viewcode-block" id="TaskRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester">[docs]</a><span class="k">class</span> <span class="nc">TaskRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">TaskDoc</span><span class="p">]):</span>
+<div class="viewcode-block" id="TaskRester">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester">[docs]</a>
+<span class="k">class</span> <span class="nc">TaskRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">TaskDoc</span><span class="p">]):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/tasks&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">TaskDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;task_id&quot;</span>
 
-<div class="viewcode-block" id="TaskRester.get_trajectory"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.get_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">get_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">):</span>
+<div class="viewcode-block" id="TaskRester.get_trajectory">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.get_trajectory">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a Trajectory object containing the geometry of the</span>
 <span class="sd">        material throughout a calculation. This is most useful for</span>
 <span class="sd">        observing how a material relaxes during a geometry optimization.</span>
@@ -61,7 +65,10 @@
 
         <span class="k">return</span> <span class="n">traj_data</span></div>
 
-<div class="viewcode-block" id="TaskRester.search_task_docs"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.search_task_docs">[docs]</a>    <span class="k">def</span> <span class="nf">search_task_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+
+<div class="viewcode-block" id="TaskRester.search_task_docs">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.search_task_docs">[docs]</a>
+    <span class="k">def</span> <span class="nf">search_task_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;MPRester.tasks.search_task_docs is deprecated. &quot;</span>
@@ -72,7 +79,10 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TaskRester.search"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+
+<div class="viewcode-block" id="TaskRester.search">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.search">[docs]</a>
+    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">task_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -130,7 +140,9 @@
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
+
 </pre></div>
 
           </div>
@@ -179,7 +191,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

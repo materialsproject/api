@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mp_api.client.routes.molecules.molecules &#8212; mp-api 2022 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=039e1c02" />
-    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=78de3d3a"></script>
+    <script src="../../../../../_static/documentation_options.js?v=001ecc8c"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
    
@@ -42,11 +42,15 @@
 <span class="n">_EMMET_SETTINGS</span> <span class="o">=</span> <span class="n">EmmetSettings</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="BaseMoleculeRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester">[docs]</a><span class="k">class</span> <span class="nc">BaseMoleculeRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">MoleculeDoc</span><span class="p">]):</span>
+<div class="viewcode-block" id="BaseMoleculeRester">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester">[docs]</a>
+<span class="k">class</span> <span class="nc">BaseMoleculeRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">MoleculeDoc</span><span class="p">]):</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">MoleculeDoc</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;molecule_id&quot;</span>
 
-<div class="viewcode-block" id="BaseMoleculeRester.get_molecule_by_mpculeid"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.get_molecule_by_mpculeid">[docs]</a>    <span class="k">def</span> <span class="nf">get_molecule_by_mpculeid</span><span class="p">(</span>
+<div class="viewcode-block" id="BaseMoleculeRester.get_molecule_by_mpculeid">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.get_molecule_by_mpculeid">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_molecule_by_mpculeid</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">mpcule_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">final</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Molecule</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Molecule</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a molecule object for a given Materials Project molecules ID (MPculeID).</span>
@@ -67,7 +71,10 @@
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span><span class="n">mpcule_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;initial_molecules&quot;</span><span class="p">])</span>
             <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">initial_molecules</span> <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">response</span>  <span class="c1"># type: ignore</span></div>
 
-<div class="viewcode-block" id="BaseMoleculeRester.find_molecule"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.find_molecule">[docs]</a>    <span class="k">def</span> <span class="nf">find_molecule</span><span class="p">(</span>
+
+<div class="viewcode-block" id="BaseMoleculeRester.find_molecule">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.find_molecule">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_molecule</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">filename_or_molecule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Molecule</span><span class="p">,</span>
         <span class="n">charge</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -126,7 +133,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span></div>
 
-<div class="viewcode-block" id="BaseMoleculeRester.search"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+
+<div class="viewcode-block" id="BaseMoleculeRester.search">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester.search">[docs]</a>
+    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">charge</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">spin_multiplicity</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -225,15 +235,23 @@
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="AssociatedMoleculeRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.AssociatedMoleculeRester.html#mp_api.client.routes.molecules.molecules.AssociatedMoleculeRester">[docs]</a><span class="k">class</span> <span class="nc">AssociatedMoleculeRester</span><span class="p">(</span><span class="n">BaseMoleculeRester</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AssociatedMoleculeRester">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.AssociatedMoleculeRester.html#mp_api.client.routes.molecules.molecules.AssociatedMoleculeRester">[docs]</a>
+<span class="k">class</span> <span class="nc">AssociatedMoleculeRester</span><span class="p">(</span><span class="n">BaseMoleculeRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/assoc&quot;</span></div>
 
 
-<div class="viewcode-block" id="MoleculeRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.MoleculeRester.html#mp_api.client.routes.molecules.molecules.MoleculeRester">[docs]</a><span class="k">class</span> <span class="nc">MoleculeRester</span><span class="p">(</span><span class="n">BaseMoleculeRester</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MoleculeRester">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.MoleculeRester.html#mp_api.client.routes.molecules.molecules.MoleculeRester">[docs]</a>
+<span class="k">class</span> <span class="nc">MoleculeRester</span><span class="p">(</span><span class="n">BaseMoleculeRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/core&quot;</span></div>
+
 </pre></div>
 
           </div>
@@ -282,7 +300,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

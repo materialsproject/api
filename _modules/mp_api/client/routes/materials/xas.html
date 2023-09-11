@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mp_api.client.routes.materials.xas &#8212; mp-api 2022 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=039e1c02" />
-    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=78de3d3a"></script>
+    <script src="../../../../../_static/documentation_options.js?v=001ecc8c"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
    
@@ -40,12 +40,16 @@
 <span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
 
 
-<div class="viewcode-block" id="XASRester"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester">[docs]</a><span class="k">class</span> <span class="nc">XASRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">XASDoc</span><span class="p">]):</span>
+<div class="viewcode-block" id="XASRester">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester">[docs]</a>
+<span class="k">class</span> <span class="nc">XASRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">XASDoc</span><span class="p">]):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/xas&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">XASDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;spectrum_id&quot;</span>
 
-<div class="viewcode-block" id="XASRester.search_xas_docs"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester.search_xas_docs">[docs]</a>    <span class="k">def</span> <span class="nf">search_xas_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+<div class="viewcode-block" id="XASRester.search_xas_docs">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester.search_xas_docs">[docs]</a>
+    <span class="k">def</span> <span class="nf">search_xas_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;MPRester.xas.search_xas_docs is deprecated. &quot;</span>
@@ -56,7 +60,10 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="XASRester.search"><a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+
+<div class="viewcode-block" id="XASRester.search">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester.search">[docs]</a>
+    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">edge</span><span class="p">:</span> <span class="n">Edge</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">absorbing_element</span><span class="p">:</span> <span class="n">Element</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -136,7 +143,9 @@
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
+
 </pre></div>
 
           </div>
@@ -185,7 +194,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
