@@ -60,6 +60,7 @@ def test_generic_get_methods(rester):
     name = rester.suffix.replace("/", "_")
 
     rester = rester(
+        endpoint=mpr.endpoint,
         include_user_agent=False,
         monty_decode=True
         if rester not in [TaskRester, ProvenanceRester]  # type: ignore
