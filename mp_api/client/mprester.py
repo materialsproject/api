@@ -244,9 +244,9 @@ class MPRester:
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        ### Dynamically set rester attributes.
-        ### First, materials and molecules top level resters are set.
-        ### Nested rested are then setup to be loaded dyanmically with custom __getattr__ functions.
+        # Dynamically set rester attributes.
+        # First, materials and molecules top level resters are set.
+        # Nested rested are then setup to be loaded dynamically with custom __getattr__ functions.
         self._all_resters = []
 
         # Get all rester classes
