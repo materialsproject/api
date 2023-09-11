@@ -42,8 +42,8 @@ alt_name_dict = {
 custom_field_tests = {
     "material_ids": ["mp-149"],
     "formula": "Si",
-    "chemsys": "Si-O",
-    "elements": ["Si", "O"],
+    "chemsys": "Si-P",
+    "elements": ["Si", "P"],
     "task_ids": ["mp-149"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
@@ -51,9 +51,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 
