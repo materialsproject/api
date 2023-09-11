@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import warnings
-from functools import lru_cache
+from functools import lru_cache, cache
 from json import loads
 from os import environ
 from typing import Literal
@@ -182,7 +182,7 @@ class MPRester:
         self.monty_decode = monty_decode
 
         # Check if emmet version of server is compatible
-        emmet_version = version.parse(self.get_emmet_version())
+        emmet_version = MPRester.get_emmet_version(self.endpoint)
 
         try:
             from mpcontribs.client import Client
@@ -199,15 +199,11 @@ class MPRester:
             self.contribs = None
             warnings.warn(f"Problem loading MPContribs client: {error}")
 
-        if version.parse(emmet_version.base_version) < version.parse(
-            _MAPI_SETTINGS.MIN_EMMET_VERSION
-        ):
+        if version.parse(emmet_version.base_version) < version.parse(_MAPI_SETTINGS.MIN_EMMET_VERSION):
             warnings.warn(
                 "The installed version of the mp-api client may not be compatible with the API server. "
                 "Please install a previous version if any problems occur."
             )
-
-        self._all_resters = []
 
         if notify_db_version:
             raise NotImplementedError("This has not yet been implemented.")
@@ -215,16 +211,20 @@ class MPRester:
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        # Set rester attributes
-        resters = []
+        ### Dynamically set rester attributes.
+        ### First, materials and molecules top level resters are set.
+        ### Nested rested are then setup to be loaded dyanmically with custom __getattr__ functions.
+        self._all_resters = []
 
+        # Get all rester classes
         for _cls in BaseRester.__subclasses__():
             sub_resters = _cls.__subclasses__()
             if sub_resters:
-                resters.extend(sub_resters)
+                self._all_resters.extend(sub_resters)
             else:
-                resters.append(_cls)
+                self._all_resters.append(_cls)
 
+        # Instantiate top level molecules and materials resters and set them as attributes
         core_suffix = ["molecules/core", "materials/core"]
 
         core_resters = {
@@ -237,12 +237,46 @@ class MPRester:
                 use_document_model=use_document_model,
                 headers=self.headers,
             )
-            for cls in resters
+            for cls in self._all_resters
             if cls.suffix in core_suffix
         }
 
-        for cls in resters:
+        # Set remaining top level resters, or get an attribute-class name mapping
+        # for all sub-resters
+        _sub_rester_suffix_map = {"materials": {}, "molecules": {}}
+
+        for cls in self._all_resters:
             if cls.suffix not in core_suffix:
+                suffix_split = cls.suffix.split("/")
+
+                if len(suffix_split) == 1:
+                    rester = cls(
+                        api_key=api_key,
+                        endpoint=endpoint,
+                        include_user_agent=include_user_agent,
+                        session=self.session,
+                        monty_decode=monty_decode
+                        if cls not in [TaskRester, ProvenanceRester]  # type: ignore
+                        else False,  # Disable monty decode on nested data which may give errors
+                        use_document_model=use_document_model,
+                        headers=self.headers,
+                    )  # type: BaseRester
+                    setattr(
+                        self,
+                        suffix_split[0],
+                        rester,
+                    )
+                else:
+                    attr = "_".join(suffix_split[1:])
+                    if "materials" in suffix_split:
+                        _sub_rester_suffix_map["materials"][attr] = cls
+                    elif "molecules" in suffix_split:
+                        _sub_rester_suffix_map["molecules"][attr] = cls
+
+        # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
+        def __core_custom_getattr(_self, _attr, _rester_map):
+            if _attr in _rester_map:
+                cls = _rester_map[_attr]
                 rester = cls(
                     api_key=api_key,
                     endpoint=endpoint,
@@ -255,30 +289,28 @@ class MPRester:
                     headers=self.headers,
                 )  # type: BaseRester
 
-                self._all_resters.append(rester)
+                setattr(
+                    _self,
+                    _attr,
+                    rester,
+                )
 
-                suffix_split = cls.suffix.split("/")
+                return rester
+            else:
+                raise AttributeError(f"{_self.__class__.__name__!r} object has no attribute {attr!r}")
 
-                if len(suffix_split) == 1:
-                    setattr(
-                        self,
-                        suffix_split[0],
-                        rester,
-                    )
-                else:
-                    attr = "_".join(suffix_split[1:])
-                    if "materials" in suffix_split:
-                        setattr(
-                            core_resters["materials"],
-                            attr,
-                            rester,
-                        )
-                    elif "molecules" in suffix_split:
-                        setattr(
-                            core_resters["molecules"],
-                            attr,
-                            rester,
-                        )
+        def __materials_getattr__(_self, attr):
+            _rester_map = _sub_rester_suffix_map["materials"]
+            rester = __core_custom_getattr(_self, attr, _rester_map)
+            return rester
+
+        def __molecules_getattr__(_self, attr):
+            _rester_map = _sub_rester_suffix_map["molecules"]
+            rester = __core_custom_getattr(_self, attr, _rester_map)
+            return rester
+
+        MaterialsRester.__getattr__ = __materials_getattr__
+        MoleculeRester.__getattr__ = __molecules_getattr__
 
         for attr, rester in core_resters.items():
             setattr(
@@ -295,7 +327,7 @@ class MPRester:
         """Support for "with" context."""
         self.session.close()
 
-    def __getattribute__(self, attr):
+    def __getattr__(self, attr):
         _deprecated_attributes = [
             "eos",
             "similarity",
@@ -326,21 +358,25 @@ class MPRester:
             "absorption",
             "chemenv",
         ]
-
-        if "molecules" in attr:
-            warnings.warn(
-                "NOTE: You are accessing a new set of molecules data to be officially released very soon. "
-                "This dataset includes many new properties, and is designed to be more easily expanded. "
-                "For the previous (legacy) molecules data, use the MPRester.molecules.jcesr rester. "
-            )
-        elif attr in _deprecated_attributes:
+        if attr in _deprecated_attributes:
             warnings.warn(
                 f"Accessing {attr} data through MPRester.{attr} is deprecated. "
                 f"Please use MPRester.materials.{attr} instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
-            return super().__getattribute__("materials").__getattribute__(attr)
+            return getattr(super().__getattribute__("materials"), attr)
+        else:
+            raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")
+
+    def __getattribute__(self, attr):
+        if "molecules" in attr:
+            warnings.warn(
+                "NOTE: You are accessing a new set of molecules data to be officially released very soon. "
+                "This dataset includes many new properties, and is designed to be more easily expanded. "
+                "For the previous (legacy) molecules data, use the MPRester.molecules.jcesr rester. "
+            )
+
         return super().__getattribute__(attr)
 
     def __getattr__(self, attr):
@@ -351,14 +387,11 @@ class MPRester:
             )
         elif attr == "charge_density":
             raise MPRestError(
-                "boto3 not installed. "
-                "To query charge density data first install with: 'pip install boto3'"
+                "boto3 not installed. " "To query charge density data first install with: 'pip install boto3'"
             )
 
         else:
-            raise AttributeError(
-                f"{self.__class__.__name__!r} object has no attribute {attr!r}"
-            )
+            raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
@@ -367,13 +400,9 @@ class MPRester:
         :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
         :return:
         """
-        tasks = self.materials.get_data_by_id(
-            material_id, fields=["calc_types"]
-        ).calc_types
+        tasks = self.materials.get_data_by_id(material_id, fields=["calc_types"]).calc_types
         if calc_types:
-            return [
-                task for task, calc_type in tasks.items() if calc_type in calc_types
-            ]
+            return [task for task, calc_type in tasks.items() if calc_type in calc_types]
         else:
             return list(tasks.keys())
 
@@ -393,19 +422,14 @@ class MPRester:
         Returns:
             Structure object or list of Structure objects.
         """
-        structure_data = self.materials.get_structure_by_material_id(
-            material_id=material_id, final=final
-        )
+        structure_data = self.materials.get_structure_by_material_id(material_id=material_id, final=final)
 
         if conventional_unit_cell and structure_data:
             if final:
-                structure_data = SpacegroupAnalyzer(
-                    structure_data
-                ).get_conventional_standard_structure()
+                structure_data = SpacegroupAnalyzer(structure_data).get_conventional_standard_structure()
             else:
                 structure_data = [
-                    SpacegroupAnalyzer(structure).get_conventional_standard_structure()
-                    for structure in structure_data
+                    SpacegroupAnalyzer(structure).get_conventional_standard_structure() for structure in structure_data
                 ]
 
         return structure_data
@@ -425,19 +449,21 @@ class MPRester:
         """
         return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
-    def get_emmet_version(self):
+    @cache
+    @staticmethod
+    def get_emmet_version(endpoint):
         """Get the latest version emmet-core and emmet-api used in the
         current API service.
 
         Returns: version as a string
         """
-        response = get(url=self.endpoint + "heartbeat").json()
+        response = get(url=endpoint + "heartbeat").json()
 
         error = response.get("error", None)
         if error:
             raise MPRestError(error)
 
-        return response["version"]
+        return version.parse(response["version"])
 
     def get_material_id_from_task_id(self, task_id: str) -> str | None:
         """Returns the current material_id from a given task_id. The
@@ -456,9 +482,7 @@ class MPRester:
         if len(docs) == 1:  # pragma: no cover
             return str(docs[0].material_id)  # type: ignore
         elif len(docs) > 1:  # pragma: no cover
-            raise ValueError(
-                f"Multiple documents return for {task_id}, this should not happen, please report it!"
-            )
+            raise ValueError(f"Multiple documents return for {task_id}, this should not happen, please report it!")
         else:  # pragma: no cover
             warnings.warn(
                 f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
@@ -505,9 +529,7 @@ class MPRester:
         Returns:
             List of all materials ids ([MPID])
         """
-        if isinstance(chemsys_formula, list) or (
-            isinstance(chemsys_formula, str) and "-" in chemsys_formula
-        ):
+        if isinstance(chemsys_formula, list) or (isinstance(chemsys_formula, str) and "-" in chemsys_formula):
             input_params = {"chemsys": chemsys_formula}
         else:
             input_params = {"formula": chemsys_formula}
@@ -532,9 +554,7 @@ class MPRester:
         )
         return self.get_material_ids(chemsys_formula)
 
-    def get_structures(
-        self, chemsys_formula: str | list[str], final=True
-    ) -> list[Structure]:
+    def get_structures(self, chemsys_formula: str | list[str], final=True) -> list[Structure]:
         """Get a list of Structures corresponding to a chemical system or formula.
 
         Args:
@@ -546,9 +566,7 @@ class MPRester:
         Returns:
             List of Structure objects. ([Structure])
         """
-        if isinstance(chemsys_formula, list) or (
-            isinstance(chemsys_formula, str) and "-" in chemsys_formula
-        ):
+        if isinstance(chemsys_formula, list) or (isinstance(chemsys_formula, str) and "-" in chemsys_formula):
             input_params = {"chemsys": chemsys_formula}
         else:
             input_params = {"formula": chemsys_formula}
@@ -697,11 +715,7 @@ class MPRester:
             )
 
         for doc in docs:
-            entry_list = (
-                doc.entries.values()
-                if self.use_document_model
-                else doc["entries"].values()
-            )
+            entry_list = doc.entries.values() if self.use_document_model else doc["entries"].values()
             for entry in entry_list:
                 entry_dict = entry.as_dict() if self.monty_decode else entry
                 if not compatible_only:
@@ -711,16 +725,12 @@ class MPRester:
                 if property_data:
                     for property in property_data:
                         entry_dict["data"][property] = (
-                            doc.dict()[property]
-                            if self.use_document_model
-                            else doc[property]
+                            doc.dict()[property] if self.use_document_model else doc[property]
                         )
 
                 if conventional_unit_cell:
                     entry_struct = Structure.from_dict(entry_dict["structure"])
-                    s = SpacegroupAnalyzer(
-                        entry_struct
-                    ).get_conventional_standard_structure()
+                    s = SpacegroupAnalyzer(entry_struct).get_conventional_standard_structure()
                     site_ratio = len(s) / len(entry_struct)
                     new_energy = entry_dict["energy"] * site_ratio
 
@@ -735,11 +745,7 @@ class MPRester:
                         if "n_atoms" in correction:
                             correction["n_atoms"] *= site_ratio
 
-                entry = (
-                    ComputedStructureEntry.from_dict(entry_dict)
-                    if self.monty_decode
-                    else entry_dict
-                )
+                entry = ComputedStructureEntry.from_dict(entry_dict) if self.monty_decode else entry_dict
 
                 entries.append(entry)
 
@@ -806,12 +812,8 @@ class MPRester:
         ion_data = self.get_ion_reference_data_for_chemsys(chemsys)
 
         # build the PhaseDiagram for get_ion_entries
-        ion_ref_comps = [
-            Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data
-        ]
-        ion_ref_elts = set(
-            itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
-        )
+        ion_ref_comps = [Ion.from_formula(d["data"]["RefSolid"]).composition for d in ion_data]
+        ion_ref_elts = set(itertools.chain.from_iterable(i.elements for i in ion_ref_comps))
         # TODO - would be great if the commented line below would work
         # However for some reason you cannot process GibbsComputedStructureEntry with
         # MaterialsProjectAqueousCompatibility
@@ -830,9 +832,7 @@ class MPRester:
             compat = MaterialsProjectAqueousCompatibility(solid_compat=solid_compat)
         # suppress the warning about missing oxidation states
         with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", message="Failed to guess oxidation states.*"
-            )
+            warnings.filterwarnings("ignore", message="Failed to guess oxidation states.*")
             ion_ref_entries = compat.process_entries(ion_ref_entries)
         # TODO - if the commented line above would work, this conditional block
         # could be removed
@@ -840,32 +840,21 @@ class MPRester:
             # replace the entries with GibbsComputedStructureEntry
             from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
-            ion_ref_entries = GibbsComputedStructureEntry.from_entries(
-                ion_ref_entries, temp=use_gibbs
-            )
+            ion_ref_entries = GibbsComputedStructureEntry.from_entries(ion_ref_entries, temp=use_gibbs)
         ion_ref_pd = PhaseDiagram(ion_ref_entries)
 
         ion_entries = self.get_ion_entries(ion_ref_pd, ion_ref_data=ion_data)
         pbx_entries = [PourbaixEntry(e, f"ion-{n}") for n, e in enumerate(ion_entries)]
 
         # Construct the solid pourbaix entries from filtered ion_ref entries
-        extra_elts = (
-            set(ion_ref_elts)
-            - {Element(s) for s in chemsys}
-            - {Element("H"), Element("O")}
-        )
+        extra_elts = set(ion_ref_elts) - {Element(s) for s in chemsys} - {Element("H"), Element("O")}
         for entry in ion_ref_entries:
             entry_elts = set(entry.composition.elements)
             # Ensure no OH chemsys or extraneous elements from ion references
-            if not (
-                entry_elts <= {Element("H"), Element("O")}
-                or extra_elts.intersection(entry_elts)
-            ):
+            if not (entry_elts <= {Element("H"), Element("O")} or extra_elts.intersection(entry_elts)):
                 # Create new computed entry
                 form_e = ion_ref_pd.get_form_energy(entry)
-                new_entry = ComputedEntry(
-                    entry.composition, form_e, entry_id=entry.entry_id
-                )
+                new_entry = ComputedEntry(entry.composition, form_e, entry_id=entry.entry_id)
                 pbx_entry = PourbaixEntry(new_entry)
                 pbx_entries.append(pbx_entry)
 
@@ -945,9 +934,7 @@ class MPRester:
             chemsys = chemsys.split("-")
         return [d for d in ion_data if d["data"]["MajElements"] in chemsys]
 
-    def get_ion_entries(
-        self, pd: PhaseDiagram, ion_ref_data: list[dict] = None
-    ) -> list[IonEntry]:
+    def get_ion_entries(self, pd: PhaseDiagram, ion_ref_data: list[dict] = None) -> list[IonEntry]:
         """Retrieve IonEntry objects that can be used in the construction of
         Pourbaix Diagrams. The energies of the IonEntry are calculaterd from
         the solid energies in the provided Phase Diagram to be
@@ -980,8 +967,7 @@ class MPRester:
         # raise ValueError if O and H not in chemsys
         if "O" not in chemsys or "H" not in chemsys:
             raise ValueError(
-                "The phase diagram chemical system must contain O and H! Your"
-                f" diagram chemical system is {chemsys}."
+                "The phase diagram chemical system must contain O and H! Your" f" diagram chemical system is {chemsys}."
             )
 
         if not ion_ref_data:
@@ -993,11 +979,7 @@ class MPRester:
         ion_entries = []
         for _n, i_d in enumerate(ion_data):
             ion = Ion.from_formula(i_d["formula"])
-            refs = [
-                e
-                for e in pd.all_entries
-                if e.composition.reduced_formula == i_d["data"]["RefSolid"]
-            ]
+            refs = [e for e in pd.all_entries if e.composition.reduced_formula == i_d["data"]["RefSolid"]]
             if not refs:
                 raise ValueError("Reference solid not contained in entry list")
             stable_ref = sorted(refs, key=lambda x: x.energy_per_atom)[0]
@@ -1012,9 +994,7 @@ class MPRester:
                 # convert to eV/formula unit
                 ref_solid_energy = i_d["data"]["ΔGᶠRefSolid"]["value"] / 96485
             else:
-                raise ValueError(
-                    f"Ion reference solid energy has incorrect unit {i_d['data']['ΔGᶠRefSolid']['unit']}"
-                )
+                raise ValueError(f"Ion reference solid energy has incorrect unit {i_d['data']['ΔGᶠRefSolid']['unit']}")
             solid_diff = pd.get_form_energy(stable_ref) - ref_solid_energy * rf
             elt = i_d["data"]["MajElements"]
             correction_factor = ion.composition[elt] / stable_ref.composition[elt]
@@ -1027,9 +1007,7 @@ class MPRester:
                 # convert to eV/formula unit
                 ion_free_energy = i_d["data"]["ΔGᶠ"]["value"] / 96485
             else:
-                raise ValueError(
-                    f"Ion free energy has incorrect unit {i_d['data']['ΔGᶠ']['unit']}"
-                )
+                raise ValueError(f"Ion free energy has incorrect unit {i_d['data']['ΔGᶠ']['unit']}")
             energy = ion_free_energy + solid_diff * correction_factor
             ion_entries.append(IonEntry(ion, energy))
 
@@ -1148,8 +1126,7 @@ class MPRester:
                 inc_structure=inc_structure,
                 property_data=property_data,
                 conventional_unit_cell=conventional_unit_cell,
-                additional_criteria=additional_criteria
-                or {"thermo_types": ["GGA_GGA+U"]},
+                additional_criteria=additional_criteria or {"thermo_types": ["GGA_GGA+U"]},
             )
         )
 
@@ -1235,12 +1212,8 @@ class MPRester:
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
         structure = self.get_structure_by_material_id(material_id)
-        surfaces = surfaces = self.surface_properties.get_data_by_id(
-            material_id
-        ).surfaces
-        lattice = (
-            SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
-        )
+        surfaces = surfaces = self.surface_properties.get_data_by_id(material_id).surfaces
+        lattice = SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
         miller_energy_map = {}
         for surf in surfaces:
             miller = tuple(surf.miller_index)
@@ -1250,9 +1223,7 @@ class MPRester:
         millers, energies = zip(*miller_energy_map.items())
         return WulffShape(lattice, millers, energies)
 
-    def get_charge_density_from_material_id(
-        self, material_id: str, inc_task_doc: bool = False
-    ) -> Chgcar | None:
+    def get_charge_density_from_material_id(self, material_id: str, inc_task_doc: bool = False) -> Chgcar | None:
         """Get charge density data for a given Materials Project ID.
 
         Arguments:
@@ -1263,10 +1234,7 @@ class MPRester:
             chgcar: Pymatgen Chgcar object.
         """
         if not hasattr(self, "charge_density"):
-            raise MPRestError(
-                "boto3 not installed. "
-                "To query charge density data install the boto3 package."
-            )
+            raise MPRestError("boto3 not installed. " "To query charge density data install the boto3 package.")
 
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
@@ -1313,11 +1281,7 @@ class MPRester:
             metadata info, e.g. the task/external_ids that belong to a directory.
         """
         # task_id's correspond to NoMaD external_id's
-        calc_types = (
-            [t.value for t in calc_types if isinstance(t, CalcType)]
-            if calc_types
-            else []
-        )
+        calc_types = [t.value for t in calc_types if isinstance(t, CalcType)] if calc_types else []
 
         meta = {}
         for doc in self.materials.search(
@@ -1347,13 +1311,9 @@ class MPRester:
         prefix += "external_id="
 
         task_ids = [t["task_id"] for tl in meta.values() for t in tl]
-        nomad_exist_task_ids = self._check_get_download_info_url_by_task_id(
-            prefix=prefix, task_ids=task_ids
-        )
+        nomad_exist_task_ids = self._check_get_download_info_url_by_task_id(prefix=prefix, task_ids=task_ids)
         if len(nomad_exist_task_ids) != len(task_ids):
-            self._print_help_message(
-                nomad_exist_task_ids, task_ids, file_patterns, calc_types
-            )
+            self._print_help_message(nomad_exist_task_ids, task_ids, file_patterns, calc_types)
 
         # generate download links for those that exist
         prefix = "https://nomad-lab.eu/prod/rae/api/raw/query?"
