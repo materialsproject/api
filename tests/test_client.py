@@ -60,8 +60,7 @@ def test_generic_get_methods(rester):
     name = rester.suffix.replace("/", "_")
 
     rester = rester(
-        endpoint=mpr.endpoint,
-        include_user_agent=False,
+        include_user_agent=True,
         monty_decode=True
         if rester not in [TaskRester, ProvenanceRester]  # type: ignore
         else False,  # Disable monty decode on nested data which may give errors
