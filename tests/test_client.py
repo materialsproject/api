@@ -60,10 +60,7 @@ def test_generic_get_methods(rester):
     name = rester.suffix.replace("/", "_")
 
     rester = rester(
-        api_key=os.environ.get("MP_API_KEY"),
-        endpoint=mpr.endpoint,
         include_user_agent=False,
-        session=mpr.session,
         monty_decode=True
         if rester not in [TaskRester, ProvenanceRester]  # type: ignore
         else False,  # Disable monty decode on nested data which may give errors
