@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import get_args
 from functools import cache
+from typing import get_args
 
 from monty.json import MSONable
 from pydantic import BaseModel
@@ -51,7 +51,9 @@ def api_sanitize(
             Defaults to False
     """
     models = [
-        model for model in get_flat_models_from_model(pydantic_model) if issubclass(model, BaseModel)
+        model
+        for model in get_flat_models_from_model(pydantic_model)
+        if issubclass(model, BaseModel)
     ]  # type: list[BaseModel]
 
     fields_to_leave = fields_to_leave or []
@@ -100,7 +102,9 @@ def allow_msonable_dict(monty_cls: type[MSONable]):
                 errors.append("@class")
 
             if len(errors) > 0:
-                raise ValueError("Missing Monty seriailzation fields in dictionary: {errors}")
+                raise ValueError(
+                    "Missing Monty seriailzation fields in dictionary: {errors}"
+                )
 
             return v
         else:
