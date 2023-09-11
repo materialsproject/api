@@ -181,6 +181,37 @@ class MPRester:
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
 
+        self._deprecated_attributes = [
+            "eos",
+            "similarity",
+            "tasks",
+            "xas",
+            "fermi",
+            "grain_boundary",
+            "substrates",
+            "surface_properties",
+            "phonon",
+            "elasticity",
+            "thermo",
+            "dielectric",
+            "piezoelectric",
+            "magnetism",
+            "summary",
+            "robocrys",
+            "synthesis",
+            "insertion_electrodes",
+            "charge_density",
+            "electronic_structure",
+            "electronic_structure_bandstructure",
+            "electronic_structure_dos",
+            "oxidation_states",
+            "provenance",
+            "bonds",
+            "alloys",
+            "absorption",
+            "chemenv",
+        ]
+
         # Check if emmet version of server is compatible
         emmet_version = MPRester.get_emmet_version(self.endpoint)
 
@@ -328,37 +359,7 @@ class MPRester:
         self.session.close()
 
     def __getattr__(self, attr):
-        _deprecated_attributes = [
-            "eos",
-            "similarity",
-            "tasks",
-            "xas",
-            "fermi",
-            "grain_boundary",
-            "substrates",
-            "surface_properties",
-            "phonon",
-            "elasticity",
-            "thermo",
-            "dielectric",
-            "piezoelectric",
-            "magnetism",
-            "summary",
-            "robocrys",
-            "synthesis",
-            "insertion_electrodes",
-            "charge_density",
-            "electronic_structure",
-            "electronic_structure_bandstructure",
-            "electronic_structure_dos",
-            "oxidation_states",
-            "provenance",
-            "bonds",
-            "alloys",
-            "absorption",
-            "chemenv",
-        ]
-        if attr in _deprecated_attributes:
+        if attr in self._deprecated_attributes:
             warnings.warn(
                 f"Accessing {attr} data through MPRester.{attr} is deprecated. "
                 f"Please use MPRester.materials.{attr} instead.",
@@ -379,19 +380,8 @@ class MPRester:
 
         return super().__getattribute__(attr)
 
-    def __getattr__(self, attr):
-        if attr == "alloys":
-            raise MPRestError(
-                "Alloy addon package not installed. "
-                "To query alloy data first install with: 'pip install pymatgen-analysis-alloys'"
-            )
-        elif attr == "charge_density":
-            raise MPRestError(
-                "boto3 not installed. " "To query charge density data first install with: 'pip install boto3'"
-            )
-
-        else:
-            raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")
+    def __dir__(self):
+        return dir(MPRester) + self._deprecated_attributes + ["materials", "molecules"]
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
