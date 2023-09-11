@@ -1003,7 +1003,7 @@ class BaseRester(Generic[T]):
             if self.primary_key == "material_id":
                 # see if the material_id has changed, perhaps a task_id was supplied
                 # this should likely be re-thought
-                from mp_api.client.routes.materials import MaterialsRester
+                from mp_api.client.routes.materials.materials import MaterialsRester
 
                 with MaterialsRester(
                     api_key=self.api_key,
