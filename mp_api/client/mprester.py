@@ -449,8 +449,8 @@ class MPRester:
         """
         return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
-    @cache
     @staticmethod
+    @cache
     def get_emmet_version(endpoint):
         """Get the latest version emmet-core and emmet-api used in the
         current API service.
