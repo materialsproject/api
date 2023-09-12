@@ -166,6 +166,7 @@
         <span class="n">use_document_model</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">session</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mute_progress_bars</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">_MAPI_SETTINGS</span><span class="o">.</span><span class="n">MUTE_PROGRESS_BARS</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Args:</span>
 <span class="sd">        api_key (str): A String API key for accessing the MaterialsProject</span>
@@ -197,6 +198,7 @@
 <span class="sd">        and will not give auto-complete for available fields.</span>
 <span class="sd">        session (Session): Session object to use. By default (None), the client will create one.</span>
 <span class="sd">        headers (dict): Custom headers for localhost connections.</span>
+<span class="sd">        mute_progress_bars (bool): Whether to mute progress bars.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">api_key</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">32</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -215,6 +217,7 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="n">use_document_model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="o">=</span> <span class="n">monty_decode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span> <span class="o">=</span> <span class="n">mute_progress_bars</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_deprecated_attributes</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;eos&quot;</span><span class="p">,</span>
@@ -304,6 +307,7 @@
                 <span class="n">monty_decode</span><span class="o">=</span><span class="n">monty_decode</span><span class="p">,</span>
                 <span class="n">use_document_model</span><span class="o">=</span><span class="n">use_document_model</span><span class="p">,</span>
                 <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+                <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_resters</span>
             <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">suffix</span> <span class="ow">in</span> <span class="n">core_suffix</span>
@@ -328,6 +332,7 @@
                         <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Disable monty decode on nested data which may give errors</span>
                         <span class="n">use_document_model</span><span class="o">=</span><span class="n">use_document_model</span><span class="p">,</span>
                         <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+                        <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
                     <span class="p">)</span>  <span class="c1"># type: BaseRester</span>
                     <span class="nb">setattr</span><span class="p">(</span>
                         <span class="bp">self</span><span class="p">,</span>
@@ -355,6 +360,7 @@
                     <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Disable monty decode on nested data which may give errors</span>
                     <span class="n">use_document_model</span><span class="o">=</span><span class="n">use_document_model</span><span class="p">,</span>
                     <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+                    <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
                 <span class="p">)</span>  <span class="c1"># type: BaseRester</span>
 
                 <span class="nb">setattr</span><span class="p">(</span>
