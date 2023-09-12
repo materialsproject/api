@@ -131,6 +131,7 @@ class MPRester:
         use_document_model: bool = True,
         session: Session = None,
         headers: dict = None,
+        mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS
     ):
         """Args:
         api_key (str): A String API key for accessing the MaterialsProject
@@ -162,6 +163,7 @@ class MPRester:
         and will not give auto-complete for available fields.
         session (Session): Session object to use. By default (None), the client will create one.
         headers (dict): Custom headers for localhost connections.
+        mute_progress_bars (bool): Whether to mute progress bars.
         """
         if api_key and len(api_key) != 32:
             raise ValueError(
@@ -180,6 +182,7 @@ class MPRester:
         )
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
+        self.mute_progress_bars = mute_progress_bars
 
         self._deprecated_attributes = [
             "eos",
@@ -269,6 +272,7 @@ class MPRester:
                 monty_decode=monty_decode,
                 use_document_model=use_document_model,
                 headers=self.headers,
+                mute_progress_bars=self.mute_progress_bars
             )
             for cls in self._all_resters
             if cls.suffix in core_suffix
@@ -293,6 +297,7 @@ class MPRester:
                         else False,  # Disable monty decode on nested data which may give errors
                         use_document_model=use_document_model,
                         headers=self.headers,
+                        mute_progress_bars=self.mute_progress_bars
                     )  # type: BaseRester
                     setattr(
                         self,
@@ -320,6 +325,7 @@ class MPRester:
                     else False,  # Disable monty decode on nested data which may give errors
                     use_document_model=use_document_model,
                     headers=self.headers,
+                    mute_progress_bars=self.mute_progress_bars
                 )  # type: BaseRester
 
                 setattr(
