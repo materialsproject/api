@@ -46,6 +46,7 @@ except ImportError:  # pragma: no cover
 # TODO: think about how to migrate from PMG_MAPI_KEY
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
+settings = MAPIClientSettings()
 
 T = TypeVar("T")
 
@@ -70,7 +71,7 @@ class BaseRester(Generic[T]):
         use_document_model: bool = True,
         timeout: int = 20,
         headers: dict = None,
-        mute_progress_bars: bool = MAPIClientSettings().MUTE_PROGRESS_BARS
+        mute_progress_bars: bool = settings.MUTE_PROGRESS_BARS,
     ):
         """Args:
         api_key (str): A String API key for accessing the MaterialsProject
