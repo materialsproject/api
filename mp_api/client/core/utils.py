@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import get_args, Optional
+from functools import cache
 
 from functools import cache
 from monty.json import MSONable
@@ -30,6 +30,7 @@ def validate_ids(id_list: list[str]):
 
     return id_list
 
+ 
 @cache
 def api_sanitize(
     pydantic_model: BaseModel,

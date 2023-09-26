@@ -43,7 +43,6 @@ from mp_api.client.routes.materials import (
     FermiRester,
     GrainBoundaryRester,
     MagnetismRester,
-    MaterialsRester,
     OxidationStatesRester,
     PhononRester,
     PiezoRester,
@@ -58,6 +57,7 @@ from mp_api.client.routes.materials import (
     ThermoRester,
     XASRester,
 )
+from mp_api.client.routes.materials.materials import MaterialsRester
 from mp_api.client.routes.molecules import MoleculeRester
 
 _DEPRECATION_WARNING = (
@@ -131,6 +131,7 @@ class MPRester:
         use_document_model: bool = True,
         session: Session = None,
         headers: dict = None,
+        mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
     ):
         """Args:
         api_key (str): A String API key for accessing the MaterialsProject
@@ -162,6 +163,7 @@ class MPRester:
         and will not give auto-complete for available fields.
         session (Session): Session object to use. By default (None), the client will create one.
         headers (dict): Custom headers for localhost connections.
+        mute_progress_bars (bool): Whether to mute progress bars.
         """
         if api_key and len(api_key) != 32:
             raise ValueError(
@@ -180,6 +182,38 @@ class MPRester:
         )
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
+        self.mute_progress_bars = mute_progress_bars
+
+        self._deprecated_attributes = [
+            "eos",
+            "similarity",
+            "tasks",
+            "xas",
+            "fermi",
+            "grain_boundary",
+            "substrates",
+            "surface_properties",
+            "phonon",
+            "elasticity",
+            "thermo",
+            "dielectric",
+            "piezoelectric",
+            "magnetism",
+            "summary",
+            "robocrys",
+            "synthesis",
+            "insertion_electrodes",
+            "charge_density",
+            "electronic_structure",
+            "electronic_structure_bandstructure",
+            "electronic_structure_dos",
+            "oxidation_states",
+            "provenance",
+            "bonds",
+            "alloys",
+            "absorption",
+            "chemenv",
+        ]
 
         # Check if emmet version of server is compatible
         emmet_version = MPRester.get_emmet_version(self.endpoint)
@@ -213,9 +247,9 @@ class MPRester:
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        ### Dynamically set rester attributes.
-        ### First, materials and molecules top level resters are set.
-        ### Nested rested are then setup to be loaded dyanmically with custom __getattr__ functions.
+        # Dynamically set rester attributes.
+        # First, materials and molecules top level resters are set.
+        # Nested rested are then setup to be loaded dynamically with custom __getattr__ functions.
         self._all_resters = []
 
         # Get all rester classes
@@ -238,6 +272,7 @@ class MPRester:
                 monty_decode=monty_decode,
                 use_document_model=use_document_model,
                 headers=self.headers,
+                mute_progress_bars=self.mute_progress_bars,
             )
             for cls in self._all_resters
             if cls.suffix in core_suffix
@@ -253,16 +288,17 @@ class MPRester:
 
                 if len(suffix_split) == 1:
                     rester = cls(
-                    api_key=api_key,
-                    endpoint=endpoint,
-                    include_user_agent=include_user_agent,
-                    session=self.session,
-                    monty_decode=monty_decode
-                    if cls not in [TaskRester, ProvenanceRester]  # type: ignore
-                    else False,  # Disable monty decode on nested data which may give errors
-                    use_document_model=use_document_model,
-                    headers=self.headers,
-                )  # type: BaseRester
+                        api_key=api_key,
+                        endpoint=endpoint,
+                        include_user_agent=include_user_agent,
+                        session=self.session,
+                        monty_decode=monty_decode
+                        if cls not in [TaskRester, ProvenanceRester]  # type: ignore
+                        else False,  # Disable monty decode on nested data which may give errors
+                        use_document_model=use_document_model,
+                        headers=self.headers,
+                        mute_progress_bars=self.mute_progress_bars,
+                    )  # type: BaseRester
                     setattr(
                         self,
                         suffix_split[0],
@@ -277,25 +313,45 @@ class MPRester:
 
         # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
         def __core_custom_getattr(_self, _attr, _rester_map):
-                if _attr in _rester_map:
-                    cls = _rester_map[_attr]
-                    rester = cls(
-                            api_key=api_key,
-                            endpoint=endpoint,
-                            include_user_agent=include_user_agent,
-                            session=self.session,
-                            monty_decode=monty_decode
-                            if cls not in [TaskRester, ProvenanceRester]  # type: ignore
-                            else False,  # Disable monty decode on nested data which may give errors
-                            use_document_model=use_document_model,
-                            headers=self.headers,
-                        )  # type: BaseRester
+            if _attr in _rester_map:
+                cls = _rester_map[_attr]
+                rester = cls(
+                    api_key=api_key,
+                    endpoint=endpoint,
+                    include_user_agent=include_user_agent,
+                    session=self.session,
+                    monty_decode=monty_decode
+                    if cls not in [TaskRester, ProvenanceRester]  # type: ignore
+                    else False,  # Disable monty decode on nested data which may give errors
+                    use_document_model=use_document_model,
+                    headers=self.headers,
+                    mute_progress_bars=self.mute_progress_bars,
+                )  # type: BaseRester
+                
+                setattr(
+                    _self,
+                    _attr,
+                    rester,
+                )
 
-                    setattr(
-                        _self,
-                        _attr,
-                        rester,
-                        )
+                return rester
+            else:
+                raise AttributeError(
+                    f"{_self.__class__.__name__!r} object has no attribute {attr!r}"
+                )
+
+        def __materials_getattr__(_self, attr):
+            _rester_map = _sub_rester_suffix_map["materials"]
+            rester = __core_custom_getattr(_self, attr, _rester_map)
+            return rester
+
+        def __molecules_getattr__(_self, attr):
+            _rester_map = _sub_rester_suffix_map["molecules"]
+            rester = __core_custom_getattr(_self, attr, _rester_map)
+            return rester
+
+        MaterialsRester.__getattr__ = __materials_getattr__
+        MoleculeRester.__getattr__ = __molecules_getattr__
 
                     return rester
                 else:
@@ -330,49 +386,9 @@ class MPRester:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Support for "with" context."""
         self.session.close()
-
-    def __getattribute__(self, attr):
-        if "molecules" in attr:
-            warnings.warn(
-                "NOTE: You are accessing a new set of molecules data to be officially released very soon. "
-                "This dataset includes many new properties, and is designed to be more easily expanded. "
-                "For the previous (legacy) molecules data, use the MPRester.molecules.jcesr rester. "
-            )
-
-        return super().__getattribute__(attr)
-
+    
     def __getattr__(self, attr):
-        _deprecated_attributes = [
-            "eos",
-            "similarity",
-            "tasks",
-            "xas",
-            "fermi",
-            "grain_boundary",
-            "substrates",
-            "surface_properties",
-            "phonon",
-            "elasticity",
-            "thermo",
-            "dielectric",
-            "piezoelectric",
-            "magnetism",
-            "summary",
-            "robocrys",
-            "synthesis",
-            "insertion_electrodes",
-            "charge_density",
-            "electronic_structure",
-            "electronic_structure_bandstructure",
-            "electronic_structure_dos",
-            "oxidation_states",
-            "provenance",
-            "bonds",
-            "alloys",
-            "absorption",
-            "chemenv",
-        ]
-        if attr in _deprecated_attributes:
+        if attr in self._deprecated_attributes:
             warnings.warn(
                 f"Accessing {attr} data through MPRester.{attr} is deprecated. "
                 f"Please use MPRester.materials.{attr} instead.",
@@ -384,6 +400,19 @@ class MPRester:
             raise AttributeError(
                 f"{self.__class__.__name__!r} object has no attribute {attr!r}"
             )
+
+    def __getattribute__(self, attr):
+        if "molecules" in attr:
+            warnings.warn(
+                "NOTE: You are accessing a new set of molecules data to be officially released very soon. "
+                "This dataset includes many new properties, and is designed to be more easily expanded. "
+                "For the previous (legacy) molecules data, use the MPRester.molecules.jcesr rester. "
+            )
+
+        return super().__getattribute__(attr)
+
+    def __dir__(self):
+        return dir(MPRester) + self._deprecated_attributes + ["materials", "molecules"]
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
@@ -450,8 +479,8 @@ class MPRester:
         """
         return get(url=self.endpoint + "heartbeat").json()["db_version"]
 
-    @cache
     @staticmethod
+    @cache
     def get_emmet_version(endpoint):
         """Get the latest version emmet-core and emmet-api used in the
         current API service.
