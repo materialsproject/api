@@ -8,7 +8,7 @@ from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
 from pydantic.fields import FieldInfo
-from maggma.core.utils import get_flat_models_from_model
+from maggma.utils import get_flat_models_from_model
 
 def validate_ids(id_list: list[str]):
     """Function to validate material and task IDs.
