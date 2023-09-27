@@ -60,7 +60,7 @@ def client_search_testing(
                         "num_chunks": 1,
                     }
 
-                doc = search_method(**q)[0].dict()
+                doc = search_method(**q)[0].model_dump()
 
                 for sub_field in sub_doc_fields:
                     if sub_field in doc:

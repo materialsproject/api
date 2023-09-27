@@ -285,7 +285,7 @@ class BandStructureRester(BaseRester):
                     f"No {path_type.value} band structure data found for {material_id}"
                 )
             else:
-                bs_data = bs_data.dict()
+                bs_data = bs_data.model_dump()
 
             if bs_data.get(path_type.value, None):
                 bs_task_id = bs_data[path_type.value]["task_id"]
@@ -303,7 +303,7 @@ class BandStructureRester(BaseRester):
                     f"No uniform band structure data found for {material_id}"
                 )
             else:
-                bs_data = bs_data.dict()
+                bs_data = bs_data.model_dump()
 
             if bs_data.get("total", None):
                 bs_task_id = bs_data["total"]["1"]["task_id"]
@@ -444,7 +444,7 @@ class DosRester(BaseRester):
 
         dos_data = es_rester.get_data_by_id(
             document_id=material_id, fields=["dos"]
-        ).dict()
+        ).model_dump()
 
         if dos_data["dos"]:
             dos_task_id = dos_data["dos"]["total"]["1"]["task_id"]

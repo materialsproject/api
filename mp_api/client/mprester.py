@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import warnings
-from functools import lru_cache, cache
+from functools import cache, lru_cache
 from json import loads
 from os import environ
 from typing import Literal
@@ -253,16 +253,16 @@ class MPRester:
 
                 if len(suffix_split) == 1:
                     rester = cls(
-                    api_key=api_key,
-                    endpoint=endpoint,
-                    include_user_agent=include_user_agent,
-                    session=self.session,
-                    monty_decode=monty_decode
-                    if cls not in [TaskRester, ProvenanceRester]  # type: ignore
-                    else False,  # Disable monty decode on nested data which may give errors
-                    use_document_model=use_document_model,
-                    headers=self.headers,
-                )  # type: BaseRester
+                        api_key=api_key,
+                        endpoint=endpoint,
+                        include_user_agent=include_user_agent,
+                        session=self.session,
+                        monty_decode=monty_decode
+                        if cls not in [TaskRester, ProvenanceRester]  # type: ignore
+                        else False,  # Disable monty decode on nested data which may give errors
+                        use_document_model=use_document_model,
+                        headers=self.headers,
+                    )  # type: BaseRester
                     setattr(
                         self,
                         suffix_split[0],
@@ -277,31 +277,31 @@ class MPRester:
 
         # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
         def __core_custom_getattr(_self, _attr, _rester_map):
-                if _attr in _rester_map:
-                    cls = _rester_map[_attr]
-                    rester = cls(
-                            api_key=api_key,
-                            endpoint=endpoint,
-                            include_user_agent=include_user_agent,
-                            session=self.session,
-                            monty_decode=monty_decode
-                            if cls not in [TaskRester, ProvenanceRester]  # type: ignore
-                            else False,  # Disable monty decode on nested data which may give errors
-                            use_document_model=use_document_model,
-                            headers=self.headers,
-                        )  # type: BaseRester
+            if _attr in _rester_map:
+                cls = _rester_map[_attr]
+                rester = cls(
+                    api_key=api_key,
+                    endpoint=endpoint,
+                    include_user_agent=include_user_agent,
+                    session=self.session,
+                    monty_decode=monty_decode
+                    if cls not in [TaskRester, ProvenanceRester]  # type: ignore
+                    else False,  # Disable monty decode on nested data which may give errors
+                    use_document_model=use_document_model,
+                    headers=self.headers,
+                )  # type: BaseRester
 
-                    setattr(
-                        _self,
-                        _attr,
-                        rester,
-                        )
+                setattr(
+                    _self,
+                    _attr,
+                    rester,
+                )
 
-                    return rester
-                else:
-                    raise AttributeError(
-                        f"{_self.__class__.__name__!r} object has no attribute {attr!r}"
-                    )
+                return rester
+            else:
+                raise AttributeError(
+                    f"{_self.__class__.__name__!r} object has no attribute {attr!r}"
+                )
 
         def __materials_getattr__(_self, attr):
             _rester_map = _sub_rester_suffix_map["materials"]
@@ -738,7 +738,7 @@ class MPRester:
                 if property_data:
                     for property in property_data:
                         entry_dict["data"][property] = (
-                            doc.dict()[property]
+                            doc.model_dump()[property]
                             if self.use_document_model
                             else doc[property]
                         )

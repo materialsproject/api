@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import re
-from typing import get_args, Optional
-
 from functools import cache
+from typing import Optional, get_args
+
+from maggma.utils import get_flat_models_from_model
 from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
 from pydantic.fields import FieldInfo
-from maggma.utils import get_flat_models_from_model
+
 
 def validate_ids(id_list: list[str]):
     """Function to validate material and task IDs.
@@ -30,6 +31,7 @@ def validate_ids(id_list: list[str]):
 
     return id_list
 
+
 @cache
 def api_sanitize(
     pydantic_model: BaseModel,
@@ -49,7 +51,6 @@ def api_sanitize(
         allow_dict_msonable (bool): Whether to allow dictionaries in place of MSONable quantities.
             Defaults to False
     """
-
     models = [
         model
         for model in get_flat_models_from_model(pydantic_model)
@@ -75,7 +76,9 @@ def api_sanitize(
                             allow_msonable_dict(sub_type)
 
             if name not in model_fields_to_leave:
-                new_field = FieldInfo.from_annotated_attribute(Optional[field_type], None)
+                new_field = FieldInfo.from_annotated_attribute(
+                    Optional[field_type], None
+                )
                 model.model_fields[name] = new_field
 
         model.model_rebuild(force=True)
