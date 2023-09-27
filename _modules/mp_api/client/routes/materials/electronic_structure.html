@@ -338,7 +338,7 @@
                     <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">bs_data</span> <span class="o">=</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+                <span class="n">bs_data</span> <span class="o">=</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
@@ -356,7 +356,7 @@
                     <span class="sa">f</span><span class="s2">&quot;No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">bs_data</span> <span class="o">=</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+                <span class="n">bs_data</span> <span class="o">=</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
@@ -512,7 +512,7 @@
 
         <span class="n">dos_data</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span>
             <span class="n">document_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">dos_data</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]:</span>
             <span class="n">dos_task_id</span> <span class="o">=</span> <span class="n">dos_data</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">][</span><span class="s2">&quot;total&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
@@ -575,7 +575,7 @@
       &copy;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
