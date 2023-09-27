@@ -658,10 +658,10 @@ class MPRester:
         additional_criteria: dict = None,
     ) -> list[ComputedStructureEntry]:
         """Get a list of ComputedEntries or ComputedStructureEntries corresponding
-        to a chemical system or formula.
-
-        Note that by default this returns mixed GGA/GGA+U entries. For others,
-        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.
+        to a chemical system or formula. This returns entries for all thermo types
+        represented in the database. Each type corresponds to a different mixing scheme
+        (i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN). By default the thermo_type of the
+        entry is also returned.
 
         Args:
             chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems
@@ -717,7 +717,11 @@ class MPRester:
 
         entries = []
 
-        fields = ["entries"] if not property_data else ["entries"] + property_data
+        fields = (
+            ["entries", "thermo_type"]
+            if not property_data
+            else ["entries", "thermo_type"] + property_data
+        )
 
         if sort_by_e_above_hull:
             docs = self.thermo.search(
