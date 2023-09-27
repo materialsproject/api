@@ -842,7 +842,7 @@ class BaseRester(Generic[T]):
                         data_model(
                             **{
                                 field: value
-                                for field, value in raw_doc.dict().items()
+                                for field, value in raw_doc.model_dump().items()
                                 if field in set_fields
                             }
                         )
@@ -877,29 +877,29 @@ class BaseRester(Generic[T]):
 
     def _generate_returned_model(self, doc):
         set_fields = [
-            field for field, _ in doc if field in doc.dict(exclude_unset=True)
+            field for field, _ in doc if field in doc.model_dump(exclude_unset=True)
         ]
-        unset_fields = [field for field in doc.__fields__ if field not in set_fields]
+        unset_fields = [field for field in doc.model_fields if field not in set_fields]
 
         data_model = create_model(
             "MPDataDoc",
-            fields_not_requested=unset_fields,
+            fields_not_requested=(list[str], unset_fields),
             __base__=self.document_model,
         )
 
-        data_model.__fields__ = {
+        data_model.model_fields = {
             **{
                 name: description
-                for name, description in data_model.__fields__.items()
+                for name, description in data_model.model_fields.items()
                 if name in set_fields
             },
-            "fields_not_requested": data_model.__fields__["fields_not_requested"],
+            "fields_not_requested": data_model.model_fields["fields_not_requested"],
         }
 
         def new_repr(self) -> str:
             extra = ",\n".join(
                 f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-                for n in data_model.__fields__
+                for n in data_model.model_fields
             )
 
             s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m(\n{extra}\n)"  # noqa: E501
@@ -908,7 +908,7 @@ class BaseRester(Generic[T]):
         def new_str(self) -> str:
             extra = ",\n".join(
                 f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-                for n in data_model.__fields__
+                for n in data_model.model_fields
                 if n != "fields_not_requested"
             )
 
@@ -927,7 +927,7 @@ class BaseRester(Generic[T]):
                 )
 
         def new_dict(self, *args, **kwargs):
-            d = super(data_model, self).dict(*args, **kwargs)
+            d = super(data_model, self).model_dump(*args, **kwargs)
             return jsanitize(d)
 
         data_model.__repr__ = new_repr
@@ -1155,7 +1155,7 @@ class BaseRester(Generic[T]):
     def available_fields(self) -> list[str]:
         if self.document_model is None:
             return ["Unknown fields."]
-        return list(self.document_model.schema()["properties"].keys())  # type: ignore
+        return list(self.document_model.model_json_schema()["properties"].keys())  # type: ignore
 
     def __repr__(self):  # pragma: no cover
         return f"<{self.__class__.__name__} {self.endpoint}>"

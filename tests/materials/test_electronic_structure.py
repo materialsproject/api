@@ -92,7 +92,7 @@ def test_bs_client(bs_rester):
             "chunk_size": 1,
             "num_chunks": 1,
         }
-        doc = search_method(**q)[0].dict()
+        doc = search_method(**q)[0].model_dump()
 
         for sub_field in bs_sub_doc_fields:
             if sub_field in doc:
@@ -137,7 +137,7 @@ def test_dos_client(dos_rester):
                 "chunk_size": 1,
                 "num_chunks": 1,
             }
-            doc = search_method(**q)[0].dict()
+            doc = search_method(**q)[0].model_dump()
             for sub_field in dos_sub_doc_fields:
                 if sub_field in doc:
                     doc = doc[sub_field]

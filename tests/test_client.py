@@ -78,7 +78,7 @@ def test_generic_get_methods(rester):
 
             if name not in search_only_resters:
                 doc = rester.get_data_by_id(
-                    doc.dict()[rester.primary_key], fields=[rester.primary_key]
+                    doc.model_dump()[rester.primary_key], fields=[rester.primary_key]
                 )
                 assert isinstance(doc, rester.document_model)
 

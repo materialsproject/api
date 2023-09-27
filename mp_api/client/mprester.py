@@ -748,7 +748,7 @@ class MPRester:
                 if property_data:
                     for property in property_data:
                         entry_dict["data"][property] = (
-                            doc.dict()[property]
+                            doc.model_dump()[property]
                             if self.use_document_model
                             else doc[property]
                         )

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import re
 from functools import cache
-from typing import get_args
+from typing import Optional, get_args
 
+from maggma.utils import get_flat_models_from_model
 from monty.json import MSONable
 from pydantic import BaseModel
-from pydantic.schema import get_flat_models_from_model
-from pydantic.utils import lenient_issubclass
+from pydantic._internal._utils import lenient_issubclass
+from pydantic.fields import FieldInfo
 
 
 def validate_ids(id_list: list[str]):
@@ -62,25 +63,25 @@ def api_sanitize(
 
     for model in models:
         model_fields_to_leave = {f[1] for f in fields_tuples if model.__name__ == f[0]}
-        for name, field in model.__fields__.items():
-            field_type = field.type_
-
-            if name not in model_fields_to_leave:
-                field.required = False
-                field.default = None
-                field.default_factory = None
-                field.allow_none = True
-                field.field_info.default = None
-                field.field_info.default_factory = None
+        for name in model.model_fields:
+            field = model.model_fields[name]
+            field_type = field.annotation
 
             if field_type is not None and allow_dict_msonable:
                 if lenient_issubclass(field_type, MSONable):
-                    field.type_ = allow_msonable_dict(field_type)
+                    field_type = allow_msonable_dict(field_type)
                 else:
                     for sub_type in get_args(field_type):
                         if lenient_issubclass(sub_type, MSONable):
                             allow_msonable_dict(sub_type)
-                field.populate_validators()
+
+            if name not in model_fields_to_leave:
+                new_field = FieldInfo.from_annotated_attribute(
+                    Optional[field_type], None
+                )
+                model.model_fields[name] = new_field
+
+        model.model_rebuild(force=True)
 
     return pydantic_model
 
@@ -88,7 +89,7 @@ def api_sanitize(
 def allow_msonable_dict(monty_cls: type[MSONable]):
     """Patch Monty to allow for dict values for MSONable."""
 
-    def validate_monty(cls, v):
+    def validate_monty(cls, v, _):
         """Stub validator for MSONable as a dictionary only."""
         if isinstance(v, cls):
             return v
@@ -110,6 +111,6 @@ def allow_msonable_dict(monty_cls: type[MSONable]):
         else:
             raise ValueError(f"Must provide {cls.__name__} or MSONable dictionary")
 
-    monty_cls.validate_monty = classmethod(validate_monty)
+    monty_cls.validate_monty_v2 = classmethod(validate_monty)
 
     return monty_cls

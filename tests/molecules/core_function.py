@@ -58,7 +58,7 @@ def client_search_testing(
                 docs = search_method(**q)
 
                 if len(docs) > 0:
-                    doc = docs[0].dict()
+                    doc = docs[0].model_dump()
                 else:
                     raise ValueError("No documents returned")
 
