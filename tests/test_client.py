@@ -46,23 +46,18 @@ ignore_generic = [
 mpr = MPRester()
 
 # Temporarily ignore molecules resters while molecules query operators are changed
-resters_to_test = [
-    rester for rester in mpr._all_resters if "molecule" not in rester.suffix
-]
+resters_to_test = [rester for rester in mpr._all_resters if "molecule" not in rester.suffix]
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.environ.get("MP_API_KEY", None) is None, reason="No API key found.")
 @pytest.mark.parametrize("rester", resters_to_test)
 def test_generic_get_methods(rester):
     # -- Test generic search and get_data_by_id methods
     name = rester.suffix.replace("/", "_")
 
     rester = rester(
-        api_key=mpr.api_key,
         endpoint=mpr.endpoint,
-        include_user_agent=False,
+        include_user_agent=True,
         session=mpr.session,
         monty_decode=True
         if rester not in [TaskRester, ProvenanceRester]  # type: ignore
@@ -72,21 +67,15 @@ def test_generic_get_methods(rester):
 
     if name not in ignore_generic:
         if name not in key_only_resters:
-            doc = rester._query_resource_data(
-                {"_limit": 1}, fields=[rester.primary_key]
-            )[0]
+            doc = rester._query_resource_data({"_limit": 1}, fields=[rester.primary_key])[0]
             assert isinstance(doc, rester.document_model)
 
             if name not in search_only_resters:
-                doc = rester.get_data_by_id(
-                    doc.model_dump()[rester.primary_key], fields=[rester.primary_key]
-                )
+                doc = rester.get_data_by_id(doc.model_dump()[rester.primary_key], fields=[rester.primary_key])
                 assert isinstance(doc, rester.document_model)
 
         elif name not in special_resters:
-            doc = rester.get_data_by_id(
-                key_only_resters[name], fields=[rester.primary_key]
-            )
+            doc = rester.get_data_by_id(key_only_resters[name], fields=[rester.primary_key])
             assert isinstance(doc, rester.document_model)
 
 

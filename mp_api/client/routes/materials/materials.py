@@ -9,6 +9,36 @@ from pymatgen.core.structure import Structure
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
+from mp_api.client.routes.materials import (
+    AbsorptionRester,
+    AlloysRester,
+    BandStructureRester,
+    BondsRester,
+    ChargeDensityRester,
+    ChemenvRester,
+    DielectricRester,
+    DosRester,
+    ElasticityRester,
+    ElectrodeRester,
+    ElectronicStructureRester,
+    EOSRester,
+    FermiRester,
+    GrainBoundaryRester,
+    MagnetismRester,
+    OxidationStatesRester,
+    PhononRester,
+    PiezoRester,
+    ProvenanceRester,
+    RobocrysRester,
+    SimilarityRester,
+    SubstratesRester,
+    SummaryRester,
+    SurfacePropertiesRester,
+    SynthesisRester,
+    TaskRester,
+    ThermoRester,
+    XASRester,
+)
 
 _EMMET_SETTINGS = EmmetSettings()
 
@@ -18,6 +48,70 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
     document_model = MaterialsDoc  # type: ignore
     supports_versions = True
     primary_key = "material_id"
+    _sub_resters = [
+        "eos",
+        "similarity",
+        "tasks",
+        "xas",
+        "fermi",
+        "grain_boundary",
+        "substrates",
+        "surface_properties",
+        "phonon",
+        "elasticity",
+        "thermo",
+        "dielectric",
+        "piezoelectric",
+        "magnetism",
+        "summary",
+        "robocrys",
+        "synthesis",
+        "insertion_electrodes",
+        "charge_density",
+        "electronic_structure",
+        "electronic_structure_bandstructure",
+        "electronic_structure_dos",
+        "oxidation_states",
+        "provenance",
+        "bonds",
+        "alloys",
+        "absorption",
+        "chemenv",
+    ]
+
+    # Materials subresters
+    eos: EOSRester
+    materials: MaterialsRester
+    similarity: SimilarityRester
+    tasks: TaskRester
+    xas: XASRester
+    fermi: FermiRester
+    grain_boundary: GrainBoundaryRester
+    substrates: SubstratesRester
+    surface_properties: SurfacePropertiesRester
+    phonon: PhononRester
+    elasticity: ElasticityRester
+    thermo: ThermoRester
+    dielectric: DielectricRester
+    piezoelectric: PiezoRester
+    magnetism: MagnetismRester
+    summary: SummaryRester
+    robocrys: RobocrysRester
+    synthesis: SynthesisRester
+    insertion_electrodes: ElectrodeRester
+    charge_density: ChargeDensityRester
+    electronic_structure: ElectronicStructureRester
+    electronic_structure_bandstructure: BandStructureRester
+    electronic_structure_dos: DosRester
+    oxidation_states: OxidationStatesRester
+    provenance: ProvenanceRester
+    bonds: BondsRester
+    alloys: AlloysRester
+    absorption: AbsorptionRester
+    chemenv: ChemenvRester
+
+    def __dir__(self):
+        return dir(MaterialsRester) + self._sub_resters
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True
