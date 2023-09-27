@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import re
 from functools import cache
-
-from functools import cache
 from typing import Optional, get_args
 
 from maggma.utils import get_flat_models_from_model
@@ -54,7 +52,9 @@ def api_sanitize(
             Defaults to False
     """
     models = [
-        model for model in get_flat_models_from_model(pydantic_model) if issubclass(model, BaseModel)
+        model
+        for model in get_flat_models_from_model(pydantic_model)
+        if issubclass(model, BaseModel)
     ]  # type: list[BaseModel]
 
     fields_to_leave = fields_to_leave or []
@@ -76,7 +76,9 @@ def api_sanitize(
                             allow_msonable_dict(sub_type)
 
             if name not in model_fields_to_leave:
-                new_field = FieldInfo.from_annotated_attribute(Optional[field_type], None)
+                new_field = FieldInfo.from_annotated_attribute(
+                    Optional[field_type], None
+                )
                 model.model_fields[name] = new_field
 
         model.model_rebuild(force=True)
@@ -101,7 +103,9 @@ def allow_msonable_dict(monty_cls: type[MSONable]):
                 errors.append("@class")
 
             if len(errors) > 0:
-                raise ValueError("Missing Monty seriailzation fields in dictionary: {errors}")
+                raise ValueError(
+                    "Missing Monty seriailzation fields in dictionary: {errors}"
+                )
 
             return v
         else:

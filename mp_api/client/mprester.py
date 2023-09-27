@@ -327,7 +327,7 @@ class MPRester:
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
                 )  # type: BaseRester
-                
+
                 setattr(
                     _self,
                     _attr,
@@ -352,12 +352,6 @@ class MPRester:
 
         MaterialsRester.__getattr__ = __materials_getattr__
         MoleculeRester.__getattr__ = __molecules_getattr__
-
-                return rester
-            else:
-                raise AttributeError(
-                    f"{_self.__class__.__name__!r} object has no attribute {attr!r}"
-                )
 
         def __materials_getattr__(_self, attr):
             _rester_map = _sub_rester_suffix_map["materials"]
@@ -386,7 +380,7 @@ class MPRester:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Support for "with" context."""
         self.session.close()
-    
+
     def __getattr__(self, attr):
         if attr in self._deprecated_attributes:
             warnings.warn(
