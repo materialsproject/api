@@ -732,10 +732,10 @@
         <span class="n">additional_criteria</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of ComputedEntries or ComputedStructureEntries corresponding</span>
-<span class="sd">        to a chemical system or formula.</span>
-
-<span class="sd">        Note that by default this returns mixed GGA/GGA+U entries. For others,</span>
-<span class="sd">        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.</span>
+<span class="sd">        to a chemical system or formula. This returns entries for all thermo types</span>
+<span class="sd">        represented in the database. Each type corresponds to a different mixing scheme</span>
+<span class="sd">        (i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN). By default the thermo_type of the</span>
+<span class="sd">        entry is also returned.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems</span>
@@ -791,7 +791,11 @@
 
         <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">property_data</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">property_data</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">,</span> <span class="s2">&quot;thermo_type&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">property_data</span>
+            <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">,</span> <span class="s2">&quot;thermo_type&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">property_data</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sort_by_e_above_hull</span><span class="p">:</span>
             <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
