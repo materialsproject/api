@@ -20,9 +20,9 @@ bcrypt==4.0.1
     # via paramiko
 blinker==1.6.2
     # via flask
-boto3==1.28.59
+boto3==1.28.61
     # via maggma
-botocore==1.31.59
+botocore==1.31.61
     # via
     #   boto3
     #   s3transfer
@@ -53,15 +53,13 @@ dnspython==2.4.2
     # via
     #   maggma
     #   pymongo
-emmet-core==0.69.5
-    # via
-    #   mp-api
-    #   mp-api (pyproject.toml)
+emmet-core==0.69.6
+    # via mp-api (pyproject.toml)
 fastapi==0.103.2
     # via maggma
 flask==3.0.0
     # via mongogrant
-fonttools==4.43.0
+fonttools==4.43.1
     # via matplotlib
 future==0.18.3
     # via uncertainties
@@ -89,10 +87,8 @@ kiwisolver==1.4.5
     # via matplotlib
 latexcodec==2.0.1
     # via pybtex
-maggma==0.57.0
-    # via
-    #   mp-api
-    #   mp-api (pyproject.toml)
+maggma==0.57.1
+    # via mp-api (pyproject.toml)
 markupsafe==2.1.3
     # via
     #   jinja2
@@ -107,17 +103,13 @@ monty==2023.9.25
     # via
     #   emmet-core
     #   maggma
-    #   mp-api
     #   mp-api (pyproject.toml)
     #   pymatgen
-mp-api==0.37.1
-    # via pymatgen
 mpmath==1.3.0
     # via sympy
 msgpack==1.0.7
     # via
     #   maggma
-    #   mp-api
     #   mp-api (pyproject.toml)
 networkx==3.1
     # via pymatgen
@@ -160,19 +152,16 @@ pydantic==2.4.2
     #   maggma
     #   pydantic-settings
 pydantic-core==2.10.1
-    # via
-    #   emmet-core
-    #   pydantic
+    # via pydantic
 pydantic-settings==2.0.3
     # via
     #   emmet-core
     #   maggma
 pydash==7.0.6
     # via maggma
-pymatgen==2023.9.10
+pymatgen==2023.10.4
     # via
     #   emmet-core
-    #   mp-api
     #   mp-api (pyproject.toml)
 pymongo==4.5.0
     # via
@@ -194,7 +183,7 @@ pytz==2023.3.post1
     # via pandas
 pyyaml==6.0.1
     # via pybtex
-pyzmq==24.0.1
+pyzmq==25.1.1
     # via maggma
 referencing==0.30.2
     # via
@@ -203,14 +192,13 @@ referencing==0.30.2
 requests==2.31.0
     # via
     #   mongogrant
-    #   mp-api
     #   mp-api (pyproject.toml)
     #   pymatgen
-rpds-py==0.10.3
+rpds-py==0.10.4
     # via
     #   jsonschema
     #   referencing
-ruamel-yaml==0.17.34
+ruamel-yaml==0.17.35
     # via
     #   maggma
     #   pymatgen
@@ -230,9 +218,7 @@ six==1.16.0
 sniffio==1.3.0
     # via anyio
 spglib==2.1.0
-    # via
-    #   emmet-core
-    #   pymatgen
+    # via pymatgen
 sshtunnel==0.4.0
     # via maggma
 starlette==0.27.0
@@ -251,7 +237,6 @@ typing-extensions==4.8.0
     # via
     #   emmet-core
     #   fastapi
-    #   mp-api
     #   mp-api (pyproject.toml)
     #   pydantic
     #   pydantic-core

@@ -42,11 +42,11 @@ blinker==1.6.2
     # via flask
 boltons==23.0.0
     # via mpcontribs-client
-boto3==1.28.59
+boto3==1.28.61
     # via
     #   maggma
     #   mp-api (pyproject.toml)
-botocore==1.31.59
+botocore==1.31.61
     # via
     #   boto3
     #   s3transfer
@@ -85,7 +85,7 @@ custodian==2023.7.22
     # via mp-api (pyproject.toml)
 cycler==0.12.0
     # via matplotlib
-cython==3.0.2
+cython==3.0.3
     # via chgnet
 decorator==5.1.1
     # via ipython
@@ -98,10 +98,8 @@ dnspython==2.4.2
     #   maggma
     #   pyisemail
     #   pymongo
-emmet-core[all]==0.69.5
-    # via
-    #   mp-api
-    #   mp-api (pyproject.toml)
+emmet-core[all]==0.69.6
+    # via mp-api (pyproject.toml)
 exceptiongroup==1.1.3
     # via
     #   anyio
@@ -123,7 +121,7 @@ flask==3.0.0
     # via mongogrant
 flatten-dict==0.4.2
     # via mpcontribs-client
-fonttools==4.43.0
+fonttools==4.43.1
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
@@ -132,7 +130,9 @@ frozenlist==1.4.0
     #   aiohttp
     #   aiosignal
 fsspec[http]==2023.9.2
-    # via pytorch-lightning
+    # via
+    #   pytorch-lightning
+    #   torch
 future==0.18.3
     # via
     #   matminer
@@ -200,15 +200,13 @@ lightning-utilities==0.9.0
     # via
     #   pytorch-lightning
     #   torchmetrics
-maggma==0.57.0
-    # via
-    #   mp-api
-    #   mp-api (pyproject.toml)
+maggma==0.57.1
+    # via mp-api (pyproject.toml)
 markupsafe==2.1.3
     # via
     #   jinja2
     #   werkzeug
-matcalc[models]==0.0.3
+matcalc==0.0.3
     # via emmet-core
 matgl==0.8.5
     # via emmet-core
@@ -235,12 +233,9 @@ monty==2023.9.25
     #   emmet-core
     #   maggma
     #   matminer
-    #   mp-api
     #   mp-api (pyproject.toml)
     #   pymatgen
     #   robocrys
-mp-api==0.37.1
-    # via pymatgen
 mpcontribs-client==5.5.1
     # via mp-api (pyproject.toml)
 mpmath==1.3.0
@@ -250,7 +245,6 @@ msgpack==1.0.7
     #   bravado
     #   bravado-core
     #   maggma
-    #   mp-api
     #   mp-api (pyproject.toml)
 multidict==6.0.4
     # via
@@ -365,9 +359,7 @@ pydantic==2.4.2
     #   maggma
     #   pydantic-settings
 pydantic-core==2.10.1
-    # via
-    #   emmet-core
-    #   pydantic
+    # via pydantic
 pydantic-settings==2.0.3
     # via
     #   emmet-core
@@ -380,14 +372,13 @@ pygments==2.16.1
     # via ipython
 pyisemail==2.0.1
     # via mpcontribs-client
-pymatgen==2023.9.10
+pymatgen==2023.10.4
     # via
     #   chgnet
     #   emmet-core
     #   matcalc
     #   matgl
     #   matminer
-    #   mp-api
     #   mp-api (pyproject.toml)
     #   mpcontribs-client
     #   pymatgen-analysis-alloys
@@ -445,7 +436,7 @@ pyyaml==6.0.1
     #   pybtex
     #   pytorch-lightning
     #   swagger-spec-validator
-pyzmq==24.0.1
+pyzmq==25.1.1
     # via maggma
 referencing==0.30.2
     # via
@@ -459,7 +450,6 @@ requests==2.31.0
     #   fsspec
     #   matminer
     #   mongogrant
-    #   mp-api
     #   mp-api (pyproject.toml)
     #   pymatgen
     #   requests-futures
@@ -471,11 +461,11 @@ rfc3987==1.3.8
     # via jsonschema
 robocrys==0.2.8
     # via emmet-core
-rpds-py==0.10.3
+rpds-py==0.10.4
     # via
     #   jsonschema
     #   referencing
-ruamel-yaml==0.17.34
+ruamel-yaml==0.17.35
     # via
     #   custodian
     #   maggma
@@ -504,7 +494,7 @@ sentry-sdk==1.31.0
     # via custodian
 shapely==2.0.1
     # via pymatgen-analysis-alloys
-simplejson==3.19.1
+simplejson==3.19.2
     # via
     #   bravado
     #   bravado-core
@@ -522,7 +512,6 @@ sniffio==1.3.0
     # via anyio
 spglib==2.1.0
     # via
-    #   emmet-core
     #   phonopy
     #   pymatgen
     #   robocrys
@@ -553,7 +542,7 @@ tomli==2.0.1
     #   coverage
     #   mypy
     #   pytest
-torch==2.0.1
+torch==2.1.0
     # via
     #   chgnet
     #   matgl
@@ -590,7 +579,6 @@ typing-extensions==4.8.0
     #   inflect
     #   ipython
     #   lightning-utilities
-    #   mp-api
     #   mp-api (pyproject.toml)
     #   mypy
     #   pydantic
