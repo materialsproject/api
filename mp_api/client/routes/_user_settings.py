@@ -46,7 +46,7 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
                 "sector",
                 "job_role",
                 "is_email_subscribed",
-		"agreed_terms"
+                "agreed_terms",
             ]:
                 raise ValueError(
                     f"Invalid setting key {key}. Must be one of"
