@@ -842,7 +842,7 @@ class BaseRester(Generic[T]):
                         data_model(
                             **{
                                 field: value
-                                for field, value in raw_doc.model_dump().items()
+                                for field, value in dict(raw_doc).items()
                                 if field in set_fields
                             }
                         )
@@ -876,9 +876,9 @@ class BaseRester(Generic[T]):
             )
 
     def _generate_returned_model(self, doc):
-        set_fields = [
-            field for field, _ in doc if field in doc.model_dump(exclude_unset=True)
-        ]
+
+        set_fields = doc.model_fields_set
+
         unset_fields = [field for field in doc.model_fields if field not in set_fields]
 
         data_model = create_model(
