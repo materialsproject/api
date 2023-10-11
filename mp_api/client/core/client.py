@@ -876,7 +876,6 @@ class BaseRester(Generic[T]):
             )
 
     def _generate_returned_model(self, doc):
-
         set_fields = doc.model_fields_set
 
         unset_fields = [field for field in doc.model_fields if field not in set_fields]
