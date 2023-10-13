@@ -15,7 +15,7 @@ from emmet.core.vasp.calc_types import CalcType
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import Element, Structure
+from pymatgen.core import SETTINGS, Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
@@ -165,6 +165,9 @@ class MPRester:
         headers (dict): Custom headers for localhost connections.
         mute_progress_bars (bool): Whether to mute progress bars.
         """
+        # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
+        api_key = api_key or DEFAULT_API_KEY or SETTINGS.get("PMG_MAPI_KEY")
+
         if api_key and len(api_key) != 32:
             raise ValueError(
                 "Please use a new API key from https://materialsproject.org/api "
@@ -172,7 +175,7 @@ class MPRester:
                 "API are 16 characters."
             )
 
-        self.api_key = api_key or DEFAULT_API_KEY
+        self.api_key = api_key
         self.endpoint = endpoint
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
