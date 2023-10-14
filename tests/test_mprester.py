@@ -270,7 +270,7 @@ class TestMPRester:
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
         ion_ref_entries = mpr.get_entries_in_chemsys(
-            list([str(e) for e in ion_ref_elts] + ["O", "H"])
+            [*map(str, ion_ref_elts), "O", "H"]
         )
         mpc = MaterialsProjectAqueousCompatibility()
         ion_ref_entries = mpc.process_entries(ion_ref_entries)

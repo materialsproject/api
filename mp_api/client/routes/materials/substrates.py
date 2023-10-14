@@ -42,7 +42,7 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
         """Query equations of state docs using a variety of search criteria.
 
         Arguments:
-            area (Tuple[float,float]): Minimum and maximum volume in Å² to consider for the minimim coincident
+            area (Tuple[float,float]): Minimum and maximum volume in Å² to consider for the minimum coincident
                 interface area range.
             energy (Tuple[float,float]): Minimum and maximum energy in meV to consider for the elastic energy range.
             film_id (str): Materials Project ID of the film material.
