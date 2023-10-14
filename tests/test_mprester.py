@@ -26,6 +26,8 @@ from pymatgen.phonon.dos import PhononDos
 from mp_api.client import MPRester
 from mp_api.client.core.settings import MAPIClientSettings
 
+os.environ["MP_API_KEY"] = "test"
+
 
 @pytest.fixture()
 def mpr():
@@ -327,8 +329,8 @@ class TestMPRester:
 def test_pmg_api_key(monkeypatch: pytest.MonkeyPatch):
     from pymatgen.core import SETTINGS
 
-    # unset env var MP_API_KEY
-    monkeypatch.delenv("MP_API_KEY", raising=False)
+    # unset DEFAULT_API_KEY
+    monkeypatch.setattr("mp_api.client.mprester.DEFAULT_API_KEY", None)
 
     fake_api_key = "12345678901234567890123456789012"  # 32 chars
     # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
