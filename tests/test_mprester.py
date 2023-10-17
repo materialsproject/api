@@ -26,6 +26,8 @@ from pymatgen.phonon.dos import PhononDos
 from mp_api.client import MPRester
 from mp_api.client.core.settings import MAPIClientSettings
 
+os.environ["MP_API_KEY"] = "test"
+
 
 @pytest.fixture()
 def mpr():
@@ -68,14 +70,14 @@ class TestMPRester:
         assert len(data) > 5
 
     def test_get_materials_ids_doc(self, mpr):
-        mpids = mpr.get_materials_ids("Al2O3")
-        random.shuffle(mpids)
-        doc = mpr.materials.get_data_by_id(mpids.pop(0))
+        mp_ids = mpr.get_materials_ids("Al2O3")
+        random.shuffle(mp_ids)
+        doc = mpr.materials.get_data_by_id(mp_ids.pop(0))
         assert doc.formula_pretty == "Al2O3"
 
-        mpids = mpr.get_materials_ids("Al-O")
-        random.shuffle(mpids)
-        doc = mpr.materials.get_data_by_id(mpids.pop(0))
+        mp_ids = mpr.get_materials_ids("Al-O")
+        random.shuffle(mp_ids)
+        doc = mpr.materials.get_data_by_id(mp_ids.pop(0))
         assert doc.chemsys == "Al-O"
 
     def test_get_structures(self, mpr):
@@ -99,9 +101,9 @@ class TestMPRester:
     def test_get_bandstructure_by_material_id(self, mpr):
         bs = mpr.get_bandstructure_by_material_id("mp-149")
         assert isinstance(bs, BandStructureSymmLine)
-        bs_unif = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
-        assert isinstance(bs_unif, BandStructure)
-        assert not isinstance(bs_unif, BandStructureSymmLine)
+        bs_uniform = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
+        assert isinstance(bs_uniform, BandStructure)
+        assert not isinstance(bs_uniform, BandStructureSymmLine)
 
     def test_get_dos_by_id(self, mpr):
         dos = mpr.get_dos_by_material_id("mp-149")
@@ -268,7 +270,7 @@ class TestMPRester:
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
         ion_ref_entries = mpr.get_entries_in_chemsys(
-            list([str(e) for e in ion_ref_elts] + ["O", "H"])
+            [*map(str, ion_ref_elts), "O", "H"]
         )
         mpc = MaterialsProjectAqueousCompatibility()
         ion_ref_entries = mpc.process_entries(ion_ref_entries)
@@ -322,3 +324,17 @@ class TestMPRester:
         ]
         docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
         assert len(docs) == 15000
+
+
+def test_pmg_api_key(monkeypatch: pytest.MonkeyPatch):
+    from pymatgen.core import SETTINGS
+
+    # unset DEFAULT_API_KEY
+    monkeypatch.setattr("mp_api.client.mprester.DEFAULT_API_KEY", None)
+
+    fake_api_key = "12345678901234567890123456789012"  # 32 chars
+    # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
+    monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", fake_api_key)
+
+    # create MPRester and check that it picked up the API key from pymatgen SETTINGS
+    assert MPRester().api_key == fake_api_key
