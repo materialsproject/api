@@ -14,6 +14,8 @@ def rester():
 
 
 excluded_params = [
+    "energies",
+    "volumes",
     "sort_fields",
     "chunk_size",
     "num_chunks",
