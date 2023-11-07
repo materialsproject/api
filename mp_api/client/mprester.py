@@ -1320,7 +1320,7 @@ class MPRester:
 
         if not task_ids:
             return None
-        
+
         results: list[TaskDoc] = self.tasks.search(task_ids=task_ids, fields=["last_updated", "task_id"])  # type: ignore
 
         if len(results) == 0:
