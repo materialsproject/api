@@ -15,8 +15,7 @@ excluded_params = [
     "all_fields",
     "fields",
     #"equilibrium_reaction_energy",  # temp until data update
-    #"total_energy",  # temp until data update
-    #"exclude_elements",  # temp until data update
+    #"total_energy",  # temp until data updat
     #"num_elements",  # temp until server timeout increase
     #"num_sites",  # temp until server timeout increase
     #"density",  # temp until server timeout increase
@@ -25,6 +24,8 @@ excluded_params = [
     "has_reconstructed", # temp until index changes
     "shape_factor", # temp until index changes
     "chemsys", # temp until index changes
+    "elements", # temp until query op changes
+    "exclude_elements",  # temp until query op changes
 ]
 
 alt_name_dict = {
@@ -56,8 +57,6 @@ alt_name_dict = {
 custom_field_tests = {
     "material_ids": ["mp-149"],
     "formula": "BiFeO3",
-    "elements": ["Bi"],
-    "exclude_elements": ["Bi"],
     "possible_species": ["O2-"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
