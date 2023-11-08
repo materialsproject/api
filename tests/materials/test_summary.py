@@ -14,13 +14,16 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
-    "equilibrium_reaction_energy",  # temp until data update
-    "total_energy",  # temp until data update
-    "exclude_elements",  # temp until data update
-    "num_elements",  # temp until server timeout increase
-    "num_sites",  # temp until server timeout increase
-    "density",  # temp until server timeout increase
-    "total_magnetization",  # temp until server timeout increase
+    #"equilibrium_reaction_energy",  # temp until data update
+    #"total_energy",  # temp until data update
+    #"exclude_elements",  # temp until data update
+    #"num_elements",  # temp until server timeout increase
+    #"num_sites",  # temp until server timeout increase
+    #"density",  # temp until server timeout increase
+    #"total_magnetization",  # temp until server timeout increase
+    "e_ij_max", # temp until data change
+    "has_reconstructed", # temp until server timeout increase
+    "chemsys", # temp until server timeout increase
 ]
 
 alt_name_dict = {
@@ -41,13 +44,19 @@ alt_name_dict = {
     "num_sites": "nsites",
     "num_elements": "nelements",
     "surface_energy_anisotropy": "surface_anisotropy",
+    "g_voigt": "bulk_modulus",
+    "g_reuss": "bulk_modulus",
+    "g_vrh": "bulk_modulus",
+    "k_voigt": "shear_modulus",
+    "k_reuss": "shear_modulus",
+    "k_vrh": "shear_modulus",
 }  # type: dict
 
 custom_field_tests = {
     "material_ids": ["mp-149"],
-    "formula": "SiO2",
-    "chemsys": "Si-O",
-    "elements": ["Si", "O"],
+    "formula": "BiFeO3",
+    "elements": ["Bi"],
+    "exclude_elements": ["Bi"],
     "possible_species": ["O2-"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
