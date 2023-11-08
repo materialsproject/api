@@ -22,8 +22,9 @@ excluded_params = [
     #"density",  # temp until server timeout increase
     #"total_magnetization",  # temp until server timeout increase
     "e_ij_max", # temp until data change
-    "has_reconstructed", # temp until server timeout increase
-    "chemsys", # temp until server timeout increase
+    "has_reconstructed", # temp until index changes
+    "shape_factor", # temp until index changes
+    "chemsys", # temp until index changes
 ]
 
 alt_name_dict = {
