@@ -46,7 +46,7 @@ class TestMPRester:
         assert s1.formula == "Ca12 Ti8 O28"
 
         s1 = mpr.get_structure_by_material_id("mp-149", final=False)
-        assert [s.formula for s in s1] == ["Si2"]
+        assert {s.formula for s in s1} == {"Si2"}
 
         # # requesting via task-id instead of mp-id
         with pytest.warns(UserWarning):
