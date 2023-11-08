@@ -21,11 +21,18 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = ["elasticity"]  # type: list
+sub_doc_fields = []  # type: list
 
 alt_name_dict = {
     "elastic_anisotropy": "universal_anisotropy",
     "poisson_ratio": "homogeneous_poisson",
+    "g_voigt": "bulk_modulus",
+    "g_reuss": "bulk_modulus",
+    "g_vrh": "bulk_modulus",
+    "k_voigt": "shear_modulus",
+    "k_reuss": "shear_modulus",
+    "k_vrh": "shear_modulus",
+
 }  # type: dict
 
 custom_field_tests = {}  # type: dict

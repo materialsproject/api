@@ -3,7 +3,7 @@ from __future__ import annotations
 import warnings
 from collections import defaultdict
 
-from emmet.core.elasticity_legacy import ElasticityDoc
+from emmet.core.elasticity import ElasticityDoc
 
 from mp_api.client.core import BaseRester
 
