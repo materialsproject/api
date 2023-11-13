@@ -32,7 +32,6 @@ alt_name_dict = {
     "k_voigt": "shear_modulus",
     "k_reuss": "shear_modulus",
     "k_vrh": "shear_modulus",
-
 }  # type: dict
 
 custom_field_tests = {}  # type: dict
