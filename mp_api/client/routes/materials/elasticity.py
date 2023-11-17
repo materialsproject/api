@@ -11,7 +11,7 @@ from mp_api.client.core import BaseRester
 class ElasticityRester(BaseRester[ElasticityDoc]):
     suffix = "materials/elasticity"
     document_model = ElasticityDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
 
     def search_elasticity_docs(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""

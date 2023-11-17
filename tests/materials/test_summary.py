@@ -14,13 +14,6 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
-    "equilibrium_reaction_energy",  # temp until data update
-    "total_energy",  # temp until data update
-    "exclude_elements",  # temp until data update
-    "num_elements",  # temp until server timeout increase
-    "num_sites",  # temp until server timeout increase
-    "density",  # temp until server timeout increase
-    "total_magnetization",  # temp until server timeout increase
 ]
 
 alt_name_dict = {
@@ -38,6 +31,12 @@ alt_name_dict = {
     "magnetic_ordering": "ordering",
     "elastic_anisotropy": "universal_anisotropy",
     "poisson_ratio": "homogeneous_poisson",
+    "g_reuss": "bulk_modulus",
+    "g_vrh": "bulk_modulus",
+    "g_voigt": "bulk_modulus",
+    "k_reuss": "shear_modulus",
+    "k_vrh": "shear_modulus",
+    "k_voigt": "shear_modulus",
     "num_sites": "nsites",
     "num_elements": "nelements",
     "surface_energy_anisotropy": "surface_anisotropy",
@@ -48,6 +47,7 @@ custom_field_tests = {
     "formula": "SiO2",
     "chemsys": "Si-O",
     "elements": ["Si", "O"],
+    "exclude_elements": ["Si", "O"],
     "possible_species": ["O2-"],
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
