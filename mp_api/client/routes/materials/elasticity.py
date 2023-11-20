@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
+from mp_api.client.core.utils import validate_ids
 
 from emmet.core.elasticity import ElasticityDoc
 
@@ -25,6 +26,7 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
 
     def search(
         self,
+        material_ids: str | list[str] | None = None,
         elastic_anisotropy: tuple[float, float] | None = None,
         g_voigt: tuple[float, float] | None = None,
         g_reuss: tuple[float, float] | None = None,
@@ -42,6 +44,8 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
         """Query elasticity docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for
                 the elastic anisotropy.
             g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
@@ -69,6 +73,12 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
             ([ElasticityDoc]) List of elasticity documents.
         """
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if k_voigt:
             query_params.update({"k_voigt_min": k_voigt[0], "k_voigt_max": k_voigt[1]})
