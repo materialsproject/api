@@ -33,6 +33,7 @@
 
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
 
 <span class="kn">from</span> <span class="nn">emmet.core.elasticity</span> <span class="kn">import</span> <span class="n">ElasticityDoc</span>
 
@@ -63,6 +64,7 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.elasticity.ElasticityRester.html#mp_api.client.routes.materials.elasticity.ElasticityRester.search">[docs]</a>
     <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
+        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">elastic_anisotropy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">g_voigt</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">g_reuss</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -80,6 +82,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Query elasticity docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
+<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
 <span class="sd">            elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for</span>
 <span class="sd">                the elastic anisotropy.</span>
 <span class="sd">            g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for</span>
@@ -107,6 +111,12 @@
 <span class="sd">            ([ElasticityDoc]) List of elasticity documents.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
+
+        <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">k_voigt</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;k_voigt_min&quot;</span><span class="p">:</span> <span class="n">k_voigt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;k_voigt_max&quot;</span><span class="p">:</span> <span class="n">k_voigt</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
