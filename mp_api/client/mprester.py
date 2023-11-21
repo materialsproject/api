@@ -723,7 +723,6 @@ class MPRester:
             else ["entries", "thermo_type"] + property_data
         )
 
-
         docs = self.thermo.search(
             **input_params,
             all_fields=False,
