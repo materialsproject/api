@@ -81,7 +81,6 @@
         <span class="n">thermo_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ThermoType</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">total_energy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">uncorrected_energy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">sort_fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -108,7 +107,6 @@
 <span class="sd">            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.</span>
 <span class="sd">            uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total</span>
 <span class="sd">                energy in eV/atom to consider.</span>
-<span class="sd">            sort_fields (List[str]): Fields used to sort results. Prefix with &#39;-&#39; to sort in descending order.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
@@ -156,11 +154,6 @@
 
         <span class="k">if</span> <span class="n">is_stable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;is_stable&quot;</span><span class="p">:</span> <span class="n">is_stable</span><span class="p">})</span>
-
-        <span class="k">if</span> <span class="n">sort_fields</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;_sort_fields&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_fields</span><span class="p">])}</span>
-            <span class="p">)</span>
 
         <span class="n">name_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;total_energy&quot;</span><span class="p">:</span> <span class="s2">&quot;energy_per_atom&quot;</span><span class="p">,</span>
