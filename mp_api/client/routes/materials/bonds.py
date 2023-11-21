@@ -32,7 +32,6 @@ class BondsRester(BaseRester[BondingDoc]):
         max_bond_length: tuple[float, float] | None = None,
         mean_bond_length: tuple[float, float] | None = None,
         min_bond_length: tuple[float, float] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -51,7 +50,6 @@ class BondsRester(BaseRester[BondingDoc]):
                 in the structure to consider.
             min_bond_length (Tuple[float,float]): Minimum and maximum value for the minimum bond length
                 in the structure to consider.
-            sort_fields (List[str]): Fields used to sort results. Prefixing with '-' will sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -99,11 +97,6 @@ class BondsRester(BaseRester[BondingDoc]):
         if coordination_envs_anonymous is not None:
             query_params.update(
                 {"coordination_envs_anonymous": ",".join(coordination_envs_anonymous)}
-            )
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         query_params = {

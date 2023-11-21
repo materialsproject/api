@@ -35,7 +35,6 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         total_magnetization: tuple[float, float] | None = None,
         total_magnetization_normalized_vol: tuple[float, float] | None = None,
         total_magnetization_normalized_formula_units: tuple[float, float] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -55,7 +54,6 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
                 normalized by volume to consider.
             total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -123,11 +121,6 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
 
         if ordering:
             query_params.update({"ordering": ordering.value})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]

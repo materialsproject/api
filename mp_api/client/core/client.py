@@ -817,7 +817,7 @@ class BaseRester(Generic[T]):
                 f"REST query timed out on URL {url}. Try again with a smaller request."
             )
 
-        if response.status_code in [400, 404]:
+        if response.status_code in [400]:
             warnings.warn(
                 f"The server does not support the request made to {response.url}. This may be due to an outdated mp-api package, or a problem with the query."
             )

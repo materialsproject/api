@@ -17,7 +17,6 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
         self,
         material_ids: str | list[str] | None = None,
         formulae: list[str] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -33,7 +32,6 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
         Arguments:
             material_ids (str, List[str]): Search for alloys containing the specified Material IDs
             formulae (List[str]): Search for alloys containing the specified formulae
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -55,11 +53,6 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
                 material_ids = [material_ids]
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         return super()._search(
             formulae=formulae,

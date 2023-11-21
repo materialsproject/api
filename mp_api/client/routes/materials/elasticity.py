@@ -35,7 +35,6 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
         k_reuss: tuple[float, float] | None = None,
         k_vrh: tuple[float, float] | None = None,
         poisson_ratio: tuple[float, float] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -62,7 +61,6 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
                 the Voigt-Reuss-Hill average of the bulk modulus.
             poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for
                 Poisson's ratio.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -109,11 +107,6 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
         if poisson_ratio:
             query_params.update(
                 {"poisson_min": poisson_ratio[0], "poisson_max": poisson_ratio[1]}
-            )
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
             )
 
         query_params = {

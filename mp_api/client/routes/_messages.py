@@ -42,7 +42,6 @@ class MessagesRester(BaseRester[MessagesDoc]):  # pragma: no cover
     def get_messages(
         self,
         last_updated: datetime,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -52,7 +51,6 @@ class MessagesRester(BaseRester[MessagesDoc]):  # pragma: no cover
 
         Args:
             last_updated (datetime): Datetime to use to query for newer messages
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -66,11 +64,6 @@ class MessagesRester(BaseRester[MessagesDoc]):  # pragma: no cover
             MPRestError.
         """
         query_params = {}
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         return self._search(
             last_updated=last_updated,

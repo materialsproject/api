@@ -20,7 +20,6 @@ class AbsorptionRester(BaseRester[AbsorptionDoc]):
         elements: list[str] | None = None,
         exclude_elements: list[str] | None = None,
         formula: list[str] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -37,7 +36,6 @@ class AbsorptionRester(BaseRester[AbsorptionDoc]):
             formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -71,11 +69,6 @@ class AbsorptionRester(BaseRester[AbsorptionDoc]):
                 material_ids = [material_ids]
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]

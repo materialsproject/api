@@ -31,7 +31,6 @@ class DielectricRester(BaseRester[DielectricDoc]):
         e_ionic: tuple[float, float] | None = None,
         e_electronic: tuple[float, float] | None = None,
         n: tuple[float, float] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -46,7 +45,6 @@ class DielectricRester(BaseRester[DielectricDoc]):
             e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
             e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
             n (Tuple[float,float]): Minimum and maximum refractive index to consider.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -80,11 +78,6 @@ class DielectricRester(BaseRester[DielectricDoc]):
 
         if n:
             query_params.update({"n_min": n[0], "n_max": n[1]})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]

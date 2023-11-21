@@ -30,7 +30,6 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
         # has_lot_solvent: Optional[Union[str, List[str]]] = None,
         # with_solvent: Optional[str] = None,
         # num_sites: Optional[Tuple[int, int]] = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -60,7 +59,6 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
                 (e.g. "C2 Li2 O4", ["C2 H4", "C2 H6"]).
             has_props: (List[HasProps]): The calculated properties available for the material.
             molecule_ids (List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data for.
-            sort_fields (List[str]): Fields used to sort results. Prefixing with '-' will sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -123,11 +121,6 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
 
         if has_props:
             query_params.update({"has_props": ",".join([i.value for i in has_props])})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]
