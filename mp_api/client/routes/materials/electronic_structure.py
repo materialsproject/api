@@ -45,7 +45,6 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         is_metal: bool = None,
         magnetic_ordering: Ordering | None = None,
         num_elements: tuple[int, int] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -69,7 +68,6 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
             is_metal (bool): Whether the material is considered a metal.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
             num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -129,11 +127,6 @@ class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
         if is_metal is not None:
             query_params.update({"is_metal": is_metal})
 
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
-
         query_params = {
             entry: query_params[entry]
             for entry in query_params
@@ -172,7 +165,6 @@ class BandStructureRester(BaseRester):
         is_metal: bool = None,
         magnetic_ordering: Ordering | None = None,
         path_type: BSPathType = BSPathType.setyawan_curtarolo,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -187,7 +179,6 @@ class BandStructureRester(BaseRester):
             is_metal (bool): Whether the material is considered a metal.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
             path_type (BSPathType): k-path selection convention for the band structure.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -217,11 +208,6 @@ class BandStructureRester(BaseRester):
 
         if is_metal is not None:
             query_params.update({"is_metal": is_metal})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]
@@ -344,7 +330,6 @@ class DosRester(BaseRester):
         orbital: OrbitalType | None = None,
         projection_type: DOSProjectionType = DOSProjectionType.total,
         spin: Spin = Spin.up,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -360,7 +345,6 @@ class DosRester(BaseRester):
             orbital (OrbitalType): Orbital for orbital-projected dos data.
             projection_type (DOSProjectionType): Projection type of dos data. Default is the total dos.
             spin (Spin): Spin channel of dos data. If non spin-polarized data is stored in Spin.up
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -391,11 +375,6 @@ class DosRester(BaseRester):
 
         if magnetic_ordering:
             query_params.update({"magnetic_ordering": magnetic_ordering.value})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]

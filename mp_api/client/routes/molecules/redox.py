@@ -36,7 +36,6 @@ class MoleculesRedoxRester(BaseRester[RedoxDoc]):
         oxidation_energy: tuple[float, float] | None = None,
         oxidation_free_energy: tuple[float, float] | None = None,
         num_chunks: int | None = None,
-        sort_fields: list[str] | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
@@ -72,7 +71,6 @@ class MoleculesRedoxRester(BaseRester[RedoxDoc]):
             oxidation_energy (Tuple[float, float]): Minimum and maximum oxidation energies
             oxidation_free_energy (Tuple[float, float]): Minimum and maximum oxidation free energies
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in MoleculeDoc to return data for.

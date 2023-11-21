@@ -37,7 +37,6 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         separation_energy: tuple[float, float] | None = None,
         sigma: int | None = None,
         type: GBTypeEnum | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -57,7 +56,6 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
              separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.
              sigma (int): Sigma value of the boundary.
              type (GBTypeEnum): Grain boundary type.
-             sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
              num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
              chunk_size (int): Number of data entries per chunk.
              all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -109,11 +107,6 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
 
         if pretty_formula:
             query_params.update({"pretty_formula": pretty_formula})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]

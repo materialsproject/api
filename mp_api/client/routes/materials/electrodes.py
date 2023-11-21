@@ -46,7 +46,6 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         stability_charge: tuple[float, float] | None = None,
         stability_discharge: tuple[float, float] | None = None,
         working_ion: Element | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -86,7 +85,6 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             stability_discharge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the
                 discharged material.
             working_ion (Element, List[Element]): Element or list of elements of the working ion.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -134,11 +132,6 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
         if exclude_elements:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         for param, value in locals().items():
             if (

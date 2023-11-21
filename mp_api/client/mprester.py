@@ -657,7 +657,6 @@ class MPRester:
         inc_structure: bool = None,
         property_data: list[str] = None,
         conventional_unit_cell: bool = False,
-        sort_by_e_above_hull: bool = False,
         additional_criteria: dict = None,
     ) -> list[ComputedStructureEntry]:
         """Get a list of ComputedEntries or ComputedStructureEntries corresponding
@@ -688,8 +687,6 @@ class MPRester:
                 input parameters in the 'MPRester.thermo.available_fields' list.
             conventional_unit_cell (bool): Whether to get the standard
                 conventional unit cell
-            sort_by_e_above_hull (bool): Whether to sort the list of entries by
-                e_above_hull in ascending order.
             additional_criteria (dict): Any additional criteria to pass. The keys and values should
                 correspond to proper function inputs to `MPRester.thermo.search`. For instance,
                 if you are only interested in entries on the convex hull, you could pass
@@ -726,19 +723,12 @@ class MPRester:
             else ["entries", "thermo_type"] + property_data
         )
 
-        if sort_by_e_above_hull:
-            docs = self.thermo.search(
-                **input_params,  # type: ignore
-                all_fields=False,
-                fields=fields,
-                sort_fields=["energy_above_hull"],
-            )
-        else:
-            docs = self.thermo.search(
-                **input_params,
-                all_fields=False,
-                fields=fields,  # type: ignore
-            )
+
+        docs = self.thermo.search(
+            **input_params,
+            all_fields=False,
+            fields=fields,  # type: ignore
+        )
 
         for doc in docs:
             entry_list = (

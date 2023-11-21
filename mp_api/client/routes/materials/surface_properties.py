@@ -31,7 +31,6 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
         surface_energy_anisotropy: tuple[float, float] | None = None,
         weighted_surface_energy: tuple[float, float] | None = None,
         weighted_work_function: tuple[float, float] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -47,7 +46,6 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
             weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy in J/m² to
                 consider.
             weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -93,11 +91,6 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
 
         if has_reconstructed is not None:
             query_params.update({"has_reconstructed": has_reconstructed})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]

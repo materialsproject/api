@@ -107,7 +107,6 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
         formula: str | list[str] | None = None,
         molecule_ids: MPculeID | list[MPculeID] | None = None,
         task_ids: str | list[str] | None = None,
-        sort_fields: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -129,7 +128,6 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
             molecule_ids (MPculeID, List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data
                 for.
             task_ids (str, List[str]): List of Materials Project IDs to return data for.
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -176,11 +174,6 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
                 task_ids = [task_ids]
 
             query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
-
-        if sort_fields:
-            query_params.update(
-                {"_sort_fields": ",".join([s.strip() for s in sort_fields])}
-            )
 
         query_params = {
             entry: query_params[entry]
