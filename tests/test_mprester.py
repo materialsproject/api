@@ -118,7 +118,7 @@ class TestMPRester:
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
         entries = mpr.get_entries(chemsys)
-        sorted_entries = mpr.get_entries(chemsys, sort_by_e_above_hull=True)
+        sorted_entries = mpr.get_entries(chemsys)
 
         elements = {Element(sym) for sym in syms}
         for e in entries:

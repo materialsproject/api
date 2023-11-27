@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
-from mp_api.client.core.utils import validate_ids
 
 from emmet.core.elasticity import ElasticityDoc
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class ElasticityRester(BaseRester[ElasticityDoc]):
