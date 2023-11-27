@@ -186,6 +186,7 @@ class MPRester:
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
         self.mute_progress_bars = mute_progress_bars
+        self._contribs = None
 
         self._deprecated_attributes = [
             "eos",
@@ -220,21 +221,6 @@ class MPRester:
 
         # Check if emmet version of server is compatible
         emmet_version = MPRester.get_emmet_version(self.endpoint)
-
-        try:
-            from mpcontribs.client import Client
-
-            self.contribs = Client(api_key, headers=self.headers, session=self.session)
-        except ImportError:
-            self.contribs = None
-            warnings.warn(
-                "mpcontribs-client not installed. "
-                "Install the package to query MPContribs data, or construct pourbaix diagrams: "
-                "'pip install mpcontribs-client'"
-            )
-        except Exception as error:
-            self.contribs = None
-            warnings.warn(f"Problem loading MPContribs client: {error}")
 
         if version.parse(emmet_version.base_version) < version.parse(
             _MAPI_SETTINGS.MIN_EMMET_VERSION
@@ -362,6 +348,28 @@ class MPRester:
                 attr,
                 rester,
             )
+
+    @property
+    def contribs(self):
+        if self._contribs is None:
+            try:
+                from mpcontribs.client import Client
+
+                self._contribs = Client(self.api_key, headers=self.headers, session=self.session)
+            
+            except ImportError:
+                self._contribs = None
+                warnings.warn(
+                    "mpcontribs-client not installed. "
+                    "Install the package to query MPContribs data, or construct pourbaix diagrams: "
+                    "'pip install mpcontribs-client'"
+                )
+            except Exception as error:
+                self._contribs = None
+                warnings.warn(f"Problem loading MPContribs client: {error}")
+        
+        return self._contribs
+        
 
     def __enter__(self):
         """Support for "with" context."""
