@@ -355,8 +355,10 @@ class MPRester:
             try:
                 from mpcontribs.client import Client
 
-                self._contribs = Client(self.api_key, headers=self.headers, session=self.session)
-            
+                self._contribs = Client(
+                    self.api_key, headers=self.headers, session=self.session
+                )
+
             except ImportError:
                 self._contribs = None
                 warnings.warn(
@@ -367,9 +369,8 @@ class MPRester:
             except Exception as error:
                 self._contribs = None
                 warnings.warn(f"Problem loading MPContribs client: {error}")
-        
+
         return self._contribs
-        
 
     def __enter__(self):
         """Support for "with" context."""
