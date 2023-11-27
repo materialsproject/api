@@ -24,6 +24,7 @@ excluded_params = [
 sub_doc_fields = []  # type: list
 
 alt_name_dict = {
+    "material_ids": "material_id",
     "elastic_anisotropy": "universal_anisotropy",
     "poisson_ratio": "homogeneous_poisson",
     "g_voigt": "bulk_modulus",
@@ -34,7 +35,7 @@ alt_name_dict = {
     "k_vrh": "shear_modulus",
 }  # type: dict
 
-custom_field_tests = {}  # type: dict
+custom_field_tests = {"material_ids": ["mp-149"]}  # type: dict
 
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")

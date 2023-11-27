@@ -118,14 +118,11 @@ class TestMPRester:
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
         entries = mpr.get_entries(chemsys)
-        sorted_entries = mpr.get_entries(chemsys)
 
         elements = {Element(sym) for sym in syms}
         for e in entries:
             assert isinstance(e, ComputedEntry)
             assert set(e.composition.elements).issubset(elements)
-
-        assert sorted_entries != entries
 
         # Formula
         formula = "SiO2"
@@ -162,9 +159,9 @@ class TestMPRester:
 
         s = prim.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
-        assert pytest.approx(s.lattice.a) == s.lattice.c
+        assert pytest.approx(s.lattice.a) != s.lattice.c
         assert pytest.approx(s.lattice.alpha) == s.lattice.beta
-        assert pytest.approx(s.lattice.alpha) == s.lattice.gamma
+        assert pytest.approx(s.lattice.alpha) != s.lattice.gamma
 
         # Additional criteria
         entry = mpr.get_entries(

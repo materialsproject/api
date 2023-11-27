@@ -1,5 +1,5 @@
 import os
-from core_function import client_search_testing
+from .core_function import client_search_testing
 
 import pytest
 from pymatgen.core.periodic_table import Element

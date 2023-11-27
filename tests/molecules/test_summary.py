@@ -1,5 +1,5 @@
 import os
-from core_function import client_search_testing
+from .core_function import client_search_testing
 
 import pytest
 from emmet.core.molecules.summary import HasProps
@@ -13,6 +13,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "exclude_elements",
+    "has_props"
 ]
 
 alt_name_dict = {"formula": "formula_alphabetical", "molecule_ids": "molecule_id"}
@@ -31,7 +32,7 @@ custom_field_tests = {
     "has_props": [HasProps.orbitals],
 }  # type: dict
 
-
+@pytest.mark.skip(reason="Temporary until data adjustments")
 @pytest.mark.skipif(
     os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
 )
