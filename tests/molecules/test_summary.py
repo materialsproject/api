@@ -13,7 +13,7 @@ excluded_params = [
     "all_fields",
     "fields",
     "exclude_elements",
-    "has_props"
+    "has_props",
 ]
 
 alt_name_dict = {"formula": "formula_alphabetical", "molecule_ids": "molecule_id"}
@@ -31,6 +31,7 @@ custom_field_tests = {
     "spin_multiplicity": 1,
     "has_props": [HasProps.orbitals],
 }  # type: dict
+
 
 @pytest.mark.skip(reason="Temporary until data adjustments")
 @pytest.mark.skipif(
