@@ -9,6 +9,7 @@ import itertools
 import json
 import platform
 import sys
+import os
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
@@ -26,6 +27,7 @@ from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
+from importlib.metadata import PackageNotFoundError, version
 
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import api_sanitize, validate_ids
@@ -38,10 +40,9 @@ except ImportError:
     boto3 = None
 
 try:
-    from pymatgen.core import __version__ as pmg_version  # type: ignore
-except ImportError:  # pragma: no cover
-    # fallback to root-level import for older pymatgen versions
-    from pymatgen import __version__ as pmg_version  # type: ignore
+    __version__ = version("mp_api")
+except PackageNotFoundError:  # pragma: no cover
+    __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
 
 # TODO: think about how to migrate from PMG_MAPI_KEY
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
@@ -160,12 +161,12 @@ class BaseRester(Generic[T]):
         session.headers.update(headers)
 
         if include_user_agent:
-            pymatgen_info = "pymatgen/" + pmg_version
+            mp_api_info = "mp-api/" + __version__
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
             session.headers[
                 "user-agent"
-            ] = f"{pymatgen_info} ({python_info} {platform_info})"
+            ] = f"{mp_api_info} ({python_info} {platform_info})"
 
         settings = MAPIClientSettings()
         max_retry_num = settings.MAX_RETRIES
