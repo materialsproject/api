@@ -7,12 +7,13 @@ from __future__ import annotations
 import gzip
 import itertools
 import json
+import os
 import platform
 import sys
-import os
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
+from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
 from math import ceil
 from os import environ
@@ -27,7 +28,6 @@ from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
-from importlib.metadata import PackageNotFoundError, version
 
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import api_sanitize, validate_ids
