@@ -9,6 +9,8 @@ from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
 from pydantic.fields import FieldInfo
+from mp_api.client.core.settings import MAPIClientSettings
+
 
 
 def validate_ids(id_list: list[str]):
@@ -23,6 +25,11 @@ def validate_ids(id_list: list[str]):
     Returns:
         id_list: Returns original ID list if everything is formatted correctly.
     """
+
+    if len(id_list) >= MAPIClientSettings().MAX_LIST_LENGTH:
+        raise ValueError("List of material/molecule IDs provided is too long. Consider removing the ID filter to automically pull"
+                         " data for all IDs and filter locally.")
+
     pattern = "(mp|mvc|mol|mpcule)-.*"
 
     for entry in id_list:

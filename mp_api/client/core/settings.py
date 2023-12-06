@@ -13,6 +13,7 @@ _NUM_PARALLEL_REQUESTS = min(PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 
 _MAX_RETRIES = min(PMG_SETTINGS.get("MPRESTER_MAX_RETRIES", 3), 3)
 _MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BARS", False)
 _MAX_HTTP_URL_LENGTH = PMG_SETTINGS.get("MPRESTER_MAX_HTTP_URL_LENGTH", 2000)
+_MAX_LIST_LENGTH = min(PMG_SETTINGS.get("MPRESTER_MAX_LIST_LENGTH", 40000), 40000)
 
 try:
     CPU_COUNT = cpu_count()
@@ -81,6 +82,8 @@ class MAPIClientSettings(BaseSettings):
     MIN_EMMET_VERSION: str = Field(
         "0.54.0", description="Minimum compatible version of emmet-core for the client."
     )
+ 
+    MAX_LIST_LENGTH: int = Field(_MAX_LIST_LENGTH, description="Maximum length of query parameter list")
 
     class Config:
         env_prefix = "MPRESTER_"
