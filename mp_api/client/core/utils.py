@@ -27,7 +27,7 @@ def validate_ids(id_list: list[str]):
     """
     if len(id_list) >= MAPIClientSettings().MAX_LIST_LENGTH:
         raise ValueError(
-            "List of material/molecule IDs provided is too long. Consider removing the ID filter to automically pull"
+            "List of material/molecule IDs provided is too long. Consider removing the ID filter to automatically pull"
             " data for all IDs and filter locally."
         )
 
