@@ -82,8 +82,10 @@ class MAPIClientSettings(BaseSettings):
     MIN_EMMET_VERSION: str = Field(
         "0.54.0", description="Minimum compatible version of emmet-core for the client."
     )
- 
-    MAX_LIST_LENGTH: int = Field(_MAX_LIST_LENGTH, description="Maximum length of query parameter list")
+
+    MAX_LIST_LENGTH: int = Field(
+        _MAX_LIST_LENGTH, description="Maximum length of query parameter list"
+    )
 
     class Config:
         env_prefix = "MPRESTER_"
