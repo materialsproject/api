@@ -67,7 +67,7 @@ class BaseRester(Generic[T]):
         endpoint: str = DEFAULT_ENDPOINT,
         include_user_agent: bool = True,
         session: requests.Session | None = None,
-        s3_resource: Any | None = None,
+        s3_client: Any | None = None,
         debug: bool = False,
         monty_decode: bool = True,
         use_document_model: bool = True,
@@ -124,10 +124,10 @@ class BaseRester(Generic[T]):
         else:
             self._session = None  # type: ignore
 
-        if s3_resource:
-            self._s3_resource = s3_resource
+        if s3_client:
+            self._s3_client = s3_client
         else:
-            self._s3_resource = None
+            self._s3_client = None
 
         self.document_model = (
             api_sanitize(self.document_model) if self.document_model is not None else None  # type: ignore
@@ -144,7 +144,7 @@ class BaseRester(Generic[T]):
         return self._session
 
     @property
-    def s3_resource(self):
+    def s3_client(self):
         if boto3 is None:
             raise MPRestError(
                 "boto3 not installed. To query charge density, "
@@ -152,11 +152,11 @@ class BaseRester(Generic[T]):
                 "install with: 'pip install boto3'"
             )
 
-        if not self._s3_resource:
-            self._s3_resource = boto3.resource(
+        if not self._s3_client:
+            self._s3_client = boto3.client(
                 "s3", config=Config(signature_version=UNSIGNED)
             )
-        return self._s3_resource
+        return self._s3_client
 
     @staticmethod
     def _create_session(api_key, include_user_agent, headers):
@@ -366,8 +366,8 @@ class BaseRester(Generic[T]):
         Returns:
             dict: MontyDecoded data
         """
-        ref = self.s3_resource.Object(bucket, f"{prefix}/{key}.json.gz")  # type: ignore
-        bytes = ref.get()["Body"]  # type: ignore
+        ref = self.s3_client.get_object(Bucket=bucket, Key=f"{prefix}/{key}.json.gz")  # type: ignore
+        bytes = ref["Body"]  # type: ignore
 
         with gzip.GzipFile(fileobj=bytes) as gzipfile:
             result = gzipfile.read()
