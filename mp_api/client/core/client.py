@@ -598,7 +598,9 @@ class BaseRester(Generic[T]):
         remaining_docs_avail = {}
 
         initial_params_list = [
-            {"url": url, "verify": True, "params": copy(crit), "use_document_model": use_document_model} for crit in new_criteria
+            {"url": url, "verify": True, 
+             "params": copy(crit), "use_document_model": use_document_model,
+             "timeout": timeout} for crit in new_criteria
         ]
 
         initial_data_tuples = self._multi_thread(self._submit_request_and_process, initial_params_list)
@@ -643,7 +645,9 @@ class BaseRester(Generic[T]):
                         fill_docs = 0
 
                     rebalance_params.append(
-                        {"url": url, "verify": True, "params": copy(crit), "use_document_model": use_document_model}
+                        {"url": url, "verify": True, 
+                         "params": copy(crit), "use_document_model": use_document_model,
+                         "timeout": timeout}
                     )
 
                     new_criteria[crit_ind]["_skip"] += crit["_limit"]
@@ -740,7 +744,8 @@ class BaseRester(Generic[T]):
                         "url": url,
                         "verify": True,
                         "params": {**crit, "_skip": crit["_skip"]},
-                        "use_document_model": use_document_model
+                        "use_document_model": use_document_model,
+                        "timeout": timeout
                     }
                 )
 
@@ -766,7 +771,6 @@ class BaseRester(Generic[T]):
         func: Callable,
         params_list: list[dict],
         progress_bar: tqdm = None,
-        timeout: int = None,
     ):
         """Handles setting up a threadpool and sending parallel requests.
 
@@ -774,7 +778,6 @@ class BaseRester(Generic[T]):
             func (Callable): Callable function to multi
             params_list (list): list of dictionaries containing url and params for each request
             progress_bar (tqdm): progress bar to update with progress
-            timeout (int): Time in seconds to wait until a request timeout error is thrown
 
         Returns:
             Tuples with data, total number of docs in matching the query in the database,
@@ -821,7 +824,6 @@ class BaseRester(Generic[T]):
                 for params in itertools.islice(params_gen, len(finished)):
                     new_future = executor.submit(
                         func,
-                        timeout=timeout,
                         **params,
                     )
 
