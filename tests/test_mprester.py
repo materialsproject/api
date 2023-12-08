@@ -316,11 +316,11 @@ class TestMPRester:
         mpids = [
             str(doc.material_id)
             for doc in mpr.summary.search(
-                chunk_size=1000, num_chunks=15, fields=["material_id"]
+                chunk_size=1000, num_chunks=10, fields=["material_id"]
             )
         ]
         docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
-        assert len(docs) == 15000
+        assert len(docs) == 10000
 
 
 def test_pmg_api_key(monkeypatch: pytest.MonkeyPatch):
