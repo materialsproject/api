@@ -17,7 +17,8 @@ from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
 from math import ceil
 from os import environ
-from typing import Any, Generic, TypeVar
+from functools import cache
+from typing import Any, Generic, TypeVar, Callable
 from urllib.parse import quote, urljoin
 
 import requests
@@ -111,6 +112,7 @@ class BaseRester(Generic[T]):
         self.timeout = timeout
         self.headers = headers or {}
         self.mute_progress_bars = mute_progress_bars
+        self.db_version = BaseRester._get_database_version(self.endpoint)
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
@@ -130,6 +132,8 @@ class BaseRester(Generic[T]):
         self.document_model = (
             api_sanitize(self.document_model) if self.document_model is not None else None  # type: ignore
         )
+
+        self._queryable_fields = [field for field, info in self.document_model.model_fields.items() if info.json_schema_extra.get("query", True)]
 
     @property
     def session(self) -> requests.Session:
@@ -194,6 +198,23 @@ class BaseRester(Generic[T]):
             self.session.close()
         self._session = None
 
+    @staticmethod
+    @cache
+    def _get_database_version(endpoint):
+        """The Materials Project database is periodically updated and has a
+        database version associated with it. When the database is updated,
+        consolidated data (information about "a material") may and does
+        change, while calculation data about a specific calculation task
+        remains unchanged and available for querying via its task_id.
+
+        The database version is set as a date in the format YYYY_MM_DD,
+        where "_DD" may be optional. An additional numerical suffix
+        might be added if multiple releases happen on the same day.
+
+        Returns: database version as a string
+        """
+        return requests.get(url=endpoint + "heartbeat").json()["db_version"]
+
     def _post_resource(
         self,
         body: dict = None,
@@ -235,9 +256,9 @@ class BaseRester(Generic[T]):
 
                 if self.document_model and use_document_model:
                     if isinstance(data["data"], dict):
-                        data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
+                        data["data"] = self.document_model.model_validate(data["data"])  # type: ignore
                     elif isinstance(data["data"], list):
-                        data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+                        data["data"] = [self.document_model.model_validate(d) for d in data["data"]]  # type: ignore
 
                 return data
 
@@ -349,8 +370,10 @@ class BaseRester(Generic[T]):
         bytes = ref.get()["Body"]  # type: ignore
 
         with gzip.GzipFile(fileobj=bytes) as gzipfile:
-            content = gzipfile.read()
-            result = MontyDecoder().decode(content)
+            result = gzipfile.read()
+            if self.monty_decode:
+                result = MontyDecoder().decode(result)
+                
 
         return result
 
@@ -397,10 +420,18 @@ class BaseRester(Generic[T]):
         else:
             criteria = {}
 
+        query_s3 = not bool(fields)
+
         if fields:
             if isinstance(fields, str):
                 fields = [fields]
-            criteria["_fields"] = ",".join(fields)
+
+            query_s3 = len(set(fields) - set(self._queryable_fields)) != 0
+
+            if query_s3:
+                criteria["_fields"] = self.primary_key
+            else:
+                criteria["_fields"] = ",".join(fields)
 
         try:
             url = self.endpoint
@@ -412,12 +443,32 @@ class BaseRester(Generic[T]):
             data = self._submit_requests(
                 url=url,
                 criteria=criteria,
-                use_document_model=use_document_model,
+                use_document_model=not query_s3 and use_document_model,
                 parallel_param=parallel_param,
                 num_chunks=num_chunks,
                 chunk_size=chunk_size,
                 timeout=timeout,
             )
+
+            if query_s3:
+                db_version = self.db_version.replace(".", "-")
+                suffix = self.suffix.split("/")[-1] if "core" not in self.suffix else self.suffix.split("/")[0]
+                keys = [doc[self.primary_key] for doc in data["data"]]
+                bucket = "materialsproject-build"
+
+                s3_params_list = [{"bucket": bucket, 
+                                   "prefix": f"collections/{db_version}/{suffix}", 
+                                   "key": key,
+                                   "use_document_model": use_document_model, 
+                                   "fields": fields} for key in keys]
+                
+                data_tuples = self._multi_thread(self._submit_s3_download_and_process, s3_params_list)
+                data = {"data": [], "meta": {}}
+
+                for sub_data, _, _ in data_tuples:
+                    data["data"].extend(sub_data)
+
+                data["meta"]["total_doc"] = len(data["data"])
 
             return data
 
@@ -547,12 +598,10 @@ class BaseRester(Generic[T]):
         remaining_docs_avail = {}
 
         initial_params_list = [
-            {"url": url, "verify": True, "params": copy(crit)} for crit in new_criteria
+            {"url": url, "verify": True, "params": copy(crit), "use_document_model": use_document_model} for crit in new_criteria
         ]
 
-        initial_data_tuples = self._multi_thread(
-            use_document_model, initial_params_list
-        )
+        initial_data_tuples = self._multi_thread(self._submit_request_and_process, initial_params_list)
 
         for data, subtotal, crit_ind in initial_data_tuples:
             subtotals.append(subtotal)
@@ -594,7 +643,7 @@ class BaseRester(Generic[T]):
                         fill_docs = 0
 
                     rebalance_params.append(
-                        {"url": url, "verify": True, "params": copy(crit)}
+                        {"url": url, "verify": True, "params": copy(crit), "use_document_model": use_document_model}
                     )
 
                     new_criteria[crit_ind]["_skip"] += crit["_limit"]
@@ -602,9 +651,7 @@ class BaseRester(Generic[T]):
 
             # Obtain missing initial data after rebalancing
             if len(rebalance_params) > 0:
-                rebalance_data_tuples = self._multi_thread(
-                    use_document_model, rebalance_params
-                )
+                rebalance_data_tuples = self._multi_thread(self._submit_request_and_process, rebalance_params)
 
                 for data, _, _ in rebalance_data_tuples:
                     total_data["data"].extend(data["data"])
@@ -693,6 +740,7 @@ class BaseRester(Generic[T]):
                         "url": url,
                         "verify": True,
                         "params": {**crit, "_skip": crit["_skip"]},
+                        "use_document_model": use_document_model
                     }
                 )
 
@@ -700,7 +748,7 @@ class BaseRester(Generic[T]):
                 remaining -= crit["_limit"]
 
         # Submit requests and process data
-        data_tuples = self._multi_thread(use_document_model, params_list, pbar, timeout)
+        data_tuples = self._multi_thread(self._submit_request_and_process, params_list, pbar, timeout)
 
         for data, _, _ in data_tuples:
             total_data["data"].extend(data["data"])
@@ -715,7 +763,7 @@ class BaseRester(Generic[T]):
 
     def _multi_thread(
         self,
-        use_document_model: bool,
+        func: Callable,
         params_list: list[dict],
         progress_bar: tqdm = None,
         timeout: int = None,
@@ -723,7 +771,7 @@ class BaseRester(Generic[T]):
         """Handles setting up a threadpool and sending parallel requests.
 
         Arguments:
-            use_document_model (bool): if None, will defer to the self.use_document_model attribute
+            func (Callable): Callable function to multi
             params_list (list): list of dictionaries containing url and params for each request
             progress_bar (tqdm): progress bar to update with progress
             timeout (int): Time in seconds to wait until a request timeout error is thrown
@@ -750,8 +798,7 @@ class BaseRester(Generic[T]):
                 params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
             ):
                 future = executor.submit(
-                    self._submit_request_and_process,
-                    use_document_model=use_document_model,
+                    func,
                     **params,
                 )
 
@@ -773,8 +820,7 @@ class BaseRester(Generic[T]):
                 # Populate more futures to replace finished
                 for params in itertools.islice(params_gen, len(finished)):
                     new_future = executor.submit(
-                        self._submit_request_and_process,
-                        use_document_model=use_document_model,
+                        func,
                         timeout=timeout,
                         **params,
                     )
@@ -784,6 +830,36 @@ class BaseRester(Generic[T]):
                     params_ind += 1
 
         return return_data
+    
+    def _submit_s3_download_and_process(self, use_document_model: bool, 
+                                        bucket: str, 
+                                        prefix: str, 
+                                        key: str,
+                                        fields: [str] | None = None):
+
+        data = self._query_open_data(bucket, prefix, key)
+
+        if fields:
+            data = {field: value for field, value in data.items() if field in fields}
+
+        if self.document_model and use_document_model:
+            raw_doc = self.document_model.model_validate(data) # type: ignore
+
+            data_model, set_fields, _ = self._generate_returned_model(
+                raw_doc
+            )
+
+            data = [
+                data_model(
+                    **{
+                        field: value
+                        for field, value in dict(raw_doc).items()
+                        if field in set_fields
+                    }
+                )
+            ]
+
+        return data, 1
 
     def _submit_request_and_process(
         self,
@@ -832,7 +908,7 @@ class BaseRester(Generic[T]):
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-                raw_doc_list = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+                raw_doc_list = [self.document_model.model_validate(d) for d in data["data"]]  # type: ignore
 
                 if len(raw_doc_list) > 0:
                     data_model, set_fields, _ = self._generate_returned_model(
@@ -998,7 +1074,7 @@ class BaseRester(Generic[T]):
         if isinstance(fields, str):  # pragma: no cover
             fields = (fields,)
 
-        results = []  # type: List
+        results = []  # type: list
 
         try:
             results = self._query_resource_data(criteria=criteria, fields=fields, suburl=document_id)  # type: ignore
