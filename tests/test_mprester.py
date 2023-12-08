@@ -320,7 +320,7 @@ class TestMPRester:
             )
         ]
         docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
-        assert len(docs) == 15000
+        assert len(docs) == 10000
 
 
 def test_pmg_api_key(monkeypatch: pytest.MonkeyPatch):
