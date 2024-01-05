@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+from datetime import datetime
 
 from emmet.core.tasks import TaskDoc
 
@@ -48,6 +49,7 @@ class TaskRester(BaseRester[TaskDoc]):
         elements: list[str] | None = None,
         exclude_elements: list[str] | None = None,
         formula: str | list[str] | None = None,
+        last_updated: tuple[datetime, datetime] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -64,6 +66,7 @@ class TaskRester(BaseRester[TaskDoc]):
             formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
+            last_updated (tuple[datetime, datetime]): A tuple of min and max UTC formatted datetimes.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -92,6 +95,14 @@ class TaskRester(BaseRester[TaskDoc]):
                 chemsys = [chemsys]
 
             query_params.update({"chemsys": ",".join(chemsys)})
+
+        if last_updated:
+            query_params.update(
+                {
+                    "last_updated_min": last_updated[0],
+                    "last_updated_max": last_updated[1],
+                }
+            )
 
         return super()._search(
             num_chunks=num_chunks,
