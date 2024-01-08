@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
+from emmet.core.vasp.calc_types import RunType
 from emmet.core.vasp.material import MaterialsDoc
 from pymatgen.core.structure import Structure
 
@@ -318,3 +319,51 @@ class MaterialsRester(BaseRester):
             return material_ids  # type: ignore
 
         return material_ids[0]
+
+    def get_blessed_calcs(
+        self,
+        run_type: RunType = RunType.R2SCAN,
+        material_ids: Optional[list[str]] = None,
+        uncorrected_energy: Optional[
+            tuple[Optional[float], Optional[float]] | float
+        ] = None,
+        num_chunks: int | None = None,
+        chunk_size: int = 1000,
+    ):
+        """Get blessed calculation entries for a given material and run type.
+
+        Args:
+            run_type (RunType): Calculation run type (e.g. GGA, GGA+U, R2SCAN, PBESol)
+            material_ids (list[str]): List of material ID values
+            uncorrected_energy (tuple[Optional[float], Optional[float]] | float): Tuple of minimum and maximum uncorrected DFT energy in eV/atom.
+                Note that if a single value is passed, it will be used as the minimum and maximum.
+            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int): Number of data entries per chunk.
+        """
+        query_params: dict = {"run_type": str(run_type)}
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+
+        if uncorrected_energy:
+            if isinstance(uncorrected_energy, float):
+                uncorrected_energy = (uncorrected_energy, uncorrected_energy)
+
+            query_params.update(
+                {
+                    "uncorrected_energy_min": uncorrected_energy[0],  # type: ignore
+                    "uncorrected_energy_max": uncorrected_energy[1],  # type: ignore
+                }
+            )
+
+        results = self._query_resource(
+            query_params,
+            # fields=["material_ids", "entries"],
+            suburl="blessed_tasks",
+            parallel_param="material_ids" if material_ids else None,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
+        )
+        return results.get("data")
