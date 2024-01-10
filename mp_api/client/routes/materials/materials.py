@@ -320,7 +320,7 @@ class MaterialsRester(BaseRester):
 
         return material_ids[0]
 
-    def get_blessed_calcs(
+    def get_blessed_entries(
         self,
         run_type: RunType = RunType.R2SCAN,
         material_ids: Optional[list[str]] = None,
