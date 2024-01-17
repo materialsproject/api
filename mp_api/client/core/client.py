@@ -8,18 +8,22 @@ import gzip
 import itertools
 import json
 import os
+import io
 import platform
 import sys
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+import time
 from copy import copy
+from datetime import datetime
+from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
 from math import ceil
 from os import environ
-from functools import cache
-from typing import Any, Generic, TypeVar, Callable
+from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import quote, urljoin
+from numpy import who
 
 import requests
 from emmet.core.utils import jsanitize
@@ -130,10 +134,16 @@ class BaseRester(Generic[T]):
             self._s3_client = None
 
         self.document_model = (
-            api_sanitize(self.document_model) if self.document_model is not None else None  # type: ignore
+            api_sanitize(self.document_model)
+            if self.document_model is not None
+            else None  # type: ignore
         )
 
-        self._queryable_fields = [field for field, info in self.document_model.model_fields.items() if info.json_schema_extra.get("query", True)]
+        self._queryable_fields = [
+            field
+            for field, info in self.document_model.model_fields.items()
+            if info.json_schema_extra.get("query", True)
+        ]
 
     @property
     def session(self) -> requests.Session:
@@ -213,7 +223,13 @@ class BaseRester(Generic[T]):
 
         Returns: database version as a string
         """
-        return requests.get(url=endpoint + "heartbeat").json()["db_version"]
+        date_str = requests.get(url=endpoint + "heartbeat").json()["db_version"]
+        # Convert the string to a datetime object
+        date_obj = datetime.strptime(date_str, "%Y.%m.%d")
+
+        # Format the datetime object as a string
+        formatted_date = date_obj.strftime("%Y.%m.%d")
+        return formatted_date
 
     def _post_resource(
         self,
@@ -258,7 +274,9 @@ class BaseRester(Generic[T]):
                     if isinstance(data["data"], dict):
                         data["data"] = self.document_model.model_validate(data["data"])  # type: ignore
                     elif isinstance(data["data"], list):
-                        data["data"] = [self.document_model.model_validate(d) for d in data["data"]]  # type: ignore
+                        data["data"] = [
+                            self.document_model.model_validate(d) for d in data["data"]
+                        ]  # type: ignore
 
                 return data
 
@@ -328,7 +346,9 @@ class BaseRester(Generic[T]):
                     if isinstance(data["data"], dict):
                         data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
                     elif isinstance(data["data"], list):
-                        data["data"] = [self.document_model.parse_obj(d) for d in data["data"]]  # type: ignore
+                        data["data"] = [
+                            self.document_model.parse_obj(d) for d in data["data"]
+                        ]  # type: ignore
 
                 return data
 
@@ -355,7 +375,9 @@ class BaseRester(Generic[T]):
         except RequestException as ex:
             raise MPRestError(str(ex))
 
-    def _query_open_data(self, bucket: str, prefix: str, key: str) -> dict:
+    def _query_open_data(
+        self, bucket: str, prefix: str, key: str
+    ) -> tuple[io.BytesIO, int]:
         """Query Materials Project AWS open data s3 buckets.
 
         Args:
@@ -366,16 +388,11 @@ class BaseRester(Generic[T]):
         Returns:
             dict: MontyDecoded data
         """
-        ref = self.s3_client.get_object(Bucket=bucket, Key=f"{prefix}/{key}.json.gz")  # type: ignore
+        ref = self.s3_client.get_object(Bucket=bucket, Key=f"{prefix}.jsonl.gz")  # type: ignore
         bytes = ref["Body"]  # type: ignore
-
-        with gzip.GzipFile(fileobj=bytes) as gzipfile:
-            result = gzipfile.read()
-            if self.monty_decode:
-                result = MontyDecoder().decode(result)
-                
-
-        return result
+        bytes = bytes.read()
+        bytes_io = io.BytesIO(bytes)
+        return bytes_io, 1
 
     def _query_resource(
         self,
@@ -429,7 +446,9 @@ class BaseRester(Generic[T]):
             query_s3 = len(set(fields) - set(self._queryable_fields)) != 0
 
             if query_s3:
-                criteria["_fields"] = self.primary_key
+                criteria["_fields"] = ",".join(
+                    [self.primary_key, "nelements", "symmetry.number"]
+                )
             else:
                 criteria["_fields"] = ",".join(fields)
 
@@ -452,21 +471,66 @@ class BaseRester(Generic[T]):
 
             if query_s3:
                 db_version = self.db_version.replace(".", "-")
-                suffix = self.suffix.split("/")[-1] if "core" not in self.suffix else self.suffix.split("/")[0]
-                keys = [doc[self.primary_key] for doc in data["data"]]
+                suffix = (
+                    self.suffix.split("/")[-1]
+                    if "core" not in self.suffix
+                    else self.suffix.split("/")[0]
+                )
+                keys = [
+                    f"collections/{db_version}/{suffix}/nelements={doc['nelements']}/symmetry_number={doc['symmetry']['number']}"
+                    for doc in data["data"]
+                ]
+                doc_keys = set([doc[self.primary_key] for doc in data["data"]])
                 bucket = "materialsproject-build"
 
-                s3_params_list = [{"bucket": bucket, 
-                                   "prefix": f"collections/{db_version}/{suffix}", 
-                                   "key": key,
-                                   "use_document_model": use_document_model, 
-                                   "fields": fields} for key in keys]
-                
-                data_tuples = self._multi_thread(self._submit_s3_download_and_process, s3_params_list)
+                s3_params_list = {
+                    key: {
+                        "bucket": bucket,
+                        "prefix": key,
+                        "key": key,
+                        # "fields": fields,
+                    }
+                    for key in keys
+                }
+
+                byte_data = self._multi_thread(
+                    self._query_open_data, list(s3_params_list.values())
+                )
+
+                # Unzip data
+                start = time.perf_counter()
+                unzipped_data = []
+                for data, _, _ in byte_data:
+                    with gzip.GzipFile(fileobj=data) as gzipfile:
+                        docs = gzipfile.read().decode("utf-8").split("\n")
+                        for doc in docs:
+                            if doc:
+                                if self.monty_decode:
+                                    unzipped_data.append(MontyDecoder().decode(doc))
+                                else:
+                                    unzipped_data.append(json.loads(doc))
+
+                #                if self.document_model and use_document_model:
+                #                    raw_doc = self.document_model.model_validate(data)  # type: ignore
+                #
+                #                    data_model, set_fields, _ = self._generate_returned_model(raw_doc)
+                #
+                #                    data = [
+                #                        data_model(
+                #                            **{
+                #                                field: value
+                #                                for field, value in dict(raw_doc).items()
+                #                                if field in set_fields
+                #                            }
+                #                        )
+                #                    ]
+                #
+                print(time.perf_counter() - start)
                 data = {"data": [], "meta": {}}
 
-                for sub_data, _, _ in data_tuples:
-                    data["data"].extend(sub_data)
+                for sub_data in unzipped_data:
+                    if sub_data[self.primary_key] in doc_keys:
+                        data["data"].append(sub_data)
 
                 data["meta"]["total_doc"] = len(data["data"])
 
@@ -598,12 +662,19 @@ class BaseRester(Generic[T]):
         remaining_docs_avail = {}
 
         initial_params_list = [
-            {"url": url, "verify": True, 
-             "params": copy(crit), "use_document_model": use_document_model,
-             "timeout": timeout} for crit in new_criteria
+            {
+                "url": url,
+                "verify": True,
+                "params": copy(crit),
+                "use_document_model": use_document_model,
+                "timeout": timeout,
+            }
+            for crit in new_criteria
         ]
 
-        initial_data_tuples = self._multi_thread(self._submit_request_and_process, initial_params_list)
+        initial_data_tuples = self._multi_thread(
+            self._submit_request_and_process, initial_params_list
+        )
 
         for data, subtotal, crit_ind in initial_data_tuples:
             subtotals.append(subtotal)
@@ -645,9 +716,13 @@ class BaseRester(Generic[T]):
                         fill_docs = 0
 
                     rebalance_params.append(
-                        {"url": url, "verify": True, 
-                         "params": copy(crit), "use_document_model": use_document_model,
-                         "timeout": timeout}
+                        {
+                            "url": url,
+                            "verify": True,
+                            "params": copy(crit),
+                            "use_document_model": use_document_model,
+                            "timeout": timeout,
+                        }
                     )
 
                     new_criteria[crit_ind]["_skip"] += crit["_limit"]
@@ -655,7 +730,9 @@ class BaseRester(Generic[T]):
 
             # Obtain missing initial data after rebalancing
             if len(rebalance_params) > 0:
-                rebalance_data_tuples = self._multi_thread(self._submit_request_and_process, rebalance_params)
+                rebalance_data_tuples = self._multi_thread(
+                    self._submit_request_and_process, rebalance_params
+                )
 
                 for data, _, _ in rebalance_data_tuples:
                     total_data["data"].extend(data["data"])
@@ -745,7 +822,7 @@ class BaseRester(Generic[T]):
                         "verify": True,
                         "params": {**crit, "_skip": crit["_skip"]},
                         "use_document_model": use_document_model,
-                        "timeout": timeout
+                        "timeout": timeout,
                     }
                 )
 
@@ -753,7 +830,9 @@ class BaseRester(Generic[T]):
                 remaining -= crit["_limit"]
 
         # Submit requests and process data
-        data_tuples = self._multi_thread(self._submit_request_and_process, params_list, pbar, timeout)
+        data_tuples = self._multi_thread(
+            self._submit_request_and_process, params_list, pbar
+        )
 
         for data, _, _ in data_tuples:
             total_data["data"].extend(data["data"])
@@ -832,36 +911,6 @@ class BaseRester(Generic[T]):
                     params_ind += 1
 
         return return_data
-    
-    def _submit_s3_download_and_process(self, use_document_model: bool, 
-                                        bucket: str, 
-                                        prefix: str, 
-                                        key: str,
-                                        fields: [str] | None = None):
-
-        data = self._query_open_data(bucket, prefix, key)
-
-        if fields:
-            data = {field: value for field, value in data.items() if field in fields}
-
-        if self.document_model and use_document_model:
-            raw_doc = self.document_model.model_validate(data) # type: ignore
-
-            data_model, set_fields, _ = self._generate_returned_model(
-                raw_doc
-            )
-
-            data = [
-                data_model(
-                    **{
-                        field: value
-                        for field, value in dict(raw_doc).items()
-                        if field in set_fields
-                    }
-                )
-            ]
-
-        return data, 1
 
     def _submit_request_and_process(
         self,
@@ -910,7 +959,9 @@ class BaseRester(Generic[T]):
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-                raw_doc_list = [self.document_model.model_validate(d) for d in data["data"]]  # type: ignore
+                raw_doc_list = [
+                    self.document_model.model_validate(d) for d in data["data"]
+                ]  # type: ignore
 
                 if len(raw_doc_list) > 0:
                     data_model, set_fields, _ = self._generate_returned_model(
@@ -1079,7 +1130,9 @@ class BaseRester(Generic[T]):
         results = []  # type: list
 
         try:
-            results = self._query_resource_data(criteria=criteria, fields=fields, suburl=document_id)  # type: ignore
+            results = self._query_resource_data(
+                criteria=criteria, fields=fields, suburl=document_id
+            )  # type: ignore
         except MPRestError:
             if self.primary_key == "material_id":
                 # see if the material_id has changed, perhaps a task_id was supplied
@@ -1106,7 +1159,9 @@ class BaseRester(Generic[T]):
                         )
 
                         results = self._query_resource_data(
-                            criteria=criteria, fields=fields, suburl=new_document_id  # type: ignore
+                            criteria=criteria,
+                            fields=fields,
+                            suburl=new_document_id,  # type: ignore
                         )
 
         if not results:

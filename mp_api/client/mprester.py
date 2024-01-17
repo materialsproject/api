@@ -1225,8 +1225,10 @@ class MPRester:
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+        return (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+                material_id=material_id, path_type=path_type, line_mode=line_mode
+            )
         )
 
     def get_dos_by_material_id(self, material_id: str):
@@ -1238,7 +1240,9 @@ class MPRester:
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-        return self.electronic_structure_dos.get_dos_from_material_id(material_id=material_id)  # type: ignore
+        return self.electronic_structure_dos.get_dos_from_material_id(
+            material_id=material_id
+        )  # type: ignore
 
     def get_phonon_dos_by_material_id(self, material_id: str):
         """Get phonon density of states data corresponding to a material_id.
@@ -1315,7 +1319,9 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results: list[TaskDoc] = self.tasks.search(task_ids=task_ids, fields=["last_updated", "task_id"])  # type: ignore
+        results: list[TaskDoc] = self.tasks.search(
+            task_ids=task_ids, fields=["last_updated", "task_id"]
+        )  # type: ignore
 
         if len(results) == 0:
             return None
