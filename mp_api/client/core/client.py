@@ -5,15 +5,16 @@ Materials Project data.
 from __future__ import annotations
 
 import gzip
+import io
 import itertools
 import json
 import os
-import io
 import platform
+from smart_open import open
 import sys
+import time
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
-import time
 from copy import copy
 from datetime import datetime
 from functools import cache
@@ -23,11 +24,11 @@ from math import ceil
 from os import environ
 from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import quote, urljoin
-from numpy import who
 
 import requests
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
+from numpy import who
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
@@ -344,10 +345,10 @@ class BaseRester(Generic[T]):
 
                 if self.document_model and use_document_model:
                     if isinstance(data["data"], dict):
-                        data["data"] = self.document_model.parse_obj(data["data"])  # type: ignore
+                        data["data"] = self.document_model.model_validate(data["data"])  # type: ignore
                     elif isinstance(data["data"], list):
                         data["data"] = [
-                            self.document_model.parse_obj(d) for d in data["data"]
+                            self.document_model.model_validate(d) for d in data["data"]
                         ]  # type: ignore
 
                 return data
@@ -376,23 +377,26 @@ class BaseRester(Generic[T]):
             raise MPRestError(str(ex))
 
     def _query_open_data(
-        self, bucket: str, prefix: str, key: str
+        self, bucket: str, key: str, decoder
     ) -> tuple[io.BytesIO, int]:
         """Query Materials Project AWS open data s3 buckets.
 
         Args:
             bucket (str): Materials project bucket name
-            prefix (str): Full set of file prefixes
-            key (str): Key for file
+            key (str): Key for file including all prefixes
 
         Returns:
             dict: MontyDecoded data
         """
-        ref = self.s3_client.get_object(Bucket=bucket, Key=f"{prefix}.jsonl.gz")  # type: ignore
-        bytes = ref["Body"]  # type: ignore
-        bytes = bytes.read()
-        bytes_io = io.BytesIO(bytes)
-        return bytes_io, 1
+        #        ref = self.s3_client.get_object(Bucket=bucket, Key=f"{key}.jsonl.gz")  # type: ignore
+        #        bytes = ref["Body"]  # type: ignore
+        #        bytes = bytes.read()
+        #        return bytes, 1
+        file = open(f"s3://{bucket}/{key}.jsonl.gz", encoding="utf-8")
+        data = str([doc.strip() for doc in file.read().strip().split("\n")])
+        print(data[0:2])
+        decoded_data = decoder(data)
+        return data, 1
 
     def _query_resource(
         self,
@@ -437,7 +441,9 @@ class BaseRester(Generic[T]):
         else:
             criteria = {}
 
-        query_s3 = not bool(fields)
+        query_s3 = not bool(
+            {field for field in criteria if field[0] != "_"}
+        ) and not bool(fields)
 
         if fields:
             if isinstance(fields, str):
@@ -483,54 +489,40 @@ class BaseRester(Generic[T]):
                 doc_keys = set([doc[self.primary_key] for doc in data["data"]])
                 bucket = "materialsproject-build"
 
+                decoder = MontyDecoder().decode if self.monty_decode else json.loads
                 s3_params_list = {
-                    key: {
-                        "bucket": bucket,
-                        "prefix": key,
-                        "key": key,
-                        # "fields": fields,
-                    }
+                    key: {"bucket": bucket, "key": key, "decoder": decoder}
                     for key in keys
                 }
 
-                byte_data = self._multi_thread(
-                    self._query_open_data, list(s3_params_list.values())
+                open_data_pbar = (
+                    tqdm(
+                        desc="Downloading from AWS Open Data",
+                        total=len(s3_params_list),
+                    )
+                    if not self.mute_progress_bars
+                    else None
                 )
 
-                # Unzip data
+                byte_data = self._multi_thread(
+                    self._query_open_data, list(s3_params_list.values()), open_data_pbar
+                )
+
                 start = time.perf_counter()
+                # unzip data
                 unzipped_data = []
                 for data, _, _ in byte_data:
-                    with gzip.GzipFile(fileobj=data) as gzipfile:
-                        docs = gzipfile.read().decode("utf-8").split("\n")
-                        for doc in docs:
-                            if doc:
-                                if self.monty_decode:
-                                    unzipped_data.append(MontyDecoder().decode(doc))
-                                else:
-                                    unzipped_data.append(json.loads(doc))
-
-                #                if self.document_model and use_document_model:
-                #                    raw_doc = self.document_model.model_validate(data)  # type: ignore
-                #
-                #                    data_model, set_fields, _ = self._generate_returned_model(raw_doc)
-                #
-                #                    data = [
-                #                        data_model(
-                #                            **{
-                #                                field: value
-                #                                for field, value in dict(raw_doc).items()
-                #                                if field in set_fields
-                #                            }
-                #                        )
-                #                    ]
-                #
+                    docs = data.strip().split("\n")
+                    for doc in docs:
+                        # decoded_doc = decoder(doc)
+                        if doc[self.primary_key] in doc_keys:
+                            unzipped_data.append(doc)
                 print(time.perf_counter() - start)
-                data = {"data": [], "meta": {}}
 
-                for sub_data in unzipped_data:
-                    if sub_data[self.primary_key] in doc_keys:
-                        data["data"].append(sub_data)
+                data = {"data": unzipped_data, "meta": {}}
+
+                if self.use_document_model:
+                    data["data"] = self._convert_to_model(data["data"])
 
                 data["meta"]["total_doc"] = len(data["data"])
 
@@ -896,7 +888,9 @@ class BaseRester(Generic[T]):
                     data, subtotal = future.result()
 
                     if progress_bar is not None:
-                        progress_bar.update(len(data["data"]))
+                        progress_bar.update(
+                            len(data["data"]) if isinstance(data, dict) else 1
+                        )
                     return_data.append((data, subtotal, future.crit_ind))  # type: ignore
 
                 # Populate more futures to replace finished
@@ -959,27 +953,7 @@ class BaseRester(Generic[T]):
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-                raw_doc_list = [
-                    self.document_model.model_validate(d) for d in data["data"]
-                ]  # type: ignore
-
-                if len(raw_doc_list) > 0:
-                    data_model, set_fields, _ = self._generate_returned_model(
-                        raw_doc_list[0]
-                    )
-
-                    data["data"] = [
-                        data_model(
-                            **{
-                                field: value
-                                for field, value in dict(raw_doc).items()
-                                if field in set_fields
-                            }
-                        )
-                        for raw_doc in raw_doc_list
-                    ]
-
-                    # data["data"] = raw_doc_list
+                data["data"] = self._convert_to_model(data["data"])
 
             meta_total_doc_num = data.get("meta", {}).get("total_doc", 1)
 
@@ -1004,6 +978,34 @@ class BaseRester(Generic[T]):
                 f"REST query returned with error status code {response.status_code} "
                 f"on URL {response.url} with message:\n{message}"
             )
+
+    def _convert_to_model(self, data: list[dict]):
+        """Converts dictionary documents to instantiated MPDataDoc objects.
+
+        Args:
+            data (list[dict]): Raw dictionary data objects
+
+        Returns:
+            (list[MPDataDoc]): List of MPDataDoc objects
+
+        """
+        raw_doc_list = [self.document_model.model_validate(d) for d in data]  # type: ignore
+
+        if len(raw_doc_list) > 0:
+            data_model, set_fields, _ = self._generate_returned_model(raw_doc_list[0])
+
+            data = [
+                data_model(
+                    **{
+                        field: value
+                        for field, value in dict(raw_doc).items()
+                        if field in set_fields
+                    }
+                )
+                for raw_doc in raw_doc_list
+            ]
+
+        return data
 
     def _generate_returned_model(self, doc):
         set_fields = doc.model_fields_set
