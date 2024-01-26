@@ -129,8 +129,8 @@ class MPRester:
         include_user_agent: bool = True,
         monty_decode: bool = True,
         use_document_model: bool = True,
-        session: Session = None,
-        headers: dict = None,
+        session: Session | None = None,
+        headers: dict | None = None,
         mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
     ):
         """Args:
@@ -339,8 +339,8 @@ class MPRester:
             rester = __core_custom_getattr(_self, attr, _rester_map)
             return rester
 
-        MaterialsRester.__getattr__ = __materials_getattr__
-        MoleculeRester.__getattr__ = __molecules_getattr__
+        MaterialsRester.__getattr__ = __materials_getattr__  # type: ignore
+        MoleculeRester.__getattr__ = __molecules_getattr__  # type: ignore
 
         for attr, rester in core_resters.items():
             setattr(
@@ -356,7 +356,9 @@ class MPRester:
                 from mpcontribs.client import Client
 
                 self._contribs = Client(
-                    self.api_key, headers=self.headers, session=self.session
+                    self.api_key,  # type: ignore
+                    headers=self.headers,
+                    session=self.session,
                 )
 
             except ImportError:
