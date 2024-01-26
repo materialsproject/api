@@ -21,7 +21,6 @@ from math import ceil
 from os import environ
 from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import quote, urljoin
-from pymatgen.util import num
 
 import requests
 from emmet.core.utils import jsanitize
@@ -853,7 +852,7 @@ class BaseRester(Generic[T]):
         self,
         func: Callable,
         params_list: list[dict],
-        progress_bar: tqdm = None,
+        progress_bar: tqdm | None = None,
     ):
         """Handles setting up a threadpool and sending parallel requests.
 
@@ -875,20 +874,21 @@ class BaseRester(Generic[T]):
         params_ind = 0
 
         with ThreadPoolExecutor(
-            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS
+            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS  # type: ignore
         ) as executor:
             # Get list of initial futures defined by max number of parallel requests
             futures = set()
 
             for params in itertools.islice(
-                params_gen, MAPIClientSettings().NUM_PARALLEL_REQUESTS
+                params_gen,
+                MAPIClientSettings().NUM_PARALLEL_REQUESTS,  # type: ignore
             ):
                 future = executor.submit(
                     func,
                     **params,
                 )
 
-                future.crit_ind = params_ind
+                future.crit_ind = params_ind  # type: ignore
                 futures.add(future)
                 params_ind += 1
 
@@ -912,7 +912,7 @@ class BaseRester(Generic[T]):
                         **params,
                     )
 
-                    new_future.crit_ind = params_ind
+                    new_future.crit_ind = params_ind  # type: ignore
                     futures.add(new_future)
                     params_ind += 1
 
@@ -1024,10 +1024,10 @@ class BaseRester(Generic[T]):
 
         unset_fields = [field for field in doc.model_fields if field not in set_fields]
 
-        data_model = create_model(
+        data_model = create_model(  # type: ignore
             "MPDataDoc",
             fields_not_requested=(list[str], unset_fields),
-            __base__=self.document_model,
+            __base__=self.document_model,  # type: ignore
         )
 
         data_model.model_fields = {
@@ -1139,7 +1139,7 @@ class BaseRester(Generic[T]):
             criteria = {"_limit": 1}
 
         if isinstance(fields, str):  # pragma: no cover
-            fields = (fields,)
+            fields = (fields,)  # type: ignore
 
         results = []  # type: list
 
@@ -1164,7 +1164,7 @@ class BaseRester(Generic[T]):
                     docs = mpr.search(task_ids=[document_id], fields=["material_id"])
 
                 if len(docs) > 0:
-                    new_document_id = docs[0].get("material_id", None)
+                    new_document_id = docs[0].get("material_id", None)  # type: ignore
 
                     if new_document_id is not None:
                         warnings.warn(
@@ -1256,7 +1256,7 @@ class BaseRester(Generic[T]):
                 for key, entry in query_params.items()
                 if isinstance(entry, str)
                 and len(entry.split(",")) > 0
-                and key not in MAPIClientSettings().QUERY_NO_PARALLEL
+                and key not in MAPIClientSettings().QUERY_NO_PARALLEL  # type: ignore
             ),
             key=lambda item: item[1],
             reverse=True,
