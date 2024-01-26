@@ -442,7 +442,13 @@ class BaseRester(Generic[T]):
 
         # Query s3 if no query is passed and all documents are asked for
         query_s3 = (
-            not bool({field for field in criteria if field[0] != "_"})
+            not bool(
+                {
+                    field
+                    for field in criteria
+                    if field[0] != "_" and field != "deprecated"
+                }
+            )
             and num_chunks is None
         )
 
