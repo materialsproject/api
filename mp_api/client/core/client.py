@@ -10,7 +10,6 @@ import itertools
 import json
 import os
 import platform
-from smart_open import open
 import sys
 import time
 import warnings
@@ -28,10 +27,11 @@ from urllib.parse import quote, urljoin
 import requests
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
-from numpy import who
+from monty.json import jsanitize as monty_jsanitize
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
+from smart_open import open
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
@@ -384,19 +384,20 @@ class BaseRester(Generic[T]):
         Args:
             bucket (str): Materials project bucket name
             key (str): Key for file including all prefixes
+            decoder(Callable): Callable used to deserialize data
 
         Returns:
             dict: MontyDecoded data
         """
-        #        ref = self.s3_client.get_object(Bucket=bucket, Key=f"{key}.jsonl.gz")  # type: ignore
-        #        bytes = ref["Body"]  # type: ignore
-        #        bytes = bytes.read()
-        #        return bytes, 1
-        file = open(f"s3://{bucket}/{key}.jsonl.gz", encoding="utf-8")
+        file = open(
+            f"s3://{bucket}/{key}.jsonl.gz",
+            encoding="utf-8",
+            transport_params={"client": self.s3_client},
+        )
+
         data = str([doc.strip() for doc in file.read().strip().split("\n")])
-        print(data[0:2])
-        decoded_data = decoder(data)
-        return data, 1
+        decoded_data = decoder(data.replace("'", ""))
+        return decoded_data, 1
 
     def _query_resource(
         self,
@@ -508,16 +509,12 @@ class BaseRester(Generic[T]):
                     self._query_open_data, list(s3_params_list.values()), open_data_pbar
                 )
 
-                start = time.perf_counter()
-                # unzip data
+                # Remove docs that don't match
                 unzipped_data = []
-                for data, _, _ in byte_data:
-                    docs = data.strip().split("\n")
+                for docs, _, _ in byte_data:
                     for doc in docs:
-                        # decoded_doc = decoder(doc)
                         if doc[self.primary_key] in doc_keys:
                             unzipped_data.append(doc)
-                print(time.perf_counter() - start)
 
                 data = {"data": unzipped_data, "meta": {}}
 
