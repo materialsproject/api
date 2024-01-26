@@ -4,14 +4,12 @@ Materials Project data.
 """
 from __future__ import annotations
 
-import gzip
 import io
 import itertools
 import json
 import os
 import platform
 import sys
-import time
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
@@ -23,11 +21,11 @@ from math import ceil
 from os import environ
 from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import quote, urljoin
+from pymatgen.util import num
 
 import requests
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
-from monty.json import jsanitize as monty_jsanitize
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
@@ -53,7 +51,7 @@ except PackageNotFoundError:  # pragma: no cover
 # TODO: think about how to migrate from PMG_MAPI_KEY
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
-settings = MAPIClientSettings()
+settings = MAPIClientSettings()  # type: ignore
 
 T = TypeVar("T")
 
@@ -61,7 +59,7 @@ T = TypeVar("T")
 class BaseRester(Generic[T]):
     """Base client class with core stubs."""
 
-    suffix: str | None = None
+    suffix: str = ""
     document_model: BaseModel = None  # type: ignore
     supports_versions: bool = False
     primary_key: str = "material_id"
@@ -77,7 +75,7 @@ class BaseRester(Generic[T]):
         monty_decode: bool = True,
         use_document_model: bool = True,
         timeout: int = 20,
-        headers: dict = None,
+        headers: dict | None = None,
         mute_progress_bars: bool = settings.MUTE_PROGRESS_BARS,
     ):
         """Args:
@@ -135,15 +133,15 @@ class BaseRester(Generic[T]):
             self._s3_client = None
 
         self.document_model = (
-            api_sanitize(self.document_model)
+            api_sanitize(self.document_model)  # type: ignore
             if self.document_model is not None
             else None  # type: ignore
         )
 
         self._queryable_fields = [
             field
-            for field, info in self.document_model.model_fields.items()
-            if info.json_schema_extra.get("query", True)
+            for field, info in self.document_model.model_fields.items()  # type: ignore
+            if info.json_schema_extra.get("query", True)  # type: ignore
         ]
 
     @property
@@ -165,7 +163,8 @@ class BaseRester(Generic[T]):
 
         if not self._s3_client:
             self._s3_client = boto3.client(
-                "s3", config=Config(signature_version=UNSIGNED)
+                "s3",
+                config=Config(signature_version=UNSIGNED),  # type: ignore
             )
         return self._s3_client
 
@@ -176,14 +175,14 @@ class BaseRester(Generic[T]):
         session.headers.update(headers)
 
         if include_user_agent:
-            mp_api_info = "mp-api/" + __version__
+            mp_api_info = "mp-api/" + __version__ if __version__ else None
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
             session.headers[
                 "user-agent"
             ] = f"{mp_api_info} ({python_info} {platform_info})"
 
-        settings = MAPIClientSettings()
+        settings = MAPIClientSettings()  # type: ignore
         max_retry_num = settings.MAX_RETRIES
         retry = Retry(
             total=max_retry_num,
@@ -234,7 +233,7 @@ class BaseRester(Generic[T]):
 
     def _post_resource(
         self,
-        body: dict = None,
+        body: dict | None = None,
         params: dict | None = None,
         suburl: str | None = None,
         use_document_model: bool | None = None,
@@ -306,7 +305,7 @@ class BaseRester(Generic[T]):
 
     def _patch_resource(
         self,
-        body: dict = None,
+        body: dict | None = None,
         params: dict | None = None,
         suburl: str | None = None,
         use_document_model: bool | None = None,
@@ -379,7 +378,7 @@ class BaseRester(Generic[T]):
     def _query_open_data(
         self, bucket: str, key: str, decoder
     ) -> tuple[io.BytesIO, int]:
-        """Query Materials Project AWS open data s3 buckets.
+        """Query and deserialize Materials Project AWS open data s3 buckets.
 
         Args:
             bucket (str): Materials project bucket name
@@ -390,7 +389,7 @@ class BaseRester(Generic[T]):
             dict: MontyDecoded data
         """
         file = open(
-            f"s3://{bucket}/{key}.jsonl.gz",
+            f"s3://{bucket}/{key}",
             encoding="utf-8",
             transport_params={"client": self.s3_client},
         )
@@ -442,22 +441,26 @@ class BaseRester(Generic[T]):
         else:
             criteria = {}
 
-        query_s3 = not bool(
-            {field for field in criteria if field[0] != "_"}
-        ) and not bool(fields)
+        # Query s3 if no query is passed and all documents are asked for
+        query_s3 = (
+            not bool({field for field in criteria if field[0] != "_"})
+            and num_chunks is None
+        )
+
+        print(criteria, num_chunks, query_s3)
 
         if fields:
             if isinstance(fields, str):
                 fields = [fields]
 
-            query_s3 = len(set(fields) - set(self._queryable_fields)) != 0
+            # query_s3 = len(set(fields) - set(self._queryable_fields)) != 0
 
-            if query_s3:
-                criteria["_fields"] = ",".join(
-                    [self.primary_key, "nelements", "symmetry.number"]
-                )
-            else:
-                criteria["_fields"] = ",".join(fields)
+            # if query_s3:
+            #    criteria["_fields"] = ",".join(
+            #        [self.primary_key, "nelements", "symmetry.number"]
+            #    )
+            # else:
+            criteria["_fields"] = ",".join(fields)
 
         try:
             url = self.endpoint
@@ -466,29 +469,25 @@ class BaseRester(Generic[T]):
                 if not url.endswith("/"):
                     url += "/"
 
-            data = self._submit_requests(
-                url=url,
-                criteria=criteria,
-                use_document_model=not query_s3 and use_document_model,
-                parallel_param=parallel_param,
-                num_chunks=num_chunks,
-                chunk_size=chunk_size,
-                timeout=timeout,
-            )
-
             if query_s3:
                 db_version = self.db_version.replace(".", "-")
+                bucket = "materialsproject-build"
+
                 suffix = (
                     self.suffix.split("/")[-1]
                     if "core" not in self.suffix
                     else self.suffix.split("/")[0]
                 )
-                keys = [
-                    f"collections/{db_version}/{suffix}/nelements={doc['nelements']}/symmetry_number={doc['symmetry']['number']}"
-                    for doc in data["data"]
-                ]
-                doc_keys = set([doc[self.primary_key] for doc in data["data"]])
-                bucket = "materialsproject-build"
+                objects = self.s3_client.list_objects_v2(
+                    Bucket=bucket, Prefix=f"collections/{db_version}/{suffix}"
+                )
+                keys = [doc["Key"] for doc in objects["Contents"]]
+                # keys = [
+                #    f"collections/{db_version}/{suffix}/nelements={doc['nelements']}/symmetry_number={doc['symmetry']['number']}"
+                #    for doc in data["data"]
+                # ]
+
+                # doc_keys = set([doc[self.primary_key] for doc in data["data"]])
 
                 decoder = MontyDecoder().decode if self.monty_decode else json.loads
                 s3_params_list = {
@@ -506,15 +505,22 @@ class BaseRester(Generic[T]):
                 )
 
                 byte_data = self._multi_thread(
-                    self._query_open_data, list(s3_params_list.values()), open_data_pbar
+                    self._query_open_data,
+                    list(s3_params_list.values()),
+                    open_data_pbar,  # type: ignore
                 )
 
-                # Remove docs that don't match
+                # Project and remove docs that don't match
                 unzipped_data = []
                 for docs, _, _ in byte_data:
                     for doc in docs:
-                        if doc[self.primary_key] in doc_keys:
-                            unzipped_data.append(doc)
+                        if fields:
+                            doc = {
+                                key: value
+                                for key, value in doc.items()
+                                if key in fields
+                            }
+                        unzipped_data.append(doc)
 
                 data = {"data": unzipped_data, "meta": {}}
 
@@ -522,7 +528,16 @@ class BaseRester(Generic[T]):
                     data["data"] = self._convert_to_model(data["data"])
 
                 data["meta"]["total_doc"] = len(data["data"])
-
+            else:
+                data = self._submit_requests(
+                    url=url,
+                    criteria=criteria,
+                    use_document_model=not query_s3 and use_document_model,
+                    parallel_param=parallel_param,
+                    num_chunks=num_chunks,
+                    chunk_size=chunk_size,
+                    timeout=timeout,
+                )
             return data
 
         except RequestException as ex:
@@ -533,9 +548,9 @@ class BaseRester(Generic[T]):
         url,
         criteria,
         use_document_model,
+        chunk_size,
         parallel_param=None,
         num_chunks=None,
-        chunk_size=None,
         timeout=None,
     ) -> dict:
         """Handle submitting requests. Parallel requests supported if possible.
@@ -571,7 +586,7 @@ class BaseRester(Generic[T]):
 
             bare_url_len = len(url_string)
             max_param_str_length = (
-                MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len
+                MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len  # type: ignore
             )
 
             # Next, check if default number of parallel requests works.
@@ -579,7 +594,7 @@ class BaseRester(Generic[T]):
             # contained in any substring of length max_param_str_length.
             param_length = len(criteria[parallel_param].split(","))
             slice_size = (
-                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1
+                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1  # type: ignore
             )
 
             url_param_string = quote(criteria[parallel_param])
@@ -826,8 +841,8 @@ class BaseRester(Generic[T]):
         for data, _, _ in data_tuples:
             total_data["data"].extend(data["data"])
 
-        if "meta" in data:
-            total_data["meta"]["time_stamp"] = data["meta"]["time_stamp"]
+        if data_tuples and "meta" in data_tuples[0][0]:
+            total_data["meta"]["time_stamp"] = data_tuples[0][0]["meta"]["time_stamp"]
 
         if pbar is not None:
             pbar.close()
@@ -909,7 +924,7 @@ class BaseRester(Generic[T]):
         verify: bool,
         params: dict,
         use_document_model: bool,
-        timeout: int = None,
+        timeout: int | None = None,
     ) -> tuple[dict, int]:
         """Submits GET request and handles the response.
 
