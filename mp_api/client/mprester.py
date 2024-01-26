@@ -15,7 +15,7 @@ from emmet.core.vasp.calc_types import CalcType
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import SETTINGS, Element, Structure, structure
+from pymatgen.core import SETTINGS, Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
