@@ -446,8 +446,6 @@ class BaseRester(Generic[T]):
             and num_chunks is None
         )
 
-        print(criteria, num_chunks, query_s3)
-
         if fields:
             if isinstance(fields, str):
                 fields = [fields]
