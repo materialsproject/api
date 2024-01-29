@@ -394,7 +394,7 @@ class BaseRester(Generic[T]):
         )
 
         data = str([doc.strip() for doc in file.read().strip().split("\n")])
-        decoded_data = decoder(data.replace("'", ""))
+        decoded_data = decoder(data.replace("'", "").replace("\\", "\\\\"))
         return decoded_data, 1
 
     def _query_resource(
