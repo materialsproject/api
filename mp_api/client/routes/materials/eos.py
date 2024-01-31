@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.eos import EOSDoc
@@ -13,17 +12,6 @@ class EOSRester(BaseRester[EOSDoc]):
     document_model = EOSDoc  # type: ignore
     primary_key = "task_id"
 
-    def search_eos_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.eos.search_eos_docs is deprecated. "
-            "Please use MPRester.eos.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
-
     def search(
         self,
         energies: tuple[float, float] | None = None,
@@ -32,7 +20,7 @@ class EOSRester(BaseRester[EOSDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[EOSDoc] | list[dict]:
         """Query equations of state docs using a variety of search criteria.
 
         Arguments:
@@ -45,7 +33,7 @@ class EOSRester(BaseRester[EOSDoc]):
                 Default is material_id only if all_fields is False.
 
         Returns:
-            ([EOSDoc]) List of eos documents
+            ([EOSDoc], [dict]) List of equations of state docs or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

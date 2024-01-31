@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.electrode import InsertionElectrodeDoc
@@ -14,16 +13,6 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
     suffix = "materials/insertion_electrodes"
     document_model = InsertionElectrodeDoc  # type: ignore
     primary_key = "battery_id"
-
-    def search_electrode_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.electrode.search_electrode_docs is deprecated. Please use MPRester.electrode.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
 
     def search(  # pragma: ignore
         self,
@@ -50,8 +39,8 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
-        """Query equations of state docs using a variety of search criteria.
+    ) -> list[InsertionElectrodeDoc] | list[dict]:
+        """Query using a variety of search criteria.
 
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
@@ -92,7 +81,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
                 Default is battery_id and last_updated if all_fields is False.
 
         Returns:
-            ([InsertionElectrodeDoc]) List of insertion electrode documents.
+            ([InsertionElectrodeDoc], [dict]) List of insertion electrode documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 
@@ -112,7 +101,9 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             if isinstance(working_ion, (str, Element)):
                 working_ion = [working_ion]  # type: ignore
 
-            query_params.update({"working_ion": ",".join([str(ele) for ele in working_ion])})  # type: ignore
+            query_params.update(
+                {"working_ion": ",".join([str(ele) for ele in working_ion])}  # type: ignore
+            )
 
         if formula:
             if isinstance(formula, str):

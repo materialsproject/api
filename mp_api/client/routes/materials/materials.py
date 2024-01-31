@@ -40,7 +40,7 @@ from mp_api.client.routes.materials import (
     XASRester,
 )
 
-_EMMET_SETTINGS = EmmetSettings()
+_EMMET_SETTINGS = EmmetSettings()  # type: ignore
 
 
 class MaterialsRester(BaseRester[MaterialsDoc]):
@@ -134,17 +134,6 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             response = self.get_data_by_id(material_id, fields=["initial_structures"])
             return response.initial_structures if response is not None else response  # type: ignore
 
-    def search_material_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.materials.search_material_docs is deprecated. "
-            "Please use MPRester.materials.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
-
     def search(
         self,
         material_ids: str | list[str] | None = None,
@@ -165,7 +154,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[MaterialsDoc] | list[dict]:
         """Query core material docs using a variety of search criteria.
 
         Arguments:
@@ -194,7 +183,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
-            ([MaterialsDoc]) List of material documents
+            ([MaterialsDoc], [dict]) List of material documents or dictionaries.
         """
         query_params = {"deprecated": deprecated}  # type: dict
 

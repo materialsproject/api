@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.elasticity import ElasticityDoc
@@ -13,16 +12,6 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
     suffix = "materials/elasticity"
     document_model = ElasticityDoc  # type: ignore
     primary_key = "material_id"
-
-    def search_elasticity_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.elasticity.search_elasticity_docs is deprecated. Please use MPRester.elasticity.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
 
     def search(
         self,
@@ -39,7 +28,7 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[ElasticityDoc] | list[dict]:
         """Query elasticity docs using a variety of search criteria.
 
         Arguments:
@@ -68,7 +57,7 @@ class ElasticityRester(BaseRester[ElasticityDoc]):
                 Default is material_id and prett-formula if all_fields is False.
 
         Returns:
-            ([ElasticityDoc]) List of elasticity documents.
+            ([ElasticityDoc], [dict]) List of elasticity documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

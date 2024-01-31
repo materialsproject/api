@@ -20,8 +20,21 @@ class DOIRester(BaseRester[DOIDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[DOIDoc] | list[dict]:
+        """Query for DOI data.
+
+        Arguments:
+            material_ids (str, List[str]): Search for DOI data associated with the specified Material IDs
+            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int): Number of data entries per chunk.
+            all_fields (bool): Whether to return all fields in the document. Defaults to True.
+            fields (List[str]): List of fields in DOIDoc to return data for.
+
+        Returns:
+            ([DOIDoc], [dict]) List of DOIDoc documents or dictionaries.
+        """
         query_params = defaultdict(dict)  # type: dict
+
         if material_ids:
             if isinstance(material_ids, str):
                 material_ids = [material_ids]

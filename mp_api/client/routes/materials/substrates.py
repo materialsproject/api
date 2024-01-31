@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.substrates import SubstratesDoc
@@ -12,17 +11,6 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
     suffix = "materials/substrates"
     document_model = SubstratesDoc  # type: ignore
     primary_key = "film_id"
-
-    def search_substrates_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.substrates.search_substrates_docs is deprecated. "
-            "Please use MPRester.substrates.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
 
     def search(
         self,
@@ -37,8 +25,8 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
-        """Query equations of state docs using a variety of search criteria.
+    ) -> list[SubstratesDoc] | list[dict]:
+        """Query substrate docs using a variety of search criteria.
 
         Arguments:
             area (Tuple[float,float]): Minimum and maximum volume in Å² to consider for the minimum coincident
@@ -56,7 +44,7 @@ class SubstratesRester(BaseRester[SubstratesDoc]):
                 Default is the film_id and substrate_id only if all_fields is False.
 
         Returns:
-            ([SubstratesDoc]) List of substrate documents
+            ([SubstratesDoc], [dict]) List of substrate documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

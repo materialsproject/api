@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 import numpy as np
@@ -18,26 +17,15 @@ class ThermoRester(BaseRester[ThermoDoc]):
     supports_versions = True
     primary_key = "thermo_id"
 
-    def search_thermo_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.thermo.search_thermo_docs is deprecated. "
-            "Please use MPRester.thermo.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
-
     def search(
         self,
+        material_ids: str | list[str] | None = None,
         chemsys: str | list[str] | None = None,
         energy_above_hull: tuple[float, float] | None = None,
         equilibrium_reaction_energy: tuple[float, float] | None = None,
         formation_energy: tuple[float, float] | None = None,
         formula: str | list[str] | None = None,
         is_stable: bool | None = None,
-        material_ids: list[str] | None = None,
         num_elements: tuple[int, int] | None = None,
         thermo_ids: list[str] | None = None,
         thermo_types: list[ThermoType | str] | None = None,
@@ -47,10 +35,12 @@ class ThermoRester(BaseRester[ThermoDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
-        """Query core material docs using a variety of search criteria.
+    ) -> list[ThermoDoc] | list[dict]:
+        """Query core thermo docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
@@ -76,7 +66,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
-            ([ThermoDoc]) List of thermo documents
+            ([ThermoDoc], [dict]) List of thermo documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 
@@ -93,6 +83,9 @@ class ThermoRester(BaseRester[ThermoDoc]):
             query_params.update({"chemsys": ",".join(chemsys)})
 
         if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if thermo_ids:
@@ -160,7 +153,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
 
         Returns:
-            phase_diagram (PhaseDiagram): Pymatgen phase diagram object.
+            (PhaseDiagram): Pymatgen phase diagram object.
         """
         t_type = thermo_type if isinstance(thermo_type, str) else thermo_type.value
         valid_types = {*map(str, ThermoType.__members__.values())}

@@ -42,12 +42,12 @@ class ChargeDensityRester(BaseRester[ChgcarDataDoc]):
             num_downloads += 1
         return num_downloads
 
-    def search(  # type: ignore
+    def search(
         self,
         task_ids: list[str] | None = None,
         num_chunks: int | None = 1,
         chunk_size: int = 10,
-    ) -> list[ChgcarDataDoc] | list[dict]:  # type: ignore
+    ) -> list[ChgcarDataDoc] | list[dict]:
         """A search method to find what charge densities are available via this API.
 
         Arguments:

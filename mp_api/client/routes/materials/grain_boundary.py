@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.grain_boundary import GBTypeEnum, GrainBoundaryDoc
@@ -13,17 +12,6 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
     suffix = "materials/grain_boundary"
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "task_id"
-
-    def search_grain_boundary_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.grain_boundary.search_grain_boundary_docs is deprecated. "
-            "Please use MPRester.grain_boundary.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
 
     def search(
         self,
@@ -41,7 +29,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[GrainBoundaryDoc] | list[dict]:
         """Query grain boundary docs using a variety of search criteria.
 
         Arguments:
@@ -63,7 +51,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
                  Default is material_id and last_updated if all_fields is False.
 
         Returns:
-             ([GrainBoundaryDoc]) List of grain boundary documents
+             ([GrainBoundaryDoc], [dict]) List of grain boundary documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

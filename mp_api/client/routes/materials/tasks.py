@@ -19,8 +19,9 @@ class TaskRester(BaseRester[TaskDoc]):
         material throughout a calculation. This is most useful for
         observing how a material relaxes during a geometry optimization.
 
-        :param task_id: A specified task_id
-        :return: List of trajectory objects
+        Args:
+            task_id (str): Task ID
+
         """
         traj_data = self._query_resource_data(
             suburl=f"trajectory/{task_id}/", use_document_model=False
@@ -30,17 +31,6 @@ class TaskRester(BaseRester[TaskDoc]):
             raise MPRestError(f"No trajectory data for {task_id} found")
 
         return traj_data
-
-    def search_task_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.tasks.search_task_docs is deprecated. "
-            "Please use MPRester.tasks.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
 
     def search(
         self,
@@ -54,7 +44,7 @@ class TaskRester(BaseRester[TaskDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[TaskDoc] | list[dict]:
         """Query core task docs using a variety of search criteria.
 
         Arguments:
@@ -74,7 +64,7 @@ class TaskRester(BaseRester[TaskDoc]):
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
-            ([TaskDoc]) List of task documents
+            ([TaskDoc], [dict]) List of task documents or dictionaries.
         """
         query_params = {}  # type: dict
 
