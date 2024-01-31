@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from datetime import datetime
 
 from emmet.core.tasks import TaskDoc
@@ -25,7 +24,7 @@ class TaskRester(BaseRester[TaskDoc]):
         """
         traj_data = self._query_resource_data(
             suburl=f"trajectory/{task_id}/", use_document_model=False
-        )[0].get("trajectories", None)
+        )[0].get("trajectories", None)  # type: ignore
 
         if traj_data is None:
             raise MPRestError(f"No trajectory data for {task_id} found")
