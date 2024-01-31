@@ -31,7 +31,6 @@ from mp_api.client.routes.materials import (
     AlloysRester,
     BandStructureRester,
     BondsRester,
-    ChargeDensityRester,
     ChemenvRester,
     DielectricRester,
     DOIRester,
@@ -101,7 +100,6 @@ class MPRester:
     robocrys: RobocrysRester
     synthesis: SynthesisRester
     insertion_electrodes: ElectrodeRester
-    charge_density: ChargeDensityRester
     electronic_structure: ElectronicStructureRester
     electronic_structure_bandstructure: BandStructureRester
     electronic_structure_dos: DosRester
@@ -207,7 +205,6 @@ class MPRester:
             "robocrys",
             "synthesis",
             "insertion_electrodes",
-            "charge_density",
             "electronic_structure",
             "electronic_structure_bandstructure",
             "electronic_structure_dos",
@@ -1225,8 +1222,10 @@ class MPRester:
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+        return (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+                material_id=material_id, path_type=path_type, line_mode=line_mode
+            )
         )
 
     def get_dos_by_material_id(self, material_id: str):
@@ -1238,7 +1237,9 @@ class MPRester:
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-        return self.electronic_structure_dos.get_dos_from_material_id(material_id=material_id)  # type: ignore
+        return self.electronic_structure_dos.get_dos_from_material_id(
+            material_id=material_id
+        )  # type: ignore
 
     def get_phonon_dos_by_material_id(self, material_id: str):
         """Get phonon density of states data corresponding to a material_id.
@@ -1315,7 +1316,9 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results: list[TaskDoc] = self.tasks.search(task_ids=task_ids, fields=["last_updated", "task_id"])  # type: ignore
+        results: list[TaskDoc] = self.tasks.search(
+            task_ids=task_ids, fields=["last_updated", "task_id"]
+        )  # type: ignore
 
         if len(results) == 0:
             return None
