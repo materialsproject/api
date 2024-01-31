@@ -29,12 +29,16 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
             molecule (Union[Molecule, List[Molecule]]): Pymatgen Molecule object or list of
                 pymatgen Molecule objects.
         """
-        if final:
-            response = self.get_data_by_id(mpcule_id, fields=["molecule"])
-            return response.molecule if response is not None else response  # type: ignore
-        else:
-            response = self.get_data_by_id(mpcule_id, fields=["initial_molecules"])
-            return response.initial_molecules if response is not None else response  # type: ignore
+        field = "molecule" if final else "initial_molecules"
+
+        response = self.search(molecule_ids=[mpcule_id], fields=[field])  # type: ignore
+
+        if response:
+            response = (
+                response[0].model_dump() if self.use_document_model else response[0]  # type: ignore
+            )
+
+        return response[field] if response else response  # type: ignore
 
     def find_molecule(
         self,
