@@ -1259,7 +1259,9 @@ class MPRester:
 
         """
         doc = self.phonon.search(material_ids=material_id, fields=["ph_dos"])
-        return doc.ph_dos if self.use_document_model else doc["ph_dos"]  # type: ignore
+        if not doc:
+            return None
+        return doc[0].ph_dos if self.use_document_model else doc[0]["ph_dos"]  # type: ignore
 
     def get_phonon_bandstructure_by_material_id(self, material_id: str):
         """Get phonon dispersion data corresponding to a material_id.
@@ -1271,7 +1273,10 @@ class MPRester:
             PhononBandStructureSymmLine:  phonon band structure.
         """
         doc = self.phonon.search(material_ids=material_id, fields=["ph_bs"])
-        return doc.ph_bs if self.use_document_model else doc["ph_bs"]  # type: ignore
+        if not doc:
+            return None
+
+        return doc[0].ph_bs if self.use_document_model else doc[0]["ph_bs"]  # type: ignore
 
     def get_wulff_shape(self, material_id: str):
         """Constructs a Wulff shape for a material.
@@ -1287,9 +1292,15 @@ class MPRester:
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
         structure = self.get_structure_by_material_id(material_id)
-        surfaces = surfaces = self.surface_properties.get_data_by_id(
-            material_id
-        ).surfaces
+        doc = self.surface_properties.search(material_ids=material_id)
+
+        if not doc:
+            return None
+
+        surfaces: list = (
+            doc[0].surfaces if self.use_document_model else doc[0]["surfaces"]  # type: ignore
+        )
+
         lattice = (
             SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
         )
@@ -1304,7 +1315,7 @@ class MPRester:
 
     def get_charge_density_from_material_id(
         self, material_id: str, inc_task_doc: bool = False
-    ) -> Chgcar | None:
+    ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
         """Get charge density data for a given Materials Project ID.
 
         Arguments:
@@ -1312,7 +1323,7 @@ class MPRester:
             inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            chgcar: Pymatgen Chgcar object.
+            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
         """
         if not hasattr(self, "charge_density"):
             raise MPRestError(
@@ -1332,7 +1343,12 @@ class MPRester:
         if len(results) == 0:
             return None
 
-        latest_doc = max(results, key=lambda x: x.last_updated)
+        latest_doc = max(  # type: ignore
+            results,
+            key=lambda x: x.last_updated  # type: ignore
+            if self.use_document_model
+            else x["last_updated"],  # type: ignore
+        )
 
         result = (
             self.tasks._query_open_data(
@@ -1349,7 +1365,12 @@ class MPRester:
             raise MPRestError(f"No charge density fetched for {material_id}.")
 
         if inc_task_doc:
-            task_doc = self.tasks.get_data_by_id(latest_doc.task_id)
+            task_doc = self.tasks.search(
+                task_ids=latest_doc.task_id
+                if self.use_document_model
+                else latest_doc["task_id"]
+            )[0]
+
             return chgcar, task_doc
 
         return chgcar
