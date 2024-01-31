@@ -545,7 +545,12 @@ class MPRester:
         Returns:
             List of BibTeX references ([str])
         """
-        return self.provenance.get_data_by_id(material_id).references
+        docs = self.provenance.search(material_ids=material_id)
+
+        if not docs:
+            return []
+
+        return docs[0].references if self.use_document_model else docs[0]["references"]  # type: ignore
 
     def get_materials_id_references(self, material_id: str) -> list[str]:
         """This method is deprecated, please use get_material_id_references."""
