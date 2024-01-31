@@ -65,8 +65,8 @@ _DEPRECATION_WARNING = (
     "methods will be retained until at least January 2022 for backwards compatibility."
 )
 
-_EMMET_SETTINGS = EmmetSettings()
-_MAPI_SETTINGS = MAPIClientSettings()
+_EMMET_SETTINGS = EmmetSettings()  # type: ignore
+_MAPI_SETTINGS = MAPIClientSettings()  # type: ignore
 
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
@@ -127,8 +127,8 @@ class MPRester:
         include_user_agent: bool = True,
         monty_decode: bool = True,
         use_document_model: bool = True,
-        session: Session = None,
-        headers: dict = None,
+        session: Session | None = None,
+        headers: dict | None = None,
         mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
     ):
         """Args:
@@ -336,8 +336,8 @@ class MPRester:
             rester = __core_custom_getattr(_self, attr, _rester_map)
             return rester
 
-        MaterialsRester.__getattr__ = __materials_getattr__
-        MoleculeRester.__getattr__ = __molecules_getattr__
+        MaterialsRester.__getattr__ = __materials_getattr__  # type: ignore
+        MoleculeRester.__getattr__ = __molecules_getattr__  # type:  ignore
 
         for attr, rester in core_resters.items():
             setattr(
@@ -353,7 +353,9 @@ class MPRester:
                 from mpcontribs.client import Client
 
                 self._contribs = Client(
-                    self.api_key, headers=self.headers, session=self.session
+                    self.api_key,  # type: ignore
+                    headers=self.headers,
+                    session=self.session,
                 )
 
             except ImportError:
@@ -407,19 +409,34 @@ class MPRester:
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
     ) -> list[str]:
-        """:param material_id:
-        :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
-        :return:
+        """Get Task ID values associated with a specific Material ID.
+
+        Args:
+            material_id (str): Material ID
+            calc_types ([CalcType]): If specified, will restrict to a certain task type, e.g. [CalcType.GGA_STATIC]
+
+        Returns:
+            ([str]): List of Task ID values.
         """
-        tasks = self.materials.get_data_by_id(
-            material_id, fields=["calc_types"]
-        ).calc_types
+        tasks = self.materials.search(material_ids=material_id, fields=["calc_types"])
+
+        if not tasks:
+            return []
+
+        calculations = (
+            tasks[0].calc_types  # type: ignore
+            if self.use_document_model
+            else tasks[0]["calc_types"]  # type: ignore
+        )
+
         if calc_types:
             return [
-                task for task, calc_type in tasks.items() if calc_type in calc_types
+                task
+                for task, calc_type in calculations.items()
+                if calc_type in calc_types
             ]
         else:
-            return list(tasks.keys())
+            return list(calculations.keys())
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
