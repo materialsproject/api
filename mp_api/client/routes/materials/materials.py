@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import warnings
-
 from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.material import MaterialsDoc
@@ -97,7 +95,6 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
     robocrys: RobocrysRester
     synthesis: SynthesisRester
     insertion_electrodes: ElectrodeRester
-    charge_density: ChargeDensityRester
     electronic_structure: ElectronicStructureRester
     electronic_structure_bandstructure: BandStructureRester
     electronic_structure_dos: DosRester
