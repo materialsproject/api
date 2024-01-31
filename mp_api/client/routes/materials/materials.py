@@ -127,12 +127,16 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
             structure (Union[Structure, List[Structure]]): Pymatgen structure object or list of
                 pymatgen structure objects.
         """
-        if final:
-            response = self.get_data_by_id(material_id, fields=["structure"])
-            return response.structure if response is not None else response  # type: ignore
-        else:
-            response = self.get_data_by_id(material_id, fields=["initial_structures"])
-            return response.initial_structures if response is not None else response  # type: ignore
+        field = "structure" if final else "initial_structures"
+
+        response = self.search(material_ids=material_id, fields=[field])
+
+        if response:
+            response = (
+                response[0].model_dump() if self.use_document_model else response[0]  # type: ignore
+            )
+
+        return response[field] if response else response  # type: ignore
 
     def search(
         self,
