@@ -72,12 +72,12 @@ class TestMPRester:
     def test_get_materials_ids_doc(self, mpr):
         mp_ids = mpr.get_materials_ids("Al2O3")
         random.shuffle(mp_ids)
-        doc = mpr.materials.get_data_by_id(mp_ids.pop(0))
+        doc = mpr.materials.search(material_ids=mp_ids.pop(0))[0]
         assert doc.formula_pretty == "Al2O3"
 
         mp_ids = mpr.get_materials_ids("Al-O")
         random.shuffle(mp_ids)
-        doc = mpr.materials.get_data_by_id(mp_ids.pop(0))
+        doc = mpr.materials.search(material_ids=mp_ids.pop(0))[0]
         assert doc.chemsys == "Al-O"
 
     def test_get_structures(self, mpr):
