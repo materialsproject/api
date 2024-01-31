@@ -879,7 +879,7 @@ class MPRester:
             warnings.filterwarnings(
                 "ignore", message="Failed to guess oxidation states.*"
             )
-            ion_ref_entries = compat.process_entries(ion_ref_entries)
+            ion_ref_entries = compat.process_entries(ion_ref_entries)  # type: ignore
         # TODO - if the commented line above would work, this conditional block
         # could be removed
         if use_gibbs:
@@ -1399,10 +1399,11 @@ class MPRester:
             task_ids=material_ids,
             fields=["calc_types", "deprecated_tasks", "material_id"],
         ):
-            for task_id, calc_type in doc.calc_types.items():
+            doc_dict: dict = doc.model_dump() if self.use_document_model else doc  # type: ignore
+            for task_id, calc_type in doc_dict["calc_types"].items():
                 if calc_types and calc_type not in calc_types:
                     continue
-                mp_id = doc.material_id
+                mp_id = doc_dict["material_id"]
                 if meta.get(mp_id) is None:
                     meta[mp_id] = [{"task_id": task_id, "calc_type": calc_type}]
                 else:
