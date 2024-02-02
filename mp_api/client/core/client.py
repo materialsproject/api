@@ -488,6 +488,9 @@ class BaseRester(Generic[T]):
                     if "core" not in self.suffix
                     else self.suffix.split("/")[0]
                 )
+                # Paginate over all entried in the bucket.
+                # This will have to change for when a subset of entries from
+                # the DB is needed.
                 objects = self.s3_client.list_objects_v2(
                     Bucket=bucket, Prefix=f"collections/{db_version}/{suffix}"
                 )
@@ -501,6 +504,7 @@ class BaseRester(Generic[T]):
 
                 decoder = MontyDecoder().decode if self.monty_decode else json.loads
 
+                # Multithreaded function inputs
                 s3_params_list = {
                     key: {
                         "bucket": bucket,
@@ -526,7 +530,6 @@ class BaseRester(Generic[T]):
                     open_data_pbar,  # type: ignore
                 )
 
-                # Project and remove docs that don't match
                 unzipped_data = []
                 for docs, _, _ in byte_data:
                     unzipped_data.extend(docs)
