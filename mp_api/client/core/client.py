@@ -375,7 +375,7 @@ class BaseRester(Generic[T]):
             raise MPRestError(str(ex))
 
     def _query_open_data(
-        self, bucket: str, key: str, decoder
+        self, bucket: str, key: str, decoder: Callable, fields: list[str]
     ) -> tuple[io.BytesIO, int]:
         """Query and deserialize Materials Project AWS open data s3 buckets.
 
@@ -383,6 +383,7 @@ class BaseRester(Generic[T]):
             bucket (str): Materials project bucket name
             key (str): Key for file including all prefixes
             decoder(Callable): Callable used to deserialize data
+            fields (list[str]): List of fields to project out of the retrieved data
 
         Returns:
             dict: MontyDecoded data
@@ -395,7 +396,13 @@ class BaseRester(Generic[T]):
 
         data = str([doc.strip() for doc in file.read().strip().split("\n")])
         decoded_data = decoder(data.replace("'", "").replace("\\", "\\\\"))
-        return decoded_data, 1
+
+        unzipped_data = []
+        for doc in decoded_data:
+            if fields:
+                doc = {key: value for key, value in doc.items() if key in fields}
+            unzipped_data.append(doc)
+        return unzipped_data, 1
 
     def _query_resource(
         self,
@@ -451,6 +458,7 @@ class BaseRester(Generic[T]):
             )
             and num_chunks is None
         )
+        query_s3 = True
 
         if fields:
             if isinstance(fields, str):
@@ -493,8 +501,14 @@ class BaseRester(Generic[T]):
                 # doc_keys = set([doc[self.primary_key] for doc in data["data"]])
 
                 decoder = MontyDecoder().decode if self.monty_decode else json.loads
+
                 s3_params_list = {
-                    key: {"bucket": bucket, "key": key, "decoder": decoder}
+                    key: {
+                        "bucket": bucket,
+                        "key": key,
+                        "decoder": decoder,
+                        "fields": fields,
+                    }
                     for key in keys
                 }
 
@@ -516,14 +530,7 @@ class BaseRester(Generic[T]):
                 # Project and remove docs that don't match
                 unzipped_data = []
                 for docs, _, _ in byte_data:
-                    for doc in docs:
-                        if fields:
-                            doc = {
-                                key: value
-                                for key, value in doc.items()
-                                if key in fields
-                            }
-                        unzipped_data.append(doc)
+                    unzipped_data.extend(docs)
 
                 data = {"data": unzipped_data, "meta": {}}
 
@@ -567,7 +574,7 @@ class BaseRester(Generic[T]):
             url: url used to make request
             use_document_model: if None, will defer to the self.use_document_model attribute
             parallel_param: parameter to parallelize requests with
-            num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
+            num_chu: fieldsnky: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout: Time in seconds to wait until a request timeout error is thrown
 
