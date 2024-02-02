@@ -458,7 +458,6 @@ class BaseRester(Generic[T]):
             )
             and num_chunks is None
         )
-        query_s3 = True
 
         if fields:
             if isinstance(fields, str):
