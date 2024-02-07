@@ -488,11 +488,13 @@ class BaseRester(Generic[T]):
                     if "core" not in self.suffix
                     else self.suffix.split("/")[0]
                 )
+                suffix = suffix.replace("_", "-")
                 # Paginate over all entried in the bucket.
                 # This will have to change for when a subset of entries from
                 # the DB is needed.
                 objects = self.s3_client.list_objects_v2(
-                    Bucket=bucket, Prefix=f"collections/{db_version}/{suffix}"
+                    Bucket=bucket,
+                    Prefix=f"collections/{db_version}/{suffix}",
                 )
                 keys = [doc["Key"] for doc in objects["Contents"]]
                 # keys = [
