@@ -1011,6 +1011,31 @@ class BaseRester(Generic[T]):
             num_chunks=num_chunks,
         )
 
+    def get_data_by_id(
+        self,
+        document_id: str,
+        fields: list[str] | None = None,
+    ) -> T | dict:
+        warnings.warn(
+            f"get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        if self.primary_key in ["material_id", "task_id"]:
+            validate_ids([document_id])
+
+        if isinstance(fields, str):  # pragma: no cover
+            fields = (fields,)  # type: ignore
+
+        return self._search(  # type: ignore
+            **{self.primary_key + "s": document_id},
+            num_chunks=1,
+            chunk_size=1,
+            all_fields=fields is None,
+            fields=fields,
+        )
+
     def _get_all_documents(
         self,
         query_params,
