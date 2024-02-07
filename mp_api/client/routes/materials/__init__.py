@@ -14,7 +14,7 @@ from .electronic_structure import (
 )
 from .eos import EOSRester
 from .fermi import FermiRester
-from .grain_boundary import GrainBoundaryRester
+from .grain_boundaries import GrainBoundaryRester
 from .magnetism import MagnetismRester
 from .oxidation_states import OxidationStatesRester
 from .phonon import PhononRester

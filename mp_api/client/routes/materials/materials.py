@@ -54,7 +54,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         "tasks",
         "xas",
         "fermi",
-        "grain_boundary",
+        "grain_boundaries",
         "substrates",
         "surface_properties",
         "phonon",
@@ -86,7 +86,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
     tasks: TaskRester
     xas: XASRester
     fermi: FermiRester
-    grain_boundary: GrainBoundaryRester
+    grain_boundaries: GrainBoundaryRester
     substrates: SubstratesRester
     surface_properties: SurfacePropertiesRester
     phonon: PhononRester

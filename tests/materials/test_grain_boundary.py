@@ -4,7 +4,7 @@ from core_function import client_search_testing
 import pytest
 from emmet.core.grain_boundary import GBTypeEnum
 
-from mp_api.client.routes.materials.grain_boundary import GrainBoundaryRester
+from mp_api.client.routes.materials.grain_boundaries import GrainBoundaryRester
 
 
 @pytest.fixture

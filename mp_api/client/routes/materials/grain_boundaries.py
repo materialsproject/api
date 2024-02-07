@@ -10,15 +10,15 @@ from mp_api.client.core.utils import validate_ids
 
 
 class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
-    suffix = "materials/grain_boundary"
+    suffix = "materials/grain_boundaries"
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "task_id"
 
     def search_grain_boundary_docs(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
         warnings.warn(
-            "MPRester.grain_boundary.search_grain_boundary_docs is deprecated. "
-            "Please use MPRester.grain_boundary.search instead.",
+            "MPRester.grain_boundaries.search_grain_boundary_docs is deprecated. "
+            "Please use MPRester.grain_boundaries.search instead.",
             DeprecationWarning,
             stacklevel=2,
         )

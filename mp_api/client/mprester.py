@@ -88,7 +88,7 @@ class MPRester:
     tasks: TaskRester
     xas: XASRester
     fermi: FermiRester
-    grain_boundary: GrainBoundaryRester
+    grain_boundaries: GrainBoundaryRester
     substrates: SubstratesRester
     surface_properties: SurfacePropertiesRester
     phonon: PhononRester
@@ -194,7 +194,7 @@ class MPRester:
             "tasks",
             "xas",
             "fermi",
-            "grain_boundary",
+            "grain_boundaries",
             "substrates",
             "surface_properties",
             "phonon",
