@@ -515,10 +515,17 @@ class BaseRester(Generic[T]):
                     for key in keys
                 }
 
-                open_data_pbar = (
+                # Setup progress bar
+                pbar_message = (  # type: ignore
+                    f"Retrieving {self.document_model.__name__} documents"  # type: ignore
+                    if self.document_model is not None
+                    else "Retrieving documents"
+                )
+                num_docs_needed = self.count()
+                pbar = (
                     tqdm(
-                        desc="Downloading from AWS Open Data",
-                        total=len(s3_params_list),
+                        desc=pbar_message,
+                        total=num_docs_needed,
                     )
                     if not self.mute_progress_bars
                     else None
@@ -527,7 +534,7 @@ class BaseRester(Generic[T]):
                 byte_data = self._multi_thread(
                     self._query_open_data,
                     list(s3_params_list.values()),
-                    open_data_pbar,  # type: ignore
+                    pbar,  # type: ignore
                 )
 
                 unzipped_data = []
@@ -913,9 +920,13 @@ class BaseRester(Generic[T]):
                     data, subtotal = future.result()
 
                     if progress_bar is not None:
-                        progress_bar.update(
-                            len(data["data"]) if isinstance(data, dict) else 1
-                        )
+                        if isinstance(data, dict):
+                            size = len(data["data"])
+                        elif isinstance(data, list):
+                            size = len(data)
+                        else:
+                            size = 1
+                        progress_bar.update(size)
                     return_data.append((data, subtotal, future.crit_ind))  # type: ignore
 
                 # Populate more futures to replace finished
@@ -1298,15 +1309,24 @@ class BaseRester(Generic[T]):
         """
         try:
             criteria = criteria or {}
-            user_preferences = self.monty_decode, self.use_document_model
-            self.monty_decode, self.use_document_model = (
+            user_preferences = (
+                self.monty_decode,
+                self.use_document_model,
+                self.mute_progress_bars,
+            )
+            self.monty_decode, self.use_document_model, self.mute_progress_bars = (
                 False,
                 False,
+                True,
             )  # do not waste cycles decoding
             results = self._query_resource(
                 criteria=criteria, num_chunks=1, chunk_size=1
             )
-            self.monty_decode, self.use_document_model = user_preferences
+            (
+                self.monty_decode,
+                self.use_document_model,
+                self.mute_progress_bars,
+            ) = user_preferences
             return results["meta"]["total_doc"]
         except Exception:  # pragma: no cover
             return "Problem getting count"
