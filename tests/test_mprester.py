@@ -62,7 +62,7 @@ class TestMPRester:
         assert len(results) > 0
 
     def test_get_materials_ids_references(self, mpr):
-        data = mpr.get_materials_id_references("mp-123")
+        data = mpr.get_material_id_references("mp-123")
         assert len(data) > 5
 
     def test_get_materials_ids_doc(self, mpr):
