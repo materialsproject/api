@@ -56,7 +56,7 @@ resters_to_test = [
 )
 @pytest.mark.parametrize("rester", resters_to_test)
 def test_generic_get_methods(rester):
-    # -- Test generic search 
+    # -- Test generic search
     name = rester.suffix.replace("/", "_")
 
     rester = rester(
@@ -78,13 +78,15 @@ def test_generic_get_methods(rester):
 
             if name not in search_only_resters:
                 doc = rester.search(
-                    **{rester.primary_key: doc.model_dump()[rester.primary_key]}, fields=[rester.primary_key]
+                    **{rester.primary_key: doc.model_dump()[rester.primary_key]},
+                    fields=[rester.primary_key],
                 )
                 assert isinstance(doc, rester.document_model)
 
         elif name not in special_resters:
             doc = rester.search(
-                **{rester.primary_key: key_only_resters[name]}, fields=[rester.primary_key]
+                **{rester.primary_key: key_only_resters[name]},
+                fields=[rester.primary_key],
             )
             assert isinstance(doc, rester.document_model)
 

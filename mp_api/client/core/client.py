@@ -1017,7 +1017,7 @@ class BaseRester(Generic[T]):
         fields: list[str] | None = None,
     ) -> T | dict:
         warnings.warn(
-            f"get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
+            "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
             DeprecationWarning,
             stacklevel=2,
         )
