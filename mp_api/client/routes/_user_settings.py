@@ -89,7 +89,6 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
         Raises:
             MPRestError.
         """
-        return super()._search(
-            consumer_id=consumer_id,
-            fields=fields,
-        )
+        return self._query_resource(
+            suburl=f"{consumer_id}", fields=fields, num_chunks=1, chunk_size=1
+        ).get("data")
