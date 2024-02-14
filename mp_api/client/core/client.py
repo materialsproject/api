@@ -457,19 +457,13 @@ class BaseRester(Generic[T]):
                 }
             )
             and num_chunks is None
+            and "substrates" not in self.suffix
         )
 
         if fields:
             if isinstance(fields, str):
                 fields = [fields]
 
-            # query_s3 = len(set(fields) - set(self._queryable_fields)) != 0
-
-            # if query_s3:
-            #    criteria["_fields"] = ",".join(
-            #        [self.primary_key, "nelements", "symmetry.number"]
-            #    )
-            # else:
             criteria["_fields"] = ",".join(fields)
 
         try:
@@ -481,7 +475,6 @@ class BaseRester(Generic[T]):
 
             if query_s3:
                 db_version = self.db_version.replace(".", "-")
-                bucket = "materialsproject-build"
 
                 suffix = (
                     self.suffix.split("/")[-1]
@@ -489,20 +482,21 @@ class BaseRester(Generic[T]):
                     else self.suffix.split("/")[0]
                 )
                 suffix = suffix.replace("_", "-")
+
                 # Paginate over all entried in the bucket.
                 # This will have to change for when a subset of entries from
                 # the DB is needed.
-                objects = self.s3_client.list_objects_v2(
-                    Bucket=bucket,
-                    Prefix=f"collections/{db_version}/{suffix}",
+                is_tasks = "tasks" in suffix
+                bucket = (
+                    "materialsproject-build"
+                    if not is_tasks
+                    else "materialsproject-parsed"
                 )
+                prefix = (
+                    f"{suffix}" if is_tasks else f"collections/{db_version}/{suffix}"
+                )
+                objects = self.s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
                 keys = [doc["Key"] for doc in objects["Contents"]]
-                # keys = [
-                #    f"collections/{db_version}/{suffix}/nelements={doc['nelements']}/symmetry_number={doc['symmetry']['number']}"
-                #    for doc in data["data"]
-                # ]
-
-                # doc_keys = set([doc[self.primary_key] for doc in data["data"]])
 
                 decoder = MontyDecoder().decode if self.monty_decode else json.loads
 
@@ -523,7 +517,7 @@ class BaseRester(Generic[T]):
                     if self.document_model is not None
                     else "Retrieving documents"
                 )
-                num_docs_needed = self.count()
+                num_docs_needed = int(self.count())
                 pbar = (
                     tqdm(
                         desc=pbar_message,
