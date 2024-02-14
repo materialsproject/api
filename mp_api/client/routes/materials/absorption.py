@@ -24,7 +24,7 @@ class AbsorptionRester(BaseRester[AbsorptionDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ) -> list[AbsorptionDoc]:
+    ) -> list[AbsorptionDoc] | list[dict]:
         """Query for optical absorption spectra data.
 
         Arguments:
@@ -42,7 +42,7 @@ class AbsorptionRester(BaseRester[AbsorptionDoc]):
             fields (List[str]): List of fields in AbsorptionDoc to return data for.
 
         Returns:
-            ([AbsorptionDoc]) List of optical absorption documents.
+            ([AbsorptionDoc], [dict]) List of optical absorption documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

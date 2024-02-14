@@ -48,16 +48,12 @@ class TestMPRester:
         s1 = mpr.get_structure_by_material_id("mp-149", final=False)
         assert {s.formula for s in s1} == {"Si2"}
 
-        # # requesting via task-id instead of mp-id
-        with pytest.warns(UserWarning):
-            mpr.get_structure_by_material_id("mp-698856")
-
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
         assert db_version is not None
 
-    def test_get_materials_id_from_task_id(self, mpr):
-        assert mpr.get_materials_id_from_task_id("mp-540081") == "mp-19017"
+    def test_get_material_id_from_task_id(self, mpr):
+        assert mpr.get_material_id_from_task_id("mp-540081") == "mp-19017"
 
     def test_get_task_ids_associated_with_material_id(self, mpr):
         results = mpr.get_task_ids_associated_with_material_id(
@@ -65,19 +61,19 @@ class TestMPRester:
         )
         assert len(results) > 0
 
-    def test_get_materials_ids_references(self, mpr):
-        data = mpr.get_materials_id_references("mp-123")
+    def test_get_material_id_references(self, mpr):
+        data = mpr.get_material_id_references("mp-123")
         assert len(data) > 5
 
-    def test_get_materials_ids_doc(self, mpr):
-        mp_ids = mpr.get_materials_ids("Al2O3")
+    def test_get_material_id_doc(self, mpr):
+        mp_ids = mpr.get_material_ids("Al2O3")
         random.shuffle(mp_ids)
-        doc = mpr.materials.get_data_by_id(mp_ids.pop(0))
+        doc = mpr.materials.search(material_ids=mp_ids.pop(0))[0]
         assert doc.formula_pretty == "Al2O3"
 
-        mp_ids = mpr.get_materials_ids("Al-O")
+        mp_ids = mpr.get_material_ids("Al-O")
         random.shuffle(mp_ids)
-        doc = mpr.materials.get_data_by_id(mp_ids.pop(0))
+        doc = mpr.materials.search(material_ids=mp_ids.pop(0))[0]
         assert doc.chemsys == "Al-O"
 
     def test_get_structures(self, mpr):

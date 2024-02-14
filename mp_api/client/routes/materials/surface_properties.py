@@ -1,31 +1,21 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.surface_properties import SurfacePropDoc
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
     suffix = "materials/surface_properties"
     document_model = SurfacePropDoc  # type: ignore
-    primary_key = "task_id"
-
-    def search_surface_properties_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.surface_properties.search_surface_properties_docs is deprecated. "
-            "Please use MPRester.surface_properties.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
+    primary_key = "material_id"
 
     def search(
         self,
+        material_ids: str | list[str] | None = None,
         has_reconstructed: bool | None = None,
         shape_factor: tuple[float, float] | None = None,
         surface_energy_anisotropy: tuple[float, float] | None = None,
@@ -35,10 +25,12 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[SurfacePropDoc] | list[dict]:
         """Query surface properties docs using a variety of search criteria.
 
         Arguments:
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
             surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values to
@@ -53,9 +45,15 @@ class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
                 Default is material_id only if all_fields is False.
 
         Returns:
-            ([SurfacePropDoc]) List of surface properties documents
+            ([SurfacePropDoc], [dict]) List of surface properties documents
         """
         query_params = defaultdict(dict)  # type: dict
+
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if weighted_surface_energy:
             query_params.update(

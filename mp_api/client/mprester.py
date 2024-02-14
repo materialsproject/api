@@ -31,7 +31,6 @@ from mp_api.client.routes.materials import (
     AlloysRester,
     BandStructureRester,
     BondsRester,
-    ChargeDensityRester,
     ChemenvRester,
     DielectricRester,
     DOIRester,
@@ -66,8 +65,8 @@ _DEPRECATION_WARNING = (
     "methods will be retained until at least January 2022 for backwards compatibility."
 )
 
-_EMMET_SETTINGS = EmmetSettings()
-_MAPI_SETTINGS = MAPIClientSettings()
+_EMMET_SETTINGS = EmmetSettings()  # type: ignore
+_MAPI_SETTINGS = MAPIClientSettings()  # type: ignore
 
 DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
 DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
@@ -101,7 +100,6 @@ class MPRester:
     robocrys: RobocrysRester
     synthesis: SynthesisRester
     insertion_electrodes: ElectrodeRester
-    charge_density: ChargeDensityRester
     electronic_structure: ElectronicStructureRester
     electronic_structure_bandstructure: BandStructureRester
     electronic_structure_dos: DosRester
@@ -129,8 +127,8 @@ class MPRester:
         include_user_agent: bool = True,
         monty_decode: bool = True,
         use_document_model: bool = True,
-        session: Session = None,
-        headers: dict = None,
+        session: Session | None = None,
+        headers: dict | None = None,
         mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
     ):
         """Args:
@@ -207,7 +205,6 @@ class MPRester:
             "robocrys",
             "synthesis",
             "insertion_electrodes",
-            "charge_density",
             "electronic_structure",
             "electronic_structure_bandstructure",
             "electronic_structure_dos",
@@ -339,8 +336,8 @@ class MPRester:
             rester = __core_custom_getattr(_self, attr, _rester_map)
             return rester
 
-        MaterialsRester.__getattr__ = __materials_getattr__
-        MoleculeRester.__getattr__ = __molecules_getattr__
+        MaterialsRester.__getattr__ = __materials_getattr__  # type: ignore
+        MoleculeRester.__getattr__ = __molecules_getattr__  # type:  ignore
 
         for attr, rester in core_resters.items():
             setattr(
@@ -356,7 +353,9 @@ class MPRester:
                 from mpcontribs.client import Client
 
                 self._contribs = Client(
-                    self.api_key, headers=self.headers, session=self.session
+                    self.api_key,  # type: ignore
+                    headers=self.headers,
+                    session=self.session,
                 )
 
             except ImportError:
@@ -410,19 +409,34 @@ class MPRester:
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
     ) -> list[str]:
-        """:param material_id:
-        :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
-        :return:
+        """Get Task ID values associated with a specific Material ID.
+
+        Args:
+            material_id (str): Material ID
+            calc_types ([CalcType]): If specified, will restrict to a certain task type, e.g. [CalcType.GGA_STATIC]
+
+        Returns:
+            ([str]): List of Task ID values.
         """
-        tasks = self.materials.get_data_by_id(
-            material_id, fields=["calc_types"]
-        ).calc_types
+        tasks = self.materials.search(material_ids=material_id, fields=["calc_types"])
+
+        if not tasks:
+            return []
+
+        calculations = (
+            tasks[0].calc_types  # type: ignore
+            if self.use_document_model
+            else tasks[0]["calc_types"]  # type: ignore
+        )
+
         if calc_types:
             return [
-                task for task, calc_type in tasks.items() if calc_type in calc_types
+                task
+                for task, calc_type in calculations.items()
+                if calc_type in calc_types
             ]
         else:
-            return list(tasks.keys())
+            return list(calculations.keys())
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
@@ -514,14 +528,6 @@ class MPRester:
             )
             return None
 
-    def get_materials_id_from_task_id(self, task_id: str) -> str | None:
-        """This method is deprecated, please use get_material_id_from_task_id."""
-        warnings.warn(
-            "This method is deprecated, please use get_material_id_from_task_id.",
-            DeprecationWarning,
-        )
-        return self.get_material_id_from_task_id(task_id)
-
     def get_material_id_references(self, material_id: str) -> list[str]:
         """Returns all references for a material id.
 
@@ -531,15 +537,12 @@ class MPRester:
         Returns:
             List of BibTeX references ([str])
         """
-        return self.provenance.get_data_by_id(material_id).references
+        docs = self.provenance.search(material_ids=material_id)
 
-    def get_materials_id_references(self, material_id: str) -> list[str]:
-        """This method is deprecated, please use get_material_id_references."""
-        warnings.warn(
-            "This method is deprecated, please use get_material_id_references instead.",
-            DeprecationWarning,
-        )
-        return self.get_material_id_references(material_id)
+        if not docs:
+            return []
+
+        return docs[0].references if self.use_document_model else docs[0]["references"]  # type: ignore
 
     def get_material_ids(
         self,
@@ -562,24 +565,13 @@ class MPRester:
             input_params = {"formula": chemsys_formula}
 
         return sorted(
-            doc.material_id
+            doc.material_id if self.use_document_model else doc["material_id"]  # type: ignore
             for doc in self.materials.search(
                 **input_params,  # type: ignore
                 all_fields=False,
                 fields=["material_id"],
             )
         )
-
-    def get_materials_ids(
-        self,
-        chemsys_formula: str | list[str],
-    ) -> list[MPID]:
-        """This method is deprecated, please use get_material_ids."""
-        warnings.warn(
-            "This method is deprecated, please use get_material_ids.",
-            DeprecationWarning,
-        )
-        return self.get_material_ids(chemsys_formula)
 
     def get_structures(
         self, chemsys_formula: str | list[str], final=True
@@ -604,7 +596,7 @@ class MPRester:
 
         if final:
             return [
-                doc.structure
+                doc.structure if self.use_document_model else doc["structure"]  # type: ignore
                 for doc in self.materials.search(
                     **input_params,  # type: ignore
                     all_fields=False,
@@ -619,7 +611,11 @@ class MPRester:
                 all_fields=False,
                 fields=["initial_structures"],
             ):
-                structures.extend(doc.initial_structures)
+                structures.extend(
+                    doc.initial_structures  # type: ignore
+                    if self.use_document_model
+                    else doc["initial_structures"]  # type: ignore
+                )
 
             return structures
 
@@ -663,10 +659,10 @@ class MPRester:
         self,
         chemsys_formula_mpids: str | list[str],
         compatible_only: bool = True,
-        inc_structure: bool = None,
-        property_data: list[str] = None,
+        inc_structure: bool | None = None,
+        property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
-        additional_criteria: dict = None,
+        additional_criteria: dict | None = None,
     ) -> list[ComputedStructureEntry]:
         """Get a list of ComputedEntries or ComputedStructureEntries corresponding
         to a chemical system or formula. This returns entries for all thermo types
@@ -733,19 +729,19 @@ class MPRester:
         )
 
         docs = self.thermo.search(
-            **input_params,
+            **input_params,  # type: ignore
             all_fields=False,
-            fields=fields,  # type: ignore
+            fields=fields,
         )
 
         for doc in docs:
             entry_list = (
-                doc.entries.values()
+                doc.entries.values()  # type: ignore
                 if self.use_document_model
-                else doc["entries"].values()
+                else doc["entries"].values()  # type: ignore
             )
             for entry in entry_list:
-                entry_dict = entry.as_dict() if self.monty_decode else entry
+                entry_dict: dict = entry.as_dict() if self.monty_decode else entry  # type: ignore
                 if not compatible_only:
                     entry_dict["correction"] = 0.0
                     entry_dict["energy_adjustments"] = []
@@ -753,9 +749,9 @@ class MPRester:
                 if property_data:
                     for property in property_data:
                         entry_dict["data"][property] = (
-                            doc.model_dump()[property]
+                            doc.model_dump()[property]  # type: ignore
                             if self.use_document_model
-                            else doc[property]
+                            else doc[property]  # type: ignore
                         )
 
                 if conventional_unit_cell:
@@ -875,7 +871,7 @@ class MPRester:
             warnings.filterwarnings(
                 "ignore", message="Failed to guess oxidation states.*"
             )
-            ion_ref_entries = compat.process_entries(ion_ref_entries)
+            ion_ref_entries = compat.process_entries(ion_ref_entries)  # type: ignore
         # TODO - if the commented line above would work, this conditional block
         # could be removed
         if use_gibbs:
@@ -885,7 +881,7 @@ class MPRester:
             ion_ref_entries = GibbsComputedStructureEntry.from_entries(
                 ion_ref_entries, temp=use_gibbs
             )
-        ion_ref_pd = PhaseDiagram(ion_ref_entries)
+        ion_ref_pd = PhaseDiagram(ion_ref_entries)  # type: ignore
 
         ion_entries = self.get_ion_entries(ion_ref_pd, ion_ref_data=ion_data)
         pbx_entries = [PourbaixEntry(e, f"ion-{n}") for n, e in enumerate(ion_entries)]
@@ -904,7 +900,7 @@ class MPRester:
                 or extra_elts.intersection(entry_elts)
             ):
                 # Create new computed entry
-                form_e = ion_ref_pd.get_form_energy(entry)
+                form_e = ion_ref_pd.get_form_energy(entry)  # type: ignore
                 new_entry = ComputedEntry(
                     entry.composition, form_e, entry_id=entry.entry_id
                 )
@@ -942,11 +938,13 @@ class MPRester:
                 'reference': 'H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
-        return self.contribs.query_contributions(
+        return self.contribs.query_contributions(  # type: ignore
             query={"project": "ion_ref_data"},
             fields=["identifier", "formula", "data"],
             paginate=True,
-        ).get("data")
+        ).get(
+            "data"
+        )  # type: ignore
 
     def get_ion_reference_data_for_chemsys(self, chemsys: str | list) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
@@ -988,7 +986,7 @@ class MPRester:
         return [d for d in ion_data if d["data"]["MajElements"] in chemsys]
 
     def get_ion_entries(
-        self, pd: PhaseDiagram, ion_ref_data: list[dict] = None
+        self, pd: PhaseDiagram, ion_ref_data: list[dict] | None = None
     ) -> list[IonEntry]:
         """Retrieve IonEntry objects that can be used in the construction of
         Pourbaix Diagrams. The energies of the IonEntry are calculaterd from
@@ -1033,7 +1031,7 @@ class MPRester:
 
         # position the ion energies relative to most stable reference state
         ion_entries = []
-        for _n, i_d in enumerate(ion_data):
+        for _, i_d in enumerate(ion_data):
             ion = Ion.from_formula(i_d["formula"])
             refs = [
                 e
@@ -1081,8 +1079,8 @@ class MPRester:
         self,
         material_id: str,
         compatible_only: bool = True,
-        inc_structure: bool = None,
-        property_data: list[str] = None,
+        inc_structure: bool | None = None,
+        property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
     ):
         """Get all ComputedEntry objects corresponding to a material_id.
@@ -1123,8 +1121,8 @@ class MPRester:
         elements: str | list[str],
         use_gibbs: int | None = None,
         compatible_only: bool = True,
-        inc_structure: bool = None,
-        property_data: list[str] = None,
+        inc_structure: bool | None = None,
+        property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
         additional_criteria=None,
     ):
@@ -1181,7 +1179,7 @@ class MPRester:
             for els in itertools.combinations(elements_set, i + 1):
                 all_chemsyses.append("-".join(sorted(els)))
 
-        entries = []  # type: List[ComputedEntry]
+        entries = []
 
         entries.extend(
             self.get_entries(
@@ -1238,7 +1236,9 @@ class MPRester:
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-        return self.electronic_structure_dos.get_dos_from_material_id(material_id=material_id)  # type: ignore
+        return self.electronic_structure_dos.get_dos_from_material_id(
+            material_id=material_id
+        )  # type: ignore
 
     def get_phonon_dos_by_material_id(self, material_id: str):
         """Get phonon density of states data corresponding to a material_id.
@@ -1250,7 +1250,10 @@ class MPRester:
              CompletePhononDos: A phonon DOS object.
 
         """
-        return self.phonon.get_data_by_id(material_id, fields=["ph_dos"]).ph_dos
+        doc = self.phonon.search(material_ids=material_id, fields=["ph_dos"])
+        if not doc:
+            return None
+        return doc[0].ph_dos if self.use_document_model else doc[0]["ph_dos"]  # type: ignore
 
     def get_phonon_bandstructure_by_material_id(self, material_id: str):
         """Get phonon dispersion data corresponding to a material_id.
@@ -1261,7 +1264,11 @@ class MPRester:
         Returns:
             PhononBandStructureSymmLine:  phonon band structure.
         """
-        return self.phonon.get_data_by_id(material_id, fields=["ph_bs"]).ph_bs
+        doc = self.phonon.search(material_ids=material_id, fields=["ph_bs"])
+        if not doc:
+            return None
+
+        return doc[0].ph_bs if self.use_document_model else doc[0]["ph_bs"]  # type: ignore
 
     def get_wulff_shape(self, material_id: str):
         """Constructs a Wulff shape for a material.
@@ -1277,9 +1284,15 @@ class MPRester:
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
         structure = self.get_structure_by_material_id(material_id)
-        surfaces = surfaces = self.surface_properties.get_data_by_id(
-            material_id
-        ).surfaces
+        doc = self.surface_properties.search(material_ids=material_id)
+
+        if not doc:
+            return None
+
+        surfaces: list = (
+            doc[0].surfaces if self.use_document_model else doc[0]["surfaces"]  # type: ignore
+        )
+
         lattice = (
             SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
         )
@@ -1294,7 +1307,7 @@ class MPRester:
 
     def get_charge_density_from_material_id(
         self, material_id: str, inc_task_doc: bool = False
-    ) -> Chgcar | None:
+    ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
         """Get charge density data for a given Materials Project ID.
 
         Arguments:
@@ -1302,25 +1315,26 @@ class MPRester:
             inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            chgcar: Pymatgen Chgcar object.
+            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
         """
-        if not hasattr(self, "charge_density"):
-            raise MPRestError(
-                "boto3 not installed. "
-                "To query charge density data install the boto3 package."
-            )
-
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results: list[TaskDoc] = self.tasks.search(task_ids=task_ids, fields=["last_updated", "task_id"])  # type: ignore
+        results: list[TaskDoc] = self.tasks.search(
+            task_ids=task_ids, fields=["last_updated", "task_id"]
+        )  # type: ignore
 
         if len(results) == 0:
             return None
 
-        latest_doc = max(results, key=lambda x: x.last_updated)
+        latest_doc = max(  # type: ignore
+            results,
+            key=lambda x: x.last_updated  # type: ignore
+            if self.use_document_model
+            else x["last_updated"],  # type: ignore
+        )
 
         result = (
             self.tasks._query_open_data(
@@ -1337,7 +1351,12 @@ class MPRester:
             raise MPRestError(f"No charge density fetched for {material_id}.")
 
         if inc_task_doc:
-            task_doc = self.tasks.get_data_by_id(latest_doc.task_id)
+            task_doc = self.tasks.search(
+                task_ids=latest_doc.task_id
+                if self.use_document_model
+                else latest_doc["task_id"]
+            )[0]
+
             return chgcar, task_doc
 
         return chgcar
@@ -1366,10 +1385,11 @@ class MPRester:
             task_ids=material_ids,
             fields=["calc_types", "deprecated_tasks", "material_id"],
         ):
-            for task_id, calc_type in doc.calc_types.items():
+            doc_dict: dict = doc.model_dump() if self.use_document_model else doc  # type: ignore
+            for task_id, calc_type in doc_dict["calc_types"].items():
                 if calc_types and calc_type not in calc_types:
                     continue
-                mp_id = doc.material_id
+                mp_id = doc_dict["material_id"]
                 if meta.get(mp_id) is None:
                     meta[mp_id] = [{"task_id": task_id, "calc_type": calc_type}]
                 else:

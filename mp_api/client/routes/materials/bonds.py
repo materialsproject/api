@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.bonds import BondingDoc
@@ -14,16 +13,6 @@ class BondsRester(BaseRester[BondingDoc]):
     document_model = BondingDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_bonds_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.bonds.search_bonds_docs is deprecated. Please use MPRester.bonds.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
-
     def search(
         self,
         material_ids: str | list[str] | None = None,
@@ -36,7 +25,7 @@ class BondsRester(BaseRester[BondingDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[BondingDoc] | list[dict]:
         """Query bonding docs using a variety of search criteria.
 
         Arguments:
@@ -57,7 +46,7 @@ class BondsRester(BaseRester[BondingDoc]):
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
-            ([BondingDoc]) List of bonding documents.
+            ([BondingDoc], [dict]) List of bonding documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

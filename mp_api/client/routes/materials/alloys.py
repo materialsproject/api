@@ -21,7 +21,7 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ) -> list[AlloyPairDoc]:
+    ) -> list[AlloyPairDoc] | list[dict]:
         """Query for hypothetical alloys formed between two commensurate
         crystal structures, following the methodology in
         https://doi.org/10.48550/arXiv.2206.10715.
@@ -38,7 +38,7 @@ class AlloysRester(BaseRester[AlloyPairDoc]):
             fields (List[str]): List of fields in AlloyPairDoc to return data for.
 
         Returns:
-            ([AlloyPairDoc]) List of alloy pair documents.
+            ([AlloyPairDoc], [dict]) List of alloy pair documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

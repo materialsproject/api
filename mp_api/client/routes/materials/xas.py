@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import warnings
-
 from emmet.core.xas import Edge, Type, XASDoc
 from pymatgen.core.periodic_table import Element
 
@@ -14,17 +12,6 @@ class XASRester(BaseRester[XASDoc]):
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"
 
-    def search_xas_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.xas.search_xas_docs is deprecated. "
-            "Please use MPRester.xas.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
-
     def search(
         self,
         edge: Edge | None = None,
@@ -34,6 +21,7 @@ class XASRester(BaseRester[XASDoc]):
         elements: list[str] | None = None,
         material_ids: list[str] | None = None,
         spectrum_type: Type | None = None,
+        spectrum_ids: str | list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -49,8 +37,11 @@ class XASRester(BaseRester[XASDoc]):
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
-            material_ids (List[str]): List of Materials Project IDs to return data for.
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             spectrum_type (Type): Spectrum type (e.g. EXAFS, XAFS, or XANES).
+            spectrum_ids (str, List[str]): A single Spectrum ID string or list of strings
+                (e.g., mp-149-XANES-Li-K, [mp-149-XANES-Li-K, mp-13-XANES-Li-K]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -89,8 +80,23 @@ class XASRester(BaseRester[XASDoc]):
         if elements:
             query_params.update({"elements": ",".join(elements)})
 
-        if material_ids is not None:
-            query_params["material_ids"] = ",".join(validate_ids(material_ids))
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+
+        if spectrum_ids:
+            if isinstance(spectrum_ids, str):
+                spectrum_ids = [spectrum_ids]
+
+            query_params.update({"spectrum_ids": ",".join(spectrum_ids)})
+
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
 
         return super()._search(
             num_chunks=num_chunks,

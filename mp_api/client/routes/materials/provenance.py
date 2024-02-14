@@ -19,7 +19,7 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[ProvenanceDoc] | list[dict]:
         """Query provenance docs using a variety of search criteria.
 
         Arguments:
@@ -29,11 +29,11 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in Provenance to return data for.
+            fields (List[str]): List of fields in ProvenanceDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
-            ([ProvenanceDoc]) List of provenance documents
+            ([ProvenanceDoc], [dict]) List of provenance documents or dictionaries.
         """
         query_params = {"deprecated": deprecated}  # type: dict
 
@@ -43,6 +43,11 @@ class ProvenanceRester(BaseRester[ProvenanceDoc]):
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
+        query_params = {
+            entry: query_params[entry]
+            for entry in query_params
+            if query_params[entry] is not None
+        }
         return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import warnings
-
 from emmet.core.synthesis import (
     OperationTypeEnum,
     SynthesisSearchResultModel,
@@ -14,16 +12,6 @@ from mp_api.client.core import BaseRester, MPRestError
 class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
     suffix = "materials/synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
-
-    def search_synthesis_text(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "search_synthesis_text is deprecated. " "Please use search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
 
     def search(
         self,
@@ -41,7 +29,7 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
         condition_mixing_media: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int | None = 10,
-    ):
+    ) -> list[SynthesisSearchResultModel] | list[dict]:
         """Search synthesis recipe text.
 
         Arguments:
@@ -62,7 +50,7 @@ class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
 
 
         Returns:
-            synthesis_docs ([SynthesisDoc]): List of synthesis documents.
+            ([SynthesisSearchResultModel], [dict]): List of synthesis documents or dictionaries.
         """
         # Turn None and empty list into None
         keywords = keywords or None
