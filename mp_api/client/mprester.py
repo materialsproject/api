@@ -942,9 +942,7 @@ class MPRester:
             query={"project": "ion_ref_data"},
             fields=["identifier", "formula", "data"],
             paginate=True,
-        ).get(
-            "data"
-        )  # type: ignore
+        ).get("data")  # type: ignore
 
     def get_ion_reference_data_for_chemsys(self, chemsys: str | list) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
@@ -1223,8 +1221,10 @@ class MPRester:
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+        return (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+                material_id=material_id, path_type=path_type, line_mode=line_mode
+            )
         )
 
     def get_dos_by_material_id(self, material_id: str):
@@ -1317,12 +1317,6 @@ class MPRester:
         Returns:
             (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
         """
-        if not hasattr(self, "charge_density"):
-            raise MPRestError(
-                "boto3 not installed. "
-                "To query charge density data install the boto3 package."
-            )
-
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
         task_ids = self.get_task_ids_associated_with_material_id(
