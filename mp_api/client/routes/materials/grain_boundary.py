@@ -9,16 +9,16 @@ from mp_api.client.core.utils import validate_ids
 
 
 class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
-    suffix = "materials/grain_boundary"
+    suffix = "materials/grain_boundaries"
     document_model = GrainBoundaryDoc  # type: ignore
-    primary_key = "task_id"
+    primary_key = "material_id"
 
     def search(
         self,
+        material_ids: str | list[str] | None = None,
         chemsys: str | None = None,
         gb_plane: list[str] | None = None,
         gb_energy: tuple[float, float] | None = None,
-        material_ids: list[str] | None = None,
         pretty_formula: str | None = None,
         rotation_axis: list[str] | None = None,
         rotation_angle: tuple[float, float] | None = None,
@@ -33,6 +33,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         """Query grain boundary docs using a variety of search criteria.
 
         Arguments:
+             material_ids (str, List[str]): Search for grain boundary data associated with the specified Material IDs
              chemsys (str): Dash-delimited string of elements in the material.
              gb_plane(List[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]
              gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.
@@ -56,7 +57,10 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:
-            query_params.update({"task_ids": ",".join(validate_ids(material_ids))})
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if gb_plane:
             query_params.update({"gb_plane": ",".join([str(n) for n in gb_plane])})
