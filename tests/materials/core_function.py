@@ -62,8 +62,10 @@ def client_search_testing(
                     }
 
                 if q is None:
-                    raise ValueError(f"Parameter '{param}' with type '{param_type}' was not "
-                                     "properly identified in the generic search method test.")
+                    raise ValueError(
+                        f"Parameter '{param}' with type '{param_type}' was not "
+                        "properly identified in the generic search method test."
+                    )
 
                 doc = search_method(**q)[0].model_dump()
 
