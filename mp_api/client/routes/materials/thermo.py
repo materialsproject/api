@@ -168,7 +168,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         response = self._query_resource(
             criteria={"phase_diagram_ids": phase_diagram_id},
             fields=["phase_diagram"],
-            suburl=f"phase_diagram/",
+            suburl="phase_diagram/",
             use_document_model=False,
             num_chunks=1,
             chunk_size=1,

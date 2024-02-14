@@ -23,7 +23,10 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {"surface_energy_anisotropy": "surface_anisotropy", "material_ids": "material_id"}  # type: dict
+alt_name_dict = {
+    "surface_energy_anisotropy": "surface_anisotropy",
+    "material_ids": "material_id",
+}  # type: dict
 
 custom_field_tests = {"material_ids": ["mp-23152"]}  # type: dict
 
