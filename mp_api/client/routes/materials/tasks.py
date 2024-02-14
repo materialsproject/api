@@ -24,9 +24,7 @@ class TaskRester(BaseRester[TaskDoc]):
         """
         traj_data = self._query_resource_data(
             suburl=f"trajectory/{task_id}/", use_document_model=False
-        )[0].get(
-            "trajectories", None
-        )  # type: ignore
+        )[0].get("trajectories", None)  # type: ignore
 
         if traj_data is None:
             raise MPRestError(f"No trajectory data for {task_id} found")
@@ -35,7 +33,7 @@ class TaskRester(BaseRester[TaskDoc]):
 
     def search(
         self,
-        task_ids: list[str] | None = None,
+        task_ids: str | list[str] | None = None,
         chemsys: str | list[str] | None = None,
         elements: list[str] | None = None,
         exclude_elements: list[str] | None = None,
@@ -49,7 +47,7 @@ class TaskRester(BaseRester[TaskDoc]):
         """Query core task docs using a variety of search criteria.
 
         Arguments:
-            task_ids (List[str]): List of Materials Project IDs to return data for.
+            task_ids (str, List[str]): List of Materials Project IDs to return data for.
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
@@ -70,6 +68,9 @@ class TaskRester(BaseRester[TaskDoc]):
         query_params = {}  # type: dict
 
         if task_ids:
+            if isinstance(task_ids, str):
+                task_ids = [task_ids]
+
             query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         if formula:
