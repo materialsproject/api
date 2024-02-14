@@ -1,6 +1,6 @@
 import os
 from core_function import client_search_testing
-
+from datetime import datetime
 import pytest
 
 from mp_api.client.routes.materials.tasks import TaskRester
@@ -34,6 +34,7 @@ alt_name_dict = {
 
 custom_field_tests = {
     "chemsys": "Si-O",
+    "last_updated": (None, datetime.utcnow()),
     "task_ids": ["mp-149"],
 }  # type: dict
 

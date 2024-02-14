@@ -23,7 +23,7 @@ class TaskRester(BaseRester[TaskDoc]):
 
         """
         traj_data = self._query_resource_data(
-            suburl=f"trajectory/{task_id}/", use_document_model=False
+            {"task_ids": [task_id]}, suburl=f"trajectory/", use_document_model=False
         )[0].get("trajectories", None)  # type: ignore
 
         if traj_data is None:

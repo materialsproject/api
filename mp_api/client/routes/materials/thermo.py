@@ -164,9 +164,11 @@ class ThermoRester(BaseRester[ThermoDoc]):
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
         phase_diagram_id = f"{sorted_chemsys}_{t_type}"
+
         response = self._query_resource(
+            criteria={"phase_diagram_ids": phase_diagram_id},
             fields=["phase_diagram"],
-            suburl=f"phase_diagram/{phase_diagram_id}",
+            suburl=f"phase_diagram/",
             use_document_model=False,
             num_chunks=1,
             chunk_size=1,
