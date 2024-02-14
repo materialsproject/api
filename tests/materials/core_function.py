@@ -28,9 +28,10 @@ def client_search_testing(
         for entry in param_tuples:
             param = entry[0]
 
-            if param not in excluded_params:
+            if param not in excluded_params + ["return"]:
                 param_type = entry[1]
                 q = None
+
                 if "tuple[int, int]" in param_type:
                     project_field = alt_name_dict.get(param, None)
                     q = {
@@ -59,6 +60,10 @@ def client_search_testing(
                         "chunk_size": 1,
                         "num_chunks": 1,
                     }
+
+                if q is None:
+                    raise ValueError(f"Parameter '{param}' with type '{param_type}' was not "
+                                     "properly identified in the generic search method test.")
 
                 doc = search_method(**q)[0].model_dump()
 
