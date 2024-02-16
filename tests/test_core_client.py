@@ -42,18 +42,6 @@ def test_count(mpr):
     assert count == 1
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
-@pytest.mark.xfail
-def test_get_document_no_id(mpr):
-    mpr.materials.get_data_by_id(None)
-
-
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
-@pytest.mark.xfail
-def test_get_document_no_doc(mpr):
-    mpr.materials.get_data_by_id("mp-1a")
-
-
 def test_available_fields(rester, mpr):
     assert len(mpr.materials.available_fields) > 0
     assert rester.available_fields == ["Unknown fields."]

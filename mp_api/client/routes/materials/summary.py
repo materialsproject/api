@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
-from emmet.core.mpid import MPID
 from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from pymatgen.analysis.magnetism import Ordering
@@ -16,17 +14,6 @@ class SummaryRester(BaseRester[SummaryDoc]):
     suffix = "materials/summary"
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
-
-    def search_summary_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.summary.search_summary_docs is deprecated. "
-            "Please use MPRester.summary.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
 
     def search(
         self,
@@ -58,7 +45,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         k_voigt: tuple[float, float] | None = None,
         k_vrh: tuple[float, float] | None = None,
         magnetic_ordering: Ordering | None = None,
-        material_ids: list[MPID] | None = None,
+        material_ids: str | list[str] | None = None,
         n: tuple[float, float] | None = None,
         num_elements: tuple[int, int] | None = None,
         num_sites: tuple[int, int] | None = None,
@@ -84,7 +71,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[SummaryDoc] | list[dict]:
         """Query core data using a variety of search criteria.
 
         Arguments:
@@ -126,7 +113,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill
                 average of the bulk modulus.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
-            material_ids (List[MPID]): List of Materials Project IDs to return data for.
+            material_ids (str, List[str]): A single Material ID string or list of strings
+                (e.g., mp-149, [mp-149, mp-13]).
             n (Tuple[float,float]): Minimum and maximum refractive index to consider.
             num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
             num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
@@ -155,11 +143,11 @@ class SummaryRester(BaseRester[SummaryDoc]):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in SearchDoc to return data for.
+            fields (List[str]): List of fields in SummaryDoc to return data for.
                 Default is material_id if all_fields is False.
 
         Returns:
-            ([SummaryDoc]) List of SummaryDoc documents
+            ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 
@@ -212,6 +200,9 @@ class SummaryRester(BaseRester[SummaryDoc]):
                 )
 
         if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if deprecated is not None:

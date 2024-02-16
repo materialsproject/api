@@ -1130,83 +1130,6 @@ class BaseRester(Generic[T]):
             num_chunks=1,
         ).get("data")
 
-    def get_data_by_id(
-        self,
-        document_id: str,
-        fields: list[str] | None = None,
-    ) -> T:
-        """Query the endpoint for a single document.
-
-        Arguments:
-            document_id: the unique key for this kind of document, typically a task_id
-            fields: list of fields to return, by default will return all fields
-
-        Returns:
-            A single document.
-        """
-        if document_id is None:
-            raise ValueError(
-                "Please supply a specific ID. You can use the query method to find "
-                "ids of interest."
-            )
-
-        if self.primary_key in ["material_id", "task_id"]:
-            validate_ids([document_id])
-
-        if fields is None:
-            criteria = {"_all_fields": True, "_limit": 1}  # type: dict
-        else:
-            criteria = {"_limit": 1}
-
-        if isinstance(fields, str):  # pragma: no cover
-            fields = (fields,)  # type: ignore
-
-        results = []  # type: list
-
-        try:
-            results = self._query_resource_data(
-                criteria=criteria, fields=fields, suburl=document_id
-            )  # type: ignore
-        except MPRestError:
-            if self.primary_key == "material_id":
-                # see if the material_id has changed, perhaps a task_id was supplied
-                # this should likely be re-thought
-                from mp_api.client.routes.materials.materials import MaterialsRester
-
-                with MaterialsRester(
-                    api_key=self.api_key,
-                    endpoint=self.base_endpoint,
-                    use_document_model=False,
-                    monty_decode=False,
-                    session=self.session,
-                    headers=self.headers,
-                ) as mpr:
-                    docs = mpr.search(task_ids=[document_id], fields=["material_id"])
-
-                if len(docs) > 0:
-                    new_document_id = docs[0].get("material_id", None)  # type: ignore
-
-                    if new_document_id is not None:
-                        warnings.warn(
-                            f"Document primary key has changed from {document_id} to {new_document_id}, "
-                            f"returning data for {new_document_id} in {self.suffix} route.    "
-                        )
-
-                        results = self._query_resource_data(
-                            criteria=criteria,
-                            fields=fields,
-                            suburl=new_document_id,  # type: ignore
-                        )
-
-        if not results:
-            raise MPRestError(f"No result for record {document_id}.")
-        elif len(results) > 1:  # pragma: no cover
-            raise ValueError(
-                f"Multiple records for {document_id}, this shouldn't happen. Please report as a bug."
-            )
-        else:
-            return results[0]
-
     def _search(
         self,
         num_chunks: int | None = None,
@@ -1243,6 +1166,31 @@ class BaseRester(Generic[T]):
             fields=fields,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
+        )
+
+    def get_data_by_id(
+        self,
+        document_id: str,
+        fields: list[str] | None = None,
+    ) -> T | dict:
+        warnings.warn(
+            "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        if self.primary_key in ["material_id", "task_id"]:
+            validate_ids([document_id])
+
+        if isinstance(fields, str):  # pragma: no cover
+            fields = (fields,)  # type: ignore
+
+        return self._search(  # type: ignore
+            **{self.primary_key + "s": document_id},
+            num_chunks=1,
+            chunk_size=1,
+            all_fields=fields is None,
+            fields=fields,
         )
 
     def _get_all_documents(

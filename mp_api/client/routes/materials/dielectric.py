@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.polar import DielectricDoc
@@ -14,16 +13,6 @@ class DielectricRester(BaseRester[DielectricDoc]):
     document_model = DielectricDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_dielectric_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.dielectric.search_dielectric_docs is deprecated. Please use MPRester.dielectric.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
-
     def search(
         self,
         material_ids: str | list[str] | None = None,
@@ -35,7 +24,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[DielectricDoc] | list[dict]:
         """Query dielectric docs using a variety of search criteria.
 
         Arguments:
@@ -52,7 +41,7 @@ class DielectricRester(BaseRester[DielectricDoc]):
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
-            ([DielectricDoc]) List of dielectric documents.
+            ([DielectricDoc], [dict]) List of dielectric documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

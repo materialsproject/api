@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.grain_boundary import GBTypeEnum, GrainBoundaryDoc
@@ -12,25 +11,14 @@ from mp_api.client.core.utils import validate_ids
 class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
     suffix = "materials/grain_boundaries"
     document_model = GrainBoundaryDoc  # type: ignore
-    primary_key = "task_id"
-
-    def search_grain_boundary_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.grain_boundaries.search_grain_boundary_docs is deprecated. "
-            "Please use MPRester.grain_boundaries.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
+    primary_key = "material_id"
 
     def search(
         self,
+        material_ids: str | list[str] | None = None,
         chemsys: str | None = None,
         gb_plane: list[str] | None = None,
         gb_energy: tuple[float, float] | None = None,
-        material_ids: list[str] | None = None,
         pretty_formula: str | None = None,
         rotation_axis: list[str] | None = None,
         rotation_angle: tuple[float, float] | None = None,
@@ -41,10 +29,11 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[GrainBoundaryDoc] | list[dict]:
         """Query grain boundary docs using a variety of search criteria.
 
         Arguments:
+             material_ids (str, List[str]): Search for grain boundary data associated with the specified Material IDs
              chemsys (str): Dash-delimited string of elements in the material.
              gb_plane(List[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]
              gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.
@@ -63,12 +52,15 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
                  Default is material_id and last_updated if all_fields is False.
 
         Returns:
-             ([GrainBoundaryDoc]) List of grain boundary documents
+             ([GrainBoundaryDoc], [dict]) List of grain boundary documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 
         if material_ids:
-            query_params.update({"task_ids": ",".join(validate_ids(material_ids))})
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if gb_plane:
             query_params.update({"gb_plane": ",".join([str(n) for n in gb_plane])})

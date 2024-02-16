@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import warnings
+from datetime import datetime
 
 from emmet.core.tasks import TaskDoc
 
@@ -18,45 +18,38 @@ class TaskRester(BaseRester[TaskDoc]):
         material throughout a calculation. This is most useful for
         observing how a material relaxes during a geometry optimization.
 
-        :param task_id: A specified task_id
-        :return: List of trajectory objects
+        Args:
+            task_id (str): Task ID
+
         """
         traj_data = self._query_resource_data(
-            suburl=f"trajectory/{task_id}/", use_document_model=False
-        )[0].get("trajectories", None)
+            {"task_ids": [task_id]}, suburl="trajectory/", use_document_model=False
+        )[0].get(
+            "trajectories", None
+        )  # type: ignore
 
         if traj_data is None:
             raise MPRestError(f"No trajectory data for {task_id} found")
 
         return traj_data
 
-    def search_task_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.tasks.search_task_docs is deprecated. "
-            "Please use MPRester.tasks.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
-
     def search(
         self,
-        task_ids: list[str] | None = None,
+        task_ids: str | list[str] | None = None,
         chemsys: str | list[str] | None = None,
         elements: list[str] | None = None,
         exclude_elements: list[str] | None = None,
         formula: str | list[str] | None = None,
+        last_updated: tuple[datetime, datetime] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[TaskDoc] | list[dict]:
         """Query core task docs using a variety of search criteria.
 
         Arguments:
-            task_ids (List[str]): List of Materials Project IDs to return data for.
+            task_ids (str, List[str]): List of Materials Project IDs to return data for.
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
@@ -64,6 +57,7 @@ class TaskRester(BaseRester[TaskDoc]):
             formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
+            last_updated (tuple[datetime, datetime]): A tuple of min and max UTC formatted datetimes.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -71,11 +65,14 @@ class TaskRester(BaseRester[TaskDoc]):
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
-            ([TaskDoc]) List of task documents
+            ([TaskDoc], [dict]) List of task documents or dictionaries.
         """
         query_params = {}  # type: dict
 
         if task_ids:
+            if isinstance(task_ids, str):
+                task_ids = [task_ids]
+
             query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         if formula:
@@ -92,6 +89,14 @@ class TaskRester(BaseRester[TaskDoc]):
                 chemsys = [chemsys]
 
             query_params.update({"chemsys": ",".join(chemsys)})
+
+        if last_updated:
+            query_params.update(
+                {
+                    "last_updated_min": last_updated[0],
+                    "last_updated_max": last_updated[1],
+                }
+            )
 
         return super()._search(
             num_chunks=num_chunks,

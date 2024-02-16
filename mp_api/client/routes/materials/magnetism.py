@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.magnetism import MagnetismDoc
@@ -15,17 +14,6 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_magnetism_docs(self, *args, **kwargs):  # pragma: no cover
-        """Deprecated."""
-        warnings.warn(
-            "MPRester.magnetism.search_magnetism_docs is deprecated. "
-            "Please use MPRester.magnetism.search instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.search(*args, **kwargs)
-
     def search(
         self,
         material_ids: str | list[str] | None = None,
@@ -39,12 +27,11 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[MagnetismDoc] | list[dict]:
         """Query magnetism docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
-                (e.g., mp-149, [mp-149, mp-13]).
+            material_ids (str, List[str]): A single Material ID string or list of strings (e.g., mp-149, [mp-149, mp-13]).
             num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
             num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
                 to consider.
@@ -61,7 +48,7 @@ class MagnetismRester(BaseRester[MagnetismDoc]):
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
-            ([MagnetismDoc]) List of magnetism documents
+            ([MagnetismDoc], [dict]) List of magnetism documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

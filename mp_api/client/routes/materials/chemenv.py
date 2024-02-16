@@ -46,7 +46,7 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[ChemEnvDoc] | list[dict]:
         """Query for chemical environment data.
 
         Arguments:
@@ -73,7 +73,7 @@ class ChemenvRester(BaseRester[ChemEnvDoc]):
             fields (List[str]): List of fields in ChemEnvDoc to return data for.
 
         Returns:
-            ([ChemEnvDoc]) List of chemenv documents.
+            ([ChemEnvDoc], [dict]) List of chemenv documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

@@ -23,7 +23,7 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ):
+    ) -> list[OxidationStateDoc] | list[dict]:
         """Query oxidation state docs using a variety of search criteria.
 
         Arguments:
@@ -42,7 +42,7 @@ class OxidationStatesRester(BaseRester[OxidationStateDoc]):
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
-            ([OxidationStateDoc]) List of oxidation state documents
+            ([OxidationStateDoc], [dict]) List of oxidation state documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 

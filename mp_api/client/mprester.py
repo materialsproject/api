@@ -31,7 +31,6 @@ from mp_api.client.routes.materials import (
     AlloysRester,
     BandStructureRester,
     BondsRester,
-    ChargeDensityRester,
     ChemenvRester,
     DielectricRester,
     DOIRester,
@@ -101,7 +100,6 @@ class MPRester:
     robocrys: RobocrysRester
     synthesis: SynthesisRester
     insertion_electrodes: ElectrodeRester
-    charge_density: ChargeDensityRester
     electronic_structure: ElectronicStructureRester
     electronic_structure_bandstructure: BandStructureRester
     electronic_structure_dos: DosRester
@@ -207,7 +205,6 @@ class MPRester:
             "robocrys",
             "synthesis",
             "insertion_electrodes",
-            "charge_density",
             "electronic_structure",
             "electronic_structure_bandstructure",
             "electronic_structure_dos",
@@ -412,19 +409,34 @@ class MPRester:
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
     ) -> list[str]:
-        """:param material_id:
-        :param calc_types: if specified, will restrict to certain task types, e.g. [CalcType.GGA_STATIC]
-        :return:
+        """Get Task ID values associated with a specific Material ID.
+
+        Args:
+            material_id (str): Material ID
+            calc_types ([CalcType]): If specified, will restrict to a certain task type, e.g. [CalcType.GGA_STATIC]
+
+        Returns:
+            ([str]): List of Task ID values.
         """
-        tasks = self.materials.get_data_by_id(
-            material_id, fields=["calc_types"]
-        ).calc_types
+        tasks = self.materials.search(material_ids=material_id, fields=["calc_types"])
+
+        if not tasks:
+            return []
+
+        calculations = (
+            tasks[0].calc_types  # type: ignore
+            if self.use_document_model
+            else tasks[0]["calc_types"]  # type: ignore
+        )
+
         if calc_types:
             return [
-                task for task, calc_type in tasks.items() if calc_type in calc_types
+                task
+                for task, calc_type in calculations.items()
+                if calc_type in calc_types
             ]
         else:
-            return list(tasks.keys())
+            return list(calculations.keys())
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
@@ -516,14 +528,6 @@ class MPRester:
             )
             return None
 
-    def get_materials_id_from_task_id(self, task_id: str) -> str | None:
-        """This method is deprecated, please use get_material_id_from_task_id."""
-        warnings.warn(
-            "This method is deprecated, please use get_material_id_from_task_id.",
-            DeprecationWarning,
-        )
-        return self.get_material_id_from_task_id(task_id)
-
     def get_material_id_references(self, material_id: str) -> list[str]:
         """Returns all references for a material id.
 
@@ -533,15 +537,12 @@ class MPRester:
         Returns:
             List of BibTeX references ([str])
         """
-        return self.provenance.get_data_by_id(material_id).references
+        docs = self.provenance.search(material_ids=material_id)
 
-    def get_materials_id_references(self, material_id: str) -> list[str]:
-        """This method is deprecated, please use get_material_id_references."""
-        warnings.warn(
-            "This method is deprecated, please use get_material_id_references instead.",
-            DeprecationWarning,
-        )
-        return self.get_material_id_references(material_id)
+        if not docs:
+            return []
+
+        return docs[0].references if self.use_document_model else docs[0]["references"]  # type: ignore
 
     def get_material_ids(
         self,
@@ -563,26 +564,18 @@ class MPRester:
         else:
             input_params = {"formula": chemsys_formula}
 
-        docs = self.materials.search(
-            **input_params,  # type: ignore
-            all_fields=False,
-            fields=["material_id"],
+        return sorted(
+            doc.material_id if self.use_document_model else doc["material_id"]  # type: ignore
+            for doc in self.materials.search(
+                **input_params,  # type: ignore
+                all_fields=False,
+                fields=["material_id"],
+            )
         )
         if not self.use_document_model:
             return sorted(doc["material_id"] for doc in docs)  # type: ignore
 
         return sorted([doc.material_id for doc in docs])  # type: ignore
-
-    def get_materials_ids(
-        self,
-        chemsys_formula: str | list[str],
-    ) -> list[MPID]:
-        """This method is deprecated, please use get_material_ids."""
-        warnings.warn(
-            "This method is deprecated, please use get_material_ids.",
-            DeprecationWarning,
-        )
-        return self.get_material_ids(chemsys_formula)
 
     def get_structures(
         self, chemsys_formula: str | list[str], final=True
@@ -951,14 +944,7 @@ class MPRester:
                 'reference': 'H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
-        if self.contribs is None:
-            raise RuntimeError(
-                "mpcontribs-client not installed. "
-                "Install the package to query MPContribs data, or construct pourbaix diagrams: "
-                "'pip install mpcontribs-client'"
-            )
-
-        return self.contribs.query_contributions(
+        return self.contribs.query_contributions(  # type: ignore
             query={"project": "ion_ref_data"},
             fields=["identifier", "formula", "data"],
             paginate=True,
@@ -1049,7 +1035,7 @@ class MPRester:
 
         # position the ion energies relative to most stable reference state
         ion_entries = []
-        for _n, i_d in enumerate(ion_data):
+        for _, i_d in enumerate(ion_data):
             ion = Ion.from_formula(i_d["formula"])
             refs = [
                 e
@@ -1270,7 +1256,10 @@ class MPRester:
              CompletePhononDos: A phonon DOS object.
 
         """
-        return self.phonon.get_data_by_id(material_id, fields=["ph_dos"]).ph_dos
+        doc = self.phonon.search(material_ids=material_id, fields=["ph_dos"])
+        if not doc:
+            return None
+        return doc[0].ph_dos if self.use_document_model else doc[0]["ph_dos"]  # type: ignore
 
     def get_phonon_bandstructure_by_material_id(self, material_id: str):
         """Get phonon dispersion data corresponding to a material_id.
@@ -1281,7 +1270,11 @@ class MPRester:
         Returns:
             PhononBandStructureSymmLine:  phonon band structure.
         """
-        return self.phonon.get_data_by_id(material_id, fields=["ph_bs"]).ph_bs
+        doc = self.phonon.search(material_ids=material_id, fields=["ph_bs"])
+        if not doc:
+            return None
+
+        return doc[0].ph_bs if self.use_document_model else doc[0]["ph_bs"]  # type: ignore
 
     def get_wulff_shape(self, material_id: str):
         """Constructs a Wulff shape for a material.
@@ -1297,7 +1290,15 @@ class MPRester:
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
         structure = self.get_structure_by_material_id(material_id)
-        surfaces = self.surface_properties.get_data_by_id(material_id).surfaces or []
+        doc = self.surface_properties.search(material_ids=material_id)
+
+        if not doc:
+            return None
+
+        surfaces: list = (
+            doc[0].surfaces if self.use_document_model else doc[0]["surfaces"]  # type: ignore
+        )
+
         lattice = (
             SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
         )
@@ -1312,7 +1313,7 @@ class MPRester:
 
     def get_charge_density_from_material_id(
         self, material_id: str, inc_task_doc: bool = False
-    ) -> tuple[Chgcar, TaskDoc] | Chgcar | None:
+    ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
         """Get charge density data for a given Materials Project ID.
 
         Arguments:
@@ -1320,14 +1321,8 @@ class MPRester:
             inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            (Chgcar, TaskDoc | Chgcar): Pymatgen Chgcar object with optional TaskDoc
+            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
         """
-        if not hasattr(self, "charge_density"):
-            raise MPRestError(
-                "boto3 not installed. "
-                "To query charge density data install the boto3 package."
-            )
-
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
         task_ids = self.get_task_ids_associated_with_material_id(
@@ -1340,7 +1335,12 @@ class MPRester:
         if len(results) == 0:
             return None
 
-        latest_doc = max(results, key=lambda x: x.last_updated)  # type: ignore
+        latest_doc = max(  # type: ignore
+            results,
+            key=lambda x: x.last_updated  # type: ignore
+            if self.use_document_model
+            else x["last_updated"],  # type: ignore
+        )
 
         result = (
             self.tasks._query_open_data(
@@ -1357,7 +1357,12 @@ class MPRester:
             raise MPRestError(f"No charge density fetched for {material_id}.")
 
         if inc_task_doc:
-            task_doc = self.tasks.get_data_by_id(latest_doc.task_id)
+            task_doc = self.tasks.search(
+                task_ids=latest_doc.task_id
+                if self.use_document_model
+                else latest_doc["task_id"]
+            )[0]
+
             return chgcar, task_doc
 
         return chgcar
@@ -1386,11 +1391,11 @@ class MPRester:
             task_ids=material_ids,
             fields=["calc_types", "deprecated_tasks", "material_id"],
         ):
-            doc: dict = doc.model_dump() if self.use_document_model else doc  # type: ignore
-            for task_id, calc_type in doc["calc_types"].items():
+            doc_dict: dict = doc.model_dump() if self.use_document_model else doc  # type: ignore
+            for task_id, calc_type in doc_dict["calc_types"].items():
                 if calc_types and calc_type not in calc_types:
                     continue
-                mp_id = doc["material_id"]
+                mp_id = doc_dict["material_id"]
                 if meta.get(mp_id) is None:
                     meta[mp_id] = [{"task_id": task_id, "calc_type": calc_type}]
                 else:
