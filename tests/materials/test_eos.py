@@ -28,7 +28,8 @@ sub_doc_fields = []  # type: list
 alt_name_dict = {"material_ids": "material_id"}  # type: dict
 
 custom_field_tests = {  # type: dict
-    "material_ids": ["mp-149"]}
+    "material_ids": ["mp-149"]
+}
 
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
