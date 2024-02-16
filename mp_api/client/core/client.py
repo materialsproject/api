@@ -558,7 +558,7 @@ class BaseRester(Generic[T]):
         except RequestException as ex:
             raise MPRestError(str(ex))
 
-    def _submit_requests(
+    def _submit_requests(  # noqa
         self,
         url,
         criteria,
