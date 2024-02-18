@@ -131,37 +131,40 @@ class MPRester:
         headers: dict | None = None,
         mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
     ):
-        """Args:
-        api_key (str): A String API key for accessing the MaterialsProject
-        REST interface. Please obtain your API key at
-        https://next-gen.materialsproject.org/api. If this is None,
-        the code will check if there is a "MP_API_KEY" setting.
-        If so, it will use that environment variable. This makes
-        easier for heavy users to simply add this environment variable to
-        their setups and MPRester can then be called without any arguments.
-        endpoint (str): Url of endpoint to access the MaterialsProject REST
-        interface. Defaults to the standard Materials Project REST
-        address at "https://api.materialsproject.org", but
-        can be changed to other urls implementing a similar interface.
-        notify_db_version (bool): If True, the current MP database version will
-        be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
-        version changes, you will be notified. The current database version is
-        also printed on instantiation. These local logs are not sent to
-        materialsproject.org and are not associated with your API key, so be
-        aware that a notification may not be presented if you run MPRester
-        from multiple computing environments.
-        include_user_agent (bool): If True, will include a user agent with the
-        HTTP request including information on pymatgen and system version
-        making the API request. This helps MP support pymatgen users, and
-        is similar to what most web browsers send with each page request.
-        Set to False to disable the user agent.
-        monty_decode: Decode the data using monty into python objects
-        use_document_model: If False, skip the creating the document model and return data
-        as a dictionary. This can be simpler to work with but bypasses data validation
-        and will not give auto-complete for available fields.
-        session (Session): Session object to use. By default (None), the client will create one.
-        headers (dict): Custom headers for localhost connections.
-        mute_progress_bars (bool): Whether to mute progress bars.
+        """Initalise the MPRester.
+
+        Arguments:
+            api_key (str): A String API key for accessing the MaterialsProject
+                REST interface. Please obtain your API key at
+                https://next-gen.materialsproject.org/api. If this is None,
+                the code will check if there is a "MP_API_KEY" setting.
+                If so, it will use that environment variable. This makes
+                easier for heavy users to simply add this environment variable to
+                their setups and MPRester can then be called without any arguments.
+            endpoint (str): Url of endpoint to access the MaterialsProject REST
+                interface. Defaults to the standard Materials Project REST
+                address at "https://api.materialsproject.org", but
+                can be changed to other urls implementing a similar interface.
+            notify_db_version (bool): If True, the current MP database version will
+                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
+                version changes, you will be notified. The current database version is
+                also printed on instantiation. These local logs are not sent to
+                materialsproject.org and are not associated with your API key, so be
+                aware that a notification may not be presented if you run MPRester
+                from multiple computing environments.
+            include_user_agent (bool): If True, will include a user agent with the
+                HTTP request including information on pymatgen and system version
+                making the API request. This helps MP support pymatgen users, and
+                is similar to what most web browsers send with each page request.
+                Set to False to disable the user agent.
+            monty_decode: Decode the data using monty into python objects
+            use_document_model: If False, skip the creating the document model and return data
+                as a dictionary. This can be simpler to work with but bypasses data validation
+                and will not give auto-complete for available fields.
+            session: Session object to use. By default (None), the client will create one.
+            headers: Custom headers for localhost connections.
+            mute_progress_bars:  Whether to mute progress bars.
+
         """
         # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
         api_key = api_key or DEFAULT_API_KEY or SETTINGS.get("PMG_MAPI_KEY")
