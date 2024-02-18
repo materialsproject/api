@@ -74,7 +74,7 @@ class BaseRester(Generic[T]):
         headers: dict = None,
         mute_progress_bars: bool = settings.MUTE_PROGRESS_BARS,
     ):
-        """Initialise the REST API helper class.
+        """Initialize the REST API helper class.
 
         Arguments:
             api_key: A String API key for accessing the MaterialsProject
