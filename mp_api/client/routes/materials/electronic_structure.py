@@ -424,12 +424,16 @@ class DosRester(BaseRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
-            bucket="materialsproject-parsed", prefix="dos", key=task_id
+            bucket="materialsproject-parsed",
+            key=f"dos/{task_id}",
+            decoder=decoder,
+            fields=["data"],
         )
 
-        if result.get("data", None) is not None:
-            return result["data"]
+        if result is not None:
+            return result
         else:
             raise MPRestError("No object found")
 

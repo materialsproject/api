@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import itertools
+import json
 import warnings
 from functools import cache, lru_cache
 from json import loads
-import json
-from monty.json import MontyDecoder
 from typing import Literal
 
 from emmet.core.electronic_structure import BSPathType
@@ -13,6 +12,7 @@ from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
+from monty.json import MontyDecoder
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
