@@ -79,28 +79,29 @@ class BaseRester(Generic[T]):
     ):
         """Args:
         api_key (str): A String API key for accessing the MaterialsProject
-        REST interface. Please obtain your API key at
-        https://www.materialsproject.org/dashboard. If this is None,
-        the code will check if there is a "PMG_MAPI_KEY" setting.
-        If so, it will use that environment variable. This makes
-        easier for heavy users to simply add this environment variable to
-        their setups and MPRester can then be called without any arguments.
+            REST interface. Please obtain your API key at
+            https://www.materialsproject.org/dashboard. If this is None,
+            the code will check if there is a "PMG_MAPI_KEY" setting.
+            If so, it will use that environment variable. This makes
+            easier for heavy users to simply add this environment variable to
+            their setups and MPRester can then be called without any arguments.
         endpoint (str): Url of endpoint to access the MaterialsProject REST
-        interface. Defaults to the standard Materials Project REST
-        address at "https://api.materialsproject.org", but
-        can be changed to other urls implementing a similar interface.
+            interface. Defaults to the standard Materials Project REST
+            address at "https://api.materialsproject.org", but
+            can be changed to other urls implementing a similar interface.
+        s3_client: Optional AWS S3 boto client. Will be created dynamically if None passed.
         include_user_agent (bool): If True, will include a user agent with the
-        HTTP request including information on pymatgen and system version
-        making the API request. This helps MP support pymatgen users, and
-        is similar to what most web browsers send with each page request.
-        Set to False to disable the user agent.
-        session: requests Session object with which to connect to the API, for
-        advanced usage only.
+            HTTP request including information on pymatgen and system version
+            making the API request. This helps MP support pymatgen users, and
+            is similar to what most web browsers send with each page request.
+            Set to False to disable the user agent.
+            session: requests Session object with which to connect to the API, for
+            advanced usage only.
         debug: if True, print the URL for every request
         monty_decode: Decode the data using monty into python objects
         use_document_model: If False, skip the creating the document model and return data
-        as a dictionary. This can be simpler to work with but bypasses data validation
-        and will not give auto-complete for available fields.
+            as a dictionary. This can be simpler to work with but bypasses data validation
+            and will not give auto-complete for available fields.
         timeout: Time in seconds to wait until a request timeout error is thrown
         headers (dict): Custom headers for localhost connections.
         """
