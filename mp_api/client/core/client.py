@@ -394,15 +394,24 @@ class BaseRester(Generic[T]):
             transport_params={"client": self.s3_client},
         )
 
-        data = str([doc.strip() for doc in file.read().strip().split("\n")])
-        decoded_data = decoder(data.replace("'", "").replace("\\", "\\\\"))
+        if "jsonl" in key:
+            data = str([doc.strip() for doc in file.read().strip().split("\n")])
+            data = data.replace("'", "").replace("\\", "\\\\")
+        else:
+            data = file.read()
+
+        decoded_data = decoder(data)
+        decoded_data = (
+            [decoded_data] if not isinstance(decoded_data, list) else decoded_data
+        )
 
         unzipped_data = []
         for doc in decoded_data:
             if fields:
                 doc = {key: value for key, value in doc.items() if key in fields}
             unzipped_data.append(doc)
-        return unzipped_data, 1
+
+        return unzipped_data, len(unzipped_data)  # type: ignore
 
     def _query_resource(
         self,

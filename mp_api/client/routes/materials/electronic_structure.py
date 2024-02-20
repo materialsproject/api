@@ -242,8 +242,8 @@ class BandStructureRester(BaseRester):
             fields=["data"],
         )
 
-        if result is not None:
-            return result
+        if result:
+            return result[0]["data"]
         else:
             raise MPRestError("No object found")
 
@@ -432,8 +432,8 @@ class DosRester(BaseRester):
             fields=["data"],
         )
 
-        if result is not None:
-            return result
+        if result:
+            return result[0]["data"]
         else:
             raise MPRestError("No object found")
 

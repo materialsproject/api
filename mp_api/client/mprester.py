@@ -1356,8 +1356,10 @@ class MPRester:
             or {}
         )
 
-        if chgcar is None:
+        if not chgcar:
             raise MPRestError(f"No charge density fetched for {material_id}.")
+
+        chgcar = chgcar[0]["data"]
 
         if inc_task_doc:
             task_doc = self.tasks.search(
