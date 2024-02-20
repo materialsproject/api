@@ -5,47 +5,48 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mp-api"
 authors = [
-    { name = "The Materials Project", email = "feedback@materialsproject.org" },
+  { name = "The Materials Project", email = "feedback@materialsproject.org" },
 ]
 description = "API Client for the Materials Project"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "modified BSD" }
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Science/Research",
-    "Intended Audience :: Information Technology",
-    "Operating System :: OS Independent",
-    "Topic :: Scientific/Engineering",
+  "Programming Language :: Python :: 3",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Information Technology",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "setuptools",
-    "msgpack",
-    "maggma>=0.57.1",
-    "pymatgen>=2022.3.7",
-    "typing-extensions>=3.7.4.1",
-    "requests>=2.23.0",
-    "monty>=2023.9.25",
-    "emmet-core>=0.78.0rc3",
+  "setuptools",
+  "msgpack",
+  "maggma>=0.57.1",
+  "pymatgen>=2022.3.7",
+  "typing-extensions>=3.7.4.1",
+  "requests>=2.23.0",
+  "monty>=2023.9.25",
+  "emmet-core>=0.78.0rc3",
+  "smart_open",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
 all = ["emmet-core[all]>=0.69.1", "custodian", "mpcontribs-client", "boto3"]
 test = [
-    "pre-commit",
-    "pytest",
-    "pytest-asyncio",
-    "pytest-cov",
-    "pytest-mock",
-    "flake8",
-    "pycodestyle",
-    "mypy",
-    "mypy-extensions",
-    "typing-extensions",
-    "types-pkg_resources",
-    "types-requests",
+  "pre-commit",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-cov",
+  "pytest-mock",
+  "flake8",
+  "pycodestyle",
+  "mypy",
+  "mypy-extensions",
+  "typing-extensions",
+  "types-pkg_resources",
+  "types-requests",
 ]
 
 [tool.setuptools.packages.find]
@@ -65,36 +66,36 @@ testpaths = ["tests"]
 [tool.ruff]
 target-version = "py38"
 select = [
-    "B",   # flake8-bugbear
-    "D",   # pydocstyle
-    "E",   # pycodestyle
-    "F",   # pyflakes
-    "I",   # isort
-    "PLE", # pylint error
-    "PLW", # pylint warning
-    "PYI", # flakes8-pyi
-    "Q",   # flake8-quotes
-    "SIM", # flake8-simplify
-    "TID", # tidy imports
-    "UP",  # pyupgrade
-    "W",   # pycodestyle
-    "YTT", # flake8-2020
+  "B",   # flake8-bugbear
+  "D",   # pydocstyle
+  "E",   # pycodestyle
+  "F",   # pyflakes
+  "I",   # isort
+  "PLE", # pylint error
+  "PLW", # pylint warning
+  "PYI", # flakes8-pyi
+  "Q",   # flake8-quotes
+  "SIM", # flake8-simplify
+  "TID", # tidy imports
+  "UP",  # pyupgrade
+  "W",   # pycodestyle
+  "YTT", # flake8-2020
 ]
 ignore = [
-    "B019",    # Use of functools.lru_cache or functools.cache on methods can lead to memory leaks
-    "B028",    # No explicit stacklevel keyword argument found
-    "B904",    # Within an except clause, raise exceptions with raise ... from err
-    "D100",    # Missing docstring in public module
-    "D104",    # Missing docstring in public package
-    "D101",    # Missing docstring in public class
-    "D102",    # Missing docstring in public method
-    "D105",    # Missing docstring in magic method
-    "D106",    # Missing docstring in public nested class
-    "D205",    # 1 blank line required between summary line and description
-    "PLW2901", # Outer for loop variable overwritten by inner assignment target
-    "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
-    "SIM115",  # Use context handler for opening files,
-    "E501",
+  "B019",    # Use of functools.lru_cache or functools.cache on methods can lead to memory leaks
+  "B028",    # No explicit stacklevel keyword argument found
+  "B904",    # Within an except clause, raise exceptions with raise ... from err
+  "D100",    # Missing docstring in public module
+  "D104",    # Missing docstring in public package
+  "D101",    # Missing docstring in public class
+  "D102",    # Missing docstring in public method
+  "D105",    # Missing docstring in magic method
+  "D106",    # Missing docstring in public nested class
+  "D205",    # 1 blank line required between summary line and description
+  "PLW2901", # Outer for loop variable overwritten by inner assignment target
+  "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
+  "SIM115",  # Use context handler for opening files,
+  "E501",
 ]
 exclude = ["docs", ".ruff_cache", "requirements", "test*", "settings.py"]
 pydocstyle.convention = "google"
