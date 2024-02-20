@@ -98,7 +98,7 @@ class BaseRester(Generic[T]):
                 Set to False to disable the user agent.
             session: requests Session object with which to connect to the API, for
                 advanced usage only.
-            s3_resource: boto3 S3 resource object with which to connect to the object stores.
+            s3_client: boto3 S3 client object with which to connect to the object stores.
             debug: if True, print the URL for every request
             monty_decode: Decode the data using monty into python objects
             use_document_model: If False, skip the creating the document model and return data
