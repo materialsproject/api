@@ -98,7 +98,7 @@ class BaseRester(Generic[T]):
                 Set to False to disable the user agent.
             session: requests Session object with which to connect to the API, for
                 advanced usage only.
-            s3_client: boto3 S3 client object with which to connect to the object stores.
+            s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
             debug: if True, print the URL for every request
             monty_decode: Decode the data using monty into python objects
             use_document_model: If False, skip the creating the document model and return data
@@ -140,12 +140,6 @@ class BaseRester(Generic[T]):
             if self.document_model is not None
             else None  # type: ignore
         )
-
-        self._queryable_fields = [
-            field
-            for field, info in self.document_model.model_fields.items()  # type: ignore
-            if info.json_schema_extra.get("query", True)  # type: ignore
-        ]
 
     @property
     def session(self) -> requests.Session:
@@ -1189,13 +1183,14 @@ class BaseRester(Generic[T]):
         if isinstance(fields, str):  # pragma: no cover
             fields = (fields,)  # type: ignore
 
-        return self._search(  # type: ignore
+        docs = self._search(  # type: ignorech(  # type: ignorech(  # type: ignore
             **{self.primary_key + "s": document_id},
             num_chunks=1,
             chunk_size=1,
             all_fields=fields is None,
             fields=fields,
         )
+        return docs[0] if docs else None
 
     def _get_all_documents(
         self,

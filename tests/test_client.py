@@ -27,6 +27,7 @@ search_only_resters = [
 
 special_resters = [
     "materials_charge_density",
+    "doi"
 ]
 
 ignore_generic = [
