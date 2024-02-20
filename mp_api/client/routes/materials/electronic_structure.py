@@ -240,7 +240,7 @@ class BandStructureRester(BaseRester):
             key=f"bandstructures/{task_id}.json.gz",
             decoder=decoder,
             fields=["data"],
-        )
+        )[0]
 
         if result:
             return result[0]["data"]
@@ -430,10 +430,10 @@ class DosRester(BaseRester):
             key=f"dos/{task_id}.json.gz",
             decoder=decoder,
             fields=["data"],
-        )
+        )[0]
 
         if result:
-            return result[0]["data"]
+            return result[0]["data"]  # type: ignore
         else:
             raise MPRestError("No object found")
 

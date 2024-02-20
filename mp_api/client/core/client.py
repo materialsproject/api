@@ -376,7 +376,7 @@ class BaseRester(Generic[T]):
 
     def _query_open_data(
         self, bucket: str, key: str, decoder: Callable, fields: list[str]
-    ) -> tuple[io.BytesIO, int]:
+    ) -> tuple[list[dict] | list[bytes], int]:
         """Query and deserialize Materials Project AWS open data s3 buckets.
 
         Args:

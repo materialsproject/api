@@ -1352,14 +1352,14 @@ class MPRester:
                 key=f"chgcars/{str(latest_doc.task_id)}.json.gz",
                 decoder=decoder,
                 fields=["data"],
-            )
+            )[0]
             or {}
         )
 
         if not chgcar:
             raise MPRestError(f"No charge density fetched for {material_id}.")
 
-        chgcar = chgcar[0]["data"]
+        chgcar = chgcar[0]["data"]  # type: ignore
 
         if inc_task_doc:
             task_doc = self.tasks.search(
