@@ -572,10 +572,6 @@ class MPRester:
                 fields=["material_id"],
             )
         )
-        if not self.use_document_model:
-            return sorted(doc["material_id"] for doc in docs)  # type: ignore
-
-        return sorted([doc.material_id for doc in docs])  # type: ignore
 
     def get_structures(
         self, chemsys_formula: str | list[str], final=True
@@ -948,9 +944,7 @@ class MPRester:
             query={"project": "ion_ref_data"},
             fields=["identifier", "formula", "data"],
             paginate=True,
-        ).get(
-            "data"
-        )  # type: ignore
+        ).get("data")  # type: ignore
 
     def get_ion_reference_data_for_chemsys(self, chemsys: str | list) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
@@ -1229,8 +1223,10 @@ class MPRester:
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+        return (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+                material_id=material_id, path_type=path_type, line_mode=line_mode
+            )
         )
 
     def get_dos_by_material_id(self, material_id: str):
