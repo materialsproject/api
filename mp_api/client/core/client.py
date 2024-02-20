@@ -18,7 +18,6 @@ from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
 from math import ceil
-from os import environ
 from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import quote, urljoin
 
@@ -48,8 +47,11 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
 
 # TODO: think about how to migrate from PMG_MAPI_KEY
-DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
-DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
+DEFAULT_API_KEY = os.environ.get("MP_API_KEY", None)
+DEFAULT_ENDPOINT = os.environ.get(
+    "MP_API_ENDPOINT", "https://api.materialsproject.org/"
+)
+
 settings = MAPIClientSettings()  # type: ignore
 
 T = TypeVar("T")

@@ -25,10 +25,7 @@ search_only_resters = [
     "materials_synthesis",
 ]
 
-special_resters = [
-    "materials_charge_density",
-    "doi"
-]
+special_resters = ["materials_charge_density", "doi"]
 
 ignore_generic = [
     "_user_settings",
