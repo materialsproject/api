@@ -4,7 +4,8 @@ import itertools
 import warnings
 from functools import cache, lru_cache
 from json import loads
-from os import environ
+import json
+from monty.json import MontyDecoder
 from typing import Literal
 
 from emmet.core.electronic_structure import BSPathType
@@ -947,9 +948,7 @@ class MPRester:
             query={"project": "ion_ref_data"},
             fields=["identifier", "formula", "data"],
             paginate=True,
-        ).get(
-            "data"
-        )  # type: ignore
+        ).get("data")  # type: ignore
 
     def get_ion_reference_data_for_chemsys(self, chemsys: str | list) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
@@ -1228,8 +1227,10 @@ class MPRester:
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+        return (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+                material_id=material_id, path_type=path_type, line_mode=line_mode
+            )
         )
 
     def get_dos_by_material_id(self, material_id: str):
@@ -1341,16 +1342,16 @@ class MPRester:
             else x["last_updated"],  # type: ignore
         )
 
-        result = (
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
+        chgcar = (
             self.tasks._query_open_data(
                 bucket="materialsproject-parsed",
-                prefix="chgcars",
-                key=str(latest_doc.task_id),
+                key=f"chgcars/{str(latest_doc.task_id)}",
+                decoder=decoder,
+                fields=["data"],
             )
             or {}
         )
-
-        chgcar = result.get("data", None)
 
         if chgcar is None:
             raise MPRestError(f"No charge density fetched for {material_id}.")

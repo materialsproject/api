@@ -242,8 +242,8 @@ class BandStructureRester(BaseRester):
             fields=["data"],
         )
 
-        if result.get("data", None) is not None:
-            return result["data"]
+        if result is not None:
+            return result
         else:
             raise MPRestError("No object found")
 
