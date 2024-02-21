@@ -4,7 +4,6 @@ Materials Project data.
 """
 from __future__ import annotations
 
-import io
 import itertools
 import json
 import os
