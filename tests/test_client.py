@@ -36,7 +36,7 @@ ignore_generic = [
     "materials_xas",
     "materials_elasticity",
     "materials_fermi",
-    # "alloys",
+    "alloys",
     # "summary",
 ]  # temp
 
