@@ -234,7 +234,7 @@ pygments==2.15.1
     # via ipython
 pyisemail==2.0.1
     # via mpcontribs-client
-pymatgen==2023.6.23
+pymatgen==2024.2.20
     # via
     #   emmet-core
     #   matminer

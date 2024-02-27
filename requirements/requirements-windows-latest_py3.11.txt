@@ -157,7 +157,7 @@ pydantic-settings==2.2.1
     #   maggma
 pydash==7.0.7
     # via maggma
-pymatgen==2024.2.23
+pymatgen==2024.2.20
     # via
     #   emmet-core
     #   mp-api (pyproject.toml)
