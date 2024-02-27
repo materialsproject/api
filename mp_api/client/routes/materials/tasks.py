@@ -24,9 +24,7 @@ class TaskRester(BaseRester[TaskDoc]):
         """
         traj_data = self._query_resource_data(
             {"task_ids": [task_id]}, suburl="trajectory/", use_document_model=False
-        )[0].get(
-            "trajectories", None
-        )  # type: ignore
+        )[0].get("trajectories", None)  # type: ignore
 
         if traj_data is None:
             raise MPRestError(f"No trajectory data for {task_id} found")
@@ -36,7 +34,6 @@ class TaskRester(BaseRester[TaskDoc]):
     def search(
         self,
         task_ids: str | list[str] | None = None,
-        chemsys: str | list[str] | None = None,
         elements: list[str] | None = None,
         exclude_elements: list[str] | None = None,
         formula: str | list[str] | None = None,
@@ -50,8 +47,6 @@ class TaskRester(BaseRester[TaskDoc]):
 
         Arguments:
             task_ids (str, List[str]): List of Materials Project IDs to return data for.
-            chemsys (str, List[str]): A chemical system or list of chemical systems
-                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
             exclude_elements (List[str]): A list of elements to exclude.
             formula (str, List[str]): A formula including anonymized formula
@@ -84,11 +79,6 @@ class TaskRester(BaseRester[TaskDoc]):
         if exclude_elements:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
 
-        if chemsys:
-            if isinstance(chemsys, str):
-                chemsys = [chemsys]
-
-            query_params.update({"chemsys": ",".join(chemsys)})
 
         if last_updated:
             query_params.update(
