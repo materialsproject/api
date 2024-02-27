@@ -24,7 +24,9 @@ class TaskRester(BaseRester[TaskDoc]):
         """
         traj_data = self._query_resource_data(
             {"task_ids": [task_id]}, suburl="trajectory/", use_document_model=False
-        )[0].get("trajectories", None)  # type: ignore
+        )[0].get(
+            "trajectories", None
+        )  # type: ignore
 
         if traj_data is None:
             raise MPRestError(f"No trajectory data for {task_id} found")
@@ -78,7 +80,6 @@ class TaskRester(BaseRester[TaskDoc]):
 
         if exclude_elements:
             query_params.update({"exclude_elements": ",".join(exclude_elements)})
-
 
         if last_updated:
             query_params.update(
