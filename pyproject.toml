@@ -23,7 +23,7 @@ dependencies = [
   "setuptools",
   "msgpack",
   "maggma>=0.57.1",
-  "pymatgen>=2022.3.7",
+  "pymatgen>=2022.3.7,!=2024.2.20",
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2023.9.25",
