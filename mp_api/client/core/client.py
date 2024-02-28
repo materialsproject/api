@@ -394,12 +394,10 @@ class BaseRester(Generic[T]):
         )
 
         if "jsonl" in key:
-            data = str([doc.strip() for doc in file.read().strip().split("\n")])
-            data = data.replace("'", "").replace("\\", "\\\\")
+            decoded_data = [decoder(jline) for jline in file.read().splitlines()]
         else:
-            data = file.read()
+            decoded_data = decoder(file.read())
 
-        decoded_data = decoder(data)
         decoded_data = (
             [decoded_data] if not isinstance(decoded_data, list) else decoded_data
         )
@@ -466,6 +464,7 @@ class BaseRester(Generic[T]):
             )
             and num_chunks is None
             and "substrates" not in self.suffix
+            and "phonon" not in self.suffix
         )
 
         if fields:
@@ -504,7 +503,11 @@ class BaseRester(Generic[T]):
                     f"{suffix}" if is_tasks else f"collections/{db_version}/{suffix}"
                 )
                 objects = self.s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
-                keys = [doc["Key"] for doc in objects["Contents"]]
+                keys = (
+                    [doc["Key"] for doc in objects["Contents"]]
+                    if "Contents" in objects
+                    else []
+                )
 
                 decoder = MontyDecoder().decode if self.monty_decode else json.loads
 
