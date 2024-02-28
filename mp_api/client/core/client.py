@@ -404,8 +404,12 @@ class BaseRester(Generic[T]):
 
         unzipped_data = []
         for doc in decoded_data:
+            if doc.get("deprecated", False):
+                continue
+
             if fields:
                 doc = {key: value for key, value in doc.items() if key in fields}
+
             unzipped_data.append(doc)
 
         return unzipped_data, len(unzipped_data)  # type: ignore
