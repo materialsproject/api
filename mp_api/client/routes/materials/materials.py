@@ -49,7 +49,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         "similarity",
         "tasks",
         "xas",
-        "grain_boundary",
+        "grain_boundaries",
         "substrates",
         "surface_properties",
         "phonon",
