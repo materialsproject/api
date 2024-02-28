@@ -11,7 +11,7 @@ class SimilarityRester(BaseRester[SimilarityDoc]):
     document_model = SimilarityDoc  # type: ignore
     primary_key = "material_id"
 
-    def search_docs(
+    def search(
         self,
         material_ids: str | list[str] | None = None,
         deprecated: bool | None = False,
