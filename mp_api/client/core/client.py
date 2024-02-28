@@ -506,12 +506,15 @@ class BaseRester(Generic[T]):
                 prefix = (
                     f"{suffix}" if is_tasks else f"collections/{db_version}/{suffix}"
                 )
-                objects = self.s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
-                keys = (
-                    [doc["Key"] for doc in objects["Contents"]]
-                    if "Contents" in objects
-                    else []
-                )
+                paginator = self.s3_client.get_paginator("list_objects_v2")
+                pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+
+                keys = []
+                for page in pages:
+                    for obj in page["Contents"]:
+                        key = obj.get("Key")
+                        if key:
+                            keys.append(key)
 
                 decoder = MontyDecoder().decode if self.monty_decode else json.loads
 
