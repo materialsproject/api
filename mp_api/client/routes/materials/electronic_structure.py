@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import warnings
 from collections import defaultdict
 
@@ -8,6 +9,7 @@ from emmet.core.electronic_structure import (
     DOSProjectionType,
     ElectronicStructureDoc,
 )
+from monty.json import MontyDecoder
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType, Spin
@@ -232,12 +234,16 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
-            bucket="materialsproject-parsed", prefix="bandstructures", key=task_id
-        )
+            bucket="materialsproject-parsed",
+            key=f"bandstructures/{task_id}.json.gz",
+            decoder=decoder,
+            fields=["data"],
+        )[0]
 
-        if result.get("data", None) is not None:
-            return result["data"]
+        if result:
+            return result[0]["data"]
         else:
             raise MPRestError("No object found")
 
@@ -418,12 +424,16 @@ class DosRester(BaseRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
-            bucket="materialsproject-parsed", prefix="dos", key=task_id
-        )
+            bucket="materialsproject-parsed",
+            key=f"dos/{task_id}.json.gz",
+            decoder=decoder,
+            fields=["data"],
+        )[0]
 
-        if result.get("data", None) is not None:
-            return result["data"]
+        if result:
+            return result[0]["data"]  # type: ignore
         else:
             raise MPRestError("No object found")
 

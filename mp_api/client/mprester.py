@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import itertools
+import json
+import os
 import warnings
 from functools import cache, lru_cache
 from json import loads
-from os import environ
 from typing import Literal
 
 from emmet.core.electronic_structure import BSPathType
@@ -12,6 +13,7 @@ from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
+from monty.json import MontyDecoder
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
@@ -39,7 +41,6 @@ from mp_api.client.routes.materials import (
     ElectrodeRester,
     ElectronicStructureRester,
     EOSRester,
-    FermiRester,
     GrainBoundaryRester,
     MagnetismRester,
     OxidationStatesRester,
@@ -66,10 +67,12 @@ _DEPRECATION_WARNING = (
 )
 
 _EMMET_SETTINGS = EmmetSettings()  # type: ignore
-_MAPI_SETTINGS = MAPIClientSettings()  # type: ignore
+_MAPI_SETTINGS = MAPIClientSettings()  # typeL ignore # type: ignore
 
-DEFAULT_API_KEY = environ.get("MP_API_KEY", None)
-DEFAULT_ENDPOINT = environ.get("MP_API_ENDPOINT", "https://api.materialsproject.org/")
+DEFAULT_API_KEY = os.environ.get("MP_API_KEY", None)
+DEFAULT_ENDPOINT = os.environ.get(
+    "MP_API_ENDPOINT", "https://api.materialsproject.org/"
+)
 
 
 class MPRester:
@@ -86,8 +89,7 @@ class MPRester:
     similarity: SimilarityRester
     tasks: TaskRester
     xas: XASRester
-    fermi: FermiRester
-    grain_boundary: GrainBoundaryRester
+    grain_boundaries: GrainBoundaryRester
     substrates: SubstratesRester
     surface_properties: SurfacePropertiesRester
     phonon: PhononRester
@@ -195,7 +197,7 @@ class MPRester:
             "tasks",
             "xas",
             "fermi",
-            "grain_boundary",
+            "grain_boundaries",
             "substrates",
             "surface_properties",
             "phonon",
@@ -340,7 +342,7 @@ class MPRester:
             return rester
 
         MaterialsRester.__getattr__ = __materials_getattr__  # type: ignore
-        MoleculeRester.__getattr__ = __molecules_getattr__  # type:  ignore
+        MoleculeRester.__getattr__ = __molecules_getattr__  # type: ignore
 
         for attr, rester in core_resters.items():
             setattr(
@@ -598,14 +600,15 @@ class MPRester:
             input_params = {"formula": chemsys_formula}
 
         if final:
-            return [
-                doc.structure if self.use_document_model else doc["structure"]  # type: ignore
-                for doc in self.materials.search(
-                    **input_params,  # type: ignore
-                    all_fields=False,
-                    fields=["structure"],
-                )
-            ]
+            docs = self.materials.search(
+                **input_params,  # type: ignore
+                all_fields=False,
+                fields=["structure"],
+            )
+            if not self.use_document_model:
+                return [doc["structure"] for doc in docs]  # type: ignore
+
+            return [doc.structure for doc in docs]  # type: ignore
         else:
             structures = []
 
@@ -614,11 +617,12 @@ class MPRester:
                 all_fields=False,
                 fields=["initial_structures"],
             ):
-                structures.extend(
+                initial_structures = (
                     doc.initial_structures  # type: ignore
                     if self.use_document_model
                     else doc["initial_structures"]  # type: ignore
                 )
+                structures.extend(initial_structures)
 
             return structures
 
@@ -1301,7 +1305,7 @@ class MPRester:
         )
         miller_energy_map = {}
         for surf in surfaces:
-            miller = tuple(surf.miller_index)
+            miller = tuple(surf.miller_index) if surf.miller_index else ()
             # Prefer reconstructed surfaces, which have lower surface energies.
             if (miller not in miller_energy_map) or surf.is_reconstructed:
                 miller_energy_map[miller] = surf.surface_energy
@@ -1339,19 +1343,21 @@ class MPRester:
             else x["last_updated"],  # type: ignore
         )
 
-        result = (
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
+        chgcar = (
             self.tasks._query_open_data(
                 bucket="materialsproject-parsed",
-                prefix="chgcars",
-                key=str(latest_doc.task_id),
-            )
+                key=f"chgcars/{str(latest_doc.task_id)}.json.gz",
+                decoder=decoder,
+                fields=["data"],
+            )[0]
             or {}
         )
 
-        chgcar = result.get("data", None)
-
-        if chgcar is None:
+        if not chgcar:
             raise MPRestError(f"No charge density fetched for {material_id}.")
+
+        chgcar = chgcar[0]["data"]  # type: ignore
 
         if inc_task_doc:
             task_doc = self.tasks.search(
@@ -1384,7 +1390,7 @@ class MPRester:
         )
 
         meta = {}
-        for doc in self.materials.search(
+        for doc in self.materials.search(  # type: ignore
             task_ids=material_ids,
             fields=["calc_types", "deprecated_tasks", "material_id"],
         ):

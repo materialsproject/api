@@ -28,6 +28,7 @@ dependencies = [
   "requests>=2.23.0",
   "monty>=2023.9.25",
   "emmet-core>=0.78.0rc3",
+  "smart_open",
 ]
 dynamic = ["version"]
 
