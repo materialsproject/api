@@ -14,7 +14,6 @@ class SimilarityRester(BaseRester[SimilarityDoc]):
     def search(
         self,
         material_ids: str | list[str] | None = None,
-        deprecated: bool | None = False,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -25,7 +24,6 @@ class SimilarityRester(BaseRester[SimilarityDoc]):
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            deprecated (bool): Whether the material is tagged as deprecated.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -35,7 +33,7 @@ class SimilarityRester(BaseRester[SimilarityDoc]):
         Returns:
             ([SimilarityDoc], [dict]) List of similarity documents or dictionaries.
         """
-        query_params = {"deprecated": deprecated}  # type: dict
+        query_params = {}  # type: dict
 
         if material_ids:
             if isinstance(material_ids, str):
