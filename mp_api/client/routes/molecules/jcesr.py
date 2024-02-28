@@ -6,6 +6,7 @@ from emmet.core.molecules_jcesr import MoleculesDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.utils import validate_ids
 
 
 class JcesrMoleculesRester(BaseRester[MoleculesDoc]):
@@ -15,6 +16,7 @@ class JcesrMoleculesRester(BaseRester[MoleculesDoc]):
 
     def search(
         self,
+        task_ids: str | list[str] | None = None,
         charge: tuple[float, float] | None = None,
         elements: list[Element] | None = None,
         EA: tuple[float, float] | None = None,
@@ -30,6 +32,8 @@ class JcesrMoleculesRester(BaseRester[MoleculesDoc]):
         """Query equations of state docs using a variety of search criteria.
 
         Arguments:
+            task_ids (str, List[str]): A single molecule task ID string or list of strings.
+                (e.g., mol-45004, [mol-45004, mol-45228]).
             charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
             elements (List[Element]): A list of elements.
             film_orientation (List[Elements]): List of elements that are in the molecule.
@@ -48,6 +52,12 @@ class JcesrMoleculesRester(BaseRester[MoleculesDoc]):
             ([MoleculesDoc]) List of molecule documents
         """
         query_params = defaultdict(dict)  # type: dict
+
+        if task_ids:
+            if isinstance(task_ids, str):
+                task_ids = [task_ids]
+
+            query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         if elements:
             query_params.update({"elements": ",".join([str(ele) for ele in elements])})
