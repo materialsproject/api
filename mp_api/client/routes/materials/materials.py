@@ -19,7 +19,6 @@ from mp_api.client.routes.materials import (
     ElectrodeRester,
     ElectronicStructureRester,
     EOSRester,
-    FermiRester,
     GrainBoundaryRester,
     MagnetismRester,
     OxidationStatesRester,
@@ -50,8 +49,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
         "similarity",
         "tasks",
         "xas",
-        "fermi",
-        "grain_boundaries",
+        "grain_boundary",
         "substrates",
         "surface_properties",
         "phonon",
@@ -81,8 +79,7 @@ class MaterialsRester(BaseRester[MaterialsDoc]):
     similarity: SimilarityRester
     tasks: TaskRester
     xas: XASRester
-    fermi: FermiRester
-    grain_boundaries: GrainBoundaryRester
+    grain_boundary: GrainBoundaryRester
     substrates: SubstratesRester
     surface_properties: SurfacePropertiesRester
     phonon: PhononRester
