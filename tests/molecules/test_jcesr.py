@@ -25,9 +25,10 @@ excluded_params = [
 
 sub_doc_fields = []  # type: list
 
-alt_name_dict = {}  # type: dict
+alt_name_dict = {"task_ids": "task_id"}  # type: dict
 
 custom_field_tests = {
+    "task_ids": ["mol-45228"],
     "elements": [Element("H")],
     "pointgroup": "C1",
     "smiles": "C#CC(=C)C.CNCCNC",
