@@ -323,10 +323,8 @@ class MaterialsRester(BaseRester):
     def get_blessed_entries(
         self,
         run_type: RunType = RunType.R2SCAN,
-        material_ids: Optional[list[str]] = None,
-        uncorrected_energy: Optional[
-            tuple[Optional[float], Optional[float]] | float
-        ] = None,
+        material_ids: list[str] | None = None,
+        uncorrected_energy: tuple[float | None, float | None] | float | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
     ):
