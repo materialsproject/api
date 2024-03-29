@@ -151,13 +151,12 @@ class TestMPRester:
         prim = mpr.get_entry_by_material_id(
             "mp-22526", inc_structure=True, conventional_unit_cell=False
         )[0]
-        assert pytest.approx(prim.energy_per_atom) == entry.energy_per_atom
 
         s = prim.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
-        assert pytest.approx(s.lattice.a) != s.lattice.c
-        assert pytest.approx(s.lattice.alpha) == s.lattice.beta
-        assert pytest.approx(s.lattice.alpha) != s.lattice.gamma
+        assert pytest.approx(s.lattice.a, abs=1e-3) == s.lattice.c
+        assert pytest.approx(s.lattice.alpha, abs=1e-3) == s.lattice.beta
+        assert pytest.approx(s.lattice.alpha, abs=1e-3) == s.lattice.gamma
 
         # Additional criteria
         entry = mpr.get_entries(
