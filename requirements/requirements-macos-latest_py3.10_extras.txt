@@ -251,7 +251,7 @@ pexpect==4.9.0
     # via ipython
 phonopy==2.21.2
     # via matcalc
-pillow==10.2.0
+pillow==10.3.0
     # via matplotlib
 pint==0.19.2
     # via mpcontribs-client
