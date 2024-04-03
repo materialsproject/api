@@ -131,7 +131,7 @@ pandas==2.2.1
     # via pymatgen
 paramiko==3.4.0
     # via sshtunnel
-pillow==10.2.0
+pillow==10.3.0
     # via matplotlib
 plotly==5.19.0
     # via pymatgen
