@@ -323,7 +323,7 @@ pymatgen-analysis-alloys==0.0.6
     # via emmet-core
 pymatgen-analysis-diffusion==2023.8.15
     # via emmet-core
-pymongo==4.6.2
+pymongo==4.6.3
     # via
     #   maggma
     #   matminer
