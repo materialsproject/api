@@ -76,7 +76,7 @@ future==0.18.3
     #   uncertainties
 identify==2.5.24
     # via pre-commit
-idna==3.4
+idna==3.7
     # via
     #   jsonschema
     #   requests
