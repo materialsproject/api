@@ -223,7 +223,7 @@ pycodestyle==2.10.0
     # via
     #   flake8
     #   mp-api (setup.py)
-pydantic==1.10.9
+pydantic==1.10.13
     # via
     #   emmet-core
     #   inflect

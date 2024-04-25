@@ -74,7 +74,7 @@ pybtex==0.24.0
     # via
     #   emmet-core
     #   pymatgen
-pydantic==1.10.9
+pydantic==1.10.13
     # via emmet-core
 pymatgen==2023.6.23
     # via
