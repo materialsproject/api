@@ -370,7 +370,7 @@ tomli==2.0.1
     #   coverage
     #   mypy
     #   pytest
-tqdm==4.65.0
+tqdm==4.66.3
     # via
     #   matminer
     #   mpcontribs-client
