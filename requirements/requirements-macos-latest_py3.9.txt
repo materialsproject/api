@@ -71,7 +71,7 @@ importlib-resources==6.1.2
     # via matplotlib
 itsdangerous==2.1.2
     # via flask
-jinja2==3.1.3
+jinja2==3.1.4
     # via flask
 jmespath==1.0.1
     # via
