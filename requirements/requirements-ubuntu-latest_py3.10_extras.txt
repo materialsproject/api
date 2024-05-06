@@ -515,7 +515,7 @@ wcwidth==0.2.13
     # via prompt-toolkit
 webcolors==1.13
     # via jsonschema
-werkzeug==3.0.1
+werkzeug==3.0.3
     # via flask
 
 # The following packages are considered to be unsafe in a requirements file:
