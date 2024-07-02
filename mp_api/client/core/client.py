@@ -2,6 +2,7 @@
 API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
+
 from __future__ import annotations
 
 import itertools
@@ -176,9 +177,9 @@ class BaseRester(Generic[T]):
             mp_api_info = "mp-api/" + __version__ if __version__ else None
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
-            session.headers[
-                "user-agent"
-            ] = f"{mp_api_info} ({python_info} {platform_info})"
+            session.headers["user-agent"] = (
+                f"{mp_api_info} ({python_info} {platform_info})"
+            )
 
         settings = MAPIClientSettings()  # type: ignore
         max_retry_num = settings.MAX_RETRIES
@@ -424,6 +425,7 @@ class BaseRester(Generic[T]):
         num_chunks: int | None = None,
         chunk_size: int | None = None,
         timeout: int | None = None,
+        open_data_params: dict | None = None,
     ) -> dict:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
@@ -440,6 +442,8 @@ class BaseRester(Generic[T]):
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout : Time in seconds to wait until a request timeout error is thrown
+            open_data_params: Override parameters to use as keys for queries to AWS Open Data.
+                Final filtering and projection will be done using the passed criteria parameters.
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -458,7 +462,7 @@ class BaseRester(Generic[T]):
             criteria = {}
 
         # Query s3 if no query is passed and all documents are asked for
-        query_s3 = (
+        query_s3 = bool(open_data_params) or (
             not bool(
                 {
                     field
@@ -503,30 +507,35 @@ class BaseRester(Generic[T]):
                     if not is_tasks
                     else "materialsproject-parsed"
                 )
-                prefix = (
-                    f"{suffix}" if is_tasks else f"collections/{db_version}/{suffix}"
-                )
-                paginator = self.s3_client.get_paginator("list_objects_v2")
-                pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+                if not bool(
+                    open_data_params
+                ):  # User specified keys are not provided. Assuming all docs wanted.
+                    prefix = (
+                        f"{suffix}"
+                        if is_tasks
+                        else f"collections/{db_version}/{suffix}"
+                    )
+                    paginator = self.s3_client.get_paginator("list_objects_v2")
+                    pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
 
-                keys = []
-                for page in pages:
-                    for obj in page["Contents"]:
-                        key = obj.get("Key")
-                        if key:
-                            keys.append(key)
+                    keys = []
+                    for page in pages:
+                        for obj in page["Contents"]:
+                            key = obj.get("Key")
+                            if key:
+                                keys.append(key)
 
                 decoder = MontyDecoder().decode if self.monty_decode else json.loads
 
                 # Multithreaded function inputs
-                s3_params_list = {
+                s3_params_list = open_data_params or {
                     key: {
                         "bucket": bucket,
                         "key": key,
                         "decoder": decoder,
                         "fields": fields,
                     }
-                    for key in keys
+                    for key in keys  # type: ignore
                 }
 
                 # Setup progress bar
@@ -552,7 +561,12 @@ class BaseRester(Generic[T]):
                 )
 
                 unzipped_data = []
+                task_id_set = set(criteria.get("task_ids")) if is_tasks else None  # type: ignore
                 for docs, _, _ in byte_data:
+                    if is_tasks and task_id_set:
+                        docs = [
+                            doc for doc in docs if doc.get("task_id") in task_id_set
+                        ]
                     unzipped_data.extend(docs)
 
                 data = {"data": unzipped_data, "meta": {}}

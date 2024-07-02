@@ -87,32 +87,33 @@ class TaskRester(BaseRester[TaskDoc]):
                 }
             )
 
-        self._query_tasks_open_data(task_ids, num_chunks, chunk_size)
-        # return super()._search(
-        #     num_chunks=num_chunks,
-        #     chunk_size=chunk_size,
-        #     all_fields=all_fields,
-        #     fields=fields,
-        #     **query_params,
-        # )
-
-    def _query_tasks_open_data(
-        self, task_ids: list[str], num_chunks: int | None = None, chunk_size: int = 1000
-    ):
-        # Obtain nelements, spacegroup number, and datetime to do S3 lookup
-        task_ids_string = ",".join(validate_ids(task_ids))
-        print(task_ids_string)
-        task_docs = super()._query_resource(
+        # self._query_tasks_open_data(task_ids, num_chunks, chunk_size)
+        return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
-            use_document_model=False,
-            fields=[
-                "task_id",
-                "nelements",
-                "output.spacegroup.number",
-                "last_updated",
-                "structure",
-            ],
-            criteria={"task_ids": task_ids_string},
+            all_fields=all_fields,
+            fields=fields,
+            **query_params,
         )
-        print(task_docs)
+
+    # def _query_tasks_open_data(
+    #     self, task_ids: list[str], num_chunks: int | None = None, chunk_size: int = 1000
+    # ):
+    #     # Obtain nelements, spacegroup number, and datetime to do S3 lookup
+    #     task_ids_string = ",".join(validate_ids(task_ids))
+    #     print(task_ids_string)
+    #     task_docs = super()._query_resource(
+    #         num_chunks=num_chunks,
+    #         chunk_size=chunk_size,
+    #         use_document_model=False,
+    #         fields=[
+    #             "task_id",
+    #             "nelements",
+    #             "output.spacegroup.number",
+    #             "last_updated",
+    #             "structure",
+    #         ],
+    #         criteria={"task_ids": task_ids_string},
+    #     )
+    #
+    #     print(task_docs)
