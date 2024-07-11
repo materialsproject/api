@@ -949,9 +949,7 @@ class MPRester:
             query={"project": "ion_ref_data"},
             fields=["identifier", "formula", "data"],
             paginate=True,
-        ).get(
-            "data"
-        )  # type: ignore
+        ).get("data")  # type: ignore
 
     def get_ion_reference_data_for_chemsys(self, chemsys: str | list) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
@@ -1135,15 +1133,15 @@ class MPRester:
     ):
         """Helper method to get a list of ComputedEntries in a chemical system.
         For example, elements = ["Li", "Fe", "O"] will return a list of all
-        entries in the Li-Fe-O chemical system, i.e., all LixOy,
-        FexOy, LixFey, LixFeyOz, Li, Fe and O phases. Extremely useful for
-        creating phase diagrams of entire chemical systems.
+        entries in the parent Li-Fe-O chemical system, as well as all subsystems
+        (i.e., all LixOy, FexOy, LixFey, LixFeyOz, Li, Fe and O phases). Extremely
+        useful for creating phase diagrams of entire chemical systems.
 
         Note that by default this returns mixed GGA/GGA+U entries. For others,
         pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.
 
         Args:
-            elements (str or [str]): Chemical system string comprising element
+            elements (str or [str]): Parent chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
                 symbols, e.g., ["Li", "Fe", "O"].
             use_gibbs: If None (default), DFT energy is returned. If a number, return
@@ -1230,8 +1228,10 @@ class MPRester:
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+        return (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+                material_id=material_id, path_type=path_type, line_mode=line_mode
+            )
         )
 
     def get_dos_by_material_id(self, material_id: str):
