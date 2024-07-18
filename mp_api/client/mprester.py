@@ -302,6 +302,8 @@ class MPRester:
                     elif "molecules" in suffix_split:
                         _sub_rester_suffix_map["molecules"][attr] = cls
 
+        # TODO: Enable monty decoding when tasks and SNL schema is normalized
+        #
         # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
         def __core_custom_getattr(_self, _attr, _rester_map):
             if _attr in _rester_map:
@@ -949,9 +951,7 @@ class MPRester:
             query={"project": "ion_ref_data"},
             fields=["identifier", "formula", "data"],
             paginate=True,
-        ).get(
-            "data"
-        )  # type: ignore
+        ).get("data")  # type: ignore
 
     def get_ion_reference_data_for_chemsys(self, chemsys: str | list) -> list[dict]:
         """Download aqueous ion reference data used in the construction of Pourbaix diagrams.
@@ -1230,8 +1230,10 @@ class MPRester:
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+        return (
+            self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+                material_id=material_id, path_type=path_type, line_mode=line_mode
+            )
         )
 
     def get_dos_by_material_id(self, material_id: str):
