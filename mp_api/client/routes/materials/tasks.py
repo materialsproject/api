@@ -87,7 +87,11 @@ class TaskRester(BaseRester[TaskDoc]):
                 }
             )
 
-        # self._query_tasks_open_data(task_ids, num_chunks, chunk_size)
+        
+        if task_ids and len(query_params.keys()) == 1:
+            open_data_keys = self._generate_open_data_keys(task_ids, num_chunks, chunk_size)
+            query_params.update({"open_data_keys": open_data_keys})
+            
         return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
@@ -96,24 +100,36 @@ class TaskRester(BaseRester[TaskDoc]):
             **query_params,
         )
 
-    # def _query_tasks_open_data(
-    #     self, task_ids: list[str], num_chunks: int | None = None, chunk_size: int = 1000
-    # ):
-    #     # Obtain nelements, spacegroup number, and datetime to do S3 lookup
-    #     task_ids_string = ",".join(validate_ids(task_ids))
-    #     print(task_ids_string)
-    #     task_docs = super()._query_resource(
-    #         num_chunks=num_chunks,
-    #         chunk_size=chunk_size,
-    #         use_document_model=False,
-    #         fields=[
-    #             "task_id",
-    #             "nelements",
-    #             "output.spacegroup.number",
-    #             "last_updated",
-    #             "structure",
-    #         ],
-    #         criteria={"task_ids": task_ids_string},
-    #     )
-    #
-    #     print(task_docs)
+    def _generate_open_data_keys(
+        self, task_ids: list[str], num_chunks: int | None = None, chunk_size: int = 1000
+    ):
+        # Obtain nelements, spacegroup number, and datetime to do S3 lookup
+        task_ids_string = ",".join(validate_ids(task_ids))
+        
+        mute_setting = self.mute_progress_bars
+        self.mute_progress_bars = True
+        task_docs = super()._query_resource(
+            num_chunks=num_chunks,
+            chunk_size=chunk_size,
+            use_document_model=False,
+            fields=[
+                "task_id",
+                "nelements",
+                "output.spacegroup.number",
+                "last_updated",
+            ],
+            criteria={"task_ids": task_ids_string},
+        )
+
+        self.mute_progress_bars = mute_setting
+        open_data_keys = []
+
+        for doc in task_docs["data"]:
+            nelements = doc.get("nelements")
+            spg_number = doc.get('output')
+            dt = doc.get('last_updated')
+                
+            if None not in [nelements, spg_number, dt]:
+                open_data_keys.append(f"nelemens={nelements}/output_spacegroup_number={spg_number['spacegroup']['number']}/dt={dt}")
+
+        return open_data_keys

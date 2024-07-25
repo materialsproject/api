@@ -425,7 +425,7 @@ class BaseRester(Generic[T]):
         num_chunks: int | None = None,
         chunk_size: int | None = None,
         timeout: int | None = None,
-        open_data_params: dict | None = None,
+        open_data_keys: dict | None = None,
     ) -> dict:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
@@ -442,7 +442,7 @@ class BaseRester(Generic[T]):
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout : Time in seconds to wait until a request timeout error is thrown
-            open_data_params: Override parameters to use as keys for queries to AWS Open Data.
+            open_data_keys: Override strings to use as keys for queries to AWS Open Data.
                 Final filtering and projection will be done using the passed criteria parameters.
 
         Returns:
@@ -462,7 +462,7 @@ class BaseRester(Generic[T]):
             criteria = {}
 
         # Query s3 if no query is passed and all documents are asked for
-        query_s3 = bool(open_data_params) or (
+        query_s3 = bool(open_data_keys) or (
             not bool(
                 {
                     field
@@ -507,8 +507,9 @@ class BaseRester(Generic[T]):
                     if not is_tasks
                     else "materialsproject-parsed"
                 )
+                print(bucket, suffix)
                 if not bool(
-                    open_data_params
+                    open_data_keys
                 ):  # User specified keys are not provided. Assuming all docs wanted.
                     prefix = (
                         f"{suffix}"
@@ -525,10 +526,13 @@ class BaseRester(Generic[T]):
                             if key:
                                 keys.append(key)
 
+                else:
+                    keys = open_data_keys
+
                 decoder = MontyDecoder().decode if self.monty_decode else json.loads
 
                 # Multithreaded function inputs
-                s3_params_list = open_data_params or {
+                s3_params_list = {
                     key: {
                         "bucket": bucket,
                         "key": key,
@@ -537,7 +541,7 @@ class BaseRester(Generic[T]):
                     }
                     for key in keys  # type: ignore
                 }
-
+                print(s3_params_list)
                 # Setup progress bar
                 pbar_message = (  # type: ignore
                     f"Retrieving {self.document_model.__name__} documents"  # type: ignore
@@ -1264,6 +1268,8 @@ class BaseRester(Generic[T]):
         )
 
         chosen_param = list_entries[0][0] if len(list_entries) > 0 else None
+        
+        open_data_keys = None if "open_data_keys" not in query_params else query_params.pop("open_data_keys")
 
         results = self._query_resource(
             query_params,
@@ -1271,6 +1277,7 @@ class BaseRester(Generic[T]):
             parallel_param=chosen_param,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
+            open_data_keys=open_data_keys
         )
 
         return results["data"]
