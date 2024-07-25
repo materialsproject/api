@@ -330,7 +330,7 @@ class MPRester:
                 return rester
             else:
                 raise AttributeError(
-                    f"{_self.__class__.__name__!r} object has no attribute {attr!r}"
+                    f"{_self.__class__.__name__!r} object has no attribute {_attr!r}"
                 )
 
         def __materials_getattr__(_self, attr):
