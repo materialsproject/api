@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime
 
 from emmet.core.tasks import TaskDoc
@@ -87,11 +88,10 @@ class TaskRester(BaseRester[TaskDoc]):
                 }
             )
 
-        
         if task_ids and len(query_params.keys()) == 1:
-            open_data_keys = self._generate_open_data_keys(task_ids, num_chunks, chunk_size)
+            open_data_keys = self._generate_open_data_keys(task_ids)
             query_params.update({"open_data_keys": open_data_keys})
-            
+
         return super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
@@ -101,35 +101,44 @@ class TaskRester(BaseRester[TaskDoc]):
         )
 
     def _generate_open_data_keys(
-        self, task_ids: list[str], num_chunks: int | None = None, chunk_size: int = 1000
-    ):
-        # Obtain nelements, spacegroup number, and datetime to do S3 lookup
-        task_ids_string = ",".join(validate_ids(task_ids))
-        
-        mute_setting = self.mute_progress_bars
-        self.mute_progress_bars = True
-        task_docs = super()._query_resource(
-            num_chunks=num_chunks,
-            chunk_size=chunk_size,
-            use_document_model=False,
-            fields=[
-                "task_id",
-                "nelements",
-                "output.spacegroup.number",
-                "last_updated",
-            ],
-            criteria={"task_ids": task_ids_string},
+        self,
+        task_ids: list[str],
+    ) -> list[str]:
+        # Construct the S3 Select query
+        task_ids_string = ",".join(f"'{task_id}'" for task_id in task_ids)
+        query = f"""
+        SELECT s.task_id, s.nelements, s.output.spacegroup.number as spg_number, s.last_updated
+        FROM S3Object s
+        WHERE s.task_id IN ({task_ids_string})
+        """
+
+        # Execute the S3 Select query
+        response = self.s3_client.select_object_content(
+            Bucket="materialsproject-parsed",
+            Key="tasks/manifest.jsonl",
+            ExpressionType="SQL",
+            Expression=query,
+            InputSerialization={"JSON": {"Type": "LINES"}},
+            OutputSerialization={"JSON": {}},
         )
 
-        self.mute_progress_bars = mute_setting
-        open_data_keys = []
+        # Process the response
+        results = []
+        for event in response["Payload"]:
+            if "Records" in event:
+                records = event["Records"]["Payload"].decode("utf-8")
+                results.extend(json.loads(line) for line in records.strip().split("\n"))
 
-        for doc in task_docs["data"]:
+        # Generate open data keys
+        open_data_keys = []
+        for doc in results:
             nelements = doc.get("nelements")
-            spg_number = doc.get('output')
-            dt = doc.get('last_updated')
-                
+            spg_number = doc.get("spg_number")
+            dt = doc.get("last_updated")
+
             if None not in [nelements, spg_number, dt]:
-                open_data_keys.append(f"nelemens={nelements}/output_spacegroup_number={spg_number['spacegroup']['number']}/dt={dt}")
+                open_data_keys.append(
+                    f"nelements={nelements}/output_spacegroup_number={spg_number}/dt={dt}"
+                )
 
         return open_data_keys
