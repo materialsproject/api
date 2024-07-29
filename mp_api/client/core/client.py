@@ -177,9 +177,9 @@ class BaseRester(Generic[T]):
             mp_api_info = "mp-api/" + __version__ if __version__ else None
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
-            session.headers["user-agent"] = (
-                f"{mp_api_info} ({python_info} {platform_info})"
-            )
+            session.headers[
+                "user-agent"
+            ] = f"{mp_api_info} ({python_info} {platform_info})"
 
         settings = MAPIClientSettings()  # type: ignore
         max_retry_num = settings.MAX_RETRIES
@@ -507,7 +507,6 @@ class BaseRester(Generic[T]):
                     if not is_tasks
                     else "materialsproject-parsed"
                 )
-                print(bucket, suffix)
                 if not bool(
                     open_data_keys
                 ):  # User specified keys are not provided. Assuming all docs wanted.
@@ -1268,8 +1267,12 @@ class BaseRester(Generic[T]):
         )
 
         chosen_param = list_entries[0][0] if len(list_entries) > 0 else None
-        
-        open_data_keys = None if "open_data_keys" not in query_params else query_params.pop("open_data_keys")
+
+        open_data_keys = (
+            None
+            if "open_data_keys" not in query_params
+            else query_params.pop("open_data_keys")
+        )
 
         results = self._query_resource(
             query_params,
@@ -1277,7 +1280,7 @@ class BaseRester(Generic[T]):
             parallel_param=chosen_param,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
-            open_data_keys=open_data_keys
+            open_data_keys=open_data_keys,
         )
 
         return results["data"]
