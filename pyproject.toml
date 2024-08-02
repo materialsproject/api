@@ -45,7 +45,7 @@ test = [
   "mypy",
   "mypy-extensions",
   "typing-extensions",
-  "types-pkg_resources",
+  "types-setuptools",
   "types-requests",
 ]
 
