@@ -530,7 +530,7 @@ tomli==2.0.1
     #   coverage
     #   mypy
     #   pytest
-tqdm==4.66.4
+tqdm==4.66.3
     # via
     #   maggma
     #   matminer

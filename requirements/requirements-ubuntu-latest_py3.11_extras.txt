@@ -521,7 +521,7 @@ threadpoolctl==3.5.0
     #   scikit-learn
 tifffile==2024.7.24
     # via scikit-image
-tqdm==4.66.4
+tqdm==4.66.3
     # via
     #   maggma
     #   matminer
