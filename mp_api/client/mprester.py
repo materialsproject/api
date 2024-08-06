@@ -1314,6 +1314,40 @@ class MPRester:
         millers, energies = zip(*miller_energy_map.items())
         return WulffShape(lattice, millers, energies)
 
+    def get_charge_density_from_task_id(
+        self, task_id: str, inc_task_doc: bool = False
+    ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
+        """Get charge density data for a given task_id.
+
+        Arguments:
+            task_id (str): A task id
+            inc_task_doc (bool): Whether to include the task document in the returned data.
+
+        Returns:
+            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
+        """
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
+        chgcar = (
+            self.materials.tasks._query_open_data(
+                bucket="materialsproject-parsed",
+                key=f"chgcars/{str(task_id)}.json.gz",
+                decoder=decoder,
+                fields=["data"],
+            )[0]
+            or {}
+        )
+
+        if not chgcar:
+            raise MPRestError(f"No charge density fetched for task_id {task_id}.")
+
+        chgcar = chgcar[0]["data"]  # type: ignore
+
+        if inc_task_doc:
+            task_doc = self.materials.tasks.search(task_ids=task_id)[0]
+            return chgcar, task_doc
+
+        return chgcar
+
     def get_charge_density_from_material_id(
         self, material_id: str, inc_task_doc: bool = False
     ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
@@ -1331,7 +1365,7 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
-        results: list[TaskDoc] = self.tasks.search(
+        results: list[TaskDoc] = self.materials.tasks.search(
             task_ids=task_ids, fields=["last_updated", "task_id"]
         )  # type: ignore
 
@@ -1344,33 +1378,8 @@ class MPRester:
             if self.use_document_model
             else x["last_updated"],  # type: ignore
         )
-
-        decoder = MontyDecoder().decode if self.monty_decode else json.loads
-        chgcar = (
-            self.tasks._query_open_data(
-                bucket="materialsproject-parsed",
-                key=f"chgcars/{str(latest_doc.task_id)}.json.gz",
-                decoder=decoder,
-                fields=["data"],
-            )[0]
-            or {}
-        )
-
-        if not chgcar:
-            raise MPRestError(f"No charge density fetched for {material_id}.")
-
-        chgcar = chgcar[0]["data"]  # type: ignore
-
-        if inc_task_doc:
-            task_doc = self.tasks.search(
-                task_ids=latest_doc.task_id
-                if self.use_document_model
-                else latest_doc["task_id"]
-            )[0]
-
-            return chgcar, task_doc
-
-        return chgcar
+        task_id = latest_doc.task_id if self.use_document_model else latest_doc["task_id"]
+        return self.get_charge_density_from_task_id(task_id, inc_task_doc)
 
     def get_download_info(self, material_ids, calc_types=None, file_patterns=None):
         """Get a list of URLs to retrieve raw VASP output files from the NoMaD repository
