@@ -6,7 +6,7 @@ from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from pymatgen.analysis.magnetism import Ordering
 
-from mp_api.client.core import BaseRester
+from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 
@@ -36,7 +36,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         g_reuss: tuple[float, float] | None = None,
         g_voigt: tuple[float, float] | None = None,
         g_vrh: tuple[float, float] | None = None,
-        has_props: list[HasProps] | None = None,
+        has_props: list[HasProps] | list[str] | None = None,
         has_reconstructed: bool | None = None,
         is_gap_direct: bool | None = None,
         is_metal: bool | None = None,
@@ -101,7 +101,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
                 of the shear modulus.
             g_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill
                 average of the shear modulus.
-            has_props: (List[HasProps]): The calculated properties available for the material.
+            has_props: (List[HasProps], List[str]): The calculated properties available for the material.
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
@@ -253,7 +253,14 @@ class SummaryRester(BaseRester[SummaryDoc]):
             query_params.update({"has_reconstructed": has_reconstructed})
 
         if has_props:
-            query_params.update({"has_props": ",".join([i.value for i in has_props])})
+            has_props_clean = []
+            for prop in has_props:
+                try:
+                    has_props_clean.append(HasProps(prop).value)
+                except ValueError:
+                    raise MPRestError(f"'{prop}' is not a valid property.")
+
+            query_params.update({"has_props": ",".join(has_props_clean)})
 
         if theoretical is not None:
             query_params.update({"theoretical": theoretical})
