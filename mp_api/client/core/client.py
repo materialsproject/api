@@ -2,6 +2,7 @@
 API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
+
 from __future__ import annotations
 
 import itertools
@@ -19,6 +20,7 @@ from json import JSONDecodeError
 from math import ceil
 from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import quote, urljoin
+from bson import json_util
 
 import requests
 from emmet.core.utils import jsanitize
@@ -176,9 +178,9 @@ class BaseRester(Generic[T]):
             mp_api_info = "mp-api/" + __version__ if __version__ else None
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
-            session.headers[
-                "user-agent"
-            ] = f"{mp_api_info} ({python_info} {platform_info})"
+            session.headers["user-agent"] = (
+                f"{mp_api_info} ({python_info} {platform_info})"
+            )
 
         settings = MAPIClientSettings()  # type: ignore
         max_retry_num = settings.MAX_RETRIES
@@ -494,7 +496,7 @@ class BaseRester(Generic[T]):
                 )
                 suffix = suffix.replace("_", "-")
 
-                # Paginate over all entried in the bucket.
+                # Paginate over all entries in the bucket.
                 # This will have to change for when a subset of entries from
                 # the DB is needed.
                 is_tasks = "tasks" in suffix
@@ -516,7 +518,9 @@ class BaseRester(Generic[T]):
                         if key:
                             keys.append(key)
 
-                decoder = MontyDecoder().decode if self.monty_decode else json.loads
+                decoder = (
+                    MontyDecoder().decode if self.monty_decode else json_util.loads
+                )
 
                 # Multithreaded function inputs
                 s3_params_list = {
