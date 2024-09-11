@@ -1378,7 +1378,9 @@ class MPRester:
             if self.use_document_model
             else x["last_updated"],  # type: ignore
         )
-        task_id = latest_doc.task_id if self.use_document_model else latest_doc["task_id"]
+        task_id = (
+            latest_doc.task_id if self.use_document_model else latest_doc["task_id"]
+        )
         return self.get_charge_density_from_task_id(task_id, inc_task_doc)
 
     def get_download_info(self, material_ids, calc_types=None, file_patterns=None):

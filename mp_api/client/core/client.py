@@ -2,6 +2,7 @@
 API v3 to enable the creation of data structures and pymatgen objects using
 Materials Project data.
 """
+
 from __future__ import annotations
 
 import itertools
@@ -21,6 +22,7 @@ from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import quote, urljoin
 
 import requests
+from bson import json_util
 from emmet.core.utils import jsanitize
 from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
@@ -494,7 +496,7 @@ class BaseRester(Generic[T]):
                 )
                 suffix = suffix.replace("_", "-")
 
-                # Paginate over all entried in the bucket.
+                # Paginate over all entries in the bucket.
                 # This will have to change for when a subset of entries from
                 # the DB is needed.
                 is_tasks = "tasks" in suffix
@@ -516,7 +518,9 @@ class BaseRester(Generic[T]):
                         if key:
                             keys.append(key)
 
-                decoder = MontyDecoder().decode if self.monty_decode else json.loads
+                decoder = (
+                    MontyDecoder().decode if self.monty_decode else json_util.loads
+                )
 
                 # Multithreaded function inputs
                 s3_params_list = {
