@@ -64,8 +64,8 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-_EMMET_SETTINGS = EmmetSettings()  # type: ignore
-_MAPI_SETTINGS = MAPIClientSettings()  # typeL ignore # type: ignore
+_EMMET_SETTINGS = EmmetSettings()
+_MAPI_SETTINGS = MAPIClientSettings()
 
 
 class MPRester:
