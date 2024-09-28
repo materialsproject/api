@@ -136,10 +136,10 @@ class MPRester:
                 If so, it will use that environment variable. This makes
                 easier for heavy users to simply add this environment variable to
                 their setups and MPRester can then be called without any arguments.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST
+            endpoint (str): URL of endpoint to access the MaterialsProject REST
                 interface. Defaults to the standard Materials Project REST
                 address at "https://api.materialsproject.org", but
-                can be changed to other urls implementing a similar interface.
+                can be changed to other URLs implementing a similar interface.
             notify_db_version (bool): If True, the current MP database version will
                 be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
                 version changes, you will be notified. The current database version is
