@@ -43,7 +43,6 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s0 = mpr.get_structure_by_material_id("mp-149")
@@ -337,7 +336,7 @@ class TestMPRester:
         """Ensure the MP_API_KEY from environment variable is retrieved
         at runtime, not import time.
         """
-        # Mock a invalid key set before import MPRester
+        # Mock an invalid key set before import MPRester
         import mp_api.client
 
         monkeypatch.setenv("MP_API_KEY", "INVALID KEY")
