@@ -254,7 +254,7 @@ class MPRester:
         core_resters = {
             cls.suffix.split("/")[0]: cls(
                 api_key=api_key,
-                endpoint=endpoint,
+                endpoint=self.endpoint,
                 include_user_agent=include_user_agent,
                 session=self.session,
                 monty_decode=monty_decode,
@@ -277,7 +277,7 @@ class MPRester:
                 if len(suffix_split) == 1:
                     rester = cls(
                         api_key=api_key,
-                        endpoint=endpoint,
+                        endpoint=self.endpoint,
                         include_user_agent=include_user_agent,
                         session=self.session,
                         monty_decode=monty_decode
@@ -307,7 +307,7 @@ class MPRester:
                 cls = _rester_map[_attr]
                 rester = cls(
                     api_key=api_key,
-                    endpoint=endpoint,
+                    endpoint=self.endpoint,
                     include_user_agent=include_user_agent,
                     session=self.session,
                     monty_decode=monty_decode
