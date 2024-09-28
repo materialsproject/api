@@ -332,19 +332,22 @@ class TestMPRester:
         docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
         assert len(docs) == 10000
 
-    def test_get_api_key_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
-        """Ensure the MP_API_KEY from environment variable is retrieved
-        at runtime, not import time.
+    def test_get_api_key_endpoint_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
+        """Ensure the MP_API_KEY and MP_API_ENDPOINT from environment variable
+        is retrieved at runtime, not import time.
         """
-        # Mock an invalid key set before import MPRester
+        # Mock an invalid key and endpoint set before import MPRester
         import mp_api.client
 
+        monkeypatch.setenv("MP_API_ENDPOINT", "INVALID ENDPOINT")
         monkeypatch.setenv("MP_API_KEY", "INVALID KEY")
 
         importlib.reload(mp_api.client)
 
         monkeypatch.setenv("MP_API_KEY", FAKE_MP_API_KEY)
+        monkeypatch.setenv("MP_API_ENDPOINT", "https://api.materialsproject.org/")
         assert MPRester().api_key == FAKE_MP_API_KEY
+        assert MPRester().endpoint == "https://api.materialsproject.org/"
 
     def test_get_api_key_from_settings(self, monkeypatch: pytest.MonkeyPatch):
         """Test environment variable "MP_API_KEY" is not set and
