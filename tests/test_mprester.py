@@ -1,6 +1,7 @@
 import itertools
 import os
 import random
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -9,6 +10,7 @@ from emmet.core.vasp.calc_types import CalcType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
 from pymatgen.analysis.wulff import WulffShape
+from pymatgen.core import SETTINGS
 from pymatgen.core.ion import Ion
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.bandstructure import (
@@ -26,11 +28,14 @@ from pymatgen.phonon.dos import PhononDos
 from mp_api.client import MPRester
 from mp_api.client.core.settings import MAPIClientSettings
 
-os.environ["MP_API_KEY"] = "test"
-
 
 @pytest.fixture()
 def mpr():
+    # Only mock the API key in GitHub CI environment,
+    # otherwise people cannot run tests locally as the key is invalid
+    if os.getenv("GITHUB_ACTIONS") is not None:
+        os.environ["MP_API_KEY"] = "12345678901234567890123456789012"
+
     rester = MPRester()
     yield rester
     rester.session.close()
@@ -39,14 +44,14 @@ def mpr():
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
-        s1 = mpr.get_structure_by_material_id("mp-149")
-        assert s1.formula == "Si2"
+        s0 = mpr.get_structure_by_material_id("mp-149")
+        assert s0.formula == "Si2"
 
         s1 = mpr.get_structure_by_material_id("mp-4163", conventional_unit_cell=True)
         assert s1.formula == "Ca12 Ti8 O28"
 
-        s1 = mpr.get_structure_by_material_id("mp-149", final=False)
-        assert {s.formula for s in s1} == {"Si2"}
+        s2 = mpr.get_structure_by_material_id("mp-149", final=False)
+        assert {s.formula for s in s2} == {"Si2"}
 
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
@@ -327,13 +332,11 @@ class TestMPRester:
         assert len(docs) == 10000
 
 
-def test_pmg_api_key(monkeypatch: pytest.MonkeyPatch):
-    from pymatgen.core import SETTINGS
-
-    # unset DEFAULT_API_KEY
-    monkeypatch.setattr("mp_api.client.mprester.DEFAULT_API_KEY", None)
-
+@patch.dict(os.environ, {"MP_API_KEY": ""})  # Unset MP_API_KEY
+def test_get_api_key_from_settings(monkeypatch: pytest.MonkeyPatch):
+    """Test getting MP_API_KEY from SETTINGS."""
     fake_api_key = "12345678901234567890123456789012"  # 32 chars
+
     # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
     monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", fake_api_key)
 
