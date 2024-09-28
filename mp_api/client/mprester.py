@@ -63,11 +63,6 @@ from mp_api.client.routes.molecules import MoleculeRester
 if TYPE_CHECKING:
     from typing import Literal
 
-_DEPRECATION_WARNING = (
-    "MPRester is being modernized. Please use the new method suggested and "
-    "read more about these changes at https://docs.materialsproject.org/api. The current "
-    "methods will be retained until at least January 2022 for backwards compatibility."
-)
 
 _EMMET_SETTINGS = EmmetSettings()  # type: ignore
 _MAPI_SETTINGS = MAPIClientSettings()  # typeL ignore # type: ignore
