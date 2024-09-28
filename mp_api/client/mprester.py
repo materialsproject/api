@@ -6,7 +6,7 @@ import os
 import warnings
 from functools import cache, lru_cache
 from json import loads
-from typing import Literal
+from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
@@ -60,6 +60,9 @@ from mp_api.client.routes.materials import (
 from mp_api.client.routes.materials.materials import MaterialsRester
 from mp_api.client.routes.molecules import MoleculeRester
 
+if TYPE_CHECKING:
+    from typing import Literal
+
 _DEPRECATION_WARNING = (
     "MPRester is being modernized. Please use the new method suggested and "
     "read more about these changes at https://docs.materialsproject.org/api. The current "
@@ -68,11 +71,6 @@ _DEPRECATION_WARNING = (
 
 _EMMET_SETTINGS = EmmetSettings()  # type: ignore
 _MAPI_SETTINGS = MAPIClientSettings()  # typeL ignore # type: ignore
-
-DEFAULT_API_KEY = os.environ.get("MP_API_KEY", None)
-DEFAULT_ENDPOINT = os.environ.get(
-    "MP_API_ENDPOINT", "https://api.materialsproject.org/"
-)
 
 
 class MPRester:
@@ -124,7 +122,7 @@ class MPRester:
     def __init__(
         self,
         api_key: str | None = None,
-        endpoint: str = DEFAULT_ENDPOINT,
+        endpoint: str | None = None,
         notify_db_version: bool = False,
         include_user_agent: bool = True,
         monty_decode: bool = True,
@@ -169,7 +167,9 @@ class MPRester:
 
         """
         # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
-        api_key = api_key or DEFAULT_API_KEY or SETTINGS.get("PMG_MAPI_KEY")
+        api_key = (
+            api_key or os.environ.get("MP_API_KEY") or SETTINGS.get("PMG_MAPI_KEY")
+        )
 
         if api_key and len(api_key) != 32:
             raise ValueError(
@@ -179,7 +179,9 @@ class MPRester:
             )
 
         self.api_key = api_key
-        self.endpoint = endpoint
+        self.endpoint = endpoint or os.environ.get(
+            "MP_API_ENDPOINT", "https://api.materialsproject.org/"
+        )
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
             api_key=self.api_key,
