@@ -28,8 +28,6 @@ from pymatgen.phonon.dos import PhononDos
 from mp_api.client import MPRester
 from mp_api.client.core.settings import MAPIClientSettings
 
-FAKE_MP_API_KEY = "12345678901234567890123456789012"  # 32 chars
-
 
 @pytest.fixture()
 def mpr():
@@ -40,6 +38,9 @@ def mpr():
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
+    fake_mp_api_key = "12345678901234567890123456789012"  # 32 chars
+    default_endpoint = "https://api.materialsproject.org/"
+
     def test_get_structure_by_material_id(self, mpr):
         s0 = mpr.get_structure_by_material_id("mp-149")
         assert s0.formula == "Si2"
@@ -341,10 +342,10 @@ class TestMPRester:
         importlib.reload(mp_api.client)
         from mp_api.client import MPRester
 
-        monkeypatch.setenv("MP_API_KEY", FAKE_MP_API_KEY)
-        monkeypatch.setenv("MP_API_ENDPOINT", "https://api.materialsproject.org/")
-        assert MPRester().api_key == FAKE_MP_API_KEY
-        assert MPRester().endpoint == "https://api.materialsproject.org/"
+        monkeypatch.setenv("MP_API_KEY", self.fake_mp_api_key)
+        monkeypatch.setenv("MP_API_ENDPOINT", self.default_endpoint)
+        assert MPRester().api_key == self.fake_mp_api_key
+        assert MPRester().endpoint == self.default_endpoint
 
     def test_get_api_key_from_settings(self, monkeypatch: pytest.MonkeyPatch):
         """Test environment variable "MP_API_KEY" is not set and
@@ -354,11 +355,11 @@ class TestMPRester:
         assert os.environ.get("MP_API_KEY") is None
 
         # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
-        monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", FAKE_MP_API_KEY)
+        monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", self.fake_mp_api_key)
 
-        assert MPRester().api_key == FAKE_MP_API_KEY
+        assert MPRester().api_key == self.fake_mp_api_key
 
     def test_get_default_endpoint(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.delenv("MP_API_ENDPOINT", raising=False)
         assert os.environ.get("MP_API_ENDPOINT") is None
-        assert MPRester().endpoint == "https://api.materialsproject.org/"
+        assert MPRester().endpoint == self.default_endpoint
