@@ -26,6 +26,7 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import PhononDos
 
 from mp_api.client import MPRester
+from mp_api.client.core.client import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 
 
@@ -352,14 +353,21 @@ class TestMPRester:
         get "PMG_MAPI_KEY" from "SETTINGS".
         """
         monkeypatch.delenv("MP_API_KEY", raising=False)
-        assert os.environ.get("MP_API_KEY") is None
 
         # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
         monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", self.fake_mp_api_key)
 
         assert MPRester().api_key == self.fake_mp_api_key
 
-    def test_get_default_endpoint(self, monkeypatch: pytest.MonkeyPatch):
+    def test_get_default_endpoint_api_key(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.delenv("MP_API_ENDPOINT", raising=False)
-        assert os.environ.get("MP_API_ENDPOINT") is None
         assert MPRester().endpoint == self.default_endpoint
+
+        monkeypatch.delenv("MP_API_KEY", raising=False)
+        with pytest.raises(MPRestError, match="No API key found in request"):
+            MPRester().get_structure_by_material_id("mp-149")
+
+    def test_invalid_api_key(self, monkeypatch):
+        monkeypatch.setenv("MP_API_KEY", "INVALID")
+        with pytest.raises(ValueError, match="Keys for the new API are 32 characters"):
+            MPRester().get_structure_by_material_id("mp-149")
