@@ -343,6 +343,7 @@ class TestMPRester:
         monkeypatch.setenv("MP_API_KEY", "INVALID KEY")
 
         importlib.reload(mp_api.client)
+        from mp_api.client import MPRester
 
         monkeypatch.setenv("MP_API_KEY", FAKE_MP_API_KEY)
         monkeypatch.setenv("MP_API_ENDPOINT", "https://api.materialsproject.org/")
@@ -354,9 +355,14 @@ class TestMPRester:
         get "PMG_MAPI_KEY" from "SETTINGS".
         """
         monkeypatch.delenv("MP_API_KEY", raising=False)
+        assert os.environ.get("MP_API_KEY") is None
 
         # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
         monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", FAKE_MP_API_KEY)
 
-        # create MPRester and check that it picked up the API key from SETTINGS
         assert MPRester().api_key == FAKE_MP_API_KEY
+
+    def test_get_default_endpoint(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.delenv("MP_API_ENDPOINT", raising=False)
+        assert os.environ.get("MP_API_ENDPOINT") is None
+        assert MPRester().endpoint == "https://api.materialsproject.org/"
