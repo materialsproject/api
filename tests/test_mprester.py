@@ -33,16 +33,12 @@ FAKE_MP_API_KEY = "12345678901234567890123456789012"  # 32 chars
 
 @pytest.fixture()
 def mpr():
-    # Only mock the API key in GitHub CI environment,
-    # otherwise people cannot run tests locally as the key is invalid
-    if os.getenv("GITHUB_ACTIONS") is not None:
-        os.environ["MP_API_KEY"] = FAKE_MP_API_KEY
-
     rester = MPRester()
     yield rester
     rester.session.close()
 
 
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
     def test_get_structure_by_material_id(self, mpr):
         s0 = mpr.get_structure_by_material_id("mp-149")
