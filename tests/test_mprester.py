@@ -1,7 +1,7 @@
 import itertools
 import os
 import random
-from unittest.mock import patch
+import importlib
 
 import numpy as np
 import pytest
@@ -28,13 +28,15 @@ from pymatgen.phonon.dos import PhononDos
 from mp_api.client import MPRester
 from mp_api.client.core.settings import MAPIClientSettings
 
+FAKE_MP_API_KEY = "12345678901234567890123456789012"  # 32 chars
+
 
 @pytest.fixture()
 def mpr():
     # Only mock the API key in GitHub CI environment,
     # otherwise people cannot run tests locally as the key is invalid
     if os.getenv("GITHUB_ACTIONS") is not None:
-        os.environ["MP_API_KEY"] = "12345678901234567890123456789012"
+        os.environ["MP_API_KEY"] = FAKE_MP_API_KEY
 
     rester = MPRester()
     yield rester
@@ -331,14 +333,28 @@ class TestMPRester:
         docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
         assert len(docs) == 10000
 
+    def test_get_api_key_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
+        """Ensure the MP_API_KEY from environment variable is retrieved
+        at runtime, not import time.
+        """
+        # Mock a invalid key set before import MPRester
+        import mp_api.client
 
-@patch.dict(os.environ, {"MP_API_KEY": ""})  # Unset MP_API_KEY
-def test_get_api_key_from_settings(monkeypatch: pytest.MonkeyPatch):
-    """Test getting MP_API_KEY from SETTINGS."""
-    fake_api_key = "12345678901234567890123456789012"  # 32 chars
+        monkeypatch.setenv("MP_API_KEY", "INVALID KEY")
 
-    # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
-    monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", fake_api_key)
+        importlib.reload(mp_api.client)
 
-    # create MPRester and check that it picked up the API key from pymatgen SETTINGS
-    assert MPRester().api_key == fake_api_key
+        monkeypatch.setenv("MP_API_KEY", FAKE_MP_API_KEY)
+        assert MPRester().api_key == FAKE_MP_API_KEY
+
+    def test_get_api_key_from_settings(self, monkeypatch: pytest.MonkeyPatch):
+        """Test environment variable "MP_API_KEY" is not set and
+        get "PMG_MAPI_KEY" from "SETTINGS".
+        """
+        monkeypatch.delenv("MP_API_KEY", raising=False)
+
+        # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
+        monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", FAKE_MP_API_KEY)
+
+        # create MPRester and check that it picked up the API key from SETTINGS
+        assert MPRester().api_key == FAKE_MP_API_KEY
