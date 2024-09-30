@@ -162,9 +162,7 @@ class MPRester:
 
         """
         # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
-        api_key = (
-            api_key or os.environ.get("MP_API_KEY") or SETTINGS.get("PMG_MAPI_KEY")
-        )
+        api_key = api_key or os.getenv("MP_API_KEY") or SETTINGS.get("PMG_MAPI_KEY")
 
         if api_key and len(api_key) != 32:
             raise ValueError(
@@ -174,7 +172,7 @@ class MPRester:
             )
 
         self.api_key = api_key
-        self.endpoint = endpoint or os.environ.get(
+        self.endpoint = endpoint or os.getenv(
             "MP_API_ENDPOINT", "https://api.materialsproject.org/"
         )
         self.headers = headers or {}

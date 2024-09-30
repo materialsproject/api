@@ -48,10 +48,8 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
 
 # TODO: think about how to migrate from PMG_MAPI_KEY
-DEFAULT_API_KEY = os.environ.get("MP_API_KEY", None)
-DEFAULT_ENDPOINT = os.environ.get(
-    "MP_API_ENDPOINT", "https://api.materialsproject.org/"
-)
+DEFAULT_API_KEY = os.getenv("MP_API_KEY")
+DEFAULT_ENDPOINT = os.getenv("MP_API_ENDPOINT", "https://api.materialsproject.org/")
 
 settings = MAPIClientSettings()  # type: ignore
 

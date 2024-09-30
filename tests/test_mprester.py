@@ -348,7 +348,7 @@ class TestMPRester:
         assert MPRester().api_key == self.fake_mp_api_key
         assert MPRester().endpoint == self.default_endpoint
 
-    def test_get_api_key_from_settings(self, monkeypatch: pytest.MonkeyPatch):
+    def test_get_api_key_endpoint_from_settings(self, monkeypatch: pytest.MonkeyPatch):
         """Test environment variable "MP_API_KEY" is not set and
         get "PMG_MAPI_KEY" from "SETTINGS".
         """
@@ -359,7 +359,7 @@ class TestMPRester:
 
         assert MPRester().api_key == self.fake_mp_api_key
 
-    def test_get_default_endpoint_api_key(self, monkeypatch: pytest.MonkeyPatch):
+    def test_get_default_api_key_endpoint(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.delenv("MP_API_ENDPOINT", raising=False)
         assert MPRester().endpoint == self.default_endpoint
 
