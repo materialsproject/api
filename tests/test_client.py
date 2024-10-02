@@ -60,16 +60,12 @@ def test_generic_get_methods(rester):
         endpoint=mpr.endpoint,
         include_user_agent=True,
         session=mpr.session,
-        monty_decode=True
-        if rester not in [TaskRester, ProvenanceRester]  # type: ignore
-        else False,  # Disable monty decode on nested data which may give errors
+        # Disable monty decode on nested data which may give errors
+        monty_decode=rester not in [TaskRester, ProvenanceRester],
         use_document_model=True,
     )
 
     if name not in ignore_generic:
-        warnings.filterwarnings(
-            "ignore", "get_data_by_id is deprecated", DeprecationWarning
-        )
         if name not in key_only_resters:
             doc = rester._query_resource_data(
                 {"_limit": 1}, fields=[rester.primary_key]
