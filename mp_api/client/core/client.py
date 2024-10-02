@@ -178,9 +178,9 @@ class BaseRester(Generic[T]):
             mp_api_info = "mp-api/" + __version__ if __version__ else None
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
-            session.headers["user-agent"] = (
-                f"{mp_api_info} ({python_info} {platform_info})"
-            )
+            session.headers[
+                "user-agent"
+            ] = f"{mp_api_info} ({python_info} {platform_info})"
 
         settings = MAPIClientSettings()  # type: ignore
         max_retry_num = settings.MAX_RETRIES
