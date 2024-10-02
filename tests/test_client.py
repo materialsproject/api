@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import pytest
 
@@ -66,6 +67,9 @@ def test_generic_get_methods(rester):
     )
 
     if name not in ignore_generic:
+        warnings.filterwarnings(
+            "ignore", "get_data_by_id is deprecated", DeprecationWarning
+        )
         if name not in key_only_resters:
             doc = rester._query_resource_data(
                 {"_limit": 1}, fields=[rester.primary_key]
