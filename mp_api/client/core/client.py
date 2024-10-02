@@ -111,10 +111,9 @@ class BaseRester(Generic[T]):
         """
         # TODO: think about how to migrate from PMG_MAPI_KEY
         self.api_key = api_key or os.getenv("MP_API_KEY")
-        self.base_endpoint = endpoint or os.getenv(
+        self.base_endpoint = self.endpoint = endpoint or os.getenv(
             "MP_API_ENDPOINT", "https://api.materialsproject.org/"
         )
-        self.endpoint = self.endpoint
         self.debug = debug
         self.include_user_agent = include_user_agent
         self.monty_decode = monty_decode
@@ -179,9 +178,9 @@ class BaseRester(Generic[T]):
             mp_api_info = "mp-api/" + __version__ if __version__ else None
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
-            session.headers[
-                "user-agent"
-            ] = f"{mp_api_info} ({python_info} {platform_info})"
+            session.headers["user-agent"] = (
+                f"{mp_api_info} ({python_info} {platform_info})"
+            )
 
         settings = MAPIClientSettings()  # type: ignore
         max_retry_num = settings.MAX_RETRIES
