@@ -6,7 +6,7 @@ import os
 import warnings
 from functools import cache, lru_cache
 from json import loads
-from typing import Literal
+from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
@@ -60,19 +60,12 @@ from mp_api.client.routes.materials import (
 from mp_api.client.routes.materials.materials import MaterialsRester
 from mp_api.client.routes.molecules import MoleculeRester
 
-_DEPRECATION_WARNING = (
-    "MPRester is being modernized. Please use the new method suggested and "
-    "read more about these changes at https://docs.materialsproject.org/api. The current "
-    "methods will be retained until at least January 2022 for backwards compatibility."
-)
+if TYPE_CHECKING:
+    from typing import Literal
 
-_EMMET_SETTINGS = EmmetSettings()  # type: ignore
-_MAPI_SETTINGS = MAPIClientSettings()  # typeL ignore # type: ignore
 
-DEFAULT_API_KEY = os.environ.get("MP_API_KEY", None)
-DEFAULT_ENDPOINT = os.environ.get(
-    "MP_API_ENDPOINT", "https://api.materialsproject.org/"
-)
+_EMMET_SETTINGS = EmmetSettings()
+_MAPI_SETTINGS = MAPIClientSettings()
 
 
 class MPRester:
@@ -124,7 +117,7 @@ class MPRester:
     def __init__(
         self,
         api_key: str | None = None,
-        endpoint: str = DEFAULT_ENDPOINT,
+        endpoint: str | None = None,
         notify_db_version: bool = False,
         include_user_agent: bool = True,
         monty_decode: bool = True,
@@ -143,10 +136,10 @@ class MPRester:
                 If so, it will use that environment variable. This makes
                 easier for heavy users to simply add this environment variable to
                 their setups and MPRester can then be called without any arguments.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST
+            endpoint (str): URL of endpoint to access the MaterialsProject REST
                 interface. Defaults to the standard Materials Project REST
                 address at "https://api.materialsproject.org", but
-                can be changed to other urls implementing a similar interface.
+                can be changed to other URLs implementing a similar interface.
             notify_db_version (bool): If True, the current MP database version will
                 be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
                 version changes, you will be notified. The current database version is
@@ -169,7 +162,7 @@ class MPRester:
 
         """
         # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
-        api_key = api_key or DEFAULT_API_KEY or SETTINGS.get("PMG_MAPI_KEY")
+        api_key = api_key or os.getenv("MP_API_KEY") or SETTINGS.get("PMG_MAPI_KEY")
 
         if api_key and len(api_key) != 32:
             raise ValueError(
@@ -179,7 +172,9 @@ class MPRester:
             )
 
         self.api_key = api_key
-        self.endpoint = endpoint
+        self.endpoint = endpoint or os.getenv(
+            "MP_API_ENDPOINT", "https://api.materialsproject.org/"
+        )
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
             api_key=self.api_key,
@@ -257,7 +252,7 @@ class MPRester:
         core_resters = {
             cls.suffix.split("/")[0]: cls(
                 api_key=api_key,
-                endpoint=endpoint,
+                endpoint=self.endpoint,
                 include_user_agent=include_user_agent,
                 session=self.session,
                 monty_decode=monty_decode,
@@ -280,7 +275,7 @@ class MPRester:
                 if len(suffix_split) == 1:
                     rester = cls(
                         api_key=api_key,
-                        endpoint=endpoint,
+                        endpoint=self.endpoint,
                         include_user_agent=include_user_agent,
                         session=self.session,
                         monty_decode=monty_decode
@@ -310,7 +305,7 @@ class MPRester:
                 cls = _rester_map[_attr]
                 rester = cls(
                     api_key=api_key,
-                    endpoint=endpoint,
+                    endpoint=self.endpoint,
                     include_user_agent=include_user_agent,
                     session=self.session,
                     monty_decode=monty_decode

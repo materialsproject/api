@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import pytest
 
@@ -49,9 +50,7 @@ resters_to_test = [
 ]
 
 
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 @pytest.mark.parametrize("rester", resters_to_test)
 def test_generic_get_methods(rester):
     # -- Test generic search and get_data_by_id methods
@@ -61,9 +60,8 @@ def test_generic_get_methods(rester):
         endpoint=mpr.endpoint,
         include_user_agent=True,
         session=mpr.session,
-        monty_decode=True
-        if rester not in [TaskRester, ProvenanceRester]  # type: ignore
-        else False,  # Disable monty decode on nested data which may give errors
+        # Disable monty decode on nested data which may give errors
+        monty_decode=rester not in [TaskRester, ProvenanceRester],
         use_document_model=True,
     )
 
@@ -85,7 +83,3 @@ def test_generic_get_methods(rester):
                 key_only_resters[name], fields=[rester.primary_key]
             )
             assert isinstance(doc, rester.document_model)
-
-
-if os.getenv("MP_API_KEY", None) is None:
-    pytest.mark.skip(test_generic_get_methods)

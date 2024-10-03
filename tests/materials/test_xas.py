@@ -44,9 +44,7 @@ custom_field_tests = {
 
 
 @pytest.mark.skip(reason="Temp skip until timeout update.")
-@pytest.mark.skipif(
-    os.environ.get("MP_API_KEY", None) is None, reason="No API key found."
-)
+@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
 

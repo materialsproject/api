@@ -1,6 +1,7 @@
 import itertools
 import os
 import random
+import importlib
 
 import numpy as np
 import pytest
@@ -9,6 +10,7 @@ from emmet.core.vasp.calc_types import CalcType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
 from pymatgen.analysis.wulff import WulffShape
+from pymatgen.core import SETTINGS
 from pymatgen.core.ion import Ion
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.bandstructure import (
@@ -24,9 +26,8 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import PhononDos
 
 from mp_api.client import MPRester
+from mp_api.client.core.client import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
-
-os.environ["MP_API_KEY"] = "test"
 
 
 @pytest.fixture()
@@ -38,15 +39,18 @@ def mpr():
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
 class TestMPRester:
+    fake_mp_api_key = "12345678901234567890123456789012"  # 32 chars
+    default_endpoint = "https://api.materialsproject.org/"
+
     def test_get_structure_by_material_id(self, mpr):
-        s1 = mpr.get_structure_by_material_id("mp-149")
-        assert s1.formula == "Si2"
+        s0 = mpr.get_structure_by_material_id("mp-149")
+        assert s0.formula == "Si2"
 
         s1 = mpr.get_structure_by_material_id("mp-4163", conventional_unit_cell=True)
         assert s1.formula == "Ca12 Ti8 O28"
 
-        s1 = mpr.get_structure_by_material_id("mp-149", final=False)
-        assert {s.formula for s in s1} == {"Si2"}
+        s2 = mpr.get_structure_by_material_id("mp-149", final=False)
+        assert {s.formula for s in s2} == {"Si2"}
 
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
@@ -326,16 +330,44 @@ class TestMPRester:
         docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
         assert len(docs) == 10000
 
+    def test_get_api_key_endpoint_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
+        """Ensure the MP_API_KEY and MP_API_ENDPOINT from environment variable
+        is retrieved at runtime, not import time.
+        """
+        # Mock an invalid key and endpoint set before import MPRester
+        import mp_api.client
 
-def test_pmg_api_key(monkeypatch: pytest.MonkeyPatch):
-    from pymatgen.core import SETTINGS
+        monkeypatch.setenv("MP_API_ENDPOINT", "INVALID ENDPOINT")
+        monkeypatch.setenv("MP_API_KEY", "INVALID KEY")
 
-    # unset DEFAULT_API_KEY
-    monkeypatch.setattr("mp_api.client.mprester.DEFAULT_API_KEY", None)
+        importlib.reload(mp_api.client)
+        from mp_api.client import MPRester
 
-    fake_api_key = "12345678901234567890123456789012"  # 32 chars
-    # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
-    monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", fake_api_key)
+        monkeypatch.setenv("MP_API_KEY", self.fake_mp_api_key)
+        monkeypatch.setenv("MP_API_ENDPOINT", self.default_endpoint)
+        assert MPRester().api_key == self.fake_mp_api_key
+        assert MPRester().endpoint == self.default_endpoint
 
-    # create MPRester and check that it picked up the API key from pymatgen SETTINGS
-    assert MPRester().api_key == fake_api_key
+    def test_get_api_key_endpoint_from_settings(self, monkeypatch: pytest.MonkeyPatch):
+        """Test environment variable "MP_API_KEY" is not set and
+        get "PMG_MAPI_KEY" from "SETTINGS".
+        """
+        monkeypatch.delenv("MP_API_KEY", raising=False)
+
+        # patch pymatgen.core.SETTINGS to contain PMG_MAPI_KEY
+        monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", self.fake_mp_api_key)
+
+        assert MPRester().api_key == self.fake_mp_api_key
+
+    def test_get_default_api_key_endpoint(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.delenv("MP_API_ENDPOINT", raising=False)
+        assert MPRester().endpoint == self.default_endpoint
+
+        monkeypatch.delenv("MP_API_KEY", raising=False)
+        with pytest.raises(MPRestError, match="No API key found in request"):
+            MPRester().get_structure_by_material_id("mp-149")
+
+    def test_invalid_api_key(self, monkeypatch):
+        monkeypatch.setenv("MP_API_KEY", "INVALID")
+        with pytest.raises(ValueError, match="Keys for the new API are 32 characters"):
+            MPRester().get_structure_by_material_id("mp-149")

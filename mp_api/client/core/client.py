@@ -18,7 +18,7 @@ from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
 from math import ceil
-from typing import Any, Callable, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 from urllib.parse import quote, urljoin
 
 import requests
@@ -42,18 +42,16 @@ try:
 except ImportError:
     boto3 = None
 
+if TYPE_CHECKING:
+    from typing import Any, Callable
+
 try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
 
-# TODO: think about how to migrate from PMG_MAPI_KEY
-DEFAULT_API_KEY = os.environ.get("MP_API_KEY", None)
-DEFAULT_ENDPOINT = os.environ.get(
-    "MP_API_ENDPOINT", "https://api.materialsproject.org/"
-)
 
-settings = MAPIClientSettings()  # type: ignore
+SETTINGS = MAPIClientSettings()  # type: ignore
 
 T = TypeVar("T")
 
@@ -69,7 +67,7 @@ class BaseRester(Generic[T]):
     def __init__(
         self,
         api_key: str | None = None,
-        endpoint: str = DEFAULT_ENDPOINT,
+        endpoint: str | None = None,
         include_user_agent: bool = True,
         session: requests.Session | None = None,
         s3_client: Any | None = None,
@@ -78,7 +76,7 @@ class BaseRester(Generic[T]):
         use_document_model: bool = True,
         timeout: int = 20,
         headers: dict | None = None,
-        mute_progress_bars: bool = settings.MUTE_PROGRESS_BARS,
+        mute_progress_bars: bool = SETTINGS.MUTE_PROGRESS_BARS,
     ):
         """Initialize the REST API helper class.
 
@@ -111,9 +109,11 @@ class BaseRester(Generic[T]):
             headers: Custom headers for localhost connections.
             mute_progress_bars: Whether to disable progress bars.
         """
-        self.api_key = api_key or DEFAULT_API_KEY
-        self.base_endpoint = endpoint
-        self.endpoint = endpoint
+        # TODO: think about how to migrate from PMG_MAPI_KEY
+        self.api_key = api_key or os.getenv("MP_API_KEY")
+        self.base_endpoint = self.endpoint = endpoint or os.getenv(
+            "MP_API_ENDPOINT", "https://api.materialsproject.org/"
+        )
         self.debug = debug
         self.include_user_agent = include_user_agent
         self.monty_decode = monty_decode
