@@ -1,4 +1,6 @@
 import os
+import warnings
+
 import pytest
 
 from mp_api.client import MPRester
@@ -41,7 +43,6 @@ ignore_generic = [
 
 
 mpr = MPRester()
-print(os.getenv("MP_API_KEY"), mpr.api_key, mpr.session.headers)
 
 # Temporarily ignore molecules resters while molecules query operators are changed
 resters_to_test = [
