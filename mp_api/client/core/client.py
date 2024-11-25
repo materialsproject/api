@@ -1061,25 +1061,15 @@ class BaseRester(Generic[T]):
         return data
 
     def _generate_returned_model(self, doc):
+        model_fields = self.document.model_fields
         set_fields = doc.model_fields_set
-
-        unset_fields = [field for field in doc.model_fields if field not in set_fields]
+        unset_fields = [field for field in model_fields if field not in set_fields]
+        include_fields = {name: model_fields.get(name, "") for name in set_fields}
 
         data_model = create_model(  # type: ignore
             "MPDataDoc",
             fields_not_requested=(list[str], unset_fields),
-            __base__=self.document_model,  # type: ignore
-        )
-
-        data_model = data_model.model_copy(
-            update={
-                **{
-                    name: description
-                    for name, description in data_model.model_fields.items()
-                    if name in set_fields
-                },
-                "fields_not_requested": data_model.model_fields["fields_not_requested"],
-            }
+            **include_fields,
         )
 
         def new_repr(self) -> str:
