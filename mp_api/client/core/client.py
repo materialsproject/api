@@ -1080,6 +1080,7 @@ class BaseRester(Generic[T]):
             extra = ",\n".join(
                 f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
                 for n in data_model.model_fields
+                if n == "fields_not_requested" or n in set_fields
             )
 
             s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m(\n{extra}\n)"  # noqa: E501
@@ -1089,7 +1090,7 @@ class BaseRester(Generic[T]):
             extra = ",\n".join(
                 f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
                 for n in data_model.model_fields
-                if n != "fields_not_requested"
+                if n in set_fields
             )
 
             s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m\n{extra}\n\n\033[1mFields not requested:\033[0;0m\n{unset_fields}"  # noqa: E501
