@@ -1064,13 +1064,16 @@ class BaseRester(Generic[T]):
         model_fields = self.document_model.model_fields
         set_fields = doc.model_fields_set
         unset_fields = [field for field in model_fields if field not in set_fields]
-        include_fields = {name: model_fields.get(name, "") for name in set_fields}
+        include_fields = {
+            name: (model_fields[name].annotation, model_fields[name])
+            for name in set_fields
+        }
 
         data_model = create_model(  # type: ignore
             "MPDataDoc",
+            __config__=self.document_model.model_config,
             fields_not_requested=(list[str], unset_fields),
             **include_fields,
-            __base__=self.document_model,
         )
 
         def new_repr(self) -> str:
