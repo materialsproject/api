@@ -1071,14 +1071,16 @@ class BaseRester(Generic[T]):
             __base__=self.document_model,  # type: ignore
         )
 
-        data_model.model_fields = {
-            **{
-                name: description
-                for name, description in data_model.model_fields.items()
-                if name in set_fields
-            },
-            "fields_not_requested": data_model.model_fields["fields_not_requested"],
-        }
+        data_model = data_model.model_copy(
+            update={
+                **{
+                    name: description
+                    for name, description in data_model.model_fields.items()
+                    if name in set_fields
+                },
+                "fields_not_requested": data_model.model_fields["fields_not_requested"],
+            }
+        )
 
         def new_repr(self) -> str:
             extra = ",\n".join(
