@@ -1070,6 +1070,7 @@ class BaseRester(Generic[T]):
             "MPDataDoc",
             fields_not_requested=(list[str], unset_fields),
             **include_fields,
+            __base__=self.document_model,
         )
 
         def new_repr(self) -> str:
