@@ -178,9 +178,8 @@ class BaseRester(Generic[T]):
             mp_api_info = "mp-api/" + __version__ if __version__ else None
             python_info = f"Python/{sys.version.split()[0]}"
             platform_info = f"{platform.system()}/{platform.release()}"
-            session.headers[
-                "user-agent"
-            ] = f"{mp_api_info} ({python_info} {platform_info})"
+            user_agent = f"{mp_api_info} ({python_info} {platform_info})"
+            session.headers["user-agent"] = user_agent
 
         settings = MAPIClientSettings()  # type: ignore
         max_retry_num = settings.MAX_RETRIES
@@ -1062,29 +1061,26 @@ class BaseRester(Generic[T]):
         return data
 
     def _generate_returned_model(self, doc):
+        model_fields = self.document_model.model_fields
         set_fields = doc.model_fields_set
-
-        unset_fields = [field for field in doc.model_fields if field not in set_fields]
+        unset_fields = [field for field in model_fields if field not in set_fields]
+        include_fields = {
+            name: (model_fields[name].annotation, model_fields[name])
+            for name in set_fields
+        }
 
         data_model = create_model(  # type: ignore
             "MPDataDoc",
+            **include_fields,
             fields_not_requested=(list[str], unset_fields),
-            __base__=self.document_model,  # type: ignore
+            __base__=self.document_model,
         )
-
-        data_model.model_fields = {
-            **{
-                name: description
-                for name, description in data_model.model_fields.items()
-                if name in set_fields
-            },
-            "fields_not_requested": data_model.model_fields["fields_not_requested"],
-        }
 
         def new_repr(self) -> str:
             extra = ",\n".join(
                 f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
                 for n in data_model.model_fields
+                if n == "fields_not_requested" or n in set_fields
             )
 
             s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m(\n{extra}\n)"  # noqa: E501
@@ -1094,7 +1090,7 @@ class BaseRester(Generic[T]):
             extra = ",\n".join(
                 f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
                 for n in data_model.model_fields
-                if n != "fields_not_requested"
+                if n in set_fields
             )
 
             s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m\n{extra}\n\n\033[1mFields not requested:\033[0;0m\n{unset_fields}"  # noqa: E501
