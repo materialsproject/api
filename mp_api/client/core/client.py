@@ -1071,9 +1071,9 @@ class BaseRester(Generic[T]):
 
         data_model = create_model(  # type: ignore
             "MPDataDoc",
-            __config__=self.document_model.model_config,
-            fields_not_requested=(list[str], unset_fields),
             **include_fields,
+            fields_not_requested=(list[str], unset_fields),
+            __base__=self.document_model,
         )
 
         def new_repr(self) -> str:
