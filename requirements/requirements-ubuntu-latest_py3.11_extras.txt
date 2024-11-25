@@ -21,15 +21,15 @@ attrs==24.2.0
     #   jsonlines
     #   jsonschema
     #   referencing
-bcrypt==4.2.0
+bcrypt==4.2.1
     # via paramiko
-boltons==24.0.0
+boltons==24.1.0
     # via mpcontribs-client
-boto3==1.35.33
+boto3==1.35.68
     # via
     #   maggma
     #   mp-api (pyproject.toml)
-botocore==1.35.33
+botocore==1.35.68
     # via
     #   boto3
     #   s3transfer
@@ -47,28 +47,28 @@ cffi==1.17.1
     #   pynacl
 cfgv==3.4.0
     # via pre-commit
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via requests
-contourpy==1.3.0
+contourpy==1.3.1
     # via matplotlib
-coverage[toml]==7.6.1
+coverage[toml]==7.6.8
     # via pytest-cov
-cryptography==43.0.1
+cryptography==43.0.3
     # via paramiko
-custodian==2024.6.24
+custodian==2024.10.16
     # via mp-api (pyproject.toml)
 cycler==0.12.1
     # via matplotlib
 decorator==5.1.1
     # via ipython
-distlib==0.3.8
+distlib==0.3.9
     # via virtualenv
-dnspython==2.6.1
+dnspython==2.7.0
     # via
     #   maggma
     #   pyisemail
     #   pymongo
-emmet-core[all]==0.84.3rc0
+emmet-core[all]==0.84.3rc4
     # via
     #   mp-api
     #   mp-api (pyproject.toml)
@@ -84,7 +84,7 @@ flake8==7.1.1
     # via mp-api (pyproject.toml)
 flatten-dict==0.4.2
     # via mpcontribs-client
-fonttools==4.54.1
+fonttools==4.55.0
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
@@ -92,13 +92,13 @@ griddataformats==1.0.2
     # via mdanalysis
 h5py==3.12.1
     # via phonopy
-identify==2.6.1
+identify==2.6.2
     # via pre-commit
 idna==3.10
     # via
     #   jsonschema
     #   requests
-imageio==2.35.1
+imageio==2.36.0
     # via scikit-image
 importlib-resources==6.4.5
     # via swagger-spec-validator
@@ -106,11 +106,11 @@ inflect==7.4.0
     # via robocrys
 iniconfig==2.0.0
     # via pytest
-ipython==8.28.0
+ipython==8.29.0
     # via mpcontribs-client
 isoduration==20.11.0
     # via jsonschema
-jedi==0.19.1
+jedi==0.19.2
     # via ipython
 jmespath==1.0.1
     # via
@@ -136,7 +136,7 @@ jsonschema[format-nongpl]==4.23.0
     #   bravado-core
     #   maggma
     #   swagger-spec-validator
-jsonschema-specifications==2023.12.1
+jsonschema-specifications==2024.10.1
     # via jsonschema
 kiwisolver==1.4.7
     # via matplotlib
@@ -144,18 +144,19 @@ latexcodec==3.0.0
     # via pybtex
 lazy-loader==0.4
     # via scikit-image
-maggma==0.69.4
+maggma==0.70.0
     # via
     #   mp-api
     #   mp-api (pyproject.toml)
 matcalc==0.0.4
     # via emmet-core
-matminer==0.9.2
+matminer==0.9.3
     # via robocrys
 matplotlib==3.9.2
     # via
     #   ase
     #   mdanalysis
+    #   pathsimanalysis
     #   phonopy
     #   pymatgen
     #   seaborn
@@ -166,17 +167,22 @@ mccabe==0.7.0
     # via flake8
 mda-xdrlib==0.2.0
     # via mdanalysis
-mdanalysis==2.7.0
+mdahole2==0.5.0
+    # via mdanalysis
+mdanalysis==2.8.0
     # via
     #   emmet-core
+    #   mdahole2
+    #   pathsimanalysis
     #   solvation-analysis
+    #   waterdynamics
 mmtf-python==1.1.3
     # via mdanalysis
-mongomock==4.2.0.post1
+mongomock==4.3.0
     # via maggma
 monotonic==1.6
     # via bravado
-monty==2024.7.30
+monty==2024.10.21
     # via
     #   custodian
     #   emmet-core
@@ -190,9 +196,9 @@ more-itertools==10.5.0
     # via inflect
 mp-api==0.42.2
     # via robocrys
-mp-pyrho==0.4.4
+mp-pyrho==0.4.5
     # via pymatgen-analysis-defects
-mpcontribs-client==5.8.4
+mpcontribs-client==5.9.0
     # via mp-api (pyproject.toml)
 mpmath==1.3.0
     # via sympy
@@ -206,13 +212,13 @@ msgpack==1.1.0
     #   mmtf-python
     #   mp-api
     #   mp-api (pyproject.toml)
-mypy==1.11.2
+mypy==1.13.0
     # via mp-api (pyproject.toml)
 mypy-extensions==1.0.0
     # via
     #   mp-api (pyproject.toml)
     #   mypy
-networkx==3.3
+networkx==3.4.2
     # via
     #   pymatgen
     #   robocrys
@@ -231,9 +237,11 @@ numpy==1.26.4
     #   matminer
     #   matplotlib
     #   mdanalysis
+    #   monty
     #   mpcontribs-client
     #   mrcfile
     #   pandas
+    #   pathsimanalysis
     #   patsy
     #   phonopy
     #   pymatgen
@@ -250,10 +258,12 @@ numpy==1.26.4
     #   solvation-analysis
     #   spglib
     #   statsmodels
+    #   symfc
     #   tifffile
-orjson==3.10.7
+    #   waterdynamics
+orjson==3.10.12
     # via maggma
-packaging==24.1
+packaging==24.2
     # via
     #   lazy-loader
     #   matplotlib
@@ -278,13 +288,15 @@ paramiko==3.5.0
     # via sshtunnel
 parso==0.8.4
     # via jedi
-patsy==0.5.6
+pathsimanalysis==1.2.0
+    # via mdanalysis
+patsy==1.0.1
     # via statsmodels
 pexpect==4.9.0
     # via ipython
-phonopy==2.28.0
+phonopy==2.31.0
     # via matcalc
-pillow==10.4.0
+pillow==11.0.0
     # via
     #   imageio
     #   matplotlib
@@ -301,11 +313,11 @@ plotly==5.24.1
     #   solvation-analysis
 pluggy==1.5.0
     # via pytest
-pre-commit==3.8.0
+pre-commit==4.0.1
     # via mp-api (pyproject.toml)
 prompt-toolkit==3.0.48
     # via ipython
-psutil==6.0.0
+psutil==6.1.0
     # via custodian
 ptyprocess==0.7.0
     # via pexpect
@@ -324,18 +336,18 @@ pycodestyle==2.12.1
     #   mp-api (pyproject.toml)
 pycparser==2.22
     # via cffi
-pydantic==2.9.2
+pydantic==2.10.1
     # via
     #   emmet-core
     #   maggma
     #   pydantic-settings
-pydantic-core==2.23.4
+pydantic-core==2.27.1
     # via pydantic
-pydantic-settings==2.5.2
+pydantic-settings==2.6.1
     # via
     #   emmet-core
     #   maggma
-pydash==8.0.3
+pydash==8.0.4
     # via maggma
 pyflakes==3.2.0
     # via flake8
@@ -343,7 +355,7 @@ pygments==2.18.0
     # via ipython
 pyisemail==2.0.1
     # via mpcontribs-client
-pymatgen==2024.10.3
+pymatgen==2024.11.13
     # via
     #   emmet-core
     #   matcalc
@@ -356,9 +368,9 @@ pymatgen==2024.10.3
     #   pymatgen-analysis-defects
     #   pymatgen-analysis-diffusion
     #   robocrys
-pymatgen-analysis-alloys==0.0.6
+pymatgen-analysis-alloys==0.0.7
     # via emmet-core
-pymatgen-analysis-defects==2024.7.19
+pymatgen-analysis-defects==2024.10.22
     # via emmet-core
 pymatgen-analysis-diffusion==2024.7.15
     # via emmet-core
@@ -369,7 +381,7 @@ pymongo==4.10.1
     #   mpcontribs-client
 pynacl==1.5.0
     # via paramiko
-pyparsing==3.1.4
+pyparsing==3.2.0
     # via matplotlib
 pytest==8.3.3
     # via
@@ -380,7 +392,7 @@ pytest==8.3.3
     #   solvation-analysis
 pytest-asyncio==0.24.0
     # via mp-api (pyproject.toml)
-pytest-cov==5.0.0
+pytest-cov==6.0.0
     # via mp-api (pyproject.toml)
 pytest-mock==3.14.0
     # via mp-api (pyproject.toml)
@@ -410,7 +422,7 @@ pyyaml==6.0.2
     #   swagger-spec-validator
 pyzmq==26.2.0
     # via maggma
-rdkit==2024.3.5
+rdkit==2024.3.6
     # via solvation-analysis
 referencing==0.35.1
     # via
@@ -425,15 +437,15 @@ requests==2.32.3
     #   mp-api (pyproject.toml)
     #   pymatgen
     #   requests-futures
-requests-futures==1.0.1
+requests-futures==1.0.2
     # via mpcontribs-client
 rfc3339-validator==0.1.4
     # via jsonschema
 rfc3986-validator==0.1.1
     # via jsonschema
-robocrys==0.2.9
+robocrys==0.2.10
     # via emmet-core
-rpds-py==0.20.0
+rpds-py==0.21.0
     # via
     #   jsonschema
     #   referencing
@@ -441,11 +453,12 @@ ruamel-yaml==0.18.6
     # via
     #   custodian
     #   maggma
+    #   monty
     #   pymatgen
     #   robocrys
-ruamel-yaml-clib==0.2.8
+ruamel-yaml-clib==0.2.12
     # via ruamel-yaml
-s3transfer==0.10.2
+s3transfer==0.10.4
     # via boto3
 scikit-image==0.24.0
     # via pymatgen-analysis-defects
@@ -456,12 +469,15 @@ scipy==1.14.1
     #   ase
     #   griddataformats
     #   mdanalysis
+    #   pathsimanalysis
+    #   phonopy
     #   pymatgen
     #   robocrys
     #   scikit-image
     #   scikit-learn
     #   solvation-analysis
     #   statsmodels
+    #   symfc
 seaborn==0.13.2
     # via pymatgen-analysis-diffusion
 seekpath==2.1.0
@@ -482,11 +498,10 @@ six==1.16.0
     #   bravado
     #   bravado-core
     #   flatten-dict
-    #   patsy
     #   pybtex
     #   python-dateutil
     #   rfc3339-validator
-smart-open==7.0.4
+smart-open==7.0.5
     # via
     #   mp-api
     #   mp-api (pyproject.toml)
@@ -498,6 +513,7 @@ spglib==2.5.0
     #   pymatgen
     #   robocrys
     #   seekpath
+    #   symfc
 sshtunnel==0.4.0
     # via maggma
 stack-data==0.6.3
@@ -508,6 +524,8 @@ swagger-spec-validator==3.0.4
     # via
     #   bravado-core
     #   mpcontribs-client
+symfc==1.1.6
+    # via phonopy
 sympy==1.13.3
     # via
     #   matminer
@@ -522,7 +540,7 @@ threadpoolctl==3.5.0
     #   scikit-learn
 tifffile==2024.9.20
     # via scikit-image
-tqdm==4.66.5
+tqdm==4.67.1
     # via
     #   maggma
     #   matminer
@@ -533,13 +551,13 @@ traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-typeguard==4.3.0
+typeguard==4.4.1
     # via inflect
 types-python-dateutil==2.9.0.20241003
     # via arrow
-types-requests==2.32.0.20240914
+types-requests==2.32.0.20241016
     # via mp-api (pyproject.toml)
-types-setuptools==75.1.0.20240917
+types-setuptools==75.5.0.20241122
     # via mp-api (pyproject.toml)
 typing-extensions==4.12.2
     # via
@@ -567,13 +585,15 @@ urllib3==2.2.3
     #   botocore
     #   requests
     #   types-requests
-virtualenv==20.26.6
+virtualenv==20.27.1
     # via pre-commit
+waterdynamics==1.2.0
+    # via mdanalysis
 wcwidth==0.2.13
     # via prompt-toolkit
-webcolors==24.8.0
+webcolors==24.11.1
     # via jsonschema
-wrapt==1.16.0
+wrapt==1.17.0
     # via smart-open
 
 # The following packages are considered to be unsafe in a requirements file:
