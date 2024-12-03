@@ -470,6 +470,7 @@ class BaseRester(Generic[T]):
             and num_chunks is None
             and "substrates" not in self.suffix
             and "phonon" not in self.suffix
+            and "molecules" not in self.suffix
         )
 
         if fields:
