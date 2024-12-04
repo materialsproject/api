@@ -15,9 +15,9 @@ attrs==24.2.0
     #   referencing
 bcrypt==4.2.1
     # via paramiko
-boto3==1.35.72
+boto3==1.35.75
     # via maggma
-botocore==1.35.72
+botocore==1.35.75
     # via
     #   boto3
     #   s3transfer
@@ -39,9 +39,9 @@ dnspython==2.7.0
     # via
     #   maggma
     #   pymongo
-emmet-core==0.84.3rc4
+emmet-core==0.84.3rc6
     # via mp-api (pyproject.toml)
-fonttools==4.55.0
+fonttools==4.55.1
     # via matplotlib
 idna==3.10
     # via requests
@@ -117,7 +117,7 @@ pybtex==0.24.0
     #   pymatgen
 pycparser==2.22
     # via cffi
-pydantic==2.10.2
+pydantic==2.10.3
     # via
     #   emmet-core
     #   maggma
@@ -164,7 +164,7 @@ requests==2.32.3
     # via
     #   mp-api (pyproject.toml)
     #   pymatgen
-rpds-py==0.22.0
+rpds-py==0.22.3
     # via
     #   jsonschema
     #   referencing
@@ -181,7 +181,7 @@ scipy==1.14.1
     # via pymatgen
 sentinels==1.0.0
     # via mongomock
-six==1.16.0
+six==1.17.0
     # via
     #   pybtex
     #   python-dateutil
