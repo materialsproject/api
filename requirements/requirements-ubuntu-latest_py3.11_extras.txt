@@ -25,11 +25,11 @@ bcrypt==4.2.1
     # via paramiko
 boltons==24.1.0
     # via mpcontribs-client
-boto3==1.35.72
+boto3==1.35.75
     # via
     #   maggma
     #   mp-api (pyproject.toml)
-botocore==1.35.72
+botocore==1.35.75
     # via
     #   boto3
     #   s3transfer
@@ -68,7 +68,7 @@ dnspython==2.7.0
     #   maggma
     #   pyisemail
     #   pymongo
-emmet-core[all]==0.84.3rc4
+emmet-core[all]==0.84.3rc6
     # via
     #   mp-api
     #   mp-api (pyproject.toml)
@@ -84,7 +84,7 @@ flake8==7.1.1
     # via mp-api (pyproject.toml)
 flatten-dict==0.4.2
     # via mpcontribs-client
-fonttools==4.55.0
+fonttools==4.55.1
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
@@ -336,7 +336,7 @@ pycodestyle==2.12.1
     #   mp-api (pyproject.toml)
 pycparser==2.22
     # via cffi
-pydantic==2.10.2
+pydantic==2.10.3
     # via
     #   emmet-core
     #   maggma
@@ -445,7 +445,7 @@ rfc3986-validator==0.1.1
     # via jsonschema
 robocrys==0.2.10
     # via emmet-core
-rpds-py==0.22.0
+rpds-py==0.22.3
     # via
     #   jsonschema
     #   referencing
@@ -492,7 +492,7 @@ simplejson==3.19.3
     # via
     #   bravado
     #   bravado-core
-six==1.16.0
+six==1.17.0
     # via
     #   bravado
     #   bravado-core
