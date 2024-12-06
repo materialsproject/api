@@ -255,8 +255,8 @@ class MPRester:
                 endpoint=self.endpoint,
                 include_user_agent=include_user_agent,
                 session=self.session,
-                monty_decode=monty_decode,
-                use_document_model=use_document_model,
+                monty_decode=self.monty_decode,
+                use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
             )
@@ -275,14 +275,14 @@ class MPRester:
                 if len(suffix_split) == 1:
                     # Disable monty decode on nested data which may give errors
                     monty_disable = cls in [TaskRester, ProvenanceRester]
-                    monty_decode = False if monty_disable else monty_decode
+                    monty_decode = False if monty_disable else self.monty_decode
                     rester = cls(
                         api_key=api_key,
                         endpoint=self.endpoint,
                         include_user_agent=include_user_agent,
                         session=self.session,
                         monty_decode=monty_decode,
-                        use_document_model=use_document_model,
+                        use_document_model=self.use_document_model,
                         headers=self.headers,
                         mute_progress_bars=self.mute_progress_bars,
                     )  # type: BaseRester
@@ -305,14 +305,14 @@ class MPRester:
             if _attr in _rester_map:
                 cls = _rester_map[_attr]
                 monty_disable = cls in [TaskRester, ProvenanceRester]
-                monty_decode = False if monty_disable else monty_decode
+                monty_decode = False if monty_disable else self.monty_decode
                 rester = cls(
                     api_key=api_key,
                     endpoint=self.endpoint,
                     include_user_agent=include_user_agent,
                     session=self.session,
                     monty_decode=monty_decode,
-                    use_document_model=use_document_model,
+                    use_document_model=self.use_document_model,
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
                 )  # type: BaseRester
