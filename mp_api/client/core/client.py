@@ -524,6 +524,7 @@ class BaseRester(Generic[T]):
                         "fields": fields,
                     }
                     for key in keys
+                    if "manifest" not in key
                 }
 
                 # Setup progress bar
