@@ -273,14 +273,15 @@ class MPRester:
                 suffix_split = cls.suffix.split("/")
 
                 if len(suffix_split) == 1:
+                    # Disable monty decode on nested data which may give errors
+                    monty_disable = cls in [TaskRester, ProvenanceRester]
+                    monty_decode = False if monty_disable else monty_decode
                     rester = cls(
                         api_key=api_key,
                         endpoint=self.endpoint,
                         include_user_agent=include_user_agent,
                         session=self.session,
-                        monty_decode=monty_decode
-                        if cls not in [TaskRester, ProvenanceRester]  # type: ignore
-                        else False,  # Disable monty decode on nested data which may give errors
+                        monty_decode=monty_decode,
                         use_document_model=use_document_model,
                         headers=self.headers,
                         mute_progress_bars=self.mute_progress_bars,
@@ -303,14 +304,14 @@ class MPRester:
         def __core_custom_getattr(_self, _attr, _rester_map):
             if _attr in _rester_map:
                 cls = _rester_map[_attr]
+                monty_disable = cls in [TaskRester, ProvenanceRester]
+                monty_decode = False if monty_disable else monty_decode
                 rester = cls(
                     api_key=api_key,
                     endpoint=self.endpoint,
                     include_user_agent=include_user_agent,
                     session=self.session,
-                    monty_decode=monty_decode
-                    if cls not in [TaskRester, ProvenanceRester]  # type: ignore
-                    else False,  # Disable monty decode on nested data which may give errors
+                    monty_decode=monty_decode,
                     use_document_model=use_document_model,
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
@@ -1359,9 +1360,11 @@ class MPRester:
 
         latest_doc = max(  # type: ignore
             results,
-            key=lambda x: x.last_updated  # type: ignore
-            if self.use_document_model
-            else x["last_updated"],  # type: ignore
+            key=lambda x: (
+                x.last_updated  # type: ignore
+                if self.use_document_model
+                else x["last_updated"]
+            ),  # type: ignore
         )
         task_id = (
             latest_doc.task_id if self.use_document_model else latest_doc["task_id"]
