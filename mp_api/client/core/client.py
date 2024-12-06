@@ -487,26 +487,20 @@ class BaseRester(Generic[T]):
 
             if query_s3:
                 db_version = self.db_version.replace(".", "-")
-
-                suffix = (
-                    self.suffix.split("/")[-1]
-                    if "core" not in self.suffix
-                    else self.suffix.split("/")[0]
-                )
-                suffix = suffix.replace("_", "-")
+                if self.suffix == "molecules/summary":
+                    suffix = "molecules"
+                else:
+                    infix, suffix = self.suffix.split("/", 1)
+                    suffix = infix if suffix == "core" else suffix
+                    suffix = suffix.replace("_", "-")
 
                 # Paginate over all entries in the bucket.
                 # This will have to change for when a subset of entries from
                 # the DB is needed.
                 is_tasks = "tasks" in suffix
-                bucket = (
-                    "materialsproject-build"
-                    if not is_tasks
-                    else "materialsproject-parsed"
-                )
-                prefix = (
-                    f"{suffix}" if is_tasks else f"collections/{db_version}/{suffix}"
-                )
+                bucket_suffix = "parsed" if is_tasks else "build"
+                bucket = f"materialsproject-{bucket_suffix}"
+                prefix = suffix if is_tasks else f"collections/{db_version}/{suffix}"
                 paginator = self.s3_client.get_paginator("list_objects_v2")
                 pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
 
