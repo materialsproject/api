@@ -200,3 +200,7 @@ class AssociatedMoleculeRester(BaseMoleculeRester):
 
 class MoleculeRester(BaseMoleculeRester):
     suffix = "molecules/core"
+    _sub_resters = ["summary", "jcesr"]
+
+    def __dir__(self):
+        return dir(MoleculeRester) + self._sub_resters
