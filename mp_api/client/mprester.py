@@ -396,15 +396,6 @@ class MPRester:
                 f"{self.__class__.__name__!r} object has no attribute {attr!r}"
             )
 
-    def __getattribute__(self, attr):
-        if "jcesr" in attr:
-            warnings.warn(
-                "NOTE: You are accessing the unmaintained legacy molecules data, "
-                "please use MPRester.molecules.summary."
-            )
-
-        return super().__getattribute__(attr)
-
     def __dir__(self):
         return dir(MPRester) + self._deprecated_attributes + ["materials", "molecules"]
 
