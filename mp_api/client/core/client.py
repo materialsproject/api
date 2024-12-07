@@ -504,7 +504,7 @@ class BaseRester(Generic[T]):
 
                 if fields:
                     warnings.warn(
-                        "Ignoring `fields` argument: All fields are always included when downloading full collections."
+                        "Ignoring `fields` argument: All fields are always included when no query is provided."
                     )
 
                 decoder = (
