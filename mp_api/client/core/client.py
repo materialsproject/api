@@ -375,7 +375,10 @@ class BaseRester(Generic[T]):
             raise MPRestError(str(ex))
 
     def _query_open_data(
-        self, bucket: str, key: str, decoder: Callable, fields: list[str]
+        self,
+        bucket: str,
+        key: str,
+        decoder: Callable,
     ) -> tuple[list[dict] | list[bytes], int]:
         """Query and deserialize Materials Project AWS open data s3 buckets.
 
@@ -383,7 +386,6 @@ class BaseRester(Generic[T]):
             bucket (str): Materials project bucket name
             key (str): Key for file including all prefixes
             decoder(Callable): Callable used to deserialize data
-            fields (list[str]): List of fields to project out of the retrieved data
 
         Returns:
             dict: MontyDecoded data
@@ -398,19 +400,10 @@ class BaseRester(Generic[T]):
             decoded_data = [decoder(jline) for jline in file.read().splitlines()]
         else:
             decoded_data = decoder(file.read())
+            if not isinstance(decoded_data, list):
+                decoded_data = [decoded_data]
 
-        decoded_data = (
-            [decoded_data] if not isinstance(decoded_data, list) else decoded_data
-        )
-
-        unzipped_data = []
-        for doc in decoded_data:
-            if fields:
-                doc = {key: value for key, value in doc.items() if key in fields}
-
-            unzipped_data.append(doc)
-
-        return unzipped_data, len(unzipped_data)  # type: ignore
+        return decoded_data, len(decoded_data)  # type: ignore
 
     def _query_resource(
         self,
@@ -456,16 +449,8 @@ class BaseRester(Generic[T]):
             criteria = {}
 
         # Query s3 if no query is passed and all documents are asked for
-        query_s3 = (
-            not bool(
-                {
-                    field
-                    for field in criteria
-                    if field[0] != "_" and field != "deprecated"
-                }
-            )
-            and num_chunks is None
-        )
+        no_query = not {field for field in criteria if field[0] != "_"}
+        query_s3 = no_query and num_chunks is None
 
         if fields:
             if isinstance(fields, str):
@@ -517,6 +502,11 @@ class BaseRester(Generic[T]):
                         timeout=timeout,
                     )
 
+                if fields:
+                    warnings.warn(
+                        "Ignoring `fields` argument: All fields are always included when downloading full collections."
+                    )
+
                 decoder = (
                     MontyDecoder().decode if self.monty_decode else json_util.loads
                 )
@@ -527,7 +517,6 @@ class BaseRester(Generic[T]):
                         "bucket": bucket,
                         "key": key,
                         "decoder": decoder,
-                        "fields": fields,
                     }
                     for key in keys
                 }
