@@ -506,7 +506,7 @@ class BaseRester(Generic[T]):
                 for page in pages:
                     for obj in page.get("Contents", []):
                         key = obj.get("Key")
-                        if key:
+                        if key and "manifest" not in key:
                             keys.append(key)
 
                 if len(keys) < 1:
@@ -533,7 +533,6 @@ class BaseRester(Generic[T]):
                         "fields": fields,
                     }
                     for key in keys
-                    if "manifest" not in key
                 }
 
                 # Setup progress bar
@@ -948,6 +947,7 @@ class BaseRester(Generic[T]):
                         else:
                             size = 1
                         progress_bar.update(size)
+
                     return_data.append((data, subtotal, future.crit_ind))  # type: ignore
 
                 # Populate more futures to replace finished
