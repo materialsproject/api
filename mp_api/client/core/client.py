@@ -468,8 +468,6 @@ class BaseRester(Generic[T]):
                 }
             )
             and num_chunks is None
-            and "substrates" not in self.suffix
-            and "phonon" not in self.suffix
         )
 
         if fields:
@@ -506,10 +504,21 @@ class BaseRester(Generic[T]):
 
                 keys = []
                 for page in pages:
-                    for obj in page["Contents"]:
+                    for obj in page.get("Contents", []):
                         key = obj.get("Key")
                         if key:
                             keys.append(key)
+
+                if len(keys) < 1:
+                    self._submit_requests(
+                        url=url,
+                        criteria=criteria,
+                        use_document_model=use_document_model,
+                        parallel_param=parallel_param,
+                        num_chunks=num_chunks,
+                        chunk_size=chunk_size,
+                        timeout=timeout,
+                    )
 
                 decoder = (
                     MontyDecoder().decode if self.monty_decode else json_util.loads
