@@ -449,6 +449,7 @@ class BaseRester(Generic[T]):
             criteria = {}
 
         # Query s3 if no query is passed and all documents are asked for
+        # TODO also skip fields set to same as their default
         no_query = not {field for field in criteria if field[0] != "_"}
         query_s3 = no_query and num_chunks is None
 
@@ -492,7 +493,7 @@ class BaseRester(Generic[T]):
                             keys.append(key)
 
                 if len(keys) < 1:
-                    self._submit_requests(
+                    return self._submit_requests(
                         url=url,
                         criteria=criteria,
                         use_document_model=use_document_model,
