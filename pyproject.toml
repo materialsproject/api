@@ -26,7 +26,7 @@ dependencies = [
   "pymatgen>=2022.3.7,!=2024.2.20",
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
-  "monty>=2023.9.25",
+  "monty>=2024.12.10",
   "emmet-core>=0.78.0rc3",
   "smart_open",
 ]
