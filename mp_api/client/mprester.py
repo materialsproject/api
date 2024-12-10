@@ -62,6 +62,7 @@ from mp_api.client.routes.molecules import MoleculeRester
 
 if TYPE_CHECKING:
     from typing import Literal
+    from pymatgen.core import Composition
 
 
 _EMMET_SETTINGS = EmmetSettings()
@@ -1477,3 +1478,73 @@ class MPRester:
             please see the new documentation.
             """
         )
+
+    def get_cohesive_energy_by_material_id(self, material_id : MPID | str | list[MPID | str]) -> float:
+        
+        if isinstance(material_id, MPID | str):
+            material_id = [material_id]
+
+        mat_info = self.materials.search(
+            material_ids=material_id,
+            fields=["origins","composition","material_id"]
+        )
+
+        mpid_to_task_id = {}
+        for mat_doc in mat_info:
+            for prop in mat_doc.origins:
+                if prop.name.lower() in {"energy","structure",}:
+                    mpid_to_task_id[mat_doc.material_id] = prop.task_id
+                    break
+        task_id_to_mpid = {v : k for k, v in mpid_to_task_id.items()}
+
+        tasks = self.tasks.search(
+            task_ids = list(task_id_to_mpid),
+            fields=["run_type","output.structure","output.energy","calcs_reversed","task_id"]
+        )
+
+        atomic_energies = self.get_atom_reference_data()
+
+        e_coh_per_atom = {}
+        for task in tasks:
+            run_type = str(task.run_type or TaskDoc._get_run_type(task.calcs_reversed))
+            if run_type in {"GGA","GGA+U"}:
+                dfa = "PBE"
+            elif run_type in {"r2SCAN","r2SCAN+U"}:
+                dfa = "r2SCAN"
+            else:
+                warnings.warn(f"No reference atomic energies for run type {run_type} available (task {task.task_id}, material {task_id_to_mpid[task.task_id]})!")
+                continue
+
+            structure = task.output.structure or task.calcs_reversed[0].output.structure
+            energy = task.output.energy or task.calcs_reversed[0].output.energy
+
+            if structure is not None and energy is not None:
+                e_coh_per_atom[task_id_to_mpid[task.task_id]] = self._get_cohesive_energy_per_atom(
+                    structure.composition, energy, atomic_energies[dfa]
+                )
+
+        return e_coh_per_atom
+    
+    @lru_cache
+    def get_atom_reference_data(self, funcs : list[str] = ["PBE","r2SCAN"]) -> dict[str,dict[str, float]]:
+        _atomic_energies = self.contribs.query_contributions(
+            query = {"project": "isolated_atom_energies"},
+            fields = ["formula", *[f"data.{dfa}.energy" for dfa in funcs]]
+        ).get("data")
+
+        atomic_energies = {dfa : {} for dfa in {"PBE", "r2SCAN"}}
+        for entry in _atomic_energies:
+            for dfa in atomic_energies:
+                conv_fac = 1.
+                if entry["data"][dfa]["energy"]["unit"] == "meV":
+                    conv_fac = 1e-3
+                atomic_energies[dfa][entry["formula"]] = entry["data"][dfa]["energy"]["value"] * conv_fac
+        return atomic_energies
+    
+    @staticmethod
+    def _get_cohesive_energy_per_atom(composition: Composition, energy: float, atomic_energies : dict[str,float]) -> float:
+        comp = composition.remove_charges()
+        atomic_energy = sum(
+            coeff*atomic_energies[str(element)] for element, coeff in comp.items()
+        )
+        return (energy - atomic_energy)/sum(comp.values())
