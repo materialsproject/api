@@ -25,11 +25,11 @@ bcrypt==4.2.1
     # via paramiko
 boltons==24.1.0
     # via mpcontribs-client
-boto3==1.35.75
+boto3==1.35.78
     # via
     #   maggma
     #   mp-api (pyproject.toml)
-botocore==1.35.75
+botocore==1.35.78
     # via
     #   boto3
     #   s3transfer
@@ -51,7 +51,7 @@ charset-normalizer==3.4.0
     # via requests
 contourpy==1.3.1
     # via matplotlib
-coverage[toml]==7.6.8
+coverage[toml]==7.6.9
     # via pytest-cov
 cryptography==44.0.0
     # via paramiko
@@ -84,7 +84,7 @@ flake8==7.1.1
     # via mp-api (pyproject.toml)
 flatten-dict==0.4.2
     # via mpcontribs-client
-fonttools==4.55.1
+fonttools==4.55.3
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
@@ -182,7 +182,7 @@ mongomock==4.3.0
     # via maggma
 monotonic==1.6
     # via bravado
-monty==2024.10.21
+monty==2024.12.10
     # via
     #   custodian
     #   emmet-core
@@ -294,7 +294,7 @@ patsy==1.0.1
     # via statsmodels
 pexpect==4.9.0
     # via ipython
-phonopy==2.31.2
+phonopy==2.32.0
     # via matcalc
 pillow==11.0.0
     # via
@@ -462,7 +462,7 @@ s3transfer==0.10.4
     # via boto3
 scikit-image==0.24.0
     # via pymatgen-analysis-defects
-scikit-learn==1.5.2
+scikit-learn==1.6.0
     # via matminer
 scipy==1.14.1
     # via
@@ -470,7 +470,6 @@ scipy==1.14.1
     #   griddataformats
     #   mdanalysis
     #   pathsimanalysis
-    #   phonopy
     #   pymatgen
     #   robocrys
     #   scikit-image
@@ -552,7 +551,7 @@ traitlets==5.14.3
     #   matplotlib-inline
 typeguard==4.4.1
     # via inflect
-types-python-dateutil==2.9.0.20241003
+types-python-dateutil==2.9.0.20241206
     # via arrow
 types-requests==2.32.0.20241016
     # via mp-api (pyproject.toml)
