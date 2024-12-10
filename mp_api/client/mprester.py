@@ -1313,16 +1313,12 @@ class MPRester:
             (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
         """
         decoder = MontyDecoder().decode if self.monty_decode else json.loads
-        chgcar = (
-            self.materials.tasks._query_open_data(
-                bucket="materialsproject-parsed",
-                key=f"chgcars/{str(task_id)}.json.gz",
-                decoder=decoder,
-                fields=["data"],
-            )[0]
-            or {}
+        kwargs = dict(
+            bucket="materialsproject-parsed",
+            key=f"chgcars/{str(task_id)}.json.gz",
+            decoder=decoder,
         )
-
+        chgcar = self.materials.tasks._query_open_data(**kwargs)[0]
         if not chgcar:
             raise MPRestError(f"No charge density fetched for task_id {task_id}.")
 
