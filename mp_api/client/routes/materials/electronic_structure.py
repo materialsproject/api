@@ -239,7 +239,6 @@ class BandStructureRester(BaseRester):
             bucket="materialsproject-parsed",
             key=f"bandstructures/{task_id}.json.gz",
             decoder=decoder,
-            fields=["data"],
         )[0]
 
         if result:
@@ -429,7 +428,6 @@ class DosRester(BaseRester):
             bucket="materialsproject-parsed",
             key=f"dos/{task_id}.json.gz",
             decoder=decoder,
-            fields=["data"],
         )[0]
 
         if result:
