@@ -17,7 +17,7 @@ from monty.json import MontyDecoder
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import SETTINGS, Element, Structure
+from pymatgen.core import SETTINGS, Element, Structure, Composition
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
@@ -62,8 +62,6 @@ from mp_api.client.routes.molecules import MoleculeRester
 
 if TYPE_CHECKING:
     from typing import Literal
-
-    from pymatgen.core import Composition
 
 
 _EMMET_SETTINGS = EmmetSettings()
@@ -1480,93 +1478,136 @@ class MPRester:
             """
         )
 
-    def get_cohesive_energy_by_material_id(
+    def get_cohesive_energy_per_atom_by_material_id(
         self, material_id: MPID | str | list[MPID | str]
-    ) -> float:
+    ) -> float | dict[str, float]:
+        """"
+        Obtain the cohesive energy, in eV/atom, of the structures corresponding to one or many MPIDs.
+
+        Args:
+            material_id (MPID or str or [MPID | str]) : a single MPID or a list of many to compute
+                cohesive energies for.
+        Returns:
+            (float or dict[str,float]) : If only MPID was specified, returns the cohesive energy
+                in eV/atom for that material. If multiple MPIDs were specified, the cohesive
+                energies (in eV/atom) for each material are returned in a dict indexed by MPID.
+        """
+        
         if isinstance(material_id, MPID | str):
             material_id = [material_id]
 
-        mat_info = self.materials.search(
-            material_ids=material_id, fields=["origins", "composition", "material_id"]
-        )
+        entry_preference = {
+            k: i for i, k in enumerate(["GGA","GGA+U","SCAN","R2SCAN"])
+        }
+        run_type_to_dfa = {
+            "GGA": "PBE",
+            "GGA+U": "PBE",
+            "R2SCAN": "r2SCAN"
+        }
 
-        mpid_to_task_id = {}
-        for mat_doc in mat_info:
-            for prop in mat_doc.origins:
-                if prop.name.lower() in {
-                    "energy",
-                    "structure",
-                }:
-                    mpid_to_task_id[mat_doc.material_id] = prop.task_id
-                    break
-        task_id_to_mpid = {v: k for k, v in mpid_to_task_id.items()}
+        energies = {mp_id: {} for mp_id in material_id}
+        entries = self.get_entry_by_material_id(material_id,compatible_only=False)
+        for entry in entries:
 
-        tasks = self.tasks.search(
-            task_ids=list(task_id_to_mpid),
-            fields=[
-                "run_type",
-                "output.structure",
-                "output.energy",
-                "calcs_reversed",
-                "task_id",
-            ],
-        )
+            # Ensure that this works with monty_decode = False and True
+            if isinstance(entry, dict):
+                entry["uncorrected_energy_per_atom"] = entry["energy"]/sum(entry["composition"].values())
+            else:
+                entry = {
+                    "data": entry.data,
+                    "uncorrected_energy_per_atom": entry.uncorrected_energy_per_atom,
+                    "composition": entry.composition
+                }
+
+            mp_id = entry["data"]["material_id"]
+            if (run_type := entry["data"]["run_type"]) not in energies[mp_id]:
+                energies[mp_id][run_type] = {
+                    "total_energy_per_atom": float("inf"),
+                    "composition": None,
+                }
+
+            if entry["uncorrected_energy_per_atom"] < energies[mp_id][run_type]["total_energy_per_atom"]:
+                energies[mp_id][run_type] = {
+                    "total_energy_per_atom": entry["uncorrected_energy_per_atom"],
+                    "composition": entry["composition"],
+                }
 
         atomic_energies = self.get_atom_reference_data()
 
         e_coh_per_atom = {}
-        for task in tasks:
-            run_type = str(task.run_type or TaskDoc._get_run_type(task.calcs_reversed))
-            if run_type in {"GGA", "GGA+U"}:
-                dfa = "PBE"
-            elif run_type in {"r2SCAN", "r2SCAN+U"}:
-                dfa = "r2SCAN"
-            else:
-                warnings.warn(
-                    f"No reference atomic energies for run type {run_type} available (task {task.task_id}, material {task_id_to_mpid[task.task_id]})!"
-                )
+        for mp_id, entries in energies.items():
+            if len(entries) == 0:
                 continue
+            prefered_func = sorted(list(entries), key = lambda k : entry_preference[k])[-1]
+            e_coh_per_atom[str(mp_id)] = self._get_cohesive_energy_per_atom(
+                entries[prefered_func]["composition"],
+                entries[prefered_func]["total_energy_per_atom"],
+                atomic_energies[
+                    run_type_to_dfa.get(prefered_func,prefered_func)
+                ]
+            )
 
-            structure = task.output.structure or task.calcs_reversed[0].output.structure
-            energy = task.output.energy or task.calcs_reversed[0].output.energy
-
-            if structure is not None and energy is not None:
-                e_coh_per_atom[
-                    task_id_to_mpid[task.task_id]
-                ] = self._get_cohesive_energy_per_atom(
-                    structure.composition, energy, atomic_energies[dfa]
-                )
-
+        if len(material_id) == 1:
+            return e_coh_per_atom[material_id[0]]
         return e_coh_per_atom
 
     @lru_cache
     def get_atom_reference_data(
         self, funcs: list[str] = None
     ) -> dict[str, dict[str, float]]:
-        if funcs is None:
-            funcs = ["PBE", "r2SCAN"]
+        """
+        Retrieve energies of isolated neutral atoms from MPContribs.
+
+        Args:
+            funcs ([str] or None) : list of functionals to retrieve data for.
+            Defaults to all available functionals ("PBE", "SCAN", "r2SCAN")
+            when set to None.
+        
+        Returns:
+            (dict[str, dict[str, float]]) : dict containing isolated atom energies,
+            indexed first by the functionals in funcs, and second by the atom.
+        """
+        
+        conv_fac = {
+            "eV": 1.,
+            "meV": 1e-3,
+            "µeV": 1e-6
+        }
+        
+        default_funcs = {"PBE", "SCAN", "r2SCAN"}
+        funcs = funcs or default_funcs
         _atomic_energies = self.contribs.query_contributions(
             query={"project": "isolated_atom_energies"},
             fields=["formula", *[f"data.{dfa}.energy" for dfa in funcs]],
         ).get("data")
 
-        atomic_energies = {dfa: {} for dfa in {"PBE", "r2SCAN"}}
+        atomic_energies = {dfa: {} for dfa in funcs}
         for entry in _atomic_energies:
             for dfa in atomic_energies:
-                conv_fac = 1.0
-                if entry["data"][dfa]["energy"]["unit"] == "meV":
-                    conv_fac = 1e-3
                 atomic_energies[dfa][entry["formula"]] = (
-                    entry["data"][dfa]["energy"]["value"] * conv_fac
+                    entry["data"][dfa]["energy"]["value"] 
+                    * conv_fac.get(entry["data"][dfa]["energy"]["unit"])
                 )
         return atomic_energies
 
     @staticmethod
     def _get_cohesive_energy_per_atom(
-        composition: Composition, energy: float, atomic_energies: dict[str, float]
+        composition: Composition | dict, energy_per_atom: float, atomic_energies: dict[str, float]
     ) -> float:
-        comp = composition.remove_charges()
+        """
+        Obtain the cohesive energy per atom of a given composition and energy.
+
+        Args:
+            composition (Composition or dict) : the composition of the structure.
+            energy_per_atom (float) : the energy per atom of the structure.
+            atomic_energies (dict[str,float]) : a dict containing reference total energies
+                of neutral atoms.
+        
+        Returns:
+            (float) : the cohesive energy per atom.
+        """
+        comp = Composition(composition).remove_charges()
         atomic_energy = sum(
             coeff * atomic_energies[str(element)] for element, coeff in comp.items()
         )
-        return (energy - atomic_energy) / sum(comp.values())
+        return energy_per_atom - atomic_energy / sum(comp.values())
