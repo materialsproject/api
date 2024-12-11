@@ -1550,7 +1550,12 @@ class MPRester:
 
     @lru_cache
     def get_atom_reference_data(
-        self, funcs: tuple[str] = ("PBE", "SCAN", "r2SCAN",)
+        self,
+        funcs: tuple[str] = (
+            "PBE",
+            "SCAN",
+            "r2SCAN",
+        ),
     ) -> dict[str, dict[str, float]]:
         """Retrieve energies of isolated neutral atoms from MPContribs.
 
