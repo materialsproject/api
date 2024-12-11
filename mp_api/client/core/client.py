@@ -476,12 +476,14 @@ class BaseRester(Generic[T]):
                     suffix = suffix.replace("_", "-")
 
                 # Paginate over all entries in the bucket.
-                # This will have to change for when a subset of entries from
-                # the DB is needed.
-                is_tasks = "tasks" in suffix
-                bucket_suffix = "parsed" if is_tasks else "build"
+                # TODO: change when a subset of entries needed from DB
+                if "tasks" in suffix:
+                    bucket_suffix, prefix = "parsed", "tasks_atomate2"
+                else:
+                    bucket_suffix = "build"
+                    prefix = f"collections/{db_version}/{suffix}"
+
                 bucket = f"materialsproject-{bucket_suffix}"
-                prefix = suffix if is_tasks else f"collections/{db_version}/{suffix}"
                 paginator = self.s3_client.get_paginator("list_objects_v2")
                 pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
 
