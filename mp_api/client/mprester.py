@@ -17,7 +17,7 @@ from monty.json import MontyDecoder
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import SETTINGS, Element, Structure, Composition
+from pymatgen.core import SETTINGS, Composition, Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
@@ -1481,42 +1481,38 @@ class MPRester:
     def get_cohesive_energy_per_atom_by_material_id(
         self, material_id: MPID | str | list[MPID | str]
     ) -> float | dict[str, float]:
-        """"
-        Obtain the cohesive energy, in eV/atom, of the structures corresponding to one or many MPIDs.
+        """Obtain the cohesive energy, in eV/atom, of the structures corresponding to one or many MPIDs.
 
         Args:
             material_id (MPID or str or [MPID | str]) : a single MPID or a list of many to compute
                 cohesive energies for.
+
         Returns:
             (float or dict[str,float]) : If only MPID was specified, returns the cohesive energy
                 in eV/atom for that material. If multiple MPIDs were specified, the cohesive
                 energies (in eV/atom) for each material are returned in a dict indexed by MPID.
         """
-        
         if isinstance(material_id, MPID | str):
             material_id = [material_id]
 
         entry_preference = {
-            k: i for i, k in enumerate(["GGA","GGA+U","SCAN","R2SCAN"])
+            k: i for i, k in enumerate(["GGA", "GGA+U", "SCAN", "R2SCAN"])
         }
-        run_type_to_dfa = {
-            "GGA": "PBE",
-            "GGA+U": "PBE",
-            "R2SCAN": "r2SCAN"
-        }
+        run_type_to_dfa = {"GGA": "PBE", "GGA+U": "PBE", "R2SCAN": "r2SCAN"}
 
         energies = {mp_id: {} for mp_id in material_id}
-        entries = self.get_entry_by_material_id(material_id,compatible_only=False)
+        entries = self.get_entry_by_material_id(material_id, compatible_only=False)
         for entry in entries:
-
             # Ensure that this works with monty_decode = False and True
             if isinstance(entry, dict):
-                entry["uncorrected_energy_per_atom"] = entry["energy"]/sum(entry["composition"].values())
+                entry["uncorrected_energy_per_atom"] = entry["energy"] / sum(
+                    entry["composition"].values()
+                )
             else:
                 entry = {
                     "data": entry.data,
                     "uncorrected_energy_per_atom": entry.uncorrected_energy_per_atom,
-                    "composition": entry.composition
+                    "composition": entry.composition,
                 }
 
             mp_id = entry["data"]["material_id"]
@@ -1526,7 +1522,10 @@ class MPRester:
                     "composition": None,
                 }
 
-            if entry["uncorrected_energy_per_atom"] < energies[mp_id][run_type]["total_energy_per_atom"]:
+            if (
+                entry["uncorrected_energy_per_atom"]
+                < energies[mp_id][run_type]["total_energy_per_atom"]
+            ):
                 energies[mp_id][run_type] = {
                     "total_energy_per_atom": entry["uncorrected_energy_per_atom"],
                     "composition": entry["composition"],
@@ -1538,13 +1537,11 @@ class MPRester:
         for mp_id, entries in energies.items():
             if len(entries) == 0:
                 continue
-            prefered_func = sorted(list(entries), key = lambda k : entry_preference[k])[-1]
+            prefered_func = sorted(list(entries), key=lambda k: entry_preference[k])[-1]
             e_coh_per_atom[str(mp_id)] = self._get_cohesive_energy_per_atom(
                 entries[prefered_func]["composition"],
                 entries[prefered_func]["total_energy_per_atom"],
-                atomic_energies[
-                    run_type_to_dfa.get(prefered_func,prefered_func)
-                ]
+                atomic_energies[run_type_to_dfa.get(prefered_func, prefered_func)],
             )
 
         if len(material_id) == 1:
@@ -1555,25 +1552,19 @@ class MPRester:
     def get_atom_reference_data(
         self, funcs: list[str] = None
     ) -> dict[str, dict[str, float]]:
-        """
-        Retrieve energies of isolated neutral atoms from MPContribs.
+        """Retrieve energies of isolated neutral atoms from MPContribs.
 
         Args:
             funcs ([str] or None) : list of functionals to retrieve data for.
             Defaults to all available functionals ("PBE", "SCAN", "r2SCAN")
             when set to None.
-        
+
         Returns:
             (dict[str, dict[str, float]]) : dict containing isolated atom energies,
             indexed first by the functionals in funcs, and second by the atom.
         """
-        
-        conv_fac = {
-            "eV": 1.,
-            "meV": 1e-3,
-            "µeV": 1e-6
-        }
-        
+        conv_fac = {"eV": 1.0, "meV": 1e-3, "µeV": 1e-6}
+
         default_funcs = {"PBE", "SCAN", "r2SCAN"}
         funcs = funcs or default_funcs
         _atomic_energies = self.contribs.query_contributions(
@@ -1584,25 +1575,25 @@ class MPRester:
         atomic_energies = {dfa: {} for dfa in funcs}
         for entry in _atomic_energies:
             for dfa in atomic_energies:
-                atomic_energies[dfa][entry["formula"]] = (
-                    entry["data"][dfa]["energy"]["value"] 
-                    * conv_fac.get(entry["data"][dfa]["energy"]["unit"])
-                )
+                atomic_energies[dfa][entry["formula"]] = entry["data"][dfa]["energy"][
+                    "value"
+                ] * conv_fac.get(entry["data"][dfa]["energy"]["unit"])
         return atomic_energies
 
     @staticmethod
     def _get_cohesive_energy_per_atom(
-        composition: Composition | dict, energy_per_atom: float, atomic_energies: dict[str, float]
+        composition: Composition | dict,
+        energy_per_atom: float,
+        atomic_energies: dict[str, float],
     ) -> float:
-        """
-        Obtain the cohesive energy per atom of a given composition and energy.
+        """Obtain the cohesive energy per atom of a given composition and energy.
 
         Args:
             composition (Composition or dict) : the composition of the structure.
             energy_per_atom (float) : the energy per atom of the structure.
             atomic_energies (dict[str,float]) : a dict containing reference total energies
                 of neutral atoms.
-        
+
         Returns:
             (float) : the cohesive energy per atom.
         """
