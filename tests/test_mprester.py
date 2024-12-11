@@ -371,3 +371,57 @@ class TestMPRester:
         monkeypatch.setenv("MP_API_KEY", "INVALID")
         with pytest.raises(ValueError, match="Keys for the new API are 32 characters"):
             MPRester().get_structure_by_material_id("mp-149")
+
+    def test_get_cohesive_energy_per_atom_utility(self):
+
+        composition = {"H": 5, "V": 2,"P": 3,}
+        toten_per_atom = -2.e3
+        atomic_energies = {"H": -13.6, "V": -7.2, "P": -0.1}
+
+        by_hand_e_coh = toten_per_atom - sum(
+            atomic_energies[k] * v for k, v in composition.items()
+        )/ sum(composition.values())
+
+        assert MPRester._get_cohesive_energy_per_atom(composition,toten_per_atom,atomic_energies) == pytest.approx(by_hand_e_coh)
+
+    def test_get_atom_references(self,mpr):
+        ae = mpr.get_atom_reference_data(funcs=("PBE",))
+        assert list(ae) == ["PBE"]
+        assert len(ae["PBE"]) == 89
+        assert all(isinstance(v,float) for v in ae["PBE"].values())
+
+        ae = mpr.get_atom_reference_data()
+        assert set(ae) == {"PBE","r2SCAN","SCAN"}
+        assert all(
+            len(entries) == 89 for entries in ae.values()
+        )
+        assert all(isinstance(v,float) for entries in ae.values() for v in entries.values())
+
+    def test_get_cohesive_energy(self):
+        
+        ref_e_coh = {
+            "mp-123": -4.029208982500002,
+            "mp-149": -4.669184594999999,
+            "mp-4163": -6.351402620416668,
+            "mp-19017": -4.933409960714286
+        }
+        mpids = ["mp-123","mp-149","mp-4163","mp-19017"]
+        e_coh = {}
+        for monty_decode in (True, False):
+            with MPRester(use_document_model=monty_decode,monty_decode=monty_decode) as _mpr:
+                single_e_coh = _mpr.get_e_coh_per_atom_by_material_id("mp-123")
+                assert isinstance(single_e_coh,float)
+                assert single_e_coh == pytest.approx(ref_e_coh["mp-123"])
+
+                _e_coh = _mpr.get_e_coh_per_atom_by_material_id(mpids)
+                e_coh["serial" if monty_decode else "noserial"] = _e_coh.copy()
+
+                # Ensure energies match reference data
+                assert all(
+                    v == pytest.approx(ref_e_coh[k]) for k, v in _e_coh.items()
+                )
+
+        # Ensure energies are the same regardless of serialization
+        assert all(
+            v == pytest.approx(e_coh["noserial"][k]) for k, v in e_coh["serial"].items()
+        )

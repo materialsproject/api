@@ -1478,7 +1478,7 @@ class MPRester:
             """
         )
 
-    def get_cohesive_energy_per_atom_by_material_id(
+    def get_e_coh_per_atom_by_material_id(
         self, material_id: MPID | str | list[MPID | str]
     ) -> float | dict[str, float]:
         """Obtain the cohesive energy, in eV/atom, of the structures corresponding to one or many MPIDs.
@@ -1550,7 +1550,7 @@ class MPRester:
 
     @lru_cache
     def get_atom_reference_data(
-        self, funcs: list[str] = None
+        self, funcs: tuple[str] = ("PBE", "SCAN", "r2SCAN",)
     ) -> dict[str, dict[str, float]]:
         """Retrieve energies of isolated neutral atoms from MPContribs.
 
@@ -1565,8 +1565,6 @@ class MPRester:
         """
         conv_fac = {"eV": 1.0, "meV": 1e-3, "µeV": 1e-6}
 
-        default_funcs = {"PBE", "SCAN", "r2SCAN"}
-        funcs = funcs or default_funcs
         _atomic_energies = self.contribs.query_contributions(
             query={"project": "isolated_atom_energies"},
             fields=["formula", *[f"data.{dfa}.energy" for dfa in funcs]],
