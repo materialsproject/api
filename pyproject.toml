@@ -27,7 +27,7 @@ dependencies = [
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
-  "emmet-core>=0.78.0rc3",
+  "emmet-core>=0.84.3rc6",
   "smart_open",
 ]
 dynamic = ["version"]
