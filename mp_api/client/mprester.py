@@ -680,8 +680,8 @@ class MPRester:
                 returned were ComputedEntries. If inc_structure="initial",
                 ComputedStructureEntries with initial structures were returned.
                 Otherwise, ComputedStructureEntries with final structures
-                were returned. This is no longer needed as all entries will contain
-                structure data by default.
+                were returned. This is no longer needed as all entries will contain the
+                final structure data by default.
             property_data (list): Specify additional properties to include in
                 entry.data. If None, only default data is included. Should be a subset of
                 input parameters in the 'MPRester.thermo.available_fields' list.
