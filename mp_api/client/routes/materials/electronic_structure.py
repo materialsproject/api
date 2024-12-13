@@ -263,7 +263,14 @@ class BandStructureRester(BaseRester):
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
         es_rester = ElectronicStructureRester(
-            endpoint=self.base_endpoint, api_key=self.api_key
+            api_key=self.api_key,
+            endpoint=self.base_endpoint,
+            include_user_agent=self.include_user_agent,
+            session=self.session,
+            monty_decode=self.monty_decode,
+            use_document_model=self.use_document_model,
+            headers=self.headers,
+            mute_progress_bars=self.mute_progress_bars,
         )
 
         if line_mode:
@@ -445,7 +452,14 @@ class DosRester(BaseRester):
             dos (CompleteDos): CompleteDos object
         """
         es_rester = ElectronicStructureRester(
-            endpoint=self.base_endpoint, api_key=self.api_key
+            api_key=self.api_key,
+            endpoint=self.base_endpoint,
+            include_user_agent=self.include_user_agent,
+            session=self.session,
+            monty_decode=self.monty_decode,
+            use_document_model=self.use_document_model,
+            headers=self.headers,
+            mute_progress_bars=self.mute_progress_bars,
         )
 
         dos_doc = es_rester.search(material_ids=material_id, fields=["dos"])
