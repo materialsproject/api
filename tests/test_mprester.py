@@ -385,7 +385,7 @@ class TestMPRester:
             atomic_energies[k] * v for k, v in composition.items()
         ) / sum(composition.values())
 
-        assert MPRester._get_cohesive_energy_per_atom(
+        assert MPRester._get_cohesive_energy(
             composition, toten_per_atom, atomic_energies
         ) == pytest.approx(by_hand_e_coh)
 
@@ -404,26 +404,35 @@ class TestMPRester:
 
     def test_get_cohesive_energy(self):
         ref_e_coh = {
-            "mp-123": -4.029208982500002,
-            "mp-149": -4.669184594999999,
-            "mp-4163": -6.351402620416668,
-            "mp-19017": -4.933409960714286,
-        }
-        mpids = ["mp-123", "mp-149", "mp-4163", "mp-19017"]
+            "atom": {
+                "mp-123": -4.029208982500002,
+                "mp-149": -4.669184594999999,
+                "mp-4163": -6.351402620416668,
+                "mp-19017": -4.933409960714286,
+            },
+            "formula_unit": {
+                "mp-123": -4.029208982500002,
+                "mp-149": -4.669184594999999,
+                "mp-4163": -76.21683144500001,
+                "mp-19017": -34.533869725
+            }
+        } 
         e_coh = {}
         for monty_decode in (True, False):
             with MPRester(
                 use_document_model=monty_decode, monty_decode=monty_decode
             ) as _mpr:
-                single_e_coh = _mpr.get_e_coh_per_atom_by_material_id("mp-123")
-                assert isinstance(single_e_coh, float)
-                assert single_e_coh == pytest.approx(ref_e_coh["mp-123"])
+                for norm, refs in ref_e_coh.items():
+                    single_e_coh = _mpr.get_cohesive_energy("mp-123",normalization=norm)
+                    assert isinstance(single_e_coh, float)
+                    assert single_e_coh == pytest.approx(refs["mp-123"])
 
-                _e_coh = _mpr.get_e_coh_per_atom_by_material_id(mpids)
-                e_coh["serial" if monty_decode else "noserial"] = _e_coh.copy()
+                    _e_coh = _mpr.get_cohesive_energy(list(refs),normalization=norm)
+                    if norm == "atom":
+                        e_coh["serial" if monty_decode else "noserial"] = _e_coh.copy()
 
-                # Ensure energies match reference data
-                assert all(v == pytest.approx(ref_e_coh[k]) for k, v in _e_coh.items())
+                    # Ensure energies match reference data
+                    assert all(v == pytest.approx(refs[k]) for k, v in _e_coh.items())
 
         # Ensure energies are the same regardless of serialization
         assert all(

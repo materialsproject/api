@@ -1478,14 +1478,19 @@ class MPRester:
             """
         )
 
-    def get_e_coh_per_atom_by_material_id(
-        self, material_id: MPID | str | list[MPID | str]
+    def get_cohesive_energy(
+        self, material_id: MPID | str | list[MPID | str],
+        normalization : Literal["atom","formula_unit"] = "atom"
     ) -> float | dict[str, float]:
-        """Obtain the cohesive energy, in eV/atom, of the structures corresponding to one or many MPIDs.
+        """Obtain the cohesive energy of the structure(s) corresponding to one or many MPIDs.
 
         Args:
             material_id (MPID or str or [MPID | str]) : a single MPID or a list of many to compute
                 cohesive energies for.
+            normalization (str = "atom" (default) or "formula_unit")
+                Whether to normalize the cohesive energy by the number of atoms (default)
+                or by the number of formula units.
+                Note that the current default is inconsistent with the legacy API.
 
         Returns:
             (float or dict[str,float]) : If only MPID was specified, returns the cohesive energy
@@ -1496,9 +1501,9 @@ class MPRester:
             material_id = [material_id]
 
         entry_preference = {
-            k: i for i, k in enumerate(["GGA", "GGA+U", "SCAN", "R2SCAN"])
+            k: i for i, k in enumerate(["GGA", "GGA_U", "SCAN", "R2SCAN"])
         }
-        run_type_to_dfa = {"GGA": "PBE", "GGA+U": "PBE", "R2SCAN": "r2SCAN"}
+        run_type_to_dfa = {"GGA": "PBE", "GGA_U": "PBE", "R2SCAN": "r2SCAN"}
 
         energies = {mp_id: {} for mp_id in material_id}
         entries = self.get_entry_by_material_id(material_id, compatible_only=False)
@@ -1538,10 +1543,11 @@ class MPRester:
             if len(entries) == 0:
                 continue
             prefered_func = sorted(list(entries), key=lambda k: entry_preference[k])[-1]
-            e_coh_per_atom[str(mp_id)] = self._get_cohesive_energy_per_atom(
+            e_coh_per_atom[str(mp_id)] = self._get_cohesive_energy(
                 entries[prefered_func]["composition"],
                 entries[prefered_func]["total_energy_per_atom"],
                 atomic_energies[run_type_to_dfa.get(prefered_func, prefered_func)],
+                normalization = normalization,
             )
 
         if len(material_id) == 1:
@@ -1584,18 +1590,22 @@ class MPRester:
         return atomic_energies
 
     @staticmethod
-    def _get_cohesive_energy_per_atom(
+    def _get_cohesive_energy(
         composition: Composition | dict,
         energy_per_atom: float,
         atomic_energies: dict[str, float],
+        normalization : Literal["atom","formula_unit"] = "atom"
     ) -> float:
-        """Obtain the cohesive energy per atom of a given composition and energy.
+        """Obtain the cohesive energy of a given composition and energy.
 
         Args:
             composition (Composition or dict) : the composition of the structure.
             energy_per_atom (float) : the energy per atom of the structure.
             atomic_energies (dict[str,float]) : a dict containing reference total energies
                 of neutral atoms.
+            normalization (str = "atom" (default) or "formula_unit")
+                Whether to normalize the cohesive energy by the number of atoms (default)
+                or by the number of formula units.
 
         Returns:
             (float) : the cohesive energy per atom.
@@ -1604,4 +1614,10 @@ class MPRester:
         atomic_energy = sum(
             coeff * atomic_energies[str(element)] for element, coeff in comp.items()
         )
-        return energy_per_atom - atomic_energy / sum(comp.values())
+
+        natom = sum(comp.values())
+        if normalization == "atom":
+            return energy_per_atom - atomic_energy / natom
+        elif normalization == "formula_unit":
+            num_form_unit = comp.get_reduced_composition_and_factor()[1]
+            return (energy_per_atom*natom - atomic_energy) / num_form_unit
