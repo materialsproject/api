@@ -1479,15 +1479,16 @@ class MPRester:
         )
 
     def get_cohesive_energy(
-        self, material_id: MPID | str | list[MPID | str],
-        normalization : Literal["atom","formula_unit"] = "atom"
+        self,
+        material_id: MPID | str | list[MPID | str],
+        normalization: Literal["atom", "formula_unit"] = "atom",
     ) -> float | dict[str, float]:
         """Obtain the cohesive energy of the structure(s) corresponding to one or many MPIDs.
 
         Args:
             material_id (MPID or str or [MPID | str]) : a single MPID or a list of many to compute
                 cohesive energies for.
-            normalization (str = "atom" (default) or "formula_unit")
+            normalization (str = "atom" (default) or "formula_unit") :
                 Whether to normalize the cohesive energy by the number of atoms (default)
                 or by the number of formula units.
                 Note that the current default is inconsistent with the legacy API.
@@ -1547,7 +1548,7 @@ class MPRester:
                 entries[prefered_func]["composition"],
                 entries[prefered_func]["total_energy_per_atom"],
                 atomic_energies[run_type_to_dfa.get(prefered_func, prefered_func)],
-                normalization = normalization,
+                normalization=normalization,
             )
 
         if len(material_id) == 1:
@@ -1594,7 +1595,7 @@ class MPRester:
         composition: Composition | dict,
         energy_per_atom: float,
         atomic_energies: dict[str, float],
-        normalization : Literal["atom","formula_unit"] = "atom"
+        normalization: Literal["atom", "formula_unit"] = "atom",
     ) -> float:
         """Obtain the cohesive energy of a given composition and energy.
 
@@ -1603,7 +1604,7 @@ class MPRester:
             energy_per_atom (float) : the energy per atom of the structure.
             atomic_energies (dict[str,float]) : a dict containing reference total energies
                 of neutral atoms.
-            normalization (str = "atom" (default) or "formula_unit")
+            normalization (str = "atom" (default) or "formula_unit") :
                 Whether to normalize the cohesive energy by the number of atoms (default)
                 or by the number of formula units.
 
@@ -1620,4 +1621,4 @@ class MPRester:
             return energy_per_atom - atomic_energy / natom
         elif normalization == "formula_unit":
             num_form_unit = comp.get_reduced_composition_and_factor()[1]
-            return (energy_per_atom*natom - atomic_energy) / num_form_unit
+            return (energy_per_atom * natom - atomic_energy) / num_form_unit
