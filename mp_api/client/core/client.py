@@ -468,7 +468,9 @@ class BaseRester(Generic[T]):
 
             if query_s3:
                 db_version = self.db_version.replace(".", "-")
-                if self.suffix == "molecules/summary":
+                if "/" not in self.suffix:
+                    suffix = self.suffix
+                elif self.suffix == "molecules/summary":
                     suffix = "molecules"
                 else:
                     infix, suffix = self.suffix.split("/", 1)
