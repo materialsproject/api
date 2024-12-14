@@ -76,8 +76,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
 
         Arguments:
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            chemsys (str, List[str]): A chemical system, list of chemical systems
-                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
+            chemsys (str, List[str]): A chemical system or list of chemical systems
+                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             crystal_system (CrystalSystem): Crystal system of material.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.

@@ -125,7 +125,7 @@ class BaseMoleculeRester(BaseRester[MoleculeDoc]):
             spin_multiplicity (Tuple[int, int]): Minimum and maximum spin for the molecule.
             nelements (Tuple[int, int]): Minimum and maximum number of elements
             chemsys (str, List[str]): A chemical system, list of chemical systems
-                (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).
+                (e.g., Li-C-O, [C-O-H-N, Li-N]).
             deprecated (bool): Whether the material is tagged as deprecated.
             elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.

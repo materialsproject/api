@@ -57,7 +57,7 @@ class MoleculesRedoxRester(BaseRester[RedoxDoc]):
             elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             chemsys (str, List[str]): A chemical system, list of chemical systems
-                (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).
+                (e.g., Li-C-O, [C-O-H-N, Li-N]).
             electrode (str): For redox potential queries, a string representation of the reference
                 electrode (currently accepted: "H", "Li", "Mg", "Ca")
             min_reduction_potential (float): Minimum reduction potential considered

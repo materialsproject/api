@@ -55,7 +55,7 @@ class MoleculesBondRester(BaseRester[MoleculeBondingDoc]):
             elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             chemsys (str, List[str]): A chemical system, list of chemical systems
-                (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).
+                (e.g., Li-C-O, [C-O-H-N, Li-N]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.

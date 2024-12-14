@@ -84,7 +84,7 @@ class MoleculesOrbitalsRester(BaseRester[OrbitalDoc]):
             elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             chemsys (str, List[str]): A chemical system, list of chemical systems
-                (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).
+                (e.g., Li-C-O, [C-O-H-N, Li-N]).
             electron_type_population (str): Should alpha ('alpha'), beta ('beta'), or all electrons (None) be
                 considered in a query of natural electron populations?
             core_electrons (Tuple[float, float]): Minimum and maximum number of core electrons in an atom

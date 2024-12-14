@@ -51,7 +51,7 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
             #         "wB97X-V/def2-SVPD/SMD(SOLVENT=THF)",
             #         ["wB97X-V/def2-TZVPPD/SMD(VACUUM)", "wB97M-V/def2-QZVPPD/SMD(SOLVENT=WATER)"])
             chemsys (str, List[str]): A chemical system, list of chemical systems
-                (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).
+                (e.g., Li-C-O, [C-O-H-N, Li-N]).
             deprecated (bool): Whether the material is tagged as deprecated.
             elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
