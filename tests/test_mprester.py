@@ -423,7 +423,6 @@ class TestMPRester:
                 use_document_model=monty_decode, monty_decode=monty_decode
             ) as _mpr:
                 for norm, refs in ref_e_coh.items():
-
                     _e_coh = _mpr.get_cohesive_energy(list(refs), normalization=norm)
                     if norm == "atom":
                         e_coh["serial" if monty_decode else "noserial"] = _e_coh.copy()

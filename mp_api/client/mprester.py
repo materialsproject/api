@@ -1486,17 +1486,16 @@ class MPRester:
         """Obtain the cohesive energy of the structure(s) corresponding to multiple MPIDs.
 
         Args:
-            material_id ([MPID | str]) : List of MPIDs to compute cohesive energies.
+            material_ids ([MPID | str]) : List of MPIDs to compute cohesive energies.
             normalization (str = "atom" (default) or "formula_unit") :
                 Whether to normalize the cohesive energy by the number of atoms (default)
                 or by the number of formula units.
                 Note that the current default is inconsistent with the legacy API.
 
         Returns:
-            (dict[str,float]) : The cohesive energies (in eV/atom or eV/formula unit) for 
+            (dict[str,float]) : The cohesive energies (in eV/atom or eV/formula unit) for
             each material, indexed by MPID.
         """
-
         entry_preference = {
             k: i for i, k in enumerate(["GGA", "GGA_U", "SCAN", "R2SCAN"])
         }
@@ -1577,15 +1576,14 @@ class MPRester:
             (dict[str, dict[str, float]]) : dict containing isolated atom energies,
             indexed first by the functionals in funcs, and second by the atom.
         """
-
         _atomic_energies = self.contribs.query_contributions(
             query={"project": "isolated_atom_energies"},
             fields=["formula", *[f"data.{dfa}.energy" for dfa in funcs]],
         ).get("data")
 
         return {
-            dfa : {
-                entry["formula"] : entry["data"][dfa]["energy"]["value"]
+            dfa: {
+                entry["formula"]: entry["data"][dfa]["energy"]["value"]
                 for entry in _atomic_energies
             }
             for dfa in funcs
