@@ -423,11 +423,6 @@ class TestMPRester:
                 use_document_model=monty_decode, monty_decode=monty_decode
             ) as _mpr:
                 for norm, refs in ref_e_coh.items():
-                    single_e_coh = _mpr.get_cohesive_energy(
-                        "mp-123", normalization=norm
-                    )
-                    assert isinstance(single_e_coh, float)
-                    assert single_e_coh == pytest.approx(refs["mp-123"])
 
                     _e_coh = _mpr.get_cohesive_energy(list(refs), normalization=norm)
                     if norm == "atom":

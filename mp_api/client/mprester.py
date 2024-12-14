@@ -1480,37 +1480,39 @@ class MPRester:
 
     def get_cohesive_energy(
         self,
-        material_id: MPID | str | list[MPID | str],
+        material_ids: list[MPID | str],
         normalization: Literal["atom", "formula_unit"] = "atom",
     ) -> float | dict[str, float]:
-        """Obtain the cohesive energy of the structure(s) corresponding to one or many MPIDs.
+        """Obtain the cohesive energy of the structure(s) corresponding to multiple MPIDs.
 
         Args:
-            material_id (MPID or str or [MPID | str]) : a single MPID or a list of many to compute
-                cohesive energies for.
+            material_id ([MPID | str]) : List of MPIDs to compute cohesive energies.
             normalization (str = "atom" (default) or "formula_unit") :
                 Whether to normalize the cohesive energy by the number of atoms (default)
                 or by the number of formula units.
                 Note that the current default is inconsistent with the legacy API.
 
         Returns:
-            (float or dict[str,float]) : If only MPID was specified, returns the cohesive energy
-                in eV/atom for that material. If multiple MPIDs were specified, the cohesive
-                energies (in eV/atom) for each material are returned in a dict indexed by MPID.
+            (dict[str,float]) : The cohesive energies (in eV/atom or eV/formula unit) for 
+            each material, indexed by MPID.
         """
-        if isinstance(material_id, MPID | str):
-            material_id = [material_id]
 
         entry_preference = {
             k: i for i, k in enumerate(["GGA", "GGA_U", "SCAN", "R2SCAN"])
         }
         run_type_to_dfa = {"GGA": "PBE", "GGA_U": "PBE", "R2SCAN": "r2SCAN"}
 
-        energies = {mp_id: {} for mp_id in material_id}
-        entries = self.get_entry_by_material_id(material_id, compatible_only=False)
+        energies = {mp_id: {} for mp_id in material_ids}
+        entries = self.get_entries(
+            material_ids,
+            compatible_only=False,
+            inc_structure=True,
+            property_data=None,
+            conventional_unit_cell=False,
+        )
         for entry in entries:
             # Ensure that this works with monty_decode = False and True
-            if isinstance(entry, dict):
+            if not self.monty_decode:
                 entry["uncorrected_energy_per_atom"] = entry["energy"] / sum(
                     entry["composition"].values()
                 )
@@ -1528,6 +1530,7 @@ class MPRester:
                     "composition": None,
                 }
 
+            # Obtain lowest total energy/atom within a given run type
             if (
                 entry["uncorrected_energy_per_atom"]
                 < energies[mp_id][run_type]["total_energy_per_atom"]
@@ -1541,8 +1544,10 @@ class MPRester:
 
         e_coh_per_atom = {}
         for mp_id, entries in energies.items():
-            if len(entries) == 0:
+            if not entries:
+                e_coh_per_atom[str(mp_id)] = None
                 continue
+            # take entry from most reliable and available functional
             prefered_func = sorted(list(entries), key=lambda k: entry_preference[k])[-1]
             e_coh_per_atom[str(mp_id)] = self._get_cohesive_energy(
                 entries[prefered_func]["composition"],
@@ -1550,9 +1555,6 @@ class MPRester:
                 atomic_energies[run_type_to_dfa.get(prefered_func, prefered_func)],
                 normalization=normalization,
             )
-
-        if len(material_id) == 1:
-            return e_coh_per_atom[material_id[0]]
         return e_coh_per_atom
 
     @lru_cache
@@ -1575,20 +1577,19 @@ class MPRester:
             (dict[str, dict[str, float]]) : dict containing isolated atom energies,
             indexed first by the functionals in funcs, and second by the atom.
         """
-        conv_fac = {"eV": 1.0, "meV": 1e-3, "µeV": 1e-6}
 
         _atomic_energies = self.contribs.query_contributions(
             query={"project": "isolated_atom_energies"},
             fields=["formula", *[f"data.{dfa}.energy" for dfa in funcs]],
         ).get("data")
 
-        atomic_energies = {dfa: {} for dfa in funcs}
-        for entry in _atomic_energies:
-            for dfa in atomic_energies:
-                atomic_energies[dfa][entry["formula"]] = entry["data"][dfa]["energy"][
-                    "value"
-                ] * conv_fac.get(entry["data"][dfa]["energy"]["unit"])
-        return atomic_energies
+        return {
+            dfa : {
+                entry["formula"] : entry["data"][dfa]["energy"]["value"]
+                for entry in _atomic_energies
+            }
+            for dfa in funcs
+        }
 
     @staticmethod
     def _get_cohesive_energy(
