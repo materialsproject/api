@@ -5,14 +5,13 @@ Materials Project data.
 
 from __future__ import annotations
 
+import inspect
 import itertools
 import json
 import os
 import platform
 import sys
 import warnings
-import inspect
-
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
 from datetime import datetime
