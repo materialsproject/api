@@ -419,7 +419,7 @@ class BaseRester(Generic[T]):
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
 
-        For the end-user, methods .query() and .count() are intended to be
+        For the end-user, methods .search() and .count() are intended to be
         easier to use.
 
         Arguments:
@@ -1266,7 +1266,7 @@ class BaseRester(Generic[T]):
         """Return a count of total documents.
 
         Args:
-            criteria (dict | None): As in .query(). Defaults to None
+            criteria (dict | None): As in .search(). Defaults to None
 
         Returns:
             (int | str): Count of total results, or string indicating error
