@@ -11,6 +11,8 @@ import os
 import platform
 import sys
 import warnings
+import inspect
+
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
 from datetime import datetime
@@ -1272,29 +1274,40 @@ class BaseRester(Generic[T]):
         Returns:
             (int | str): Count of total results, or string indicating error
         """
-        try:
-            criteria = criteria or {}
-            user_preferences = (
-                self.monty_decode,
-                self.use_document_model,
-                self.mute_progress_bars,
-            )
-            self.monty_decode, self.use_document_model, self.mute_progress_bars = (
-                False,
-                False,
-                True,
-            )  # do not waste cycles decoding
-            results = self._query_resource(
-                criteria=criteria, num_chunks=1, chunk_size=1
-            )
-            (
-                self.monty_decode,
-                self.use_document_model,
-                self.mute_progress_bars,
-            ) = user_preferences
-            return results["meta"]["total_doc"]
-        except Exception:  # pragma: no cover
-            return "Problem getting count"
+        criteria = criteria or {}
+        user_preferences = (
+            self.monty_decode,
+            self.use_document_model,
+            self.mute_progress_bars,
+        )
+        self.monty_decode, self.use_document_model, self.mute_progress_bars = (
+            False,
+            False,
+            True,
+        )  # do not waste cycles decoding
+        results = self._query_resource(criteria=criteria, num_chunks=1, chunk_size=1)
+        cnt = results["meta"]["total_doc"]
+
+        no_query = not {field for field in criteria if field[0] != "_"}
+        if no_query and hasattr(self, "search"):
+            allowed_params = inspect.getfullargspec(self.search).args
+            if "deprecated" in allowed_params:
+                criteria["deprecated"] = True
+                results = self._query_resource(
+                    criteria=criteria, num_chunks=1, chunk_size=1
+                )
+                cnt += results["meta"]["total_doc"]
+                warnings.warn(
+                    "Omitting a query also includes deprecated documents in the results. "
+                    "Make sure to post-filter them out."
+                )
+
+        (
+            self.monty_decode,
+            self.use_document_model,
+            self.mute_progress_bars,
+        ) = user_preferences
+        return cnt
 
     @property
     def available_fields(self) -> list[str]:
