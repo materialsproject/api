@@ -723,7 +723,7 @@ class MPRester:
             else ["entries", "thermo_type"] + property_data
         )
 
-        docs = self.thermo.search(
+        docs = self.materials.thermo.search(
             **input_params,  # type: ignore
             all_fields=False,
             fields=fields,
@@ -1218,7 +1218,7 @@ class MPRester:
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        return self.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
+        return self.materials.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
             material_id=material_id, path_type=path_type, line_mode=line_mode
         )
 
@@ -1231,7 +1231,7 @@ class MPRester:
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-        return self.electronic_structure_dos.get_dos_from_material_id(
+        return self.materials.electronic_structure_dos.get_dos_from_material_id(
             material_id=material_id
         )  # type: ignore
 
@@ -1245,7 +1245,7 @@ class MPRester:
              CompletePhononDos: A phonon DOS object.
 
         """
-        doc = self.phonon.search(material_ids=material_id, fields=["ph_dos"])
+        doc = self.materials.phonon.search(material_ids=material_id, fields=["ph_dos"])
         if not doc:
             return None
         return doc[0].ph_dos if self.use_document_model else doc[0]["ph_dos"]  # type: ignore
@@ -1259,7 +1259,7 @@ class MPRester:
         Returns:
             PhononBandStructureSymmLine:  phonon band structure.
         """
-        doc = self.phonon.search(material_ids=material_id, fields=["ph_bs"])
+        doc = self.materials.phonon.search(material_ids=material_id, fields=["ph_bs"])
         if not doc:
             return None
 
@@ -1279,7 +1279,7 @@ class MPRester:
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
         structure = self.get_structure_by_material_id(material_id)
-        doc = self.surface_properties.search(material_ids=material_id)
+        doc = self.materials.surface_properties.search(material_ids=material_id)
 
         if not doc:
             return None
