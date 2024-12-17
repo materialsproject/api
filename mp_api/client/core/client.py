@@ -1075,6 +1075,8 @@ class BaseRester(Generic[T]):
         data_model = create_model(  # type: ignore
             "MPDataDoc",
             **include_fields,
+            # TODO fields_not_requested is not the same as unset_fields
+            # i.e. field could be requested but not available in the raw doc
             fields_not_requested=(list[str], unset_fields),
             __base__=self.document_model,
         )
