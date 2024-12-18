@@ -458,7 +458,9 @@ class BaseRester(Generic[T]):
             if isinstance(fields, str):
                 fields = [fields]
 
-            invalid_fields = [f for f in fields if f not in self.available_fields]
+            invalid_fields = [
+                f for f in fields if f.split(".", 1)[0] not in self.available_fields
+            ]
             if invalid_fields:
                 raise MPRestError(
                     f"invalid fields requested: {invalid_fields}. Available fields: {self.available_fields}"
