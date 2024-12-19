@@ -141,6 +141,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
             weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy
                 in J/m² to consider.
             weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.
+            include_gnome (bool): whether to include materials from GNoMe dataset
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
