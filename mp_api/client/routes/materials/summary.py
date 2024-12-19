@@ -67,6 +67,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         volume: tuple[float, float] | None = None,
         weighted_surface_energy: tuple[float, float] | None = None,
         weighted_work_function: tuple[float, float] | None = None,
+        include_gnome: bool = True,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -264,6 +265,9 @@ class SummaryRester(BaseRester[SummaryDoc]):
 
         if theoretical is not None:
             query_params.update({"theoretical": theoretical})
+
+        if not include_gnome:
+            query_params.update({"batch_id_not_eq": "gnome_r2scan_statics"})
 
         query_params = {
             entry: query_params[entry]
