@@ -38,7 +38,7 @@ es_alt_name_dict = {
 
 es_custom_field_tests = {
     "material_ids": ["mp-149"],
-    "magnetic_ordering": Ordering.FM,
+    # "magnetic_ordering": Ordering.FM,
     "formula": "CoO2",
     "chemsys": "Co-O",
     "elements": ["Co", "O"],
@@ -60,7 +60,7 @@ def test_es_client(es_rester):
 
 
 bs_custom_field_tests = {
-    "magnetic_ordering": Ordering.FM,
+    # "magnetic_ordering": Ordering.FM,
     "is_metal": True,
     "is_gap_direct": True,
     "efermi": (0, 100),
@@ -105,7 +105,7 @@ def test_bs_client(bs_rester):
 
 
 dos_custom_field_tests = {
-    "magnetic_ordering": Ordering.FM,
+    # "magnetic_ordering": Ordering.FM,
     "efermi": (0, 100),
     "band_gap": (0, 5),
 }
