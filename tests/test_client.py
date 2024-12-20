@@ -66,20 +66,18 @@ def test_generic_get_methods(rester):
     )
 
     if name not in ignore_generic:
+        key = rester.primary_key
         if name not in key_only_resters:
-            doc = rester._query_resource_data(
-                {"_limit": 1}, fields=[rester.primary_key]
-            )[0]
+            if key not in rester.available_fields:
+                key = rester.available_fields[0]
+
+            doc = rester._query_resource_data({"_limit": 1}, fields=[key])[0]
             assert isinstance(doc, rester.document_model)
 
             if name not in search_only_resters:
-                doc = rester.get_data_by_id(
-                    doc.model_dump()[rester.primary_key], fields=[rester.primary_key]
-                )
+                doc = rester.get_data_by_id(doc.model_dump()[key], fields=[key])
                 assert isinstance(doc, rester.document_model)
 
         elif name not in special_resters:
-            doc = rester.get_data_by_id(
-                key_only_resters[name], fields=[rester.primary_key]
-            )
+            doc = rester.get_data_by_id(key_only_resters[name], fields=[key])
             assert isinstance(doc, rester.document_model)
