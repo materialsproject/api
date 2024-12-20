@@ -9,6 +9,7 @@ from pymatgen.analysis.magnetism import Ordering
 from mp_api.client.routes.materials.summary import SummaryRester
 
 excluded_params = [
+    "include_gnome",
     "sort_fields",
     "chunk_size",
     "num_chunks",
