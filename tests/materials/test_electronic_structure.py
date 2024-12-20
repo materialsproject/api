@@ -127,6 +127,7 @@ def dos_rester():
 
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@pytest.mark.skip(reason="magnetic ordering fields not build correctly")
 def test_dos_client(dos_rester):
     search_method = dos_rester.search
 
