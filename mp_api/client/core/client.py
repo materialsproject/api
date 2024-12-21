@@ -43,6 +43,11 @@ try:
 except ImportError:
     boto3 = None
 
+try:
+    import flask
+except ImportError:
+    flask = None
+
 if TYPE_CHECKING:
     from typing import Any, Callable
 
@@ -984,13 +989,17 @@ class BaseRester(Generic[T]):
         Returns:
             Tuple with data and total number of docs in matching the query in the database.
         """
+        headers = None
+        if flask is not None and flask.has_request_context:
+            headers = flask.request.headers
+
         try:
             response = self.session.get(
                 url=url,
                 verify=verify,
                 params=params,
                 timeout=timeout,
-                headers=self.headers,
+                headers=headers if headers else self.headers,
             )
         except requests.exceptions.ConnectTimeout:
             raise MPRestError(
