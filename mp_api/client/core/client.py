@@ -990,7 +990,7 @@ class BaseRester(Generic[T]):
             Tuple with data and total number of docs in matching the query in the database.
         """
         headers = None
-        if flask is not None and flask.has_request_context:
+        if flask is not None and flask.has_request_context():
             headers = flask.request.headers
 
         try:
