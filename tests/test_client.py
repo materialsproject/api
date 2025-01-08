@@ -24,6 +24,7 @@ search_only_resters = [
     "materials_electronic_structure_dos",
     "materials_substrates",
     "materials_synthesis",
+    "materials_similarity",
 ]
 
 special_resters = ["materials_charge_density", "doi"]

@@ -139,10 +139,7 @@ class TestMPRester:
             assert e.data.get("energy_above_hull", None) is not None
 
         # Conventional structure
-        formula = "BiFeO3"
-        entry = mpr.get_entry_by_material_id(
-            "mp-22526", inc_structure=True, conventional_unit_cell=True
-        )[0]
+        entry = mpr.get_entry_by_material_id("mp-22526", conventional_unit_cell=True)[1]
 
         s = entry.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
@@ -152,9 +149,7 @@ class TestMPRester:
         assert pytest.approx(s.lattice.gamma) == 120
 
         # Ensure energy per atom is same
-        prim = mpr.get_entry_by_material_id(
-            "mp-22526", inc_structure=True, conventional_unit_cell=False
-        )[0]
+        prim = mpr.get_entry_by_material_id("mp-22526", conventional_unit_cell=False)[1]
 
         s = prim.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
@@ -327,7 +322,7 @@ class TestMPRester:
                 chunk_size=1000, num_chunks=10, fields=["material_id"]
             )
         ]
-        docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
+        docs = mpr.summary.search(material_ids=mpids, fields=["material_id"])
         assert len(docs) == 10000
 
     def test_get_api_key_endpoint_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
