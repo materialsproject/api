@@ -4,6 +4,7 @@ from collections import defaultdict
 
 import numpy as np
 from emmet.core.thermo import ThermoDoc, ThermoType
+from monty.json import MontyDecoder
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
 
@@ -163,18 +164,14 @@ class ThermoRester(BaseRester[ThermoDoc]):
             )
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
-        phase_diagram_id = f"{sorted_chemsys}_{t_type}"
-
-        response = self._query_resource(
-            criteria={"phase_diagram_ids": phase_diagram_id},
-            fields=["phase_diagram"],
-            suburl="phase_diagram/",
-            use_document_model=False,
-            num_chunks=1,
-            chunk_size=1,
-        ).get("data", [{}])
-
-        pd = response[0].get("phase_diagram", None)
+        phdiag_id = f"thermo_type={t_type}/chemsys={sorted_chemsys}"
+        version = self.db_version.replace(".", "-")
+        obj_key = f"objects/{version}/phase-diagrams/{phdiag_id}.jsonl.gz"
+        pd = self._query_open_data(
+            bucket="materialsproject-build",
+            key=obj_key,
+            decoder=MontyDecoder().decode,
+        )[0][0].get("phase_diagram")
 
         # Ensure el_ref keys are Element objects for PDPlotter.
         # Ensure qhull_data is a numpy array
