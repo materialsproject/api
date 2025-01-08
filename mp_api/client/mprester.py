@@ -530,7 +530,7 @@ class MPRester:
         Returns:
             List of BibTeX references ([str])
         """
-        docs = self.provenance.search(material_ids=material_id)
+        docs = self.materials.provenance.search(material_ids=material_id)
 
         if not docs:
             return []
