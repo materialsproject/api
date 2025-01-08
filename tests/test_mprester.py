@@ -322,7 +322,7 @@ class TestMPRester:
                 chunk_size=1000, num_chunks=10, fields=["material_id"]
             )
         ]
-        docs = mpr.summary.search(material_ids=mpids, fields=["material_ids"])
+        docs = mpr.summary.search(material_ids=mpids, fields=["material_id"])
         assert len(docs) == 10000
 
     def test_get_api_key_endpoint_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
