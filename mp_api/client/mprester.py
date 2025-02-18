@@ -1347,6 +1347,9 @@ class MPRester:
         task_ids = self.get_task_ids_associated_with_material_id(
             material_id, calc_types=[CalcType.GGA_Static, CalcType.GGA_U_Static]
         )
+        if not task_ids:
+            return None
+
         results: list[TaskDoc] = self.materials.tasks.search(
             task_ids=task_ids, fields=["last_updated", "task_id"]
         )  # type: ignore
