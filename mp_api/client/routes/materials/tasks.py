@@ -39,11 +39,17 @@ class TaskRester(BaseRester[TaskDoc]):
         elements: list[str] | None = None,
         exclude_elements: list[str] | None = None,
         formula: str | list[str] | None = None,
+        calc_type: str | None = None,
+        run_type: str | None = None,
+        task_type: str | None = None,
+        chemsys: str | list[str] | None = None,
         last_updated: tuple[datetime, datetime] | None = None,
+        batches: str | list[str] | None = None, 
         num_chunks: int | None = None,
         chunk_size: int = 1000,
-        all_fields: bool = True,
+        all_fields: bool = False,
         fields: list[str] | None = None,
+        facets: str | list[str] | None = None,
     ) -> list[TaskDoc] | list[dict]:
         """Query core task docs using a variety of search criteria.
 
@@ -73,7 +79,10 @@ class TaskRester(BaseRester[TaskDoc]):
             query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         if formula:
-            query_params.update({"formula": formula})
+            query_params.update({"formula": ",".join(formula) if isinstance(formula, list) else formula})
+
+        if chemsys:
+            query_params.update({"chemsys": ",".join(chemsys) if isinstance(chemsys, list) else chemsys})
 
         if elements:
             query_params.update({"elements": ",".join(elements)})
@@ -88,6 +97,21 @@ class TaskRester(BaseRester[TaskDoc]):
                     "last_updated_max": last_updated[1],
                 }
             )
+
+        if task_type:
+            query_params.update({"task_type": task_type})
+
+        if calc_type:
+            query_params.update({"calc_type": calc_type})
+
+        if run_type:
+            query_params.update({"run_type": run_type})
+
+        if batches:
+            query_params.update({"batches": ".".join(batches) if isinstance(batches, list) else batches})
+
+        if facets:
+            query_params.update({"facets": ",".join(facets) if isinstance(facets, list) else facets})
 
         return super()._search(
             num_chunks=num_chunks,
