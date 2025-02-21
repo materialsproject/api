@@ -3,7 +3,7 @@ from multiprocessing import cpu_count
 from typing import List
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict, BaseSettings
 from pymatgen.core import _load_pmg_settings
 
 from mp_api.client import __file__ as root_dir
@@ -25,6 +25,8 @@ class MAPIClientSettings(BaseSettings):
     """Special class to store settings for MAPI client
     python module.
     """
+
+    model_config = ConfigDict(env_prefix="MPRESTER_")
 
     TEST_FILES: str = Field(
         os.path.join(os.path.dirname(os.path.abspath(root_dir)), "../../test_files"),
@@ -86,6 +88,4 @@ class MAPIClientSettings(BaseSettings):
     MAX_LIST_LENGTH: int = Field(
         _MAX_LIST_LENGTH, description="Maximum length of query parameter list"
     )
-
-    class Config:
-        env_prefix = "MPRESTER_"
+    model_config = SettingsConfigDict(env_prefix="MPRESTER_")
