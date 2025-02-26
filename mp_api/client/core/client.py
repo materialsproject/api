@@ -14,7 +14,6 @@ import sys
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
-from datetime import datetime
 from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
