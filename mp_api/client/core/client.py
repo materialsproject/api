@@ -14,7 +14,6 @@ import sys
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
-from datetime import datetime
 from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
@@ -223,18 +222,12 @@ class BaseRester(Generic[T]):
         remains unchanged and available for querying via its task_id.
 
         The database version is set as a date in the format YYYY_MM_DD,
-        where "_DD" may be optional. An additional numerical suffix
+        where "_DD" may be optional. An additional numerical or `postN` suffix
         might be added if multiple releases happen on the same day.
 
         Returns: database version as a string
         """
-        date_str = requests.get(url=endpoint + "heartbeat").json()["db_version"]
-        # Convert the string to a datetime object
-        date_obj = datetime.strptime(date_str, "%Y.%m.%d")
-
-        # Format the datetime object as a string
-        formatted_date = date_obj.strftime("%Y.%m.%d")
-        return formatted_date
+        return requests.get(url=endpoint + "heartbeat").json()["db_version"]
 
     def _post_resource(
         self,
