@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-
+import warnings
 from emmet.core.tasks import TaskDoc
 
 from mp_api.client.core import BaseRester, MPRestError
@@ -44,7 +44,7 @@ class TaskRester(BaseRester[TaskDoc]):
         task_type: str | None = None,
         chemsys: str | list[str] | None = None,
         last_updated: tuple[datetime, datetime] | None = None,
-        batches: str | list[str] | None = None, 
+        batches: str | list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = False,
@@ -55,12 +55,18 @@ class TaskRester(BaseRester[TaskDoc]):
 
         Arguments:
             task_ids (str, List[str]): List of Materials Project IDs to return data for.
-            elements (List[str]): A list of elements.
+            chemsys: (str, List[str]): A list of chemical systems to search for.
             exclude_elements (List[str]): A list of elements to exclude.
             formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             last_updated (tuple[datetime, datetime]): A tuple of min and max UTC formatted datetimes.
+            batches (str, List[str]): A list of batch IDs to search for.
+            run_type (str): The type of task to search for. Can be one of the following:
+                #TODO: check enum "GGA", "GGA+U", "SCAN"
+            task_type (str): The type of task to search for. Can be one of the following:
+                #TODO check enum NSCF Line
+            calc_type (str): The type of calculation to search for. A combination of the run_type and task_type.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -112,6 +118,17 @@ class TaskRester(BaseRester[TaskDoc]):
 
         if facets:
             query_params.update({"facets": ",".join(facets) if isinstance(facets, list) else facets})
+
+        if all_fields:
+            warnings.warn(
+                """Please only use all_fields=True when necessary, as it may cause slow query.
+                """
+            )
+        if fields and ("calcs_reversed" in fields or "orig_inputs" in fields):
+            warnings.warn(
+                """Please only include calcs_reversed and orig_inputs when necessary, as it may cause slow query.
+                """
+            )
 
         return super()._search(
             num_chunks=num_chunks,
