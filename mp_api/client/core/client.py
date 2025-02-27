@@ -888,7 +888,7 @@ class BaseRester(Generic[T]):
 
         if data_tuples and "meta" in data_tuples[0][0]:
             total_data["meta"]["time_stamp"] = data_tuples[0][0]["meta"]["time_stamp"]
-            total_data["meat"]["facets"] = data_tuples[0][0]["meta"]["facets"]
+            total_data["meta"]["facets"] = data_tuples[0][0]["meta"]["facet"]
 
         if pbar is not None:
             pbar.close()
