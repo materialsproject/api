@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
 import warnings
+from datetime import datetime
+
 from emmet.core.tasks import TaskDoc
 
 from mp_api.client.core import BaseRester, MPRestError
@@ -56,6 +57,7 @@ class TaskRester(BaseRester[TaskDoc]):
         Arguments:
             task_ids (str, List[str]): List of Materials Project IDs to return data for.
             chemsys: (str, List[str]): A list of chemical systems to search for.
+            elements: (List[str]): A list of elements to search for.
             exclude_elements (List[str]): A list of elements to exclude.
             formula (str, List[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
@@ -63,15 +65,16 @@ class TaskRester(BaseRester[TaskDoc]):
             last_updated (tuple[datetime, datetime]): A tuple of min and max UTC formatted datetimes.
             batches (str, List[str]): A list of batch IDs to search for.
             run_type (str): The type of task to search for. Can be one of the following:
-                #TODO: check enum "GGA", "GGA+U", "SCAN"
+                #TODO: check enum
             task_type (str): The type of task to search for. Can be one of the following:
-                #TODO check enum NSCF Line
+                #TODO check enum
             calc_type (str): The type of calculation to search for. A combination of the run_type and task_type.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in TaskDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
+            facets (str, List[str]): List of facets to return data for.
 
         Returns:
             ([TaskDoc], [dict]) List of task documents or dictionaries.
@@ -85,10 +88,14 @@ class TaskRester(BaseRester[TaskDoc]):
             query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
 
         if formula:
-            query_params.update({"formula": ",".join(formula) if isinstance(formula, list) else formula})
+            query_params.update(
+                {"formula": ",".join(formula) if isinstance(formula, list) else formula}
+            )
 
         if chemsys:
-            query_params.update({"chemsys": ",".join(chemsys) if isinstance(chemsys, list) else chemsys})
+            query_params.update(
+                {"chemsys": ",".join(chemsys) if isinstance(chemsys, list) else chemsys}
+            )
 
         if elements:
             query_params.update({"elements": ",".join(elements)})
@@ -114,10 +121,14 @@ class TaskRester(BaseRester[TaskDoc]):
             query_params.update({"run_type": run_type})
 
         if batches:
-            query_params.update({"batches": ".".join(batches) if isinstance(batches, list) else batches})
+            query_params.update(
+                {"batches": ".".join(batches) if isinstance(batches, list) else batches}
+            )
 
         if facets:
-            query_params.update({"facets": ",".join(facets) if isinstance(facets, list) else facets})
+            query_params.update(
+                {"facets": ",".join(facets) if isinstance(facets, list) else facets}
+            )
 
         if all_fields:
             warnings.warn(
