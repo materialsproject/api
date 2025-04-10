@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections import defaultdict
 
 from emmet.core.summary import HasProps, SummaryDoc
@@ -47,6 +48,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         magnetic_ordering: Ordering | None = None,
         material_ids: str | list[str] | None = None,
         n: tuple[float, float] | None = None,
+        nelements: tuple[int, int] | None = None,
         num_elements: tuple[int, int] | None = None,
         num_sites: tuple[int, int] | None = None,
         num_magnetic_sites: tuple[int, int] | None = None,
@@ -117,7 +119,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             material_ids (str, List[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
             n (Tuple[float,float]): Minimum and maximum refractive index to consider.
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            nelements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            num_elements (Tuple[int,int]): Alias for `nelements`, deprecated. Minimum and maximum number of elements to consider.
             num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
             num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
             num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites to consider.
@@ -153,42 +156,59 @@ class SummaryRester(BaseRester[SummaryDoc]):
         """
         query_params = defaultdict(dict)  # type: dict
 
+        not_aliased_kwargs = [
+            "energy_above_hull",
+            "nsites",
+            "volume",
+            "density",
+            "band_gap",
+            "efermi",
+            "total_magnetization",
+            "total_magnetization_normalized_vol",
+            "total_magnetization_normalized_formula_units",
+            "num_magnetic_sites",
+            "num_unique_magnetic_sites",
+            "k_voigt",
+            "k_reuss",
+            "k_vrh",
+            "g_voigt",
+            "g_reuss",
+            "g_vrh",
+            "e_total",
+            "e_ionic",
+            "e_electronic",
+            "n",
+            "nelements",
+            "weighted_surface_energy",
+            "weighted_work_function",
+            "shape_factor",
+        ]
+
         min_max_name_dict = {
             "total_energy": "energy_per_atom",
             "formation_energy": "formation_energy_per_atom",
-            "energy_above_hull": "energy_above_hull",
             "uncorrected_energy": "uncorrected_energy_per_atom",
             "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
-            "nsites": "nsites",
-            "volume": "volume",
-            "density": "density",
-            "band_gap": "band_gap",
-            "efermi": "efermi",
-            "total_magnetization": "total_magnetization",
-            "total_magnetization_normalized_vol": "total_magnetization_normalized_vol",
-            "total_magnetization_normalized_formula_units": "total_magnetization_normalized_formula_units",
-            "num_magnetic_sites": "num_magnetic_sites",
-            "num_unique_magnetic_sites": "num_unique_magnetic_sites",
-            "k_voigt": "k_voigt",
-            "k_reuss": "k_reuss",
-            "k_vrh": "k_vrh",
-            "g_voigt": "g_voigt",
-            "g_reuss": "g_reuss",
-            "g_vrh": "g_vrh",
             "elastic_anisotropy": "universal_anisotropy",
             "poisson_ratio": "homogeneous_poisson",
-            "e_total": "e_total",
-            "e_ionic": "e_ionic",
-            "e_electronic": "e_electronic",
-            "n": "n",
             "num_sites": "nsites",
-            "num_elements": "nelements",
             "piezoelectric_modulus": "e_ij_max",
-            "weighted_surface_energy": "weighted_surface_energy",
-            "weighted_work_function": "weighted_work_function",
             "surface_energy_anisotropy": "surface_anisotropy",
-            "shape_factor": "shape_factor",
         }
+
+        min_max_name_dict.update({k: k for k in not_aliased_kwargs})
+
+        if num_elements:
+            if nelements:
+                warnings.warn(
+                    "You have set both `nelements` and `num_elements`. As `num_elements`"
+                    "is a deprecated alias for `nelements`, this key will be ignored."
+                )
+            else:
+                nelements = num_elements
+                warnings.warn(
+                    "The `num_elements` tag is being deprecated in favor of `nelements`."
+                )
 
         for param, value in locals().items():
             if param in min_max_name_dict and value:
