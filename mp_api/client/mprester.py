@@ -12,6 +12,7 @@ from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
+from emmet.core.thermo import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from monty.json import MontyDecoder
 from packaging import version
@@ -61,8 +62,10 @@ from mp_api.client.routes.materials.materials import MaterialsRester
 from mp_api.client.routes.molecules import MoleculeRester
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from typing import Any, Literal
 
+    from pymatgen.analysis.phase_diagram import PDEntry
+    from pymatgen.entries.computed_entries import ComputedEntry
 
 _EMMET_SETTINGS = EmmetSettings()
 _MAPI_SETTINGS = MAPIClientSettings()
@@ -1620,3 +1623,59 @@ class MPRester:
         elif normalization == "formula_unit":
             num_form_unit = comp.get_reduced_composition_and_factor()[1]
             return (energy_per_atom * natom - atomic_energy) / num_form_unit
+
+    def get_stability(
+        self,
+        entries: ComputedEntry | ComputedStructureEntry | PDEntry,
+        thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
+    ) -> list[dict[str, Any]] | None:
+        chemsys = set()
+        for entry in entries:
+            chemsys.update(entry.composition.elements)
+        chemsys_str = "-".join(sorted(str(ele) for ele in chemsys))
+
+        thermo_type = (
+            ThermoType(thermo_type) if isinstance(thermo_type, str) else thermo_type
+        )
+
+        corrector = None
+        if thermo_type == ThermoType.GGA_GGA_U:
+            from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
+
+            corrector = MaterialsProject2020Compatibility()
+
+        elif thermo_type == ThermoType.GGA_GGA_U_R2SCAN:
+            from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
+
+            corrector = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
+
+        try:
+            pd = self.materials.thermo.get_phase_diagram_from_chemsys(
+                chemsys_str, thermo_type=thermo_type
+            )
+        except OSError:
+            pd = None
+
+        if not pd:
+            warnings.warn(
+                f"No phase diagram data available for chemical system {chemsys_str} "
+                f"and thermo type {thermo_type}."
+            )
+            return
+
+        if corrector:
+            corrected_entries = corrector.process_entries(entries + pd.all_entries)
+        else:
+            corrected_entries = [*entries, *pd.all_entries]
+
+        new_pd = PhaseDiagram(corrected_entries)
+
+        return [
+            {
+                "e_above_hull": new_pd.get_e_above_hull(entry),
+                "composition": entry.composition.as_dict(),
+                "energy": entry.energy,
+                "entry_id": getattr(entry, "entry_id", f"user-entry-{idx}"),
+            }
+            for idx, entry in enumerate(entries)
+        ]
