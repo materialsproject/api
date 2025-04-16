@@ -7,7 +7,7 @@ from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from pymatgen.analysis.magnetism import Ordering
 
-from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
 from mp_api.client.core.utils import validate_ids
 
 
@@ -16,7 +16,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"
 
-    def search(
+    def search(  # noqa: D417
         self,
         band_gap: tuple[float, float] | None = None,
         chemsys: str | list[str] | None = None,
@@ -48,7 +48,6 @@ class SummaryRester(BaseRester[SummaryDoc]):
         magnetic_ordering: Ordering | None = None,
         material_ids: str | list[str] | None = None,
         n: tuple[float, float] | None = None,
-        nelements: tuple[int, int] | None = None,
         num_elements: tuple[int, int] | None = None,
         num_sites: tuple[int, int] | None = None,
         num_magnetic_sites: tuple[int, int] | None = None,
@@ -74,6 +73,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        **kwargs,
     ) -> list[SummaryDoc] | list[dict]:
         """Query core data using a variety of search criteria.
 
@@ -178,7 +178,6 @@ class SummaryRester(BaseRester[SummaryDoc]):
             "e_ionic",
             "e_electronic",
             "n",
-            "nelements",
             "weighted_surface_energy",
             "weighted_work_function",
             "shape_factor",
@@ -192,34 +191,95 @@ class SummaryRester(BaseRester[SummaryDoc]):
             "elastic_anisotropy": "universal_anisotropy",
             "poisson_ratio": "homogeneous_poisson",
             "num_sites": "nsites",
+            "num_elements": "nelements",
             "piezoelectric_modulus": "e_ij_max",
             "surface_energy_anisotropy": "surface_anisotropy",
         }
 
         min_max_name_dict.update({k: k for k in not_aliased_kwargs})
+        mmnd_inv = {v: k for k, v in min_max_name_dict.items() if k != v}
 
-        if num_elements:
-            if nelements:
-                warnings.warn(
-                    "You have set both `nelements` and `num_elements`. As `num_elements`"
-                    "is a deprecated alias for `nelements`, this key will be ignored."
+        # Set user query params from `locals`
+        user_settings = {
+            k: v for k, v in locals().items() if k in min_max_name_dict and v
+        }
+
+        db_keys = {k: [] for k in ("duplicate", "warn", "unknown")}
+        for k, v in kwargs.items():
+            category = "unknown"
+            if non_db_k := mmnd_inv.get(k):
+                if user_settings.get(non_db_k):
+                    # Both a search and _search equivalent field are specified
+                    category = "duplicate"
+                elif v:
+                    # Only the _search field is specified
+                    category = "warn"
+                    user_settings[non_db_k] = v
+            db_keys[category].append(non_db_k or k)
+
+        if any(db_keys.values()):
+            warning_strs: list[str] = []
+            exc_strs: list[str] = []
+
+            def csrc(x):
+                return f"\x1b[34m{x}\x1b[39m"
+
+            def _csrc(x):
+                return f"\x1b[31m{x}\x1b[39m"
+
+            if db_keys["warn"]:
+                warning_strs.extend(
+                    [
+                        f"You have specified fields used by {_csrc('`_search`')} that can be understood by {csrc('`search`')}",
+                        f"   {', '.join([_csrc(min_max_name_dict[k]) for k in db_keys['warn']])}",
+                        f"To ensure long term support, please use their {csrc('`search`')} equivalents:",
+                        f"   {', '.join([csrc(k) for k in db_keys['warn']])}",
+                    ]
                 )
-            else:
-                nelements = num_elements
-                warnings.warn(
-                    "The `num_elements` tag is being deprecated in favor of `nelements`."
+            if db_keys["duplicate"]:
+                dupe_pairs = "\n".join(
+                    f"{csrc(k)} and {_csrc(min_max_name_dict[k])}"
+                    for k in db_keys["duplicate"]
+                )
+                exc_strs.extend(
+                    [
+                        f"You have specified fields known to both {csrc('`search`')} and {_csrc('`_search`')}",
+                        f"   {dupe_pairs}",
+                        f"To avoid query ambiguity, please check your {csrc('`search`')} query and only specify",
+                        f"   {', '.join([csrc(k) for k in db_keys['duplicate']])}",
+                    ]
+                )
+            if db_keys["unknown"]:
+                exc_strs.extend(
+                    [
+                        f"You have specified the following kwargs which are unknown to {csrc('`search`')}, "
+                        f"but may be known to {_csrc('`_search`')}",
+                        f"    \x1b[36m{', '.join(db_keys['unknown'])}\x1b[39m",
+                    ]
                 )
 
-        for param, value in locals().items():
-            if param in min_max_name_dict and value:
-                if isinstance(value, (int, float)):
-                    value = (value, value)
-                query_params.update(
-                    {
-                        f"{min_max_name_dict[param]}_min": value[0],
-                        f"{min_max_name_dict[param]}_max": value[1],
-                    }
+            warn_ref_strs = [
+                "Please see the documentation:",
+                f"    {csrc('`search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search')}",
+                f"   {_csrc('`_search`: https://api.materialsproject.org/redoc#tag/Materials-Summary/operation/search_materials_summary__get')}",
+            ]
+
+            if exc_strs:
+                raise MPRestError("\n".join([*warning_strs, *exc_strs, *warn_ref_strs]))
+            if warn_ref_strs:
+                warnings.warn(
+                    "\n".join([*warning_strs, *warn_ref_strs]), category=MPRestWarning
                 )
+
+        for param, value in user_settings.items():
+            if isinstance(value, (int, float)):
+                value = (value, value)
+            query_params.update(
+                {
+                    f"{min_max_name_dict[param]}_min": value[0],
+                    f"{min_max_name_dict[param]}_max": value[1],
+                }
+            )
 
         if material_ids:
             if isinstance(material_ids, str):
