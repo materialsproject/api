@@ -204,6 +204,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             k: v for k, v in locals().items() if k in min_max_name_dict and v
         }
 
+        # Check to see if user specified _search fields using **kwargs,
+        # or if any of the **kwargs are unparsable
         db_keys = {k: [] for k in ("duplicate", "warn", "unknown")}
         for k, v in kwargs.items():
             category = "unknown"
@@ -217,6 +219,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
                     user_settings[non_db_k] = v
             db_keys[category].append(non_db_k or k)
 
+        # If any _search or unknown fields were set, throw warnings/exceptions
         if any(db_keys.values()):
             warning_strs: list[str] = []
             exc_strs: list[str] = []
@@ -227,6 +230,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
             def _csrc(x):
                 return f"\x1b[31m{x}\x1b[39m"
 
+            # Warn the user if they input any fields from _search without setting equivalent kwargs in search
             if db_keys["warn"]:
                 warning_strs.extend(
                     [
@@ -236,6 +240,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
                         f"   {', '.join([csrc(k) for k in db_keys['warn']])}",
                     ]
                 )
+
+            # Throw an exception if the user input a field from _search and its equivalent search kwarg
             if db_keys["duplicate"]:
                 dupe_pairs = "\n".join(
                     f"{csrc(k)} and {_csrc(min_max_name_dict[k])}"
@@ -249,6 +255,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
                         f"   {', '.join([csrc(k) for k in db_keys['duplicate']])}",
                     ]
                 )
+            # Throw an exception if any unknown kwargs were input
             if db_keys["unknown"]:
                 exc_strs.extend(
                     [
@@ -258,6 +265,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
                     ]
                 )
 
+            # Always print links to documentation on warning / exception
             warn_ref_strs = [
                 "Please see the documentation:",
                 f"    {csrc('`search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search')}",
