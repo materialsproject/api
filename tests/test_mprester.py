@@ -6,6 +6,7 @@ import importlib
 import numpy as np
 import pytest
 from emmet.core.tasks import TaskDoc
+from emmet.core.thermo import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
@@ -18,7 +19,11 @@ from pymatgen.electronic_structure.bandstructure import (
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
-from pymatgen.entries.compatibility import MaterialsProjectAqueousCompatibility
+from pymatgen.entries.compatibility import (
+    MaterialsProjectAqueousCompatibility,
+    MaterialsProject2020Compatibility,
+)
+from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
@@ -429,3 +434,78 @@ class TestMPRester:
         assert all(
             v == pytest.approx(e_coh["noserial"][k]) for k, v in e_coh["serial"].items()
         )
+
+    @pytest.mark.parametrize(
+        "chemsys, thermo_type",
+        [
+            [("Fe", "P"), "GGA_GGA+U"],
+            [("Li", "S"), ThermoType.GGA_GGA_U_R2SCAN],
+            [("Ni", "Se"), ThermoType.R2SCAN],
+            [("Ni", "Kr"), "R2SCAN"],
+        ],
+    )
+    def test_get_stability(self, chemsys, thermo_type):
+        """
+        This test is adapted from the pymatgen one - the scope is broadened
+        to include more diverse chemical environments and thermo types which
+        reflect the scope of the current MP database.
+        """
+        with MPRester() as mpr:
+            entries = mpr.get_entries_in_chemsys(
+                chemsys, additional_criteria={"thermo_types": [thermo_type]}
+            )
+
+            no_compound_entries = all(
+                len(entry.composition.elements) == 1 for entry in entries
+            )
+
+            modified_entries = [
+                ComputedEntry(
+                    entry.composition,
+                    entry.uncorrected_energy + 0.01,
+                    parameters=entry.parameters,
+                    entry_id=f"mod_{entry.entry_id}",
+                )
+                for entry in entries
+                if entry.composition.reduced_formula in ["Fe2P", "".join(chemsys)]
+            ]
+
+            if len(modified_entries) == 0:
+                # create fake entry to get PD retrieval to fail
+                modified_entries = [
+                    ComputedEntry(
+                        "".join(chemsys),
+                        np.average([entry.energy for entry in entries]),
+                        entry_id=f"hypothetical",
+                    )
+                ]
+
+            if no_compound_entries:
+                with pytest.warns(UserWarning, match="No phase diagram data available"):
+                    mpr.get_stability(modified_entries, thermo_type=thermo_type)
+                return
+
+            else:
+                rester_ehulls = mpr.get_stability(
+                    modified_entries, thermo_type=thermo_type
+                )
+
+        all_entries = entries + modified_entries
+
+        compat = None
+        if thermo_type == "GGA_GGA+U":
+            compat = MaterialsProject2020Compatibility()
+        elif thermo_type == "GGA_GGA+U_R2SCAN":
+            compat = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
+
+        if compat:
+            all_entries = compat.process_entries(all_entries)
+
+        pd = PhaseDiagram(all_entries)
+        for entry in all_entries:
+            if str(entry.entry_id).startswith("mod"):
+                for dct in rester_ehulls:
+                    if dct["entry_id"] == entry.entry_id:
+                        data = dct
+                        break
+                assert pd.get_e_above_hull(entry) == pytest.approx(data["e_above_hull"])
