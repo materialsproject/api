@@ -1335,3 +1335,7 @@ class BaseRester(Generic[T]):
 
 class MPRestError(Exception):
     """Raised when the query has problems, e.g., bad query format."""
+
+
+class MPRestWarning(Warning):
+    """Raised when a query is malformed but interpretable."""
