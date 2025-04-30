@@ -57,6 +57,7 @@ custom_field_tests = {
     "theoretical": True,
     "has_reconstructed": False,
     "magnetic_ordering": Ordering.FM,
+    "nelements": (8, 9),
 }  # type: dict
 
 
