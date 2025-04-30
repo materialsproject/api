@@ -19,7 +19,7 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
         spin_multiplicity: int | None = None,
         nelements: tuple[int, int] | None = None,
         chemsys: str | list[str] | None = None,
-        deprecated: bool | None = None,
+        # deprecated: bool | None = None,
         elements: list[str] | None = None,
         exclude_elements: list[str] | None = None,
         formula: str | list[str] | None = None,
@@ -52,7 +52,7 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
             #         ["wB97X-V/def2-TZVPPD/SMD(VACUUM)", "wB97M-V/def2-QZVPPD/SMD(SOLVENT=WATER)"])
             chemsys (str, List[str]): A chemical system, list of chemical systems
                 (e.g., Li-C-O, [C-O-H-N, Li-N]).
-            deprecated (bool): Whether the material is tagged as deprecated.
+            #deprecated (bool): Whether the material is tagged as deprecated.
             elements (List[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
             formula (str, List[str]): An alphabetical formula or list of formulas
@@ -98,8 +98,8 @@ class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
         if spin_multiplicity:
             query_params.update({"spin_multiplicity": spin_multiplicity})
 
-        if deprecated is not None:
-            query_params.update({"deprecated": deprecated})
+        # if deprecated is not None:
+        #    query_params.update({"deprecated": deprecated})
 
         if formula:
             if isinstance(formula, str):
