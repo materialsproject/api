@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import numpy as np
 from collections import defaultdict
 
 from monty.json import MontyDecoder
@@ -134,3 +135,27 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
             raise MPRestError("No object found")
 
         return result[0]
+
+    def compute_thermo_quantities(self, material_id: str, phonon_method: str):
+        """Compute thermodynamical quantities for given material ID and phonon_method.
+
+        Arguments:
+            material_id (str): Material ID to calculate quantities for
+            phonon_method (str): phonon method, i.e. pheasy or dfpt
+
+        Returns:
+            quantities (dict): thermodynamical quantities
+        """
+        use_document_model = self.use_document_model
+        self.use_document_model = False
+        docs = self.search(material_ids=material_id, phonon_method=phonon_method)
+        if not docs or not docs[0]:
+            raise MPRestError("No phonon document found")
+
+        self.use_document_model = True
+        docs[0]["phonon_dos"] = self.get_dos_from_material_id(
+            material_id, phonon_method
+        )
+        doc = PhononBSDOSDoc(**docs[0])
+        self.use_document_model = use_document_model
+        return doc.compute_thermo_quantities(np.linspace(0, 800, 100))
