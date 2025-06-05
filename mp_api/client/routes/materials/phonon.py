@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 from collections import defaultdict
 
-from emmet.core.phonon import PhononBSDOSDoc
+from monty.json import MontyDecoder
+from emmet.core.phonon import PhononBSDOSDoc, PhononBS, PhononDOS
 
-from mp_api.client.core import BaseRester
+from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 
@@ -61,3 +63,74 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
             fields=fields,
             **query_params,
         )
+
+    def get_bandstructure_from_material_id(self, material_id: str, phonon_method: str):
+        """Get the phonon band structure pymatgen object associated with a given material ID and phonon method.
+
+        Arguments:
+            material_id (str): Material ID for the phonon band structure calculation
+            phonon_method (str): phonon method, i.e. pheasy or dfpt
+
+        Returns:
+            bandstructure (PhononBS): PhononBS object
+        """
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
+        result = self._query_open_data(
+            bucket="materialsproject-parsed",
+            key=f"ph-bandstructures/{phonon_method}/{material_id}.json.gz",
+            decoder=decoder,
+        )[0]
+
+        if not result or not result[0]:
+            raise MPRestError("No object found")
+
+        if self.use_document_model:
+            return PhononBS(**result[0])
+
+        return result[0]
+
+    def get_dos_from_material_id(self, material_id: str, phonon_method: str):
+        """Get the phonon dos pymatgen object associated with a given material ID and phonon method.
+
+        Arguments:
+            material_id (str): Material ID for the phonon dos calculation
+            phonon_method (str): phonon method, i.e. pheasy or dfpt
+
+        Returns:
+            dos (PhononDOS): PhononDOS object
+        """
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
+        result = self._query_open_data(
+            bucket="materialsproject-parsed",
+            key=f"ph-dos/{phonon_method}/{material_id}.json.gz",
+            decoder=decoder,
+        )[0]
+
+        if not result or not result[0]:
+            raise MPRestError("No object found")
+
+        if self.use_document_model:
+            return PhononDOS(**result[0])
+
+        return result[0]
+
+    def get_forceconstants_from_material_id(self, material_id: str):
+        """Get the force constants associated with a given material ID.
+
+        Arguments:
+            material_id (str): Material ID for the force constants calculation
+
+        Returns:
+            force constants (list[list[Matrix3D]]): PhononDOS object
+        """
+        decoder = MontyDecoder().decode if self.monty_decode else json.loads
+        result = self._query_open_data(
+            bucket="materialsproject-parsed",
+            key=f"ph-force-constants/{material_id}.json.gz",
+            decoder=decoder,
+        )[0]
+
+        if not result or not result[0]:
+            raise MPRestError("No object found")
+
+        return result[0]
