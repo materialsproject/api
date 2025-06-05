@@ -16,6 +16,7 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
     def search(
         self,
         material_ids: str | list[str] | None = None,
+        phonon_method: str | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -26,6 +27,7 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
         Arguments:
             material_ids (str, List[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
+            phonon_method (str): phonon method to search (dfpt, phonopy, pheasy)
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -41,7 +43,10 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
             if isinstance(material_ids, str):
                 material_ids = [material_ids]
 
-            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+            query_params["material_ids"] = ",".join(validate_ids(material_ids))
+
+        if phonon_method and phonon_method in {"dfpt", "phonopy", "pheasy"}:
+            query_params["phonon_method"] = phonon_method
 
         query_params = {
             entry: query_params[entry]
