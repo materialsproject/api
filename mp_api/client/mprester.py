@@ -1248,10 +1248,9 @@ class MPRester:
              CompletePhononDos: A phonon DOS object.
 
         """
-        doc = self.materials.phonon.search(material_ids=material_id, fields=["ph_dos"])
-        if not doc:
-            return None
-        return doc[0].ph_dos if self.use_document_model else doc[0]["ph_dos"]  # type: ignore
+        return self.materials.phonon.get_dos_from_material_id(
+            material_id=material_id, phonon_method="dfpt"
+        )
 
     def get_phonon_bandstructure_by_material_id(self, material_id: str):
         """Get phonon dispersion data corresponding to a material_id.
@@ -1262,11 +1261,9 @@ class MPRester:
         Returns:
             PhononBandStructureSymmLine:  phonon band structure.
         """
-        doc = self.materials.phonon.search(material_ids=material_id, fields=["ph_bs"])
-        if not doc:
-            return None
-
-        return doc[0].ph_bs if self.use_document_model else doc[0]["ph_bs"]  # type: ignore
+        return self.materials.phonon.get_bandstructure_from_material_id(
+            material_id=material_id, phonon_method="dfpt"
+        )
 
     def get_wulff_shape(self, material_id: str):
         """Constructs a Wulff shape for a material.
