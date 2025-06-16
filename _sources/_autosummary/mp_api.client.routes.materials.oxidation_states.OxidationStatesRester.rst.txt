@@ -31,7 +31,7 @@ mp\_api.client.routes.materials.oxidation\_states.OxidationStatesRester
    
       ~OxidationStatesRester.available_fields
       ~OxidationStatesRester.primary_key
-      ~OxidationStatesRester.s3_resource
+      ~OxidationStatesRester.s3_client
       ~OxidationStatesRester.session
       ~OxidationStatesRester.suffix
       ~OxidationStatesRester.supports_versions

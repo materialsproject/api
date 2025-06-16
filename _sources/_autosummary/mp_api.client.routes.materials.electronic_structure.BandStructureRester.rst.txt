@@ -34,7 +34,7 @@ mp\_api.client.routes.materials.electronic\_structure.BandStructureRester
    
       ~BandStructureRester.available_fields
       ~BandStructureRester.primary_key
-      ~BandStructureRester.s3_resource
+      ~BandStructureRester.s3_client
       ~BandStructureRester.session
       ~BandStructureRester.suffix
       ~BandStructureRester.supports_versions

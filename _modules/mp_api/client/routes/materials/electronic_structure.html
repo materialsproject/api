@@ -5,18 +5,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mp_api.client.routes.materials.electronic_structure &#8212; mp-api 2022 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=039e1c02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=27fed22d" />
     <script src="../../../../../_static/documentation_options.js?v=001ecc8c"></script>
-    <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
    
   <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -29,34 +31,36 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.materials.electronic_structure</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
-<span class="kn">from</span> <span class="nn">emmet.core.electronic_structure</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.electronic_structure</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BSPathType</span><span class="p">,</span>
     <span class="n">DOSProjectionType</span><span class="p">,</span>
     <span class="n">ElectronicStructureDoc</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">pymatgen.analysis.magnetism.analyzer</span> <span class="kn">import</span> <span class="n">Ordering</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
-<span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.core</span> <span class="kn">import</span> <span class="n">OrbitalType</span><span class="p">,</span> <span class="n">Spin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">monty.json</span><span class="w"> </span><span class="kn">import</span> <span class="n">MontyDecoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.magnetism.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ordering</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrbitalType</span><span class="p">,</span> <span class="n">Spin</span>
 
-<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
-<span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 
 <div class="viewcode-block" id="ElectronicStructureRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.ElectronicStructureRester.html#mp_api.client.routes.materials.electronic_structure.ElectronicStructureRester">[docs]</a>
-<span class="k">class</span> <span class="nc">ElectronicStructureRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">ElectronicStructureDoc</span><span class="p">]):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElectronicStructureRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">ElectronicStructureDoc</span><span class="p">]):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/electronic_structure&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">ElectronicStructureDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
 
 <div class="viewcode-block" id="ElectronicStructureRester.search_electronic_structure_docs">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.ElectronicStructureRester.html#mp_api.client.routes.materials.electronic_structure.ElectronicStructureRester.search_electronic_structure_docs">[docs]</a>
-    <span class="k">def</span> <span class="nf">search_electronic_structure_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_electronic_structure_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;MPRester.electronic_structure.search_electronic_structure_docs is deprecated. &quot;</span>
@@ -70,7 +74,7 @@
 
 <div class="viewcode-block" id="ElectronicStructureRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.ElectronicStructureRester.html#mp_api.client.routes.materials.electronic_structure.ElectronicStructureRester.search">[docs]</a>
-    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">material_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">band_gap</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -79,8 +83,8 @@
         <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">exclude_elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">is_gap_direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">is_metal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_gap_direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_metal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">magnetic_ordering</span><span class="p">:</span> <span class="n">Ordering</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_elements</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -184,13 +188,13 @@
 
 <div class="viewcode-block" id="BandStructureRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester">[docs]</a>
-<span class="k">class</span> <span class="nc">BandStructureRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BandStructureRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/electronic_structure/bandstructure&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">ElectronicStructureDoc</span>  <span class="c1"># type: ignore</span>
 
 <div class="viewcode-block" id="BandStructureRester.search_bandstructure_summary">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester.search_bandstructure_summary">[docs]</a>
-    <span class="k">def</span> <span class="nf">search_bandstructure_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_bandstructure_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;MPRester.electronic_structure_bandstructure.search_bandstructure_summary is deprecated. &quot;</span>
@@ -204,12 +208,12 @@
 
 <div class="viewcode-block" id="BandStructureRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester.search">[docs]</a>
-    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">band_gap</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">efermi</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">is_gap_direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">is_metal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_gap_direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_metal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">magnetic_ordering</span><span class="p">:</span> <span class="n">Ordering</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">path_type</span><span class="p">:</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">setyawan_curtarolo</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -273,7 +277,7 @@
 
 <div class="viewcode-block" id="BandStructureRester.get_bandstructure_from_task_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester.get_bandstructure_from_task_id">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_bandstructure_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_bandstructure_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the band structure pymatgen object associated with a given task ID.</span>
 
 <span class="sd">        Arguments:</span>
@@ -282,19 +286,22 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (BandStructure): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">decoder</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
-            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;bandstructures&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">task_id</span>
-        <span class="p">)</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;bandstructures/</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
+            <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No object found&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BandStructureRester.get_bandstructure_from_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester.get_bandstructure_from_material_id">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_bandstructure_from_material_id</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_bandstructure_from_material_id</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">path_type</span><span class="p">:</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">setyawan_curtarolo</span><span class="p">,</span>
@@ -311,20 +318,37 @@
 <span class="sd">            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">es_rester</span> <span class="o">=</span> <span class="n">ElectronicStructureRester</span><span class="p">(</span>
-            <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_endpoint</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span>
+            <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
+            <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_endpoint</span><span class="p">,</span>
+            <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include_user_agent</span><span class="p">,</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+            <span class="n">monty_decode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span><span class="p">,</span>
+            <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">line_mode</span><span class="p">:</span>
-            <span class="n">bs_data</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span>
-                <span class="n">document_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">]</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">bandstructure</span>
+            <span class="n">bs_doc</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">bs_doc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No electronic structure data found.&quot;</span><span class="p">)</span>
+
+            <span class="n">bs_data</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bandstructure</span>  <span class="c1"># type: ignore</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
+                <span class="k">else</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">bs_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">bs_data</span> <span class="o">=</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+                <span class="n">bs_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">bs_data</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
@@ -333,16 +357,25 @@
                     <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">bs_data</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span>
-                <span class="n">document_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">dos</span>
+            <span class="n">bs_doc</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">bs_doc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No electronic structure data found.&quot;</span><span class="p">)</span>
+
+            <span class="n">bs_data</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dos</span>  <span class="c1"># type: ignore</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
+                <span class="k">else</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">bs_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">bs_data</span> <span class="o">=</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+                <span class="n">bs_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">bs_data</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
@@ -363,13 +396,13 @@
 
 <div class="viewcode-block" id="DosRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester">[docs]</a>
-<span class="k">class</span> <span class="nc">DosRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DosRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/electronic_structure/dos&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">ElectronicStructureDoc</span>  <span class="c1"># type: ignore</span>
 
 <div class="viewcode-block" id="DosRester.search_dos_summary">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.search_dos_summary">[docs]</a>
-    <span class="k">def</span> <span class="nf">search_dos_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_dos_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;MPRester.electronic_structure_dos.search_dos_summary is deprecated. &quot;</span>
@@ -383,7 +416,7 @@
 
 <div class="viewcode-block" id="DosRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.search">[docs]</a>
-    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">band_gap</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">efermi</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -455,7 +488,7 @@
 
 <div class="viewcode-block" id="DosRester.get_dos_from_task_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.get_dos_from_task_id">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_dos_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the density of states pymatgen object associated with a given calculation ID.</span>
 
 <span class="sd">        Arguments:</span>
@@ -464,19 +497,22 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (CompleteDos): CompleteDos object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">decoder</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
-            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;dos&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">task_id</span>
-        <span class="p">)</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;dos/</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
+            <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No object found&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DosRester.get_dos_from_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.get_dos_from_material_id">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_dos_from_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the complete density of states pymatgen object associated with a Materials Project ID.</span>
 
 <span class="sd">        Arguments:</span>
@@ -486,12 +522,23 @@
 <span class="sd">            dos (CompleteDos): CompleteDos object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">es_rester</span> <span class="o">=</span> <span class="n">ElectronicStructureRester</span><span class="p">(</span>
-            <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_endpoint</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span>
+            <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
+            <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_endpoint</span><span class="p">,</span>
+            <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include_user_agent</span><span class="p">,</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+            <span class="n">monty_decode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span><span class="p">,</span>
+            <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="n">dos_data</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">get_data_by_id</span><span class="p">(</span>
-            <span class="n">document_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+        <span class="n">dos_doc</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dos_doc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">dos_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dos_data</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]:</span>
             <span class="n">dos_task_id</span> <span class="o">=</span> <span class="n">dos_data</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">][</span><span class="s2">&quot;total&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
@@ -512,7 +559,7 @@
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../../../../../index.html">mp-api</a></h1>
 
@@ -536,7 +583,7 @@
 </ul>
 
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../../search.html" method="get">
@@ -544,24 +591,24 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, The Materials Project.
+      &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 
     
     <a href="https://github.com/materialsproject/api" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+        <img src="../../../../../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
     </a>
     
 

@@ -21,7 +21,6 @@ mp\_api.client.routes.materials.thermo.ThermoRester
       ~ThermoRester.get_data_by_id
       ~ThermoRester.get_phase_diagram_from_chemsys
       ~ThermoRester.search
-      ~ThermoRester.search_thermo_docs
    
    
 
@@ -33,7 +32,7 @@ mp\_api.client.routes.materials.thermo.ThermoRester
    
       ~ThermoRester.available_fields
       ~ThermoRester.primary_key
-      ~ThermoRester.s3_resource
+      ~ThermoRester.s3_client
       ~ThermoRester.session
       ~ThermoRester.suffix
       ~ThermoRester.supports_versions

@@ -20,7 +20,6 @@ mp\_api.client.routes.materials.surface\_properties.SurfacePropertiesRester
       ~SurfacePropertiesRester.count
       ~SurfacePropertiesRester.get_data_by_id
       ~SurfacePropertiesRester.search
-      ~SurfacePropertiesRester.search_surface_properties_docs
    
    
 
@@ -32,7 +31,7 @@ mp\_api.client.routes.materials.surface\_properties.SurfacePropertiesRester
    
       ~SurfacePropertiesRester.available_fields
       ~SurfacePropertiesRester.primary_key
-      ~SurfacePropertiesRester.s3_resource
+      ~SurfacePropertiesRester.s3_client
       ~SurfacePropertiesRester.session
       ~SurfacePropertiesRester.suffix
       ~SurfacePropertiesRester.supports_versions

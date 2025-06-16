@@ -31,7 +31,7 @@ mp\_api.client.routes.materials.doi.DOIRester
    
       ~DOIRester.available_fields
       ~DOIRester.primary_key
-      ~DOIRester.s3_resource
+      ~DOIRester.s3_client
       ~DOIRester.session
       ~DOIRester.suffix
       ~DOIRester.supports_versions

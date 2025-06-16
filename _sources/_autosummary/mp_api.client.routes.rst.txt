@@ -28,6 +28,6 @@
    :template: custom-module-template.rst
    :recursive:
 
-   mp_api.client.routes.materials
-   mp_api.client.routes.molecules
+   materials
+   molecules
 

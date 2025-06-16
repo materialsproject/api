@@ -20,7 +20,6 @@ mp\_api.client.routes.materials.piezo.PiezoRester
       ~PiezoRester.count
       ~PiezoRester.get_data_by_id
       ~PiezoRester.search
-      ~PiezoRester.search_piezoelectric_docs
    
    
 
@@ -32,7 +31,7 @@ mp\_api.client.routes.materials.piezo.PiezoRester
    
       ~PiezoRester.available_fields
       ~PiezoRester.primary_key
-      ~PiezoRester.s3_resource
+      ~PiezoRester.s3_client
       ~PiezoRester.session
       ~PiezoRester.suffix
       ~PiezoRester.supports_versions

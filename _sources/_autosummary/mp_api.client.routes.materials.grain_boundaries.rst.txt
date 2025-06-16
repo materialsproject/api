@@ -1,7 +1,7 @@
-mp\_api.client.routes.materials.grain\_boundary
-===============================================
+mp\_api.client.routes.materials.grain\_boundaries
+=================================================
 
-.. automodule:: mp_api.client.routes.materials.grain_boundary
+.. automodule:: mp_api.client.routes.materials.grain_boundaries
 
    
    

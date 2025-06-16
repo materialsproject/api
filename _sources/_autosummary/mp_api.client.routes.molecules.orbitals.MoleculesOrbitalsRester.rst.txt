@@ -31,7 +31,7 @@ mp\_api.client.routes.molecules.orbitals.MoleculesOrbitalsRester
    
       ~MoleculesOrbitalsRester.available_fields
       ~MoleculesOrbitalsRester.primary_key
-      ~MoleculesOrbitalsRester.s3_resource
+      ~MoleculesOrbitalsRester.s3_client
       ~MoleculesOrbitalsRester.session
       ~MoleculesOrbitalsRester.suffix
       ~MoleculesOrbitalsRester.supports_versions

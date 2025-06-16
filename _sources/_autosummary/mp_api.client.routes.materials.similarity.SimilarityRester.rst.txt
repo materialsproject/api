@@ -31,7 +31,7 @@ mp\_api.client.routes.materials.similarity.SimilarityRester
    
       ~SimilarityRester.available_fields
       ~SimilarityRester.primary_key
-      ~SimilarityRester.s3_resource
+      ~SimilarityRester.s3_client
       ~SimilarityRester.session
       ~SimilarityRester.suffix
       ~SimilarityRester.supports_versions

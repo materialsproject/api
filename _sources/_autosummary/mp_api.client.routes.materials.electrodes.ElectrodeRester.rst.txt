@@ -20,7 +20,6 @@ mp\_api.client.routes.materials.electrodes.ElectrodeRester
       ~ElectrodeRester.count
       ~ElectrodeRester.get_data_by_id
       ~ElectrodeRester.search
-      ~ElectrodeRester.search_electrode_docs
    
    
 
@@ -32,7 +31,7 @@ mp\_api.client.routes.materials.electrodes.ElectrodeRester
    
       ~ElectrodeRester.available_fields
       ~ElectrodeRester.primary_key
-      ~ElectrodeRester.s3_resource
+      ~ElectrodeRester.s3_client
       ~ElectrodeRester.session
       ~ElectrodeRester.suffix
       ~ElectrodeRester.supports_versions

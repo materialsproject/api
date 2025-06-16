@@ -31,7 +31,7 @@ mp\_api.client.routes.materials.absorption.AbsorptionRester
    
       ~AbsorptionRester.available_fields
       ~AbsorptionRester.primary_key
-      ~AbsorptionRester.s3_resource
+      ~AbsorptionRester.s3_client
       ~AbsorptionRester.session
       ~AbsorptionRester.suffix
       ~AbsorptionRester.supports_versions

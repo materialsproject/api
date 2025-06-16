@@ -20,7 +20,6 @@ mp\_api.client.routes.materials.synthesis.SynthesisRester
       ~SynthesisRester.count
       ~SynthesisRester.get_data_by_id
       ~SynthesisRester.search
-      ~SynthesisRester.search_synthesis_text
    
    
 
@@ -32,7 +31,7 @@ mp\_api.client.routes.materials.synthesis.SynthesisRester
    
       ~SynthesisRester.available_fields
       ~SynthesisRester.primary_key
-      ~SynthesisRester.s3_resource
+      ~SynthesisRester.s3_client
       ~SynthesisRester.session
       ~SynthesisRester.suffix
       ~SynthesisRester.supports_versions

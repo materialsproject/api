@@ -20,7 +20,6 @@ mp\_api.client.routes.materials.substrates.SubstratesRester
       ~SubstratesRester.count
       ~SubstratesRester.get_data_by_id
       ~SubstratesRester.search
-      ~SubstratesRester.search_substrates_docs
    
    
 
@@ -32,7 +31,7 @@ mp\_api.client.routes.materials.substrates.SubstratesRester
    
       ~SubstratesRester.available_fields
       ~SubstratesRester.primary_key
-      ~SubstratesRester.s3_resource
+      ~SubstratesRester.s3_client
       ~SubstratesRester.session
       ~SubstratesRester.suffix
       ~SubstratesRester.supports_versions

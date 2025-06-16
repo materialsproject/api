@@ -5,18 +5,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mp_api.client.routes.molecules.partial_spins &#8212; mp-api 2022 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=039e1c02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=27fed22d" />
     <script src="../../../../../_static/documentation_options.js?v=001ecc8c"></script>
-    <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
    
   <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -29,24 +31,24 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.molecules.partial_spins</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">emmet.core.molecules.atomic</span> <span class="kn">import</span> <span class="n">PartialSpinsDoc</span>
-<span class="kn">from</span> <span class="nn">emmet.core.mpid</span> <span class="kn">import</span> <span class="n">MPculeID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.molecules.atomic</span><span class="w"> </span><span class="kn">import</span> <span class="n">PartialSpinsDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPculeID</span>
 
-<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
 
 
 <div class="viewcode-block" id="MoleculesPartialSpinsRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.partial_spins.MoleculesPartialSpinsRester.html#mp_api.client.routes.molecules.partial_spins.MoleculesPartialSpinsRester">[docs]</a>
-<span class="k">class</span> <span class="nc">MoleculesPartialSpinsRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">PartialSpinsDoc</span><span class="p">]):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MoleculesPartialSpinsRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">PartialSpinsDoc</span><span class="p">]):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/partial_spins&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">PartialSpinsDoc</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;property_id&quot;</span>
 
 <div class="viewcode-block" id="MoleculesPartialSpinsRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.partial_spins.MoleculesPartialSpinsRester.html#mp_api.client.routes.molecules.partial_spins.MoleculesPartialSpinsRester.search">[docs]</a>
-    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">molecule_ids</span><span class="p">:</span> <span class="n">MPculeID</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">MPculeID</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">property_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -84,7 +86,7 @@
 <span class="sd">            elements (List[str]): A list of elements.</span>
 <span class="sd">            exclude_elements (List(str)): List of elements to exclude.</span>
 <span class="sd">            chemsys (str, List[str]): A chemical system, list of chemical systems</span>
-<span class="sd">                (e.g., Li-C-O, [C-O-H-N, Li-N]), or single formula (e.g., C2 H4).</span>
+<span class="sd">                (e.g., Li-C-O, [C-O-H-N, Li-N]).</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
@@ -160,7 +162,7 @@
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../../../../../index.html">mp-api</a></h1>
 
@@ -184,7 +186,7 @@
 </ul>
 
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../../search.html" method="get">
@@ -192,24 +194,24 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, The Materials Project.
+      &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 
     
     <a href="https://github.com/materialsproject/api" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+        <img src="../../../../../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
     </a>
     
 

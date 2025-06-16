@@ -20,7 +20,6 @@ mp\_api.client.routes.materials.bonds.BondsRester
       ~BondsRester.count
       ~BondsRester.get_data_by_id
       ~BondsRester.search
-      ~BondsRester.search_bonds_docs
    
    
 
@@ -32,7 +31,7 @@ mp\_api.client.routes.materials.bonds.BondsRester
    
       ~BondsRester.available_fields
       ~BondsRester.primary_key
-      ~BondsRester.s3_resource
+      ~BondsRester.s3_client
       ~BondsRester.session
       ~BondsRester.suffix
       ~BondsRester.supports_versions

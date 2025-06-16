@@ -17,8 +17,12 @@ mp\_api.client.routes.materials.phonon.PhononRester
    .. autosummary::
    
       ~PhononRester.__init__
+      ~PhononRester.compute_thermo_quantities
       ~PhononRester.count
+      ~PhononRester.get_bandstructure_from_material_id
       ~PhononRester.get_data_by_id
+      ~PhononRester.get_dos_from_material_id
+      ~PhononRester.get_forceconstants_from_material_id
       ~PhononRester.search
    
    
@@ -31,7 +35,7 @@ mp\_api.client.routes.materials.phonon.PhononRester
    
       ~PhononRester.available_fields
       ~PhononRester.primary_key
-      ~PhononRester.s3_resource
+      ~PhononRester.s3_client
       ~PhononRester.session
       ~PhononRester.suffix
       ~PhononRester.supports_versions

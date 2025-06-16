@@ -20,7 +20,6 @@ mp\_api.client.routes.materials.elasticity.ElasticityRester
       ~ElasticityRester.count
       ~ElasticityRester.get_data_by_id
       ~ElasticityRester.search
-      ~ElasticityRester.search_elasticity_docs
    
    
 
@@ -32,7 +31,7 @@ mp\_api.client.routes.materials.elasticity.ElasticityRester
    
       ~ElasticityRester.available_fields
       ~ElasticityRester.primary_key
-      ~ElasticityRester.s3_resource
+      ~ElasticityRester.s3_client
       ~ElasticityRester.session
       ~ElasticityRester.suffix
       ~ElasticityRester.supports_versions

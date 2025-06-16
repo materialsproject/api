@@ -22,7 +22,6 @@ mp\_api.client.routes.materials.materials.MaterialsRester
       ~MaterialsRester.get_data_by_id
       ~MaterialsRester.get_structure_by_material_id
       ~MaterialsRester.search
-      ~MaterialsRester.search_material_docs
    
    
 
@@ -34,7 +33,7 @@ mp\_api.client.routes.materials.materials.MaterialsRester
    
       ~MaterialsRester.available_fields
       ~MaterialsRester.primary_key
-      ~MaterialsRester.s3_resource
+      ~MaterialsRester.s3_client
       ~MaterialsRester.session
       ~MaterialsRester.suffix
       ~MaterialsRester.supports_versions
@@ -43,7 +42,6 @@ mp\_api.client.routes.materials.materials.MaterialsRester
       ~MaterialsRester.similarity
       ~MaterialsRester.tasks
       ~MaterialsRester.xas
-      ~MaterialsRester.fermi
       ~MaterialsRester.grain_boundary
       ~MaterialsRester.substrates
       ~MaterialsRester.surface_properties
@@ -57,7 +55,6 @@ mp\_api.client.routes.materials.materials.MaterialsRester
       ~MaterialsRester.robocrys
       ~MaterialsRester.synthesis
       ~MaterialsRester.insertion_electrodes
-      ~MaterialsRester.charge_density
       ~MaterialsRester.electronic_structure
       ~MaterialsRester.electronic_structure_bandstructure
       ~MaterialsRester.electronic_structure_dos

@@ -31,7 +31,7 @@ mp\_api.client.routes.molecules.partial\_charges.MoleculesPartialChargesRester
    
       ~MoleculesPartialChargesRester.available_fields
       ~MoleculesPartialChargesRester.primary_key
-      ~MoleculesPartialChargesRester.s3_resource
+      ~MoleculesPartialChargesRester.s3_client
       ~MoleculesPartialChargesRester.session
       ~MoleculesPartialChargesRester.suffix
       ~MoleculesPartialChargesRester.supports_versions

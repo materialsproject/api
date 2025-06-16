@@ -31,7 +31,7 @@ mp\_api.client.routes.molecules.bonds.MoleculesBondRester
    
       ~MoleculesBondRester.available_fields
       ~MoleculesBondRester.primary_key
-      ~MoleculesBondRester.s3_resource
+      ~MoleculesBondRester.s3_client
       ~MoleculesBondRester.session
       ~MoleculesBondRester.suffix
       ~MoleculesBondRester.supports_versions

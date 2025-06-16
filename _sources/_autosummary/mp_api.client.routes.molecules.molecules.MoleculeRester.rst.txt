@@ -33,7 +33,7 @@ mp\_api.client.routes.molecules.molecules.MoleculeRester
    
       ~MoleculeRester.available_fields
       ~MoleculeRester.primary_key
-      ~MoleculeRester.s3_resource
+      ~MoleculeRester.s3_client
       ~MoleculeRester.session
       ~MoleculeRester.suffix
       ~MoleculeRester.supports_versions

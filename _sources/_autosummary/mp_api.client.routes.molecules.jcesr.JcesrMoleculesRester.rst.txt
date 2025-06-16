@@ -31,7 +31,7 @@ mp\_api.client.routes.molecules.jcesr.JcesrMoleculesRester
    
       ~JcesrMoleculesRester.available_fields
       ~JcesrMoleculesRester.primary_key
-      ~JcesrMoleculesRester.s3_resource
+      ~JcesrMoleculesRester.s3_client
       ~JcesrMoleculesRester.session
       ~JcesrMoleculesRester.suffix
       ~JcesrMoleculesRester.supports_versions

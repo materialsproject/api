@@ -31,7 +31,7 @@ mp\_api.client.routes.molecules.summary.MoleculesSummaryRester
    
       ~MoleculesSummaryRester.available_fields
       ~MoleculesSummaryRester.primary_key
-      ~MoleculesSummaryRester.s3_resource
+      ~MoleculesSummaryRester.s3_client
       ~MoleculesSummaryRester.session
       ~MoleculesSummaryRester.suffix
       ~MoleculesSummaryRester.supports_versions

@@ -34,7 +34,7 @@ mp\_api.client.routes.materials.electronic\_structure.DosRester
    
       ~DosRester.available_fields
       ~DosRester.primary_key
-      ~DosRester.s3_resource
+      ~DosRester.s3_client
       ~DosRester.session
       ~DosRester.suffix
       ~DosRester.supports_versions

@@ -21,7 +21,6 @@ mp\_api.client.routes.materials.tasks.TaskRester
       ~TaskRester.get_data_by_id
       ~TaskRester.get_trajectory
       ~TaskRester.search
-      ~TaskRester.search_task_docs
    
    
 
@@ -33,7 +32,7 @@ mp\_api.client.routes.materials.tasks.TaskRester
    
       ~TaskRester.available_fields
       ~TaskRester.primary_key
-      ~TaskRester.s3_resource
+      ~TaskRester.s3_client
       ~TaskRester.session
       ~TaskRester.suffix
       ~TaskRester.supports_versions

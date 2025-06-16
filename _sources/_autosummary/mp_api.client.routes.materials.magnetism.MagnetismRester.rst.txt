@@ -20,7 +20,6 @@ mp\_api.client.routes.materials.magnetism.MagnetismRester
       ~MagnetismRester.count
       ~MagnetismRester.get_data_by_id
       ~MagnetismRester.search
-      ~MagnetismRester.search_magnetism_docs
    
    
 
@@ -32,7 +31,7 @@ mp\_api.client.routes.materials.magnetism.MagnetismRester
    
       ~MagnetismRester.available_fields
       ~MagnetismRester.primary_key
-      ~MagnetismRester.s3_resource
+      ~MagnetismRester.s3_client
       ~MagnetismRester.session
       ~MagnetismRester.suffix
       ~MagnetismRester.supports_versions

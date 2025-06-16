@@ -5,18 +5,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mp_api.client.routes.materials.thermo &#8212; mp-api 2022 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=039e1c02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=27fed22d" />
     <script src="../../../../../_static/documentation_options.js?v=001ecc8c"></script>
-    <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
    
   <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -29,53 +31,39 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.materials.thermo</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">emmet.core.thermo</span> <span class="kn">import</span> <span class="n">ThermoDoc</span><span class="p">,</span> <span class="n">ThermoType</span>
-<span class="kn">from</span> <span class="nn">pymatgen.analysis.phase_diagram</span> <span class="kn">import</span> <span class="n">PhaseDiagram</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.thermo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoDoc</span><span class="p">,</span> <span class="n">ThermoType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">monty.json</span><span class="w"> </span><span class="kn">import</span> <span class="n">MontyDecoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.phase_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseDiagram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
-<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span>
-<span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 
 <div class="viewcode-block" id="ThermoRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.thermo.ThermoRester.html#mp_api.client.routes.materials.thermo.ThermoRester">[docs]</a>
-<span class="k">class</span> <span class="nc">ThermoRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">ThermoDoc</span><span class="p">]):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ThermoRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">ThermoDoc</span><span class="p">]):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/thermo&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">ThermoDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">supports_versions</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;thermo_id&quot;</span>
 
-<div class="viewcode-block" id="ThermoRester.search_thermo_docs">
-<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.thermo.ThermoRester.html#mp_api.client.routes.materials.thermo.ThermoRester.search_thermo_docs">[docs]</a>
-    <span class="k">def</span> <span class="nf">search_thermo_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;MPRester.thermo.search_thermo_docs is deprecated. &quot;</span>
-            <span class="s2">&quot;Please use MPRester.thermo.search instead.&quot;</span><span class="p">,</span>
-            <span class="ne">DeprecationWarning</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="ThermoRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.thermo.ThermoRester.html#mp_api.client.routes.materials.thermo.ThermoRester.search">[docs]</a>
-    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
+        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">energy_above_hull</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">equilibrium_reaction_energy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">formation_energy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_stable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_elements</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">thermo_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">thermo_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ThermoType</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -85,10 +73,12 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core material docs using a variety of search criteria.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ThermoDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core thermo docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
+<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
 <span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).</span>
 <span class="sd">            energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.</span>
@@ -114,7 +104,7 @@
 <span class="sd">                Default is material_id and last_updated if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            ([ThermoDoc]) List of thermo documents</span>
+<span class="sd">            ([ThermoDoc], [dict]) List of thermo documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
 
@@ -131,6 +121,9 @@
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;chemsys&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chemsys</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
+
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">thermo_ids</span><span class="p">:</span>
@@ -189,7 +182,7 @@
 
 <div class="viewcode-block" id="ThermoRester.get_phase_diagram_from_chemsys">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.thermo.ThermoRester.html#mp_api.client.routes.materials.thermo.ThermoRester.get_phase_diagram_from_chemsys">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_phase_diagram_from_chemsys</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_phase_diagram_from_chemsys</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">thermo_type</span><span class="p">:</span> <span class="n">ThermoType</span> <span class="o">|</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseDiagram</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a pre-computed phase diagram for a given chemsys.</span>
@@ -201,7 +194,7 @@
 
 
 <span class="sd">        Returns:</span>
-<span class="sd">            phase_diagram (PhaseDiagram): Pymatgen phase diagram object.</span>
+<span class="sd">            (PhaseDiagram): Pymatgen phase diagram object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">t_type</span> <span class="o">=</span> <span class="n">thermo_type</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thermo_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">thermo_type</span><span class="o">.</span><span class="n">value</span>
         <span class="n">valid_types</span> <span class="o">=</span> <span class="p">{</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">__members__</span><span class="o">.</span><span class="n">values</span><span class="p">())}</span>
@@ -211,16 +204,14 @@
             <span class="p">)</span>
 
         <span class="n">sorted_chemsys</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">chemsys</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)))</span>
-        <span class="n">phase_diagram_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sorted_chemsys</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">t_type</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_resource</span><span class="p">(</span>
-            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;phase_diagram&quot;</span><span class="p">],</span>
-            <span class="n">suburl</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;phase_diagram/</span><span class="si">{</span><span class="n">phase_diagram_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="n">use_document_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">num_chunks</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">chunk_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="p">[{}])</span>
-
-        <span class="n">pd</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phase_diagram&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">phdiag_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;thermo_type=</span><span class="si">{</span><span class="n">t_type</span><span class="si">}</span><span class="s2">/chemsys=</span><span class="si">{</span><span class="n">sorted_chemsys</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+        <span class="n">obj_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;objects/</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">/phase-diagrams/</span><span class="si">{</span><span class="n">phdiag_id</span><span class="si">}</span><span class="s2">.jsonl.gz&quot;</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-build&quot;</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="n">obj_key</span><span class="p">,</span>
+            <span class="n">decoder</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">,</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phase_diagram&quot;</span><span class="p">)</span>
 
         <span class="c1"># Ensure el_ref keys are Element objects for PDPlotter.</span>
         <span class="c1"># Ensure qhull_data is a numpy array</span>
@@ -245,7 +236,7 @@
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../../../../../index.html">mp-api</a></h1>
 
@@ -269,7 +260,7 @@
 </ul>
 
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../../search.html" method="get">
@@ -277,24 +268,24 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, The Materials Project.
+      &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 
     
     <a href="https://github.com/materialsproject/api" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+        <img src="../../../../../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
     </a>
     
 

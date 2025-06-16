@@ -5,18 +5,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mp_api.client.routes.materials.summary &#8212; mp-api 2022 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=039e1c02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css?v=27fed22d" />
     <script src="../../../../../_static/documentation_options.js?v=001ecc8c"></script>
-    <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
    
   <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -29,44 +31,29 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.materials.summary</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
-<span class="kn">from</span> <span class="nn">emmet.core.mpid</span> <span class="kn">import</span> <span class="n">MPID</span>
-<span class="kn">from</span> <span class="nn">emmet.core.summary</span> <span class="kn">import</span> <span class="n">HasProps</span><span class="p">,</span> <span class="n">SummaryDoc</span>
-<span class="kn">from</span> <span class="nn">emmet.core.symmetry</span> <span class="kn">import</span> <span class="n">CrystalSystem</span>
-<span class="kn">from</span> <span class="nn">pymatgen.analysis.magnetism</span> <span class="kn">import</span> <span class="n">Ordering</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.summary</span><span class="w"> </span><span class="kn">import</span> <span class="n">HasProps</span><span class="p">,</span> <span class="n">SummaryDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.symmetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrystalSystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.magnetism</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ordering</span>
 
-<span class="kn">from</span> <span class="nn">mp_api.client.core</span> <span class="kn">import</span> <span class="n">BaseRester</span>
-<span class="kn">from</span> <span class="nn">mp_api.client.core.utils</span> <span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span><span class="p">,</span> <span class="n">MPRestWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 
 <div class="viewcode-block" id="SummaryRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester">[docs]</a>
-<span class="k">class</span> <span class="nc">SummaryRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">SummaryDoc</span><span class="p">]):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SummaryRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">SummaryDoc</span><span class="p">]):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/summary&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">SummaryDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
 
-<div class="viewcode-block" id="SummaryRester.search_summary_docs">
-<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search_summary_docs">[docs]</a>
-    <span class="k">def</span> <span class="nf">search_summary_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated.&quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;MPRester.summary.search_summary_docs is deprecated. &quot;</span>
-            <span class="s2">&quot;Please use MPRester.summary.search instead.&quot;</span><span class="p">,</span>
-            <span class="ne">DeprecationWarning</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="SummaryRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search">[docs]</a>
-    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>  <span class="c1"># noqa: D417</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">band_gap</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -87,7 +74,7 @@
         <span class="n">g_reuss</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">g_voigt</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">g_vrh</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">has_props</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">HasProps</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">has_props</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">HasProps</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">has_reconstructed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_gap_direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_metal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -96,7 +83,7 @@
         <span class="n">k_voigt</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">k_vrh</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">magnetic_ordering</span><span class="p">:</span> <span class="n">Ordering</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">MPID</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">n</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_elements</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_sites</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -118,17 +105,19 @@
         <span class="n">volume</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">weighted_surface_energy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">weighted_work_function</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">include_gnome</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SummaryDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core data using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.</span>
-<span class="sd">            chemsys (str, List[str]): A chemical system, list of chemical systems</span>
-<span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).</span>
+<span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
+<span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).</span>
 <span class="sd">            crystal_system (CrystalSystem): Crystal system of material.</span>
 <span class="sd">            density (Tuple[float,float]): Minimum and maximum density to consider.</span>
 <span class="sd">            deprecated (bool): Whether the material is tagged as deprecated.</span>
@@ -152,7 +141,7 @@
 <span class="sd">                of the shear modulus.</span>
 <span class="sd">            g_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill</span>
 <span class="sd">                average of the shear modulus.</span>
-<span class="sd">            has_props: (List[HasProps]): The calculated properties available for the material.</span>
+<span class="sd">            has_props: (List[HasProps], List[str]): The calculated properties available for the material.</span>
 <span class="sd">            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.</span>
 <span class="sd">            is_gap_direct (bool): Whether the material has a direct band gap.</span>
 <span class="sd">            is_metal (bool): Whether the material is considered a metal.</span>
@@ -164,9 +153,11 @@
 <span class="sd">            k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill</span>
 <span class="sd">                average of the bulk modulus.</span>
 <span class="sd">            magnetic_ordering (Ordering): Magnetic ordering of the material.</span>
-<span class="sd">            material_ids (List[MPID]): List of Materials Project IDs to return data for.</span>
+<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
 <span class="sd">            n (Tuple[float,float]): Minimum and maximum refractive index to consider.</span>
-<span class="sd">            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.</span>
+<span class="sd">            nelements (Tuple[int,int]): Minimum and maximum number of elements to consider.</span>
+<span class="sd">            num_elements (Tuple[int,int]): Alias for `nelements`, deprecated. Minimum and maximum number of elements to consider.</span>
 <span class="sd">            num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.</span>
 <span class="sd">            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.</span>
 <span class="sd">            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites to consider.</span>
@@ -190,66 +181,155 @@
 <span class="sd">            weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy</span>
 <span class="sd">                in J/m² to consider.</span>
 <span class="sd">            weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.</span>
+<span class="sd">            include_gnome (bool): whether to include materials from GNoMe dataset</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in SearchDoc to return data for.</span>
+<span class="sd">            fields (List[str]): List of fields in SummaryDoc to return data for.</span>
 <span class="sd">                Default is material_id if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            ([SummaryDoc]) List of SummaryDoc documents</span>
+<span class="sd">            ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
+
+        <span class="n">not_aliased_kwargs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;energy_above_hull&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;nsites&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;volume&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;density&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;band_gap&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;efermi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_magnetization&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_magnetization_normalized_vol&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_magnetization_normalized_formula_units&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;num_magnetic_sites&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;num_unique_magnetic_sites&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;k_voigt&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;k_reuss&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;k_vrh&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;g_voigt&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;g_reuss&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;g_vrh&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;e_total&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;e_ionic&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;e_electronic&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;n&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;weighted_surface_energy&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;weighted_work_function&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;shape_factor&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
 
         <span class="n">min_max_name_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;total_energy&quot;</span><span class="p">:</span> <span class="s2">&quot;energy_per_atom&quot;</span><span class="p">,</span>
             <span class="s2">&quot;formation_energy&quot;</span><span class="p">:</span> <span class="s2">&quot;formation_energy_per_atom&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;energy_above_hull&quot;</span><span class="p">:</span> <span class="s2">&quot;energy_above_hull&quot;</span><span class="p">,</span>
             <span class="s2">&quot;uncorrected_energy&quot;</span><span class="p">:</span> <span class="s2">&quot;uncorrected_energy_per_atom&quot;</span><span class="p">,</span>
             <span class="s2">&quot;equilibrium_reaction_energy&quot;</span><span class="p">:</span> <span class="s2">&quot;equilibrium_reaction_energy_per_atom&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;nsites&quot;</span><span class="p">:</span> <span class="s2">&quot;nsites&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="s2">&quot;volume&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="s2">&quot;density&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;band_gap&quot;</span><span class="p">:</span> <span class="s2">&quot;band_gap&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;efermi&quot;</span><span class="p">:</span> <span class="s2">&quot;efermi&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;total_magnetization&quot;</span><span class="p">:</span> <span class="s2">&quot;total_magnetization&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;total_magnetization_normalized_vol&quot;</span><span class="p">:</span> <span class="s2">&quot;total_magnetization_normalized_vol&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;total_magnetization_normalized_formula_units&quot;</span><span class="p">:</span> <span class="s2">&quot;total_magnetization_normalized_formula_units&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;num_magnetic_sites&quot;</span><span class="p">:</span> <span class="s2">&quot;num_magnetic_sites&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;num_unique_magnetic_sites&quot;</span><span class="p">:</span> <span class="s2">&quot;num_unique_magnetic_sites&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;k_voigt&quot;</span><span class="p">:</span> <span class="s2">&quot;k_voigt&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;k_reuss&quot;</span><span class="p">:</span> <span class="s2">&quot;k_reuss&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;k_vrh&quot;</span><span class="p">:</span> <span class="s2">&quot;k_vrh&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;g_voigt&quot;</span><span class="p">:</span> <span class="s2">&quot;g_voigt&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;g_reuss&quot;</span><span class="p">:</span> <span class="s2">&quot;g_reuss&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;g_vrh&quot;</span><span class="p">:</span> <span class="s2">&quot;g_vrh&quot;</span><span class="p">,</span>
             <span class="s2">&quot;elastic_anisotropy&quot;</span><span class="p">:</span> <span class="s2">&quot;universal_anisotropy&quot;</span><span class="p">,</span>
             <span class="s2">&quot;poisson_ratio&quot;</span><span class="p">:</span> <span class="s2">&quot;homogeneous_poisson&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;e_total&quot;</span><span class="p">:</span> <span class="s2">&quot;e_total&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;e_ionic&quot;</span><span class="p">:</span> <span class="s2">&quot;e_ionic&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;e_electronic&quot;</span><span class="p">:</span> <span class="s2">&quot;e_electronic&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span>
             <span class="s2">&quot;num_sites&quot;</span><span class="p">:</span> <span class="s2">&quot;nsites&quot;</span><span class="p">,</span>
             <span class="s2">&quot;num_elements&quot;</span><span class="p">:</span> <span class="s2">&quot;nelements&quot;</span><span class="p">,</span>
             <span class="s2">&quot;piezoelectric_modulus&quot;</span><span class="p">:</span> <span class="s2">&quot;e_ij_max&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;weighted_surface_energy&quot;</span><span class="p">:</span> <span class="s2">&quot;weighted_surface_energy&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;weighted_work_function&quot;</span><span class="p">:</span> <span class="s2">&quot;weighted_work_function&quot;</span><span class="p">,</span>
             <span class="s2">&quot;surface_energy_anisotropy&quot;</span><span class="p">:</span> <span class="s2">&quot;surface_anisotropy&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;shape_factor&quot;</span><span class="p">:</span> <span class="s2">&quot;shape_factor&quot;</span><span class="p">,</span>
         <span class="p">}</span>
 
-        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">min_max_name_dict</span> <span class="ow">and</span> <span class="n">value</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-                <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                    <span class="p">{</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="si">}</span><span class="s2">_min&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="si">}</span><span class="s2">_max&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                    <span class="p">}</span>
+        <span class="n">min_max_name_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">not_aliased_kwargs</span><span class="p">})</span>
+        <span class="n">mmnd_inv</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">min_max_name_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">v</span><span class="p">}</span>
+
+        <span class="c1"># Set user query params from `locals`</span>
+        <span class="n">user_settings</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">min_max_name_dict</span> <span class="ow">and</span> <span class="n">v</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Check to see if user specified _search fields using **kwargs,</span>
+        <span class="c1"># or if any of the **kwargs are unparsable</span>
+        <span class="n">db_keys</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;warn&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span>
+            <span class="k">if</span> <span class="n">non_db_k</span> <span class="o">:=</span> <span class="n">mmnd_inv</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">user_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">non_db_k</span><span class="p">):</span>
+                    <span class="c1"># Both a search and _search equivalent field are specified</span>
+                    <span class="n">category</span> <span class="o">=</span> <span class="s2">&quot;duplicate&quot;</span>
+                <span class="k">elif</span> <span class="n">v</span><span class="p">:</span>
+                    <span class="c1"># Only the _search field is specified</span>
+                    <span class="n">category</span> <span class="o">=</span> <span class="s2">&quot;warn&quot;</span>
+                    <span class="n">user_settings</span><span class="p">[</span><span class="n">non_db_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="n">db_keys</span><span class="p">[</span><span class="n">category</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">non_db_k</span> <span class="ow">or</span> <span class="n">k</span><span class="p">)</span>
+
+        <span class="c1"># If any _search or unknown fields were set, throw warnings/exceptions</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">db_keys</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">warning_strs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">exc_strs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">csrc</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\x1b</span><span class="s2">[34m</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="se">\x1b</span><span class="s2">[39m&quot;</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">_csrc</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\x1b</span><span class="s2">[31m</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="se">\x1b</span><span class="s2">[39m&quot;</span>
+
+            <span class="c1"># Warn the user if they input any fields from _search without setting equivalent kwargs in search</span>
+            <span class="k">if</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">&quot;warn&quot;</span><span class="p">]:</span>
+                <span class="n">warning_strs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="sa">f</span><span class="s2">&quot;You have specified fields used by </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="s1">&#39;`_search`&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> that can be understood by </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">&#39;`search`&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">_csrc</span><span class="p">(</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">db_keys</span><span class="p">[</span><span class="s1">&#39;warn&#39;</span><span class="p">]])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;To ensure long term support, please use their </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">&#39;`search`&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> equivalents:&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">csrc</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">db_keys</span><span class="p">[</span><span class="s1">&#39;warn&#39;</span><span class="p">]])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="p">]</span>
                 <span class="p">)</span>
 
+            <span class="c1"># Throw an exception if the user input a field from _search and its equivalent search kwarg</span>
+            <span class="k">if</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">&quot;duplicate&quot;</span><span class="p">]:</span>
+                <span class="n">dupe_pairs</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">&quot;duplicate&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">exc_strs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="sa">f</span><span class="s2">&quot;You have specified fields known to both </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">&#39;`search`&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="s1">&#39;`_search`&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">dupe_pairs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;To avoid query ambiguity, please check your </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">&#39;`search`&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> query and only specify&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">csrc</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">db_keys</span><span class="p">[</span><span class="s1">&#39;duplicate&#39;</span><span class="p">]])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="c1"># Throw an exception if any unknown kwargs were input</span>
+            <span class="k">if</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">&quot;unknown&quot;</span><span class="p">]:</span>
+                <span class="n">exc_strs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="sa">f</span><span class="s2">&quot;You have specified the following kwargs which are unknown to </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">&#39;`search`&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">, &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;but may be known to </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="s1">&#39;`_search`&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;    </span><span class="se">\x1b</span><span class="s2">[36m</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">db_keys</span><span class="p">[</span><span class="s1">&#39;unknown&#39;</span><span class="p">])</span><span class="si">}</span><span class="se">\x1b</span><span class="s2">[39m&quot;</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Always print links to documentation on warning / exception</span>
+            <span class="n">warn_ref_strs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;Please see the documentation:&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">&#39;`search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="s1">&#39;`_search`: https://api.materialsproject.org/redoc#tag/Materials-Summary/operation/search_materials_summary__get&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">exc_strs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">warning_strs</span><span class="p">,</span> <span class="o">*</span><span class="n">exc_strs</span><span class="p">,</span> <span class="o">*</span><span class="n">warn_ref_strs</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">warn_ref_strs</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">warning_strs</span><span class="p">,</span> <span class="o">*</span><span class="n">warn_ref_strs</span><span class="p">]),</span> <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span>
+                <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">user_settings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="si">}</span><span class="s2">_min&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="si">}</span><span class="s2">_max&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
+
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">deprecated</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -300,10 +380,20 @@
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;has_reconstructed&quot;</span><span class="p">:</span> <span class="n">has_reconstructed</span><span class="p">})</span>
 
         <span class="k">if</span> <span class="n">has_props</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;has_props&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">has_props</span><span class="p">])})</span>
+            <span class="n">has_props_clean</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">has_props</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">has_props_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HasProps</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">prop</span><span class="si">}</span><span class="s2">&#39; is not a valid property.&quot;</span><span class="p">)</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;has_props&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">has_props_clean</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">theoretical</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;theoretical&quot;</span><span class="p">:</span> <span class="n">theoretical</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">include_gnome</span><span class="p">:</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;batch_id_not_eq&quot;</span><span class="p">:</span> <span class="s2">&quot;gnome_r2scan_statics&quot;</span><span class="p">})</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
@@ -326,7 +416,7 @@
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../../../../../index.html">mp-api</a></h1>
 
@@ -350,7 +440,7 @@
 </ul>
 
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../../search.html" method="get">
@@ -358,24 +448,24 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, The Materials Project.
+      &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 
     
     <a href="https://github.com/materialsproject/api" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+        <img src="../../../../../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
     </a>
     
 

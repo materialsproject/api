@@ -31,7 +31,7 @@ mp\_api.client.routes.materials.alloys.AlloysRester
    
       ~AlloysRester.available_fields
       ~AlloysRester.primary_key
-      ~AlloysRester.s3_resource
+      ~AlloysRester.s3_client
       ~AlloysRester.session
       ~AlloysRester.suffix
       ~AlloysRester.supports_versions

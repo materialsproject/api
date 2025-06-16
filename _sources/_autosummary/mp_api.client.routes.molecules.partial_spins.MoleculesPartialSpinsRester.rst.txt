@@ -31,7 +31,7 @@ mp\_api.client.routes.molecules.partial\_spins.MoleculesPartialSpinsRester
    
       ~MoleculesPartialSpinsRester.available_fields
       ~MoleculesPartialSpinsRester.primary_key
-      ~MoleculesPartialSpinsRester.s3_resource
+      ~MoleculesPartialSpinsRester.s3_client
       ~MoleculesPartialSpinsRester.session
       ~MoleculesPartialSpinsRester.suffix
       ~MoleculesPartialSpinsRester.supports_versions

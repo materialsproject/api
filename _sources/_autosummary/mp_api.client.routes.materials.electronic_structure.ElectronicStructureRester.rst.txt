@@ -32,7 +32,7 @@ mp\_api.client.routes.materials.electronic\_structure.ElectronicStructureRester
    
       ~ElectronicStructureRester.available_fields
       ~ElectronicStructureRester.primary_key
-      ~ElectronicStructureRester.s3_resource
+      ~ElectronicStructureRester.s3_client
       ~ElectronicStructureRester.session
       ~ElectronicStructureRester.suffix
       ~ElectronicStructureRester.supports_versions

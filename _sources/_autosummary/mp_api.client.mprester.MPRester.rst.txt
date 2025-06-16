@@ -18,8 +18,11 @@ mp\_api.client.mprester.MPRester
    
       ~MPRester.__init__
       ~MPRester.find_structure
+      ~MPRester.get_atom_reference_data
       ~MPRester.get_bandstructure_by_material_id
       ~MPRester.get_charge_density_from_material_id
+      ~MPRester.get_charge_density_from_task_id
+      ~MPRester.get_cohesive_energy
       ~MPRester.get_database_version
       ~MPRester.get_dos_by_material_id
       ~MPRester.get_download_info
@@ -33,12 +36,10 @@ mp\_api.client.mprester.MPRester
       ~MPRester.get_material_id_from_task_id
       ~MPRester.get_material_id_references
       ~MPRester.get_material_ids
-      ~MPRester.get_materials_id_from_task_id
-      ~MPRester.get_materials_id_references
-      ~MPRester.get_materials_ids
       ~MPRester.get_phonon_bandstructure_by_material_id
       ~MPRester.get_phonon_dos_by_material_id
       ~MPRester.get_pourbaix_entries
+      ~MPRester.get_stability
       ~MPRester.get_structure_by_material_id
       ~MPRester.get_structures
       ~MPRester.get_task_ids_associated_with_material_id
@@ -53,13 +54,13 @@ mp\_api.client.mprester.MPRester
 
    .. autosummary::
    
+      ~MPRester.contribs
       ~MPRester.eos
       ~MPRester.materials
       ~MPRester.similarity
       ~MPRester.tasks
       ~MPRester.xas
-      ~MPRester.fermi
-      ~MPRester.grain_boundary
+      ~MPRester.grain_boundaries
       ~MPRester.substrates
       ~MPRester.surface_properties
       ~MPRester.phonon
@@ -72,7 +73,6 @@ mp\_api.client.mprester.MPRester
       ~MPRester.robocrys
       ~MPRester.synthesis
       ~MPRester.insertion_electrodes
-      ~MPRester.charge_density
       ~MPRester.electronic_structure
       ~MPRester.electronic_structure_bandstructure
       ~MPRester.electronic_structure_dos
