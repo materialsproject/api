@@ -48,6 +48,7 @@ test = [
   "types-setuptools",
   "types-requests",
 ]
+docs = ["sphinx"]
 
 [tool.setuptools.packages.find]
 include = ["mp_api*"]

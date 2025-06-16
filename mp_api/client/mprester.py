@@ -930,9 +930,7 @@ class MPRester:
                 'ΔGᶠ': {'display': '-293.71 kJ/mol', 'value': -293.71, 'unit': 'kJ/mol'},
                 'MajElements': 'Li',
                 'RefSolid': 'Li2O',
-                'ΔGᶠRefSolid': {'display': '-561.2 kJ/mol',
-                    'value': -561.2,
-                    'unit': 'kJ/mol'},
+                'ΔGᶠRefSolid': {'display': '-561.2 kJ/mol', 'value': -561.2, 'unit': 'kJ/mol'},
                 'reference': 'H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """
@@ -971,9 +969,7 @@ class MPRester:
                 'ΔGᶠ': {'display': '-293.71 kJ/mol', 'value': -293.71, 'unit': 'kJ/mol'},
                 'MajElements': 'Li',
                 'RefSolid': 'Li2O',
-                'ΔGᶠRefSolid': {'display': '-561.2 kJ/mol',
-                    'value': -561.2,
-                    'unit': 'kJ/mol'},
+                'ΔGᶠRefSolid': {'display': '-561.2 kJ/mol', 'value': -561.2, 'unit': 'kJ/mol'},
                 'reference': 'H. E. Barner and R. V. Scheuerman, Handbook of thermochemical data for
                 compounds and aqueous species, Wiley, New York (1978)'}}
         """

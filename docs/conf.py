@@ -115,6 +115,6 @@ texinfo_documents = [
 autodoc_mock_imports = []
 
 # Example configuration for intersphinx: refer to the Python standard library.
-## Add Python version number to the default address to corretcly reference
+## Add Python version number to the default address to correctly reference
 ## the Python standard library
-intersphinx_mapping = {"https://docs.python.org/3.8": None}
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
