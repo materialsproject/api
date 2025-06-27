@@ -783,7 +783,7 @@ class MPRester:
 
     def get_pourbaix_entries(
         self,
-        chemsys: str | list[str] | list[ComputedEntry | ComputedStructureEntry],
+        chemsys: str | list,
         solid_compat="MaterialsProject2020Compatibility",
         use_gibbs: Literal[300] | None = None,
     ):
@@ -791,14 +791,9 @@ class MPRester:
         a Pourbaix diagram from the rest interface.
 
         Args:
-            chemsys (str or [str] or Computed(Structure)Entry):
-                Chemical system string comprising element
+            chemsys (str or [str]): Chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
                 symbols, e.g., ["Li", "Fe", "O"].
-
-                Can also be a list of Computed(Structure)Entry objects to allow
-                for adding extra calculation data to the Pourbaix Diagram.
-                If this is set, the chemsys will be inferred from the entries.
             solid_compat: Compatibility scheme used to pre-process solid DFT energies prior
                 to applying aqueous energy adjustments. May be passed as a class (e.g.
                 MaterialsProject2020Compatibility) or an instance
@@ -820,27 +815,6 @@ class MPRester:
             MaterialsProjectCompatibility,
         )
         from pymatgen.entries.computed_entries import ComputedEntry
-
-        thermo_types = ["GGA_GGA+U"]
-        user_entries: list[ComputedEntry | ComputedStructureEntry] = []
-        if isinstance(chemsys, list) and all(
-            isinstance(v, ComputedEntry | ComputedStructureEntry) for v in chemsys
-        ):
-            user_entries = [ce.copy() for ce in chemsys]
-
-            elements = set()
-            for entry in user_entries:
-                elements.update(entry.elements)
-            chemsys = [ele.name for ele in elements]
-
-            user_run_types = set(
-                [
-                    entry.parameters.get("run_type", "unknown").lower()
-                    for entry in user_entries
-                ]
-            )
-            if any("r2scan" in rt for rt in user_run_types):
-                thermo_types = ["GGA_GGA+U_R2SCAN"]
 
         if solid_compat == "MaterialsProjectCompatibility":
             solid_compat = MaterialsProjectCompatibility()
@@ -877,13 +851,9 @@ class MPRester:
         # TODO - would be great if the commented line below would work
         # However for some reason you cannot process GibbsComputedStructureEntry with
         # MaterialsProjectAqueousCompatibility
-        ion_ref_entries = (
-            self.get_entries_in_chemsys(
-                list([str(e) for e in ion_ref_elts] + ["O", "H"]),
-                additional_criteria={"thermo_types": thermo_types}
-                # use_gibbs=use_gibbs
-            )
-            + user_entries
+        ion_ref_entries = self.get_entries_in_chemsys(
+            list([str(e) for e in ion_ref_elts] + ["O", "H"]),
+            # use_gibbs=use_gibbs
         )
 
         # suppress the warning about supplying the required energies; they will be calculated from the
