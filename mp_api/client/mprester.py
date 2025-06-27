@@ -783,7 +783,8 @@ class MPRester:
 
     def get_pourbaix_entries(
         self,
-        chemsys: str | list,
+        chemsys: str | list | None = None,
+        user_entries: list[ComputedEntry | ComputedStructureEntry] | None = None,
         solid_compat="MaterialsProject2020Compatibility",
         use_gibbs: Literal[300] | None = None,
     ):
@@ -791,9 +792,14 @@ class MPRester:
         a Pourbaix diagram from the rest interface.
 
         Args:
-            chemsys (str or [str]): Chemical system string comprising element
+            chemsys (str or [str] or None): Chemical system string comprising element
                 symbols separated by dashes, e.g., "Li-Fe-O" or List of element
                 symbols, e.g., ["Li", "Fe", "O"].
+                Does not need to be set if user_entries is set.
+            user_entries : list of Computed(Structure)Entry or None
+                Can be specified instead of chemsys to allow for adding extra
+                calculation data to the Pourbaix Diagram.
+                If this is set, the chemsys will be inferred from user_entries.
             solid_compat: Compatibility scheme used to pre-process solid DFT energies prior
                 to applying aqueous energy adjustments. May be passed as a class (e.g.
                 MaterialsProject2020Compatibility) or an instance
@@ -815,6 +821,23 @@ class MPRester:
             MaterialsProjectCompatibility,
         )
         from pymatgen.entries.computed_entries import ComputedEntry
+
+        if not chemsys and not user_entries:
+            raise ValueError(
+                "You must supply either a chemical system, or a list of "
+                "Computed(Structure)Entry objects to determine the chemical "
+                "system from!"
+            )
+        elif chemsys and user_entries:
+            warnings.warn(
+                "You have set both `chemsys` and `user_entries`; the "
+                "chemical system will be determined from `user_entries`."
+            )
+
+        if user_entries:
+            chemsys = [
+                ele.name for ele in set([entry.elements for entry in user_entries])
+            ]
 
         if solid_compat == "MaterialsProjectCompatibility":
             solid_compat = MaterialsProjectCompatibility()
@@ -855,6 +878,8 @@ class MPRester:
             list([str(e) for e in ion_ref_elts] + ["O", "H"]),
             # use_gibbs=use_gibbs
         )
+        if user_entries:
+            ion_ref_entries += user_entries
 
         # suppress the warning about supplying the required energies; they will be calculated from the
         # entries we get from MPRester
