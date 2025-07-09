@@ -20,7 +20,7 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
         gb_plane: list[str] | None = None,
         gb_energy: tuple[float, float] | None = None,
         pretty_formula: str | None = None,
-        rotation_axis: list[str] | None = None,
+        rotation_axis: tuple[str | float, str | float, str | float] | None = None,
         rotation_angle: tuple[float, float] | None = None,
         separation_energy: tuple[float, float] | None = None,
         sigma: int | None = None,
@@ -40,8 +40,10 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
              material_ids (List[str]): List of Materials Project IDs to query with.
              pretty_formula (str): Formula of the material.
              rotation_angle (Tuple[float,float]): Minimum and maximum rotation angle in degrees to consider.
-             rotation_axis(List[str]): The Miller index of rotation axis. e.g., [1, 0, 0], [1, 1, 0], and [1, 1, 1]
-                 sigma (int): Sigma value of grain boundary.
+             rotation_axis(List[str]): The Miller index of rotation axis.
+                A three-tuple of either int or str: e.g.,
+                [1, 0, 0], [1, 1, 0], ["1", "1", "1"]
+             sigma (int): Sigma value of grain boundary.
              separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.
              sigma (int): Sigma value of the boundary.
              type (GBTypeEnum): Grain boundary type.
@@ -84,6 +86,10 @@ class GrainBoundaryRester(BaseRester[GrainBoundaryDoc]):
             )
 
         if rotation_axis:
+            if len(rotation_axis) != 3:
+                raise ValueError(
+                    '`rotation_axis` should be a three-tuple of either int or str, ex: (1,1,0), ("0","0","1")'
+                )
             query_params.update(
                 {"rotation_axis": ",".join([str(n) for n in rotation_axis])}
             )

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-import numpy as np
 from collections import defaultdict
 
+import numpy as np
+from emmet.core.phonon import PhononBS, PhononBSDOSDoc, PhononDOS
 from monty.json import MontyDecoder
-from emmet.core.phonon import PhononBSDOSDoc, PhononBS, PhononDOS
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
