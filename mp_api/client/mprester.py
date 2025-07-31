@@ -69,6 +69,7 @@ if TYPE_CHECKING:
 
 _EMMET_SETTINGS = EmmetSettings()
 _MAPI_SETTINGS = MAPIClientSettings()
+DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
 
 class MPRester:
@@ -880,7 +881,7 @@ class MPRester:
         ion_ref_entries = (
             self.get_entries_in_chemsys(
                 list([str(e) for e in ion_ref_elts] + ["O", "H"]),
-                additional_criteria={"thermo_types": thermo_types}
+                additional_criteria={"thermo_types": thermo_types},
                 # use_gibbs=use_gibbs
             )
             + user_entries
@@ -1148,7 +1149,7 @@ class MPRester:
         inc_structure: bool | None = None,
         property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
-        additional_criteria=None,
+        additional_criteria: dict = DEFAULT_THERMOTYPE_CRITERIA,
     ):
         """Helper method to get a list of ComputedEntries in a chemical system.
         For example, elements = ["Li", "Fe", "O"] will return a list of all
@@ -1212,8 +1213,7 @@ class MPRester:
                 inc_structure=inc_structure,
                 property_data=property_data,
                 conventional_unit_cell=conventional_unit_cell,
-                additional_criteria=additional_criteria
-                or {"thermo_types": ["GGA_GGA+U"]},
+                additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
             )
         )
 
