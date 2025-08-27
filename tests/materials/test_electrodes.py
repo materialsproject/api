@@ -4,12 +4,22 @@ from core_function import client_search_testing
 import pytest
 from pymatgen.core.periodic_table import Element
 
-from mp_api.client.routes.materials.electrodes import ElectrodeRester
+from mp_api.client.routes.materials.electrodes import (
+    ElectrodeRester,
+    ConversionElectrodeRester,
+)
 
 
 @pytest.fixture
-def rester():
+def insertion_rester():
     rester = ElectrodeRester()
+    yield rester
+    rester.session.close()
+
+
+@pytest.fixture
+def conversion_rester():
+    rester = ConversionElectrodeRester()
     yield rester
     rester.session.close()
 
@@ -44,13 +54,31 @@ custom_field_tests = {
 
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
-def test_client(rester):
-    search_method = rester.search
+def test_insertion_client(insertion_rester):
+    search_method = insertion_rester.search
 
     client_search_testing(
         search_method=search_method,
         excluded_params=excluded_params,
         alt_name_dict=alt_name_dict,
         custom_field_tests=custom_field_tests,
+        sub_doc_fields=sub_doc_fields,
+    )
+
+
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+def test_conversion_client(conversion_rester):
+    search_method = conversion_rester.search
+
+    excl = ConversionElectrodeRester._exclude_search_fields
+    client_search_testing(
+        search_method=search_method,
+        excluded_params=excluded_params + excl,
+        alt_name_dict=alt_name_dict,
+        custom_field_tests={
+            "battery_ids": ["mp-1067_Al"],
+            "working_ion": Element("Li"),
+            "exclude_elements": ["Co", "O"],
+        },
         sub_doc_fields=sub_doc_fields,
     )
