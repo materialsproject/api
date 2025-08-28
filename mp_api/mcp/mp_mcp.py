@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import urljoin
 
+import httpx
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field, PrivateAttr
 
@@ -34,3 +36,17 @@ class MPMcp(BaseModel):
             mcp.tool(getattr(mcp_tools, attr))
 
         return mcp
+
+    def bootstrap_mcp(self, **kwargs) -> FastMCP:
+        """Bootstrap an MP API MCP only from the OpenAPI spec."""
+        return FastMCP.from_openapi(
+            openapi_spec=httpx.get(
+                urljoin(self.client.endpoint, "openapi.json")
+            ).json(),
+            client=httpx.AsyncClient(
+                base_url=self.client.endpoint,
+                headers={"x-api-key": self.client.api_key},
+            ),
+            name=self.name,
+            **kwargs,
+        )
