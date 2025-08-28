@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from typing import TYPE_CHECKING, Literal
 
@@ -13,6 +14,7 @@ from mp_api.client.core.settings import MAPIClientSettings
 if TYPE_CHECKING:
     from monty.json import MSONable
 
+_MAPI_SETTINGS = MAPIClientSettings()
 
 def _compare_emmet_ver(
     ref_version: str, op: Literal["==", ">", ">=", "<", "<="]
@@ -70,6 +72,31 @@ def _legacy_id_validation(id_list: list[str]) -> list[str]:
     return id_list
 
 
+def validate_api_key(api_key: str | None = None) -> str:
+    """Utility to find and pre-check validity of an API key."""
+    # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
+    api_key = api_key or os.getenv("MP_API_KEY")
+    if not api_key:
+        from pymatgen.core import SETTINGS
+
+        api_key = SETTINGS.get("PMG_MAPI_KEY")
+
+    if not api_key:
+        raise ValueError(
+            "Please obtain an API key from https://materialsproject.org/api "
+            "and export it as an environment variable `MP_API_KEY`."
+        )
+
+    if api_key and len(api_key) != 32:
+        raise ValueError(
+            "Please use a new API key from https://materialsproject.org/api "
+            "Keys for the new API are 32 characters, whereas keys for the legacy "
+            "API are 16 characters."
+        )
+
+    return api_key
+
+
 def validate_ids(id_list: list[str]):
     """Function to validate material and task IDs.
 
@@ -82,7 +109,7 @@ def validate_ids(id_list: list[str]):
     Returns:
         id_list: Returns original ID list if everything is formatted correctly.
     """
-    if len(id_list) > MAPIClientSettings().MAX_LIST_LENGTH:
+    if len(id_list) > _MAPI_SETTINGS.MAX_LIST_LENGTH:
         raise ValueError(
             "List of material/molecule IDs provided is too long. Consider removing the ID filter to automatically pull"
             " data for all IDs and filter locally."
