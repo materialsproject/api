@@ -20,12 +20,12 @@ class MPMcp(BaseModel):
     @property
     def client(self) -> MPRester:
         # Always return JSON compliant output for MCP
-        kwargs = {
-            **(self.client_kwargs or {}),
-            "use_document_model": False,
-            "monty_decode": False,
-        }
         if not self._client:
+            kwargs = {
+                **(self.client_kwargs or {}),
+                "use_document_model": False,
+                "monty_decode": False,
+            }
             self._client = MPRester(**kwargs)
         return self._client
 
