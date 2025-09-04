@@ -1,18 +1,18 @@
 from __future__ import annotations
 
+import warnings
 from collections import defaultdict
 
-from emmet.core.electrode import InsertionElectrodeDoc
+from emmet.core.electrode import ConversionElectrodeDoc, InsertionElectrodeDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
-    suffix = "materials/insertion_electrodes"
-    document_model = InsertionElectrodeDoc  # type: ignore
+class BaseElectrodeRester(BaseRester):
     primary_key = "battery_id"
+    _exclude_search_fields: list[str] | None = None
 
     def search(  # pragma: ignore
         self,
@@ -39,7 +39,7 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ) -> list[InsertionElectrodeDoc] | list[dict]:
+    ) -> list[InsertionElectrodeDoc | ConversionElectrodeDoc] | list[dict]:
         """Query using a variety of search criteria.
 
         Arguments:
@@ -77,11 +77,11 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in InsertionElectrodeDoc to return data for.
+            fields (List[str]): List of fields in InsertionElectrodeDoc or ConversionElectrodeDoc to return data for.
                 Default is battery_id and last_updated if all_fields is False.
 
         Returns:
-            ([InsertionElectrodeDoc], [dict]) List of insertion electrode documents or dictionaries.
+            ([InsertionElectrodeDoc or ConversionElectrodeDoc], [dict]) List of insertion/conversion electrode documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
 
@@ -143,6 +143,17 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
                 else:
                     query_params.update({param: value})
 
+        excluded_fields = self._exclude_search_fields or []
+        ignored_fields = {
+            entry
+            for entry in excluded_fields
+            if query_params.pop(entry, None) is not None
+        }
+        if ignored_fields:
+            warnings.warn(
+                f"Ignoring fields {', '.join(ignored_fields)} which are not valid options for {self.__class__.__name__}"
+            )
+
         query_params = {
             entry: query_params[entry]
             for entry in query_params
@@ -150,3 +161,26 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         }
 
         return super()._search(**query_params)
+
+
+class ElectrodeRester(BaseElectrodeRester):
+    """Search insertion electrode documents."""
+
+    suffix = "materials/insertion_electrodes"
+    document_model = InsertionElectrodeDoc  # type: ignore
+
+
+class ConversionElectrodeRester(BaseElectrodeRester):
+    """Search conversion electrode documents."""
+
+    suffix = "materials/conversion_electrodes"
+    document_model = ConversionElectrodeDoc  # type: ignore
+    # TODO: formula, chemsys, and elements do not appear to work in the API
+    _exclude_search_fields = [
+        "material_ids",
+        "formula",
+        "chemsys",
+        "elements",
+        "stability_charge",
+        "stability_discharge",
+    ]

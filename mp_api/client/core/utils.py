@@ -4,7 +4,7 @@ import re
 from functools import cache
 from typing import Optional, get_args
 
-from maggma.utils import get_flat_models_from_model
+from emmet.core.utils import get_flat_models_from_model
 from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass

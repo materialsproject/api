@@ -66,7 +66,6 @@ def client_search_testing(
                         f"Parameter '{param}' with type '{param_type}' was not "
                         "properly identified in the generic search method test."
                     )
-
                 doc = search_method(**q)[0].model_dump()
 
                 for sub_field in sub_doc_fields:

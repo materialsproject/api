@@ -35,6 +35,7 @@ from mp_api.client.routes.materials import (
     BandStructureRester,
     BondsRester,
     ChemenvRester,
+    ConversionElectrodeRester,
     DielectricRester,
     DOIRester,
     DosRester,
@@ -99,6 +100,7 @@ class MPRester:
     robocrys: RobocrysRester
     synthesis: SynthesisRester
     insertion_electrodes: ElectrodeRester
+    conversion_electrodes: ConversionElectrodeRester
     electronic_structure: ElectronicStructureRester
     electronic_structure_bandstructure: BandStructureRester
     electronic_structure_dos: DosRester
