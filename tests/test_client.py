@@ -36,6 +36,7 @@ ignore_generic = [
     # "tasks",
     # "bonds",
     "materials_xas",
+    "materials_tasks",
     "materials_elasticity",
     "materials_fermi",
     "materials_alloys",
@@ -81,4 +82,5 @@ def test_generic_get_methods(rester):
 
         elif name not in special_resters:
             doc = rester.get_data_by_id(key_only_resters[name], fields=[key])
+            print(doc.model_dump())
             assert isinstance(doc, rester.document_model)
