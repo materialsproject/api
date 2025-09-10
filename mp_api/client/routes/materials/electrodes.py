@@ -16,7 +16,6 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
 
     def search(  # pragma: ignore
         self,
-        material_ids: str | list[str] | None = None,
         battery_ids: str | list[str] | None = None,
         average_voltage: tuple[float, float] | None = None,
         capacity_grav: tuple[float, float] | None = None,
@@ -43,8 +42,6 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
         """Query using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
-                (e.g., mp-149, [mp-149, mp-13]).
             battery_ids (str, List[str]): A single battery ID string or list of strings
                 (e.g., mp-22526_Li, [mp-22526_Li, mp-22526_Ca]).
             average_voltage (Tuple[float,float]): Minimum and maximum value of the average voltage for a particular
@@ -84,12 +81,6 @@ class ElectrodeRester(BaseRester[InsertionElectrodeDoc]):
             ([InsertionElectrodeDoc], [dict]) List of insertion electrode documents or dictionaries.
         """
         query_params = defaultdict(dict)  # type: dict
-
-        if material_ids:
-            if isinstance(material_ids, str):
-                material_ids = [material_ids]
-
-            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if battery_ids:
             if isinstance(battery_ids, str):

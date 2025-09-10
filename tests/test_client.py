@@ -36,6 +36,7 @@ ignore_generic = [
     # "tasks",
     # "bonds",
     "materials_xas",
+    "materials_tasks",
     "materials_elasticity",
     "materials_fermi",
     "materials_alloys",

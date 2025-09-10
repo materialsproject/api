@@ -27,8 +27,7 @@ from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
-from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
-from pymatgen.phonon.dos import PhononDos
+from emmet.core.phonon import PhononDOS, PhononBS
 
 from mp_api.client import MPRester
 from mp_api.client.core.client import MPRestError
@@ -291,10 +290,10 @@ class TestMPRester:
 
     def test_get_phonon_data_by_material_id(self, mpr):
         bs = mpr.get_phonon_bandstructure_by_material_id("mp-2172")
-        assert isinstance(bs, PhononBandStructureSymmLine)
+        assert isinstance(bs, PhononBS)
 
         dos = mpr.get_phonon_dos_by_material_id("mp-2172")
-        assert isinstance(dos, PhononDos)
+        assert isinstance(dos, PhononDOS)
 
     def test_get_charge_density_from_material_id(self, mpr):
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
