@@ -102,6 +102,7 @@
 
 <span class="n">_EMMET_SETTINGS</span> <span class="o">=</span> <span class="n">EmmetSettings</span><span class="p">()</span>
 <span class="n">_MAPI_SETTINGS</span> <span class="o">=</span> <span class="n">MAPIClientSettings</span><span class="p">()</span>
+<span class="n">DEFAULT_THERMOTYPE_CRITERIA</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U&quot;</span><span class="p">]}</span>
 
 
 <div class="viewcode-block" id="MPRester">
@@ -853,7 +854,7 @@
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_pourbaix_entries">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_pourbaix_entries</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComputedEntry</span> <span class="o">|</span> <span class="n">ComputedStructureEntry</span><span class="p">],</span>
         <span class="n">solid_compat</span><span class="o">=</span><span class="s2">&quot;MaterialsProject2020Compatibility&quot;</span><span class="p">,</span>
         <span class="n">use_gibbs</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">300</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
@@ -861,9 +862,14 @@
 <span class="sd">        a Pourbaix diagram from the rest interface.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            chemsys (str or [str]): Chemical system string comprising element</span>
+<span class="sd">            chemsys (str or [str] or Computed(Structure)Entry):</span>
+<span class="sd">                Chemical system string comprising element</span>
 <span class="sd">                symbols separated by dashes, e.g., &quot;Li-Fe-O&quot; or List of element</span>
 <span class="sd">                symbols, e.g., [&quot;Li&quot;, &quot;Fe&quot;, &quot;O&quot;].</span>
+
+<span class="sd">                Can also be a list of Computed(Structure)Entry objects to allow</span>
+<span class="sd">                for adding extra calculation data to the Pourbaix Diagram.</span>
+<span class="sd">                If this is set, the chemsys will be inferred from the entries.</span>
 <span class="sd">            solid_compat: Compatibility scheme used to pre-process solid DFT energies prior</span>
 <span class="sd">                to applying aqueous energy adjustments. May be passed as a class (e.g.</span>
 <span class="sd">                MaterialsProject2020Compatibility) or an instance</span>
@@ -885,6 +891,27 @@
             <span class="n">MaterialsProjectCompatibility</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.computed_entries</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComputedEntry</span>
+
+        <span class="n">thermo_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U&quot;</span><span class="p">]</span>
+        <span class="n">user_entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComputedEntry</span> <span class="o">|</span> <span class="n">ComputedStructureEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">ComputedEntry</span> <span class="o">|</span> <span class="n">ComputedStructureEntry</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">chemsys</span>
+        <span class="p">):</span>
+            <span class="n">user_entries</span> <span class="o">=</span> <span class="p">[</span><span class="n">ce</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">ce</span> <span class="ow">in</span> <span class="n">chemsys</span><span class="p">]</span>
+
+            <span class="n">elements</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">user_entries</span><span class="p">:</span>
+                <span class="n">elements</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+            <span class="n">chemsys</span> <span class="o">=</span> <span class="p">[</span><span class="n">ele</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">]</span>
+
+            <span class="n">user_run_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">entry</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;run_type&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">user_entries</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="s2">&quot;r2scan&quot;</span> <span class="ow">in</span> <span class="n">rt</span> <span class="k">for</span> <span class="n">rt</span> <span class="ow">in</span> <span class="n">user_run_types</span><span class="p">):</span>
+                <span class="n">thermo_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U_R2SCAN&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">solid_compat</span> <span class="o">==</span> <span class="s2">&quot;MaterialsProjectCompatibility&quot;</span><span class="p">:</span>
             <span class="n">solid_compat</span> <span class="o">=</span> <span class="n">MaterialsProjectCompatibility</span><span class="p">()</span>
@@ -921,9 +948,13 @@
         <span class="c1"># TODO - would be great if the commented line below would work</span>
         <span class="c1"># However for some reason you cannot process GibbsComputedStructureEntry with</span>
         <span class="c1"># MaterialsProjectAqueousCompatibility</span>
-        <span class="n">ion_ref_entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entries_in_chemsys</span><span class="p">(</span>
-            <span class="nb">list</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ion_ref_elts</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">]),</span>
-            <span class="c1"># use_gibbs=use_gibbs</span>
+        <span class="n">ion_ref_entries</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_entries_in_chemsys</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ion_ref_elts</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">]),</span>
+                <span class="n">additional_criteria</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="n">thermo_types</span><span class="p">},</span>
+                <span class="c1"># use_gibbs=use_gibbs</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="n">user_entries</span>
         <span class="p">)</span>
 
         <span class="c1"># suppress the warning about supplying the required energies; they will be calculated from the</span>
@@ -1203,7 +1234,7 @@
         <span class="n">inc_structure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">property_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">additional_criteria</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">additional_criteria</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">DEFAULT_THERMOTYPE_CRITERIA</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper method to get a list of ComputedEntries in a chemical system.</span>
 <span class="sd">        For example, elements = [&quot;Li&quot;, &quot;Fe&quot;, &quot;O&quot;] will return a list of all</span>
@@ -1267,8 +1298,7 @@
                 <span class="n">inc_structure</span><span class="o">=</span><span class="n">inc_structure</span><span class="p">,</span>
                 <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
                 <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">,</span>
-                <span class="n">additional_criteria</span><span class="o">=</span><span class="n">additional_criteria</span>
-                <span class="ow">or</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U&quot;</span><span class="p">]},</span>
+                <span class="n">additional_criteria</span><span class="o">=</span><span class="n">additional_criteria</span> <span class="ow">or</span> <span class="n">DEFAULT_THERMOTYPE_CRITERIA</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
 

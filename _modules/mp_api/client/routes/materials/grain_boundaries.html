@@ -57,7 +57,7 @@
         <span class="n">gb_plane</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">gb_energy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">pretty_formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">rotation_axis</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rotation_axis</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">rotation_angle</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">separation_energy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">sigma</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -77,8 +77,10 @@
 <span class="sd">             material_ids (List[str]): List of Materials Project IDs to query with.</span>
 <span class="sd">             pretty_formula (str): Formula of the material.</span>
 <span class="sd">             rotation_angle (Tuple[float,float]): Minimum and maximum rotation angle in degrees to consider.</span>
-<span class="sd">             rotation_axis(List[str]): The Miller index of rotation axis. e.g., [1, 0, 0], [1, 1, 0], and [1, 1, 1]</span>
-<span class="sd">                 sigma (int): Sigma value of grain boundary.</span>
+<span class="sd">             rotation_axis (tuple of 3 int or of 4 int): The Miller index of rotation axis.</span>
+<span class="sd">                A 3- or 4-tuple of int or str: e.g.,</span>
+<span class="sd">                (0, 0, 0, 1), (1, 0, 0), (1, 1, 0), or (1, 1, 1)</span>
+<span class="sd">             sigma (int): Sigma value of grain boundary.</span>
 <span class="sd">             separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.</span>
 <span class="sd">             sigma (int): Sigma value of the boundary.</span>
 <span class="sd">             type (GBTypeEnum): Grain boundary type.</span>
@@ -121,6 +123,11 @@
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">rotation_axis</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rotation_axis</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">}:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;`rotation_axis` should be a tuple of either &quot;</span>
+                    <span class="s2">&quot;3 or 4 int values, ex: (0, 0, 0, 1) or (1, 0, 0)&quot;</span>
+                <span class="p">)</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span><span class="s2">&quot;rotation_axis&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rotation_axis</span><span class="p">])}</span>
             <span class="p">)</span>

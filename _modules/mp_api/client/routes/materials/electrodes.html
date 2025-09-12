@@ -53,7 +53,6 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electrodes.ElectrodeRester.html#mp_api.client.routes.materials.electrodes.ElectrodeRester.search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>  <span class="c1"># pragma: ignore</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">battery_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">average_voltage</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">capacity_grav</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -80,8 +79,6 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Query using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
-<span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
 <span class="sd">            battery_ids (str, List[str]): A single battery ID string or list of strings</span>
 <span class="sd">                (e.g., mp-22526_Li, [mp-22526_Li, mp-22526_Ca]).</span>
 <span class="sd">            average_voltage (Tuple[float,float]): Minimum and maximum value of the average voltage for a particular</span>
@@ -121,12 +118,6 @@
 <span class="sd">            ([InsertionElectrodeDoc], [dict]) List of insertion electrode documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
-
-        <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
-
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">battery_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">battery_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
