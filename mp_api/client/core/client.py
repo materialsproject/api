@@ -485,6 +485,23 @@ class BaseRester(Generic[T]):
                     suffix = infix if suffix == "core" else suffix
                     suffix = suffix.replace("_", "-")
 
+                # Check if user has access to GNoMe
+                has_gnome_access = bool(
+                    self._submit_requests(
+                        url=urljoin(self.endpoint, "materials/summary/"),
+                        criteria={
+                            "batch_id": "gnome_r2scan_statics",
+                            "_fields": "material_id",
+                        },
+                        use_document_model=False,
+                        num_chunks=1,
+                        chunk_size=1,
+                        timeout=timeout,
+                    )
+                    .get("meta", {})
+                    .get("total_doc", 0)
+                )
+
                 # Paginate over all entries in the bucket.
                 # TODO: change when a subset of entries needed from DB
                 if "tasks" in suffix:
@@ -492,6 +509,11 @@ class BaseRester(Generic[T]):
                 else:
                     bucket_suffix = "build"
                     prefix = f"collections/{db_version}/{suffix}"
+
+                # only include prefixes accessible to user
+                # i.e. append `batch_id=others/core` to `prefix`
+                if not has_gnome_access:
+                    prefix += "/batch_id=others"
 
                 bucket = f"materialsproject-{bucket_suffix}"
                 paginator = self.s3_client.get_paginator("list_objects_v2")
