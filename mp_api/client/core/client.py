@@ -15,10 +15,18 @@ import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
 from functools import cache
+from importlib import import_module
 from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
 from math import ceil
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    ForwardRef,
+    Generic,
+    TypeVar,
+    _eval_type,
+    get_args,
+)
 from urllib.parse import quote, urljoin
 
 import requests
@@ -65,7 +73,7 @@ class BaseRester(Generic[T]):
     """Base client class with core stubs."""
 
     suffix: str = ""
-    document_model: BaseModel = None  # type: ignore
+    document_model: type[BaseModel] | None = None
     supports_versions: bool = False
     primary_key: str = "material_id"
 
@@ -1070,10 +1078,24 @@ class BaseRester(Generic[T]):
 
     def _generate_returned_model(self, doc):
         model_fields = self.document_model.model_fields
+
         set_fields = doc.model_fields_set
         unset_fields = [field for field in model_fields if field not in set_fields]
+
+        # Update with locals() from external module if needed
+        other_vars = {}
+        if any(
+            isinstance(typ, ForwardRef)
+            for name in set_fields
+            for typ in get_args(model_fields[name].annotation)
+        ):
+            other_vars = vars(import_module(self.document_model.__module__))
+
         include_fields = {
-            name: (model_fields[name].annotation, model_fields[name])
+            name: (
+                _eval_type(model_fields[name].annotation, other_vars, {}, frozenset()),
+                model_fields[name],
+            )
             for name in set_fields
         }
 
