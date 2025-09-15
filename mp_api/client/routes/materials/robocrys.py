@@ -15,7 +15,7 @@ class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
         self,
         keywords: list[str],
         num_chunks: int | None = None,
-        chunk_size: int | None = 100,
+        chunk_size: int | None = 1000,
     ):
         """Search text generated from Robocrystallographer.
 

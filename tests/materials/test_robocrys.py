@@ -23,3 +23,16 @@ def test_client(rester):
 
         assert doc.description is not None
         assert doc.condensed_structure is not None
+
+
+@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+def test_client_large_result_set(rester):
+    search_method = rester.search
+
+    if search_method is not None:
+        q = {"keywords": ["Orthorhombic"], "num_chunks": 1}
+
+        doc = search_method(**q)[0]
+
+        assert doc.description is not None
+        assert doc.condensed_structure is not None
