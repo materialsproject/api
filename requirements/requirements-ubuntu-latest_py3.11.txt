@@ -17,9 +17,9 @@ bcrypt==4.3.0
     # via paramiko
 bibtexparser==1.4.3
     # via pymatgen
-boto3==1.40.29
+boto3==1.40.31
     # via maggma
-botocore==1.40.29
+botocore==1.40.31
     # via
     #   boto3
     #   s3transfer
@@ -83,7 +83,7 @@ msgpack==1.1.1
     # via
     #   maggma
     #   mp-api (pyproject.toml)
-narwhals==2.4.0
+narwhals==2.5.0
     # via plotly
 networkx==3.5
     # via pymatgen
@@ -123,7 +123,7 @@ pybtex==0.25.1
     # via emmet-core
 pycparser==2.23
     # via cffi
-pydantic==2.11.7
+pydantic==2.11.9
     # via
     #   emmet-core
     #   maggma
@@ -149,7 +149,7 @@ pymongo==4.10.1
     # via maggma
 pynacl==1.6.0
     # via paramiko
-pyparsing==3.2.3
+pyparsing==3.2.4
     # via
     #   bibtexparser
     #   matplotlib

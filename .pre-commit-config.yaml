@@ -1,4 +1,4 @@
-default_stages: [commit]
+default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
 
 ci:
@@ -37,6 +37,6 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        stages: [commit, commit-msg]
+        stages: [pre-commit, commit-msg]
         exclude_types: [json, bib, svg]
         args: [--ignore-words-list, "mater,fwe,te"]
