@@ -29,11 +29,11 @@ bibtexparser==1.4.3
     # via pymatgen
 boltons==25.0.0
     # via mpcontribs-client
-boto3==1.40.29
+boto3==1.40.31
     # via
     #   maggma
     #   mp-api (pyproject.toml)
-botocore==1.40.29
+botocore==1.40.31
     # via
     #   boto3
     #   s3transfer
@@ -76,6 +76,8 @@ docutils==0.21.2
     # via sphinx
 emmet-core[all]==0.84.10rc2
     # via mp-api (pyproject.toml)
+execnet==2.1.1
+    # via pytest-xdist
 executing==2.2.1
     # via stack-data
 filelock==3.19.1
@@ -221,7 +223,7 @@ mypy-extensions==1.1.0
     # via
     #   mp-api (pyproject.toml)
     #   mypy
-narwhals==2.4.0
+narwhals==2.5.0
     # via plotly
 networkx==3.5
     # via
@@ -343,7 +345,7 @@ pycodestyle==2.14.0
     #   mp-api (pyproject.toml)
 pycparser==2.23
     # via cffi
-pydantic==2.11.7
+pydantic==2.11.9
     # via
     #   emmet-core
     #   maggma
@@ -395,7 +397,7 @@ pymongo==4.10.1
     #   mpcontribs-client
 pynacl==1.6.0
     # via paramiko
-pyparsing==3.2.3
+pyparsing==3.2.4
     # via
     #   bibtexparser
     #   matplotlib
@@ -405,12 +407,15 @@ pytest==8.4.2
     #   pytest-asyncio
     #   pytest-cov
     #   pytest-mock
+    #   pytest-xdist
     #   solvation-analysis
-pytest-asyncio==1.1.0
+pytest-asyncio==1.2.0
     # via mp-api (pyproject.toml)
 pytest-cov==7.0.0
     # via mp-api (pyproject.toml)
 pytest-mock==3.15.0
+    # via mp-api (pyproject.toml)
+pytest-xdist==3.8.0
     # via mp-api (pyproject.toml)
 python-dateutil==2.9.0.post0
     # via
@@ -582,7 +587,7 @@ typeguard==4.4.4
     # via inflect
 types-python-dateutil==2.9.0.20250822
     # via arrow
-types-requests==2.32.4.20250809
+types-requests==2.32.4.20250913
     # via mp-api (pyproject.toml)
 types-setuptools==80.9.0.20250822
     # via mp-api (pyproject.toml)
@@ -599,6 +604,7 @@ typing-extensions==4.15.0
     #   pydantic
     #   pydantic-core
     #   pydash
+    #   pytest-asyncio
     #   referencing
     #   spglib
     #   swagger-spec-validator
