@@ -24,7 +24,6 @@ from typing import (
     ForwardRef,
     Generic,
     TypeVar,
-    _eval_type,
     get_args,
 )
 from urllib.parse import quote, urljoin
@@ -1086,14 +1085,14 @@ class BaseRester(Generic[T]):
         other_vars = {}
         if any(
             isinstance(typ, ForwardRef)
-            for name in set_fields
-            for typ in get_args(model_fields[name].annotation)
+            for field_meta in model_fields.values()
+            for typ in get_args(field_meta.annotation)
         ):
             other_vars = vars(import_module(self.document_model.__module__))
 
         include_fields = {
             name: (
-                _eval_type(model_fields[name].annotation, other_vars, {}, frozenset()),
+                model_fields[name].annotation,
                 model_fields[name],
             )
             for name in set_fields
@@ -1107,6 +1106,8 @@ class BaseRester(Generic[T]):
             fields_not_requested=(list[str], unset_fields),
             __base__=self.document_model,
         )
+        if other_vars:
+            data_model.model_rebuild(_types_namespace=other_vars)
 
         def new_repr(self) -> str:
             extra = ",\n".join(
