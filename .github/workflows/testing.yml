@@ -60,7 +60,7 @@ jobs:
           #MP_API_ENDPOINT: https://api-preview.materialsproject.org/
         run: |
           pip install -e .
-          pytest -x --cov=mp_api --cov-report=xml
+          pytest -n auto -x --cov=mp_api --cov-report=xml
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
