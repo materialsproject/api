@@ -93,4 +93,7 @@ def test_generic_get_methods(rester):
             docs = getattr(rester, search_method)(
                 **{key + "s": [key_only_resters[name]]}, fields=[key]
             )
+            with pytest.warns(DeprecationWarning, match="get_data_by_id is deprecated"):
+                _ = rester.get_data_by_id(key_only_resters[name], fields=[key])
+
             assert docs_check(docs)
