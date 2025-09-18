@@ -9,7 +9,7 @@ from json import loads
 from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import BSPathType
-from emmet.core.mpid import MPID
+from emmet.core.mpid import MPID, AlphaID
 from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
 from emmet.core.thermo import ThermoType
@@ -1702,3 +1702,78 @@ class MPRester:
             }
             for idx, entry in enumerate(entries)
         ]
+
+    def get_oxygen_evolution(
+        self,
+        material_id: str | MPID | AlphaID,
+        working_ion: str | Element,
+        thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
+    ):
+        working_ion = Element(working_ion)
+        formatted_mpid = AlphaID(material_id).string
+        electrode_docs = self.materials.insertion_electrodes.search(
+            battery_ids=[f"{formatted_mpid}_{working_ion.value}"],
+            fields=["chemsys", "electrode_object", "framework"],
+        )
+        if len(electrode_docs) == 0:
+            raise ValueError(
+                "No available insertion electrode data with MPID = "
+                f"{formatted_mpid} and working ion {working_ion.value}"
+            )
+        if Element.O not in {
+            Element(ele) for ele in electrode_docs[0].chemsys.split("-")
+        }:
+            raise ValueError(
+                f"No oxygen in the host framework {electrode_docs[0].framework}"
+            )
+
+        inserted_chemsys = "-".join(
+            sorted({working_ion.value, *electrode_docs[0].chemsys.split("-")})
+        )
+        unique_composition = {
+            entry.composition
+            for entry in electrode_docs[0].electrode_object.get_all_entries()
+        }
+
+        phase_diagram = self.materials.thermo.get_phase_diagram_from_chemsys(
+            inserted_chemsys,
+            thermo_type=ThermoType(thermo_type),
+        )
+
+        by_dict = {
+            composition.formula: [
+                {
+                    k: profile[v]
+                    for k, v in {
+                        "mu": "chempot",
+                        "reaction": "reaction",
+                        "evolution": "evolution",
+                    }.items()
+                }
+                for profile in phase_diagram.get_element_profile("O", composition)
+            ]
+            for composition in unique_composition
+        }
+
+        target_comp = Composition({"O": 1})
+        for formula, data in by_dict.items():
+            for idx, entry in enumerate(data):
+                # Normalize all reactions to have integer coefficients
+                scale = entry["reaction"].normalized_repr_and_factor()[1]
+                by_dict[formula][idx]["reaction"]._coeffs = [
+                    c * scale for c in entry["reaction"]._coeffs
+                ]
+
+                by_dict[formula][idx]["O2_produced"] = (
+                    entry["reaction"].get_coeff(target_comp)
+                    if target_comp in entry["reaction"].products
+                    else 0
+                )
+
+        return {
+            formula: {
+                k: [data[idx][k] for idx in range(len(data))]
+                for k in ("mu", "reaction", "evolution", "O2_produced")
+            }
+            for formula, data in by_dict.items()
+        }
