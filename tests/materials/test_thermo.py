@@ -2,7 +2,7 @@ import os
 from core_function import client_search_testing
 
 import pytest
-from emmet.core.thermo import ThermoType
+from emmet.core.types.enums import ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 from mp_api.client.routes.materials.thermo import ThermoRester

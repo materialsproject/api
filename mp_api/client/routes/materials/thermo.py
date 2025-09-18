@@ -3,7 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 
 import numpy as np
-from emmet.core.thermo import ThermoDoc, ThermoType
+from emmet.core.thermo import ThermoDoc
+from emmet.core.types.enums import ThermoType
 from monty.json import MontyDecoder
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element

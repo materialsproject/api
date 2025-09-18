@@ -1,10 +1,15 @@
 from __future__ import annotations
 
-from emmet.core.xas import Edge, Type, XASDoc
+from typing import TYPE_CHECKING
+
+from emmet.core.xas import XASDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
+
+if TYPE_CHECKING:
+    from emmet.core.types.enums import XasEdge, XasType
 
 
 class XASRester(BaseRester[XASDoc]):
@@ -14,13 +19,13 @@ class XASRester(BaseRester[XASDoc]):
 
     def search(
         self,
-        edge: Edge | None = None,
+        edge: XasEdge | None = None,
         absorbing_element: Element | None = None,
         formula: str | None = None,
         chemsys: str | list[str] | None = None,
         elements: list[str] | None = None,
         material_ids: list[str] | None = None,
-        spectrum_type: Type | None = None,
+        spectrum_type: XasType | None = None,
         spectrum_ids: str | list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
@@ -30,7 +35,7 @@ class XASRester(BaseRester[XASDoc]):
         """Query core XAS docs using a variety of search criteria.
 
         Arguments:
-            edge (Edge): The absorption edge (e.g. K, L2, L3, L2,3).
+            edge (XasEdge): The absorption edge (e.g. K, L2, L3, L2,3).
             absorbing_element (Element): The absorbing element.
             formula (str): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
@@ -39,7 +44,7 @@ class XASRester(BaseRester[XASDoc]):
             elements (List[str]): A list of elements.
             material_ids (str, List[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            spectrum_type (Type): Spectrum type (e.g. EXAFS, XAFS, or XANES).
+            spectrum_type (XasType): Spectrum type (e.g. EXAFS, XAFS, or XANES).
             spectrum_ids (str, List[str]): A single Spectrum ID string or list of strings
                 (e.g., mp-149-XANES-Li-K, [mp-149-XANES-Li-K, mp-13-XANES-Li-K]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.

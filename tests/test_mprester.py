@@ -6,7 +6,7 @@ import importlib
 import numpy as np
 import pytest
 from emmet.core.tasks import TaskDoc
-from emmet.core.thermo import ThermoType
+from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry

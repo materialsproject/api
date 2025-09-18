@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import re
 from functools import cache
-from typing import Optional, get_args
+from typing import get_args
 
 from maggma.utils import get_flat_models_from_model
 from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
 from pydantic.fields import FieldInfo
+from pydantic_core import PydanticUndefined
 
 from mp_api.client.core.settings import MAPIClientSettings
 
@@ -42,7 +43,7 @@ def validate_ids(id_list: list[str]):
 
 @cache
 def api_sanitize(
-    pydantic_model: BaseModel,
+    pydantic_model: type[BaseModel],
     fields_to_leave: list[str] | None = None,
     allow_dict_msonable=False,
 ):
@@ -59,11 +60,11 @@ def api_sanitize(
         allow_dict_msonable (bool): Whether to allow dictionaries in place of MSONable quantities.
             Defaults to False
     """
-    models = [
+    models: list[type[BaseModel]] = [
         model
         for model in get_flat_models_from_model(pydantic_model)
         if issubclass(model, BaseModel)
-    ]  # type: list[BaseModel]
+    ]
 
     fields_to_leave = fields_to_leave or []
     fields_tuples = [f.split(".") for f in fields_to_leave]
@@ -73,6 +74,11 @@ def api_sanitize(
         model_fields_to_leave = {f[1] for f in fields_tuples if model.__name__ == f[0]}
         for name, field in model.model_fields.items():
             field_type = field.annotation
+            field_default = (
+                field.default
+                if all(field.default != x for x in {PydanticUndefined, None})
+                else None
+            )
 
             if field_type is not None and allow_dict_msonable:
                 if lenient_issubclass(field_type, MSONable):
@@ -84,7 +90,7 @@ def api_sanitize(
 
             if name not in model_fields_to_leave:
                 new_field = FieldInfo.from_annotated_attribute(
-                    Optional[field_type], None
+                    None | field_type, field_default
                 )
 
                 for attr in (
@@ -93,7 +99,7 @@ def api_sanitize(
                 ):
                     if (val := getattr(field, attr)) is not None:
                         setattr(new_field, attr, val)
-
+                new_field.metadata = new_field.metadata or field.metadata
                 model.model_fields[name] = new_field
 
         model.model_rebuild(force=True)

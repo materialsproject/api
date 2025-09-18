@@ -2,7 +2,7 @@ import os
 from core_function import client_search_testing
 
 import pytest
-from emmet.core.xas import Edge, Type
+from emmet.core.types.enums import XasEdge, XasType
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.routes.materials.xas import XASRester
@@ -33,8 +33,8 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
-    "edge": Edge.L2_3,
-    "spectrum_type": Type.EXAFS,
+    "edge": XasEdge.L2_3,
+    "spectrum_type": XasType.EXAFS,
     "absorbing_element": Element("Ce"),
     "required_elements": [Element("Ce")],
     "formula": "Ce(WO4)2",

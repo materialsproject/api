@@ -12,7 +12,7 @@ from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
-from emmet.core.thermo import ThermoType
+from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from monty.json import MontyDecoder
 from packaging import version
