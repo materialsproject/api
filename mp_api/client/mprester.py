@@ -718,6 +718,7 @@ class MPRester:
 
         if additional_criteria:
             input_params = {**input_params, **additional_criteria}
+        print(input_params)
 
         entries = []
 
@@ -1341,7 +1342,7 @@ class MPRester:
         decoder = MontyDecoder().decode if self.monty_decode else json.loads
         kwargs = dict(
             bucket="materialsproject-parsed",
-            key=f"chgcars/{str(task_id)}.json.gz",
+            key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
             decoder=decoder,
         )
         chgcar = self.materials.tasks._query_open_data(**kwargs)[0]

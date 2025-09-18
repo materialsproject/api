@@ -237,7 +237,7 @@ class BandStructureRester(BaseRester):
         decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
             bucket="materialsproject-parsed",
-            key=f"bandstructures/{task_id}.json.gz",
+            key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
             decoder=decoder,
         )[0]
 
@@ -433,7 +433,7 @@ class DosRester(BaseRester):
         decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
             bucket="materialsproject-parsed",
-            key=f"dos/{task_id}.json.gz",
+            key=f"dos/{validate_ids([task_id])[0]}.json.gz",
             decoder=decoder,
         )[0]
 
