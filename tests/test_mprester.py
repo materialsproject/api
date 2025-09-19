@@ -480,7 +480,6 @@ class TestMPRester:
                 ]
 
             if no_compound_entries:
-                print(mpr.get_stability(modified_entries, thermo_type=thermo_type))
                 with pytest.warns(UserWarning, match="No phase diagram data available"):
                     mpr.get_stability(modified_entries, thermo_type=thermo_type)
                 return

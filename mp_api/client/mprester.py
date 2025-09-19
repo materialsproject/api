@@ -718,7 +718,6 @@ class MPRester:
 
         if additional_criteria:
             input_params = {**input_params, **additional_criteria}
-        print(input_params)
 
         entries = []
 
