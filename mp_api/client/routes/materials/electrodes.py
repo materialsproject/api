@@ -168,7 +168,6 @@ class ConversionElectrodeRester(BaseElectrodeRester):
     document_model = ConversionElectrodeDoc  # type: ignore
     # TODO: formula, chemsys, and elements do not appear to work in the API
     _exclude_search_fields = [
-        "material_ids",
         "formula",
         "chemsys",
         "elements",
