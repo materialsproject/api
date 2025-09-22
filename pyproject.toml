@@ -39,6 +39,7 @@ test = [
   "pytest-asyncio",
   "pytest-cov",
   "pytest-mock",
+  "pytest-xdist",
   "flake8",
   "pycodestyle",
   "mypy",

@@ -43,7 +43,6 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
-    "material_ids": ["mp-16722"],
     "battery_ids": ["mp-16722_Al"],
     "working_ion": Element("Li"),
     "formula": "CoO2",

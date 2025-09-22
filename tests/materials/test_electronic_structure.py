@@ -47,7 +47,7 @@ es_custom_field_tests = {
 
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
-@pytest.mark.skip(reason="magnetic ordering fields not build correctly")
+@pytest.mark.skip(reason="magnetic ordering fields not built correctly")
 def test_es_client(es_rester):
     search_method = es_rester.search
 
@@ -81,7 +81,7 @@ def bs_rester():
 
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
-@pytest.mark.skip(reason="magnetic ordering fields not build correctly")
+@pytest.mark.skip(reason="magnetic ordering fields not built correctly")
 def test_bs_client(bs_rester):
     # Get specific search method
     search_method = bs_rester.search
@@ -127,7 +127,7 @@ def dos_rester():
 
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
-@pytest.mark.skip(reason="magnetic ordering fields not build correctly")
+@pytest.mark.skip(reason="magnetic ordering fields not built correctly")
 def test_dos_client(dos_rester):
     search_method = dos_rester.search
 
