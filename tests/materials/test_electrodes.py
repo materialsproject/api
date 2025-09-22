@@ -20,7 +20,7 @@ def insertion_rester():
 @pytest.fixture
 def conversion_rester():
     rester = ConversionElectrodeRester(
-        monty_decode=False  # TODO: to fix in emmet-core 0.85.0
+        monty_decode=False  # TODO: to fix in data + emmet-core 0.85.0
     )
     yield rester
     rester.session.close()
