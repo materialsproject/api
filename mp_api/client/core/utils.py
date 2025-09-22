@@ -4,13 +4,22 @@ import re
 from functools import cache
 from typing import Optional, get_args
 
+import orjson
 from emmet.core.utils import get_flat_models_from_model
-from monty.json import MSONable
+from monty.json import MontyDecoder, MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
 from pydantic.fields import FieldInfo
 
 from mp_api.client.core.settings import MAPIClientSettings
+
+
+def load_json(json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"):
+    """Utility to load json in consistent manner."""
+    data = orjson.loads(
+        json_like if isinstance(json_like, bytes) else json_like.encode(encoding)
+    )
+    return MontyDecoder().process_decoded(data) if deser else data
 
 
 def validate_ids(id_list: list[str]):

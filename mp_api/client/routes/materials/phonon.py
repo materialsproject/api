@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 
 import numpy as np
 from emmet.core.phonon import PhononBS, PhononBSDOSDoc, PhononDOS
-from monty.json import MontyDecoder
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
@@ -75,11 +73,9 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
         Returns:
             bandstructure (PhononBS): PhononBS object
         """
-        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
             bucket="materialsproject-parsed",
             key=f"ph-bandstructures/{phonon_method}/{material_id}.json.gz",
-            decoder=decoder,
         )[0]
 
         if not result or not result[0]:
@@ -100,11 +96,9 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
         Returns:
             dos (PhononDOS): PhononDOS object
         """
-        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
             bucket="materialsproject-parsed",
             key=f"ph-dos/{phonon_method}/{material_id}.json.gz",
-            decoder=decoder,
         )[0]
 
         if not result or not result[0]:
@@ -124,11 +118,9 @@ class PhononRester(BaseRester[PhononBSDOSDoc]):
         Returns:
             force constants (list[list[Matrix3D]]): PhononDOS object
         """
-        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
             bucket="materialsproject-parsed",
             key=f"ph-force-constants/{material_id}.json.gz",
-            decoder=decoder,
         )[0]
 
         if not result or not result[0]:
