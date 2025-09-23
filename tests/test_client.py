@@ -25,6 +25,7 @@ search_only_resters = [
     "materials_substrates",
     "materials_synthesis",
     "materials_similarity",
+    "materials_tasks",
 ]
 
 special_resters = ["materials_charge_density", "doi"]
@@ -36,7 +37,6 @@ ignore_generic = [
     # "tasks",
     # "bonds",
     "materials_xas",
-    "materials_tasks",
     "materials_elasticity",
     "materials_fermi",
     "materials_alloys",
