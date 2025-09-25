@@ -888,6 +888,7 @@ class BaseRester(Generic[T]):
 
         if data_tuples and "meta" in data_tuples[0][0]:
             total_data["meta"]["time_stamp"] = data_tuples[0][0]["meta"]["time_stamp"]
+            total_data["meta"]["facets"] = data_tuples[0][0]["meta"].get("facet", None)
 
         if pbar is not None:
             pbar.close()
@@ -1252,6 +1253,7 @@ class BaseRester(Generic[T]):
         fields=None,
         chunk_size=1000,
         num_chunks=None,
+        facets=None,
     ) -> list[T] | list[dict]:
         """Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
@@ -1283,7 +1285,6 @@ class BaseRester(Generic[T]):
         )
 
         chosen_param = list_entries[0][0] if len(list_entries) > 0 else None
-
         results = self._query_resource(
             query_params,
             fields=fields,
@@ -1291,8 +1292,10 @@ class BaseRester(Generic[T]):
             chunk_size=chunk_size,
             num_chunks=num_chunks,
         )
-
-        return results["data"]
+        if facets:
+            return results["data"], results["meta"]
+        else:
+            return results["data"]
 
     def count(self, criteria: dict | None = None) -> int | str:
         """Return a count of total documents.
