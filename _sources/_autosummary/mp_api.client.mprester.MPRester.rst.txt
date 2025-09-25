@@ -36,6 +36,7 @@ mp\_api.client.mprester.MPRester
       ~MPRester.get_material_id_from_task_id
       ~MPRester.get_material_id_references
       ~MPRester.get_material_ids
+      ~MPRester.get_oxygen_evolution
       ~MPRester.get_phonon_bandstructure_by_material_id
       ~MPRester.get_phonon_dos_by_material_id
       ~MPRester.get_pourbaix_entries

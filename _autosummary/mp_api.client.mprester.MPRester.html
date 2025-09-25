@@ -181,31 +181,34 @@ and will not give auto-complete for available fields.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_ids" title="mp_api.client.mprester.MPRester.get_material_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_ids</span></code></a>(chemsys_formula)</p></td>
 <td><p>Get all materials ids for a formula or chemsys.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_bandstructure_by_material_id</span></code></a>(...)</p></td>
-<td><p>Get phonon dispersion data corresponding to a material_id.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_dos_by_material_id</span></code></a>(material_id)</p></td>
-<td><p>Get phonon density of states data corresponding to a material_id.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_pourbaix_entries" title="mp_api.client.mprester.MPRester.get_pourbaix_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pourbaix_entries</span></code></a>(chemsys[, ...])</p></td>
-<td><p>A helper function to get all entries necessary to generate a Pourbaix diagram from the rest interface.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_stability</span></code>(entries[, thermo_type])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_oxygen_evolution</span></code>(material_id, working_ion)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structure_by_material_id" title="mp_api.client.mprester.MPRester.get_structure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structure_by_material_id</span></code></a>(material_id[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_bandstructure_by_material_id</span></code></a>(...)</p></td>
+<td><p>Get phonon dispersion data corresponding to a material_id.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_dos_by_material_id</span></code></a>(material_id)</p></td>
+<td><p>Get phonon density of states data corresponding to a material_id.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_pourbaix_entries" title="mp_api.client.mprester.MPRester.get_pourbaix_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pourbaix_entries</span></code></a>(chemsys[, ...])</p></td>
+<td><p>A helper function to get all entries necessary to generate a Pourbaix diagram from the rest interface.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_stability</span></code>(entries[, thermo_type])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structure_by_material_id" title="mp_api.client.mprester.MPRester.get_structure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structure_by_material_id</span></code></a>(material_id[, ...])</p></td>
 <td><p>Get a Structure corresponding to a material_id.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structures" title="mp_api.client.mprester.MPRester.get_structures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structures</span></code></a>(chemsys_formula[, final])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structures" title="mp_api.client.mprester.MPRester.get_structures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structures</span></code></a>(chemsys_formula[, final])</p></td>
 <td><p>Get a list of Structures corresponding to a chemical system or formula.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id" title="mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_task_ids_associated_with_material_id</span></code></a>(...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id" title="mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_task_ids_associated_with_material_id</span></code></a>(...)</p></td>
 <td><p>Get Task ID values associated with a specific Material ID.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_wulff_shape" title="mp_api.client.mprester.MPRester.get_wulff_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_wulff_shape</span></code></a>(material_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_wulff_shape" title="mp_api.client.mprester.MPRester.get_wulff_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_wulff_shape</span></code></a>(material_id)</p></td>
 <td><p>Constructs a Wulff shape for a material.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.query" title="mp_api.client.mprester.MPRester.query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query</span></code></a>(**kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.query" title="mp_api.client.mprester.MPRester.query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query</span></code></a>(**kwargs)</p></td>
 <td><p>The MPRester().query method has been replaced with the MPRester().summary.search method.</p></td>
 </tr>
 </tbody>
