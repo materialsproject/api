@@ -9,7 +9,7 @@ authors = [
 ]
 description = "API Client for the Materials Project"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "modified BSD" }
 classifiers = [
   "Programming Language :: Python :: 3",
