@@ -12,7 +12,7 @@ from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
-from emmet.core.thermo import ThermoType
+from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from monty.json import MontyDecoder
 from packaging import version
@@ -1341,7 +1341,7 @@ class MPRester:
         decoder = MontyDecoder().decode if self.monty_decode else json.loads
         kwargs = dict(
             bucket="materialsproject-parsed",
-            key=f"chgcars/{str(task_id)}.json.gz",
+            key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
             decoder=decoder,
         )
         chgcar = self.materials.tasks._query_open_data(**kwargs)[0]

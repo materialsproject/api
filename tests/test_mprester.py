@@ -6,7 +6,7 @@ import importlib
 import numpy as np
 import pytest
 from emmet.core.tasks import TaskDoc
-from emmet.core.thermo import ThermoType
+from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
@@ -303,7 +303,7 @@ class TestMPRester:
             "mp-149", inc_task_doc=True
         )
         assert isinstance(chgcar, Chgcar)
-        assert isinstance(task_doc, TaskDoc)
+        assert isinstance(TaskDoc.model_validate(task_doc.model_dump()), TaskDoc)
 
     def test_get_charge_density_from_task_id(self, mpr):
         chgcar = mpr.get_charge_density_from_task_id("mp-2246557")
@@ -313,7 +313,7 @@ class TestMPRester:
             "mp-2246557", inc_task_doc=True
         )
         assert isinstance(chgcar, Chgcar)
-        assert isinstance(task_doc, TaskDoc)
+        assert isinstance(TaskDoc.model_validate(task_doc.model_dump()), TaskDoc)
 
     def test_get_wulff_shape(self, mpr):
         ws = mpr.get_wulff_shape("mp-126")
