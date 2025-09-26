@@ -17,9 +17,9 @@ bcrypt==5.0.0
     # via paramiko
 bibtexparser==1.4.3
     # via pymatgen
-boto3==1.40.39
+boto3==1.40.40
     # via maggma
-botocore==1.40.39
+botocore==1.40.40
     # via
     #   boto3
     #   s3transfer
@@ -41,7 +41,7 @@ dnspython==2.8.0
     # via
     #   maggma
     #   pymongo
-emmet-core==0.84.10rc2
+emmet-core==0.84.10
     # via mp-api (pyproject.toml)
 fonttools==4.60.0
     # via matplotlib
@@ -165,7 +165,7 @@ pytz==2025.2
     # via
     #   mongomock
     #   pandas
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via pybtex
 pyzmq==27.1.0
     # via maggma
