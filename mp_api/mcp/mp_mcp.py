@@ -13,7 +13,7 @@ from mp_api.mcp import tools as mcp_tools
 
 
 class MPMcp(BaseModel):
-    name: str = Field("Materials Project MCP")
+    name: str = Field("Materials_Project_MCP")
     client_kwargs: dict[str, Any] | None = Field(None)
     _client: MPRester | None = PrivateAttr(None)
 
