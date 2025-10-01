@@ -2,13 +2,28 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from mp_api.client import MPRester
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
+
+
+class _NeedsMPClient:
+    def __init__(
+        self,
+        client_kwargs: dict[str, Any] | None = None,
+        client: MPRester | None = None,
+    ):
+        self.client = client or MPRester(
+            **{
+                **(client_kwargs or {}),
+                "use_document_model": False,
+                "monty_decode": False,
+            }
+        )
 
 
 def get_annotation_signature(
