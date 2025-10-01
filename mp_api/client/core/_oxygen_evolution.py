@@ -22,11 +22,14 @@ class OxygenEvolution:
 
     Parameters
     -----------
+    cache_file : Path or None
+        If a Path, the path to the file at which NIST JANAF data is cached / retrieved.
+        If None, no caching is performed.
     """
 
     def __init__(
         self,
-        cache_file: Path | None = DEFAULT_CACHE_FILE,
+        cache_file: Path | None = None,  # DEFAULT_CACHE_FILE,
     ):
         self._spline_pars = None
         self.cache_file = cache_file
@@ -78,6 +81,11 @@ class OxygenEvolution:
         temp_K = janaf_data["T(K)"].to_numpy()
         entropy_dimless = janaf_data["S"].to_numpy() / (Boltzmann * Avogadro)
 
+        # Note that the ideal gas contribution to the chemical potential is
+        # (Gibbs-Helmholtz relation)
+        # G(p, T)/N = G(p_0, T_0)/N + k_B T ln(p/p_0)
+        # where  G(p_0, T_0)/N is a reference chemical potential for the system
+        # We use the zero temperature energy per atom to approximate this later
         mu_mu0 = kB_eV * temp_K * (1.0 + np.log(meas_p / ref_p) - entropy_dimless)
         if self.cache_file:
             self.cache_file.write_text(
