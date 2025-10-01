@@ -6,19 +6,36 @@
 #
 annotated-types==0.7.0
     # via pydantic
+attrs==25.3.0
+    # via
+    #   jsonlines
+    #   jsonschema
+    #   referencing
+bcrypt==5.0.0
+    # via paramiko
 bibtexparser==1.4.3
     # via pymatgen
-blake3==1.0.6
-    # via emmet-core
+boto3==1.40.40
+    # via maggma
+botocore==1.40.40
+    # via
+    #   boto3
+    #   s3transfer
 certifi==2025.8.3
     # via requests
 charset-normalizer==3.4.3
     # via requests
 contourpy==1.3.3
     # via matplotlib
+cryptography==46.0.1
+    # via paramiko
 cycler==0.12.1
     # via matplotlib
-emmet-core==0.84.10rc2
+dnspython==2.8.0
+    # via
+    #   maggma
+    #   pymongo
+emmet-core==0.84.10
     # via mp-api (pyproject.toml)
 fonttools==4.60.0
     # via matplotlib
@@ -78,7 +95,7 @@ pydantic==2.11.9
     #   pymatgen-io-validation
 pydantic-core==2.33.2
     # via pydantic
-pydantic-settings==2.10.1
+pydantic-settings==2.11.0
     # via
     #   emmet-core
     #   pymatgen-io-validation
@@ -89,6 +106,10 @@ pymatgen==2025.6.14
     #   pymatgen-io-validation
 pymatgen-io-validation==0.1.2
     # via emmet-core
+pymongo==4.10.1
+    # via maggma
+pynacl==1.6.0
+    # via paramiko
 pyparsing==3.2.5
     # via
     #   bibtexparser
@@ -100,8 +121,10 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
     # via pydantic-settings
 pytz==2025.2
-    # via pandas
-pyyaml==6.0.2
+    # via
+    #   mongomock
+    #   pandas
+pyyaml==6.0.3
     # via pybtex
 requests==2.32.5
     # via
@@ -112,7 +135,7 @@ ruamel-yaml==0.18.15
     # via
     #   monty
     #   pymatgen
-ruamel-yaml-clib==0.2.13
+ruamel-yaml-clib==0.2.14
     # via ruamel-yaml
 scipy==1.16.2
     # via pymatgen

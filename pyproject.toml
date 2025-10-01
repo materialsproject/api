@@ -9,7 +9,7 @@ authors = [
 ]
 description = "API Client for the Materials Project"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "modified BSD" }
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -20,19 +20,18 @@ classifiers = [
   "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-  "setuptools",
   "msgpack",
   "pymatgen>=2022.3.7,!=2024.2.20",
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
-  "emmet-core>=0.84.10rc1",
+  "emmet-core>=0.84.6rc0,<0.85",
   "smart_open",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-all = ["emmet-core[all]>=0.84.10rc1", "custodian", "mpcontribs-client", "boto3"]
+all = ["emmet-core[all]>=0.84.6rc0,<0.85", "custodian", "mpcontribs-client", "boto3"]
 test = [
   "pre-commit",
   "pytest",

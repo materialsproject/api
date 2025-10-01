@@ -20,15 +20,19 @@ attrs==25.3.0
     #   referencing
 babel==2.17.0
     # via sphinx
+bcrypt==5.0.0
+    # via paramiko
 bibtexparser==1.4.3
     # via pymatgen
 blake3==1.0.6
     # via emmet-core
 boltons==25.0.0
     # via mpcontribs-client
-boto3==1.40.35
-    # via mp-api (pyproject.toml)
-botocore==1.40.35
+boto3==1.40.40
+    # via
+    #   maggma
+    #   mp-api (pyproject.toml)
+botocore==1.40.40
     # via
     #   boto3
     #   s3transfer
@@ -48,6 +52,8 @@ contourpy==1.3.3
     # via matplotlib
 coverage[toml]==7.10.7
     # via pytest-cov
+cryptography==46.0.1
+    # via paramiko
 custodian==2025.8.13
     # via mp-api (pyproject.toml)
 cycler==0.12.1
@@ -62,7 +68,7 @@ dnspython==2.8.0
     #   pymongo
 docutils==0.21.2
     # via sphinx
-emmet-core[all]==0.85.0rc0
+emmet-core[all]==0.84.10
     # via mp-api (pyproject.toml)
 execnet==2.1.1
     # via pytest-xdist
@@ -285,7 +291,7 @@ pydantic==2.11.9
     #   pymatgen-io-validation
 pydantic-core==2.33.2
     # via pydantic
-pydantic-settings==2.10.1
+pydantic-settings==2.11.0
     # via
     #   emmet-core
     #   pymatgen-io-validation
@@ -323,6 +329,8 @@ pymongo==4.15.1
     # via
     #   matminer
     #   mpcontribs-client
+pynacl==1.6.0
+    # via paramiko
 pyparsing==3.2.5
     # via
     #   bibtexparser
@@ -356,7 +364,7 @@ pytz==2025.2
     # via
     #   bravado-core
     #   pandas
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via
     #   bravado
     #   bravado-core
@@ -399,7 +407,7 @@ ruamel-yaml==0.18.15
     #   monty
     #   pymatgen
     #   robocrys
-ruamel-yaml-clib==0.2.13
+ruamel-yaml-clib==0.2.14
     # via ruamel-yaml
 s3transfer==0.14.0
     # via boto3
@@ -420,9 +428,11 @@ seekpath==2.1.0
     # via emmet-core
 semantic-version==2.10.0
     # via mpcontribs-client
-shapely==2.1.1
+sentinels==1.1.1
+    # via mongomock
+shapely==2.1.2
     # via pymatgen-analysis-alloys
-simplejson==3.20.1
+simplejson==3.20.2
     # via
     #   bravado
     #   bravado-core
@@ -469,7 +479,11 @@ sympy==1.14.0
 tabulate==0.9.0
     # via pymatgen
 threadpoolctl==3.6.0
-    # via scikit-learn
+    # via
+    #   mdanalysis
+    #   scikit-learn
+tidynamics==1.1.2
+    # via transport-analysis
 tifffile==2025.9.20
     # via scikit-image
 tqdm==4.67.1
