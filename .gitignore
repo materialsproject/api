@@ -118,3 +118,6 @@ ENV/
 
 # Doc folder
 _autosummary
+
+uv.lock
+JANAF_O2_data.json
