@@ -27,11 +27,12 @@ dependencies = [
   "monty>=2024.12.10",
   "emmet-core>=0.84.6rc0,<0.85",
   "smart_open",
+  "boto3",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-all = ["emmet-core[all]>=0.84.6rc0,<0.85", "custodian", "mpcontribs-client", "boto3"]
+all = ["emmet-core[all]>=0.84.6rc0,<0.85", "custodian", "mpcontribs-client"]
 test = [
   "pre-commit",
   "pytest",
