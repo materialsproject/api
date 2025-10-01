@@ -8,6 +8,12 @@ annotated-types==0.7.0
     # via pydantic
 bibtexparser==1.4.3
     # via pymatgen
+boto3==1.40.43
+    # via mp-api (pyproject.toml)
+botocore==1.40.43
+    # via
+    #   boto3
+    #   s3transfer
 certifi==2025.8.3
     # via requests
 charset-normalizer==3.4.3
@@ -22,6 +28,10 @@ fonttools==4.60.1
     # via matplotlib
 idna==3.10
     # via requests
+jmespath==1.0.1
+    # via
+    #   boto3
+    #   botocore
 joblib==1.5.2
     # via pymatgen
 kiwisolver==1.4.9
@@ -93,6 +103,7 @@ pyparsing==3.2.5
     #   matplotlib
 python-dateutil==2.9.0.post0
     # via
+    #   botocore
     #   matplotlib
     #   pandas
 python-dotenv==1.1.1
@@ -112,6 +123,8 @@ ruamel-yaml==0.18.15
     #   pymatgen
 ruamel-yaml-clib==0.2.14
     # via ruamel-yaml
+s3transfer==0.14.0
+    # via boto3
 scipy==1.16.2
     # via pymatgen
 six==1.17.0
@@ -143,6 +156,8 @@ tzdata==2025.2
 uncertainties==3.2.3
     # via pymatgen
 urllib3==2.5.0
-    # via requests
+    # via
+    #   botocore
+    #   requests
 wrapt==1.17.3
     # via smart-open
