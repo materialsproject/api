@@ -26,6 +26,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
 from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
@@ -1739,41 +1740,7 @@ class MPRester:
             inserted_chemsys,
             thermo_type=ThermoType(thermo_type),
         )
-
-        by_dict = {
-            composition.formula: [
-                {
-                    k: profile[v]
-                    for k, v in {
-                        "mu": "chempot",
-                        "reaction": "reaction",
-                        "evolution": "evolution",
-                    }.items()
-                }
-                for profile in phase_diagram.get_element_profile("O", composition)
-            ]
-            for composition in unique_composition
-        }
-
-        target_comp = Composition({"O": 1})
-        for formula, data in by_dict.items():
-            for idx, entry in enumerate(data):
-                # Normalize all reactions to have integer coefficients
-                scale = entry["reaction"].normalized_repr_and_factor()[1]
-                by_dict[formula][idx]["reaction"]._coeffs = [
-                    c * scale for c in entry["reaction"]._coeffs
-                ]
-
-                by_dict[formula][idx]["O2_produced"] = (
-                    entry["reaction"].get_coeff(target_comp)
-                    if target_comp in entry["reaction"].products
-                    else 0
-                )
-
-        return {
-            formula: {
-                k: [data[idx][k] for idx in range(len(data))]
-                for k in ("mu", "reaction", "evolution", "O2_produced")
-            }
-            for formula, data in by_dict.items()
-        }
+        return OxygenEvolution().get_oxygen_evolution_from_phase_diagram(
+            phase_diagram,
+            unique_composition,
+        )
