@@ -55,6 +55,7 @@ mp\_api.client.routes.materials.materials.MaterialsRester
       ~MaterialsRester.robocrys
       ~MaterialsRester.synthesis
       ~MaterialsRester.insertion_electrodes
+      ~MaterialsRester.conversion_electrodes
       ~MaterialsRester.electronic_structure
       ~MaterialsRester.electronic_structure_bandstructure
       ~MaterialsRester.electronic_structure_dos

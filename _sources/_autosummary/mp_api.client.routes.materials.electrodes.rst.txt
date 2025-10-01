@@ -19,6 +19,8 @@ mp\_api.client.routes.materials.electrodes
       :toctree:
       :template: custom-class-template.rst
    
+      BaseElectrodeRester
+      ConversionElectrodeRester
       ElectrodeRester
    
    

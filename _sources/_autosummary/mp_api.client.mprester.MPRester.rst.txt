@@ -74,6 +74,7 @@ mp\_api.client.mprester.MPRester
       ~MPRester.robocrys
       ~MPRester.synthesis
       ~MPRester.insertion_electrodes
+      ~MPRester.conversion_electrodes
       ~MPRester.electronic_structure
       ~MPRester.electronic_structure_bandstructure
       ~MPRester.electronic_structure_dos

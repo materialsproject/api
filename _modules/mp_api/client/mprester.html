@@ -34,11 +34,9 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span><span class="p">,</span> <span class="n">lru_cache</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="kn">import</span> <span class="n">loads</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.electronic_structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSPathType</span>
@@ -47,7 +45,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskDoc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.thermo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.vasp.calc_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalcType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">monty.json</span><span class="w"> </span><span class="kn">import</span> <span class="n">MontyDecoder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">packaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.phase_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseDiagram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.pourbaix_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">IonEntry</span>
@@ -60,7 +57,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAPIClientSettings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneralStoreRester</span><span class="p">,</span> <span class="n">MessagesRester</span><span class="p">,</span> <span class="n">UserSettingsRester</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AbsorptionRester</span><span class="p">,</span>
@@ -68,6 +65,7 @@
     <span class="n">BandStructureRester</span><span class="p">,</span>
     <span class="n">BondsRester</span><span class="p">,</span>
     <span class="n">ChemenvRester</span><span class="p">,</span>
+    <span class="n">ConversionElectrodeRester</span><span class="p">,</span>
     <span class="n">DielectricRester</span><span class="p">,</span>
     <span class="n">DOIRester</span><span class="p">,</span>
     <span class="n">DosRester</span><span class="p">,</span>
@@ -134,6 +132,7 @@
     <span class="n">robocrys</span><span class="p">:</span> <span class="n">RobocrysRester</span>
     <span class="n">synthesis</span><span class="p">:</span> <span class="n">SynthesisRester</span>
     <span class="n">insertion_electrodes</span><span class="p">:</span> <span class="n">ElectrodeRester</span>
+    <span class="n">conversion_electrodes</span><span class="p">:</span> <span class="n">ConversionElectrodeRester</span>
     <span class="n">electronic_structure</span><span class="p">:</span> <span class="n">ElectronicStructureRester</span>
     <span class="n">electronic_structure_bandstructure</span><span class="p">:</span> <span class="n">BandStructureRester</span>
     <span class="n">electronic_structure_dos</span><span class="p">:</span> <span class="n">DosRester</span>
@@ -1441,11 +1440,10 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">decoder</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;chgcars/</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
+            <span class="n">decoder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">load_json</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">deser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">chgcar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">chgcar</span><span class="p">:</span>
@@ -1586,7 +1584,7 @@
         <span class="n">response</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="n">content</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">load_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;pagination&quot;</span><span class="p">][</span><span class="s2">&quot;total&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>

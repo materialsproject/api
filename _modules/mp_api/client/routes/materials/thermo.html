@@ -37,12 +37,11 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.thermo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoDoc</span><span class="p">,</span> <span class="n">ThermoType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">monty.json</span><span class="w"> </span><span class="kn">import</span> <span class="n">MontyDecoder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.phase_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseDiagram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
 
 
 <div class="viewcode-block" id="ThermoRester">
@@ -210,7 +209,7 @@
         <span class="n">pd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-build&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="n">obj_key</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">,</span>
+            <span class="n">decoder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">load_json</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">deser</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phase_diagram&quot;</span><span class="p">)</span>
 
         <span class="c1"># Ensure el_ref keys are Element objects for PDPlotter.</span>

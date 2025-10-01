@@ -33,12 +33,10 @@
   <h1>Source code for mp_api.client.routes.materials.phonon</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.phonon</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhononBS</span><span class="p">,</span> <span class="n">PhononBSDOSDoc</span><span class="p">,</span> <span class="n">PhononDOS</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">monty.json</span><span class="w"> </span><span class="kn">import</span> <span class="n">MontyDecoder</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
@@ -115,11 +113,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (PhononBS): PhononBS object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">decoder</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-bandstructures/</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
@@ -143,11 +139,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            dos (PhononDOS): PhononDOS object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">decoder</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-dos/</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
@@ -170,11 +164,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            force constants (list[list[Matrix3D]]): PhononDOS object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">decoder</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-force-constants/</span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>

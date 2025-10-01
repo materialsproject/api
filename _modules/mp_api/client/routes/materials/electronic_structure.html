@@ -33,7 +33,6 @@
   <h1>Source code for mp_api.client.routes.materials.electronic_structure</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
@@ -42,7 +41,6 @@
     <span class="n">DOSProjectionType</span><span class="p">,</span>
     <span class="n">ElectronicStructureDoc</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">monty.json</span><span class="w"> </span><span class="kn">import</span> <span class="n">MontyDecoder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.magnetism.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ordering</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrbitalType</span><span class="p">,</span> <span class="n">Spin</span>
@@ -286,11 +284,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (BandStructure): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">decoder</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;bandstructures/</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
@@ -497,11 +493,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (CompleteDos): CompleteDos object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">decoder</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;dos/</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
