@@ -21,18 +21,18 @@ classifiers = [
 ]
 dependencies = [
   "msgpack",
-  "maggma>=0.57.1",
   "pymatgen>=2022.3.7,!=2024.2.20",
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
   "emmet-core>=0.84.6rc0",
   "smart_open",
+  "boto3",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-all = ["emmet-core[all]>=0.84.6rc0", "custodian", "mpcontribs-client", "boto3"]
+all = ["emmet-core[all]>=0.84.6rc0", "custodian", "mpcontribs-client",]
 test = [
   "pre-commit",
   "pytest",

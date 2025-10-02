@@ -1,9 +1,23 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+import orjson
 from emmet.core.mpid_ext import validate_identifier
-from monty.json import MSONable
+from monty.json import MontyDecoder
 
 from mp_api.client.core.settings import MAPIClientSettings
+
+if TYPE_CHECKING:
+    from monty.json import MSONable
+
+
+def load_json(json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"):
+    """Utility to load json in consistent manner."""
+    data = orjson.loads(
+        json_like if isinstance(json_like, bytes) else json_like.encode(encoding)
+    )
+    return MontyDecoder().process_decoded(data) if deser else data
 
 
 def validate_ids(id_list: list[str]):

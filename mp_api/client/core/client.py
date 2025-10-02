@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import inspect
 import itertools
-import json
 import os
 import platform
 import sys
@@ -30,9 +29,7 @@ from typing import (
 from urllib.parse import quote, urljoin
 
 import requests
-from bson import json_util
 from emmet.core.utils import jsanitize
-from monty.json import MontyDecoder
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
@@ -41,7 +38,7 @@ from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.utils import load_json, validate_ids
 
 try:
     import boto3
@@ -267,11 +264,7 @@ class BaseRester(Generic[T]):
             response = self.session.post(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
-                if self.monty_decode:
-                    data = json.loads(response.text, cls=MontyDecoder)
-                else:
-                    data = json.loads(response.text)
-
+                data = load_json(response.text, deser=self.monty_decode)
                 if self.document_model and use_document_model:
                     if isinstance(data["data"], dict):
                         data["data"] = self.document_model.model_validate(data["data"])  # type: ignore
@@ -284,7 +277,7 @@ class BaseRester(Generic[T]):
 
             else:
                 try:
-                    data = json.loads(response.text)["detail"]
+                    data = load_json(response.text)["detail"]
                 except (JSONDecodeError, KeyError):
                     data = f"Response {response.text}"
                 if isinstance(data, str):
@@ -339,11 +332,7 @@ class BaseRester(Generic[T]):
             response = self.session.patch(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
-                if self.monty_decode:
-                    data = json.loads(response.text, cls=MontyDecoder)
-                else:
-                    data = json.loads(response.text)
-
+                data = load_json(response.text, deser=self.monty_decode)
                 if self.document_model and use_document_model:
                     if isinstance(data["data"], dict):
                         data["data"] = self.document_model.model_validate(data["data"])  # type: ignore
@@ -356,7 +345,7 @@ class BaseRester(Generic[T]):
 
             else:
                 try:
-                    data = json.loads(response.text)["detail"]
+                    data = load_json(response.text)["detail"]
                 except (JSONDecodeError, KeyError):
                     data = f"Response {response.text}"
                 if isinstance(data, str):
@@ -381,18 +370,24 @@ class BaseRester(Generic[T]):
         self,
         bucket: str,
         key: str,
-        decoder: Callable,
+        decoder: Callable | None = None,
     ) -> tuple[list[dict] | list[bytes], int]:
         """Query and deserialize Materials Project AWS open data s3 buckets.
 
         Args:
             bucket (str): Materials project bucket name
             key (str): Key for file including all prefixes
-            decoder(Callable): Callable used to deserialize data
+            decoder(Callable or None): Callable used to deserialize data.
+                Defaults to mp_api.core.utils.load_json
 
         Returns:
             dict: MontyDecoded data
         """
+        if not decoder:
+
+            def decoder(x):
+                return load_json(x, deser=self.monty_decode)
+
         file = open(
             f"s3://{bucket}/{key}",
             encoding="utf-8",
@@ -524,16 +519,11 @@ class BaseRester(Generic[T]):
                         "Ignoring `fields` argument: All fields are always included when no query is provided."
                     )
 
-                decoder = (
-                    MontyDecoder().decode if self.monty_decode else json_util.loads
-                )
-
                 # Multithreaded function inputs
                 s3_params_list = {
                     key: {
                         "bucket": bucket,
                         "key": key,
-                        "decoder": decoder,
                     }
                     for key in keys
                 }
@@ -1010,11 +1000,7 @@ class BaseRester(Generic[T]):
             )
 
         if response.status_code == 200:
-            if self.monty_decode:
-                data = json.loads(response.text, cls=MontyDecoder)
-            else:
-                data = json.loads(response.text)
-
+            data = load_json(response.text, deser=self.monty_decode)
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
@@ -1026,7 +1012,7 @@ class BaseRester(Generic[T]):
 
         else:
             try:
-                data = json.loads(response.text)["detail"]
+                data = load_json(response.text)["detail"]
             except (JSONDecodeError, KeyError):
                 data = f"Response {response.text}"
             if isinstance(data, str):

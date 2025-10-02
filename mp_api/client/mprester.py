@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import itertools
-import json
 import os
 import warnings
 from functools import cache, lru_cache
-from json import loads
 from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import BSPathType
@@ -14,7 +12,6 @@ from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
 from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
-from monty.json import MontyDecoder
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
@@ -27,7 +24,7 @@ from requests import Session, get
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.utils import load_json, validate_ids
 from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
 from mp_api.client.routes.materials import (
     AbsorptionRester,
@@ -35,6 +32,7 @@ from mp_api.client.routes.materials import (
     BandStructureRester,
     BondsRester,
     ChemenvRester,
+    ConversionElectrodeRester,
     DielectricRester,
     DOIRester,
     DosRester,
@@ -99,6 +97,7 @@ class MPRester:
     robocrys: RobocrysRester
     synthesis: SynthesisRester
     insertion_electrodes: ElectrodeRester
+    conversion_electrodes: ConversionElectrodeRester
     electronic_structure: ElectronicStructureRester
     electronic_structure_bandstructure: BandStructureRester
     electronic_structure_dos: DosRester
@@ -1338,11 +1337,10 @@ class MPRester:
         Returns:
             (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
         """
-        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         kwargs = dict(
             bucket="materialsproject-parsed",
             key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
-            decoder=decoder,
+            decoder=lambda x: load_json(x, deser=self.monty_decode),
         )
         chgcar = self.materials.tasks._query_open_data(**kwargs)[0]
         if not chgcar:
@@ -1476,7 +1474,7 @@ class MPRester:
         response = get(url=url)
         if response.status_code != 200:
             return False
-        content = loads(response.text)
+        content = load_json(response.text)
         if content["pagination"]["total"] == 0:
             return False
         return True
