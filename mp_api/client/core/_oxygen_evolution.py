@@ -137,7 +137,7 @@ class OxygenEvolution:
         new_y[1::2] = y[isort][:-1]
 
         new_z[::2] = z[isort]
-        new_z[1::2] = z[isort][1:]
+        new_z[1::2] = z[isort][:-1]
 
         return new_x, new_y, new_z
 
@@ -161,7 +161,6 @@ class OxygenEvolution:
             for composition in set(compositions)
         }
 
-        target_comp = Composition({"O": 1})
         for formula, data in by_dict.items():
             for idx, entry in enumerate(data):
                 # Normalize all reactions to have integer coefficients
@@ -169,12 +168,6 @@ class OxygenEvolution:
                 by_dict[formula][idx]["reaction"]._coeffs = [
                     c * scale for c in entry["reaction"]._coeffs
                 ]
-
-                by_dict[formula][idx]["O2_produced"] = (
-                    entry["reaction"].get_coeff(target_comp)
-                    if target_comp in entry["reaction"].products
-                    else 0
-                )
 
         oxy_evo_data = {
             formula: {
