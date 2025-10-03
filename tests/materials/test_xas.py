@@ -2,10 +2,18 @@ import os
 from core_function import client_search_testing
 
 import pytest
-from emmet.core.types.enums import XasEdge, XasType
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.routes.materials.xas import XASRester
+from mp_api.client.core.utils import _compare_emmet_ver
+
+if _compare_emmet_ver("0.85.0", ">="):
+    from emmet.core.types.enums import XasEdge, XasType
+else:
+    from emmet.core.xas import (
+        Type as XasType,
+        Edge as XasEdge,
+    )
 
 
 @pytest.fixture

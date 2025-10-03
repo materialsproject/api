@@ -6,7 +6,6 @@ import importlib
 import numpy as np
 import pytest
 from emmet.core.tasks import TaskDoc
-from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
@@ -32,6 +31,12 @@ from emmet.core.phonon import PhononDOS, PhononBS
 from mp_api.client import MPRester
 from mp_api.client.core.client import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
+from mp_api.client.core.utils import _compare_emmet_ver
+
+if _compare_emmet_ver("0.85.0", ">="):
+    from emmet.core.types.enums import ThermoType
+else:
+    from emmet.core.thermo import ThermoType
 
 
 @pytest.fixture()
