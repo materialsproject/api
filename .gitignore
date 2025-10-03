@@ -118,3 +118,5 @@ ENV/
 
 # Doc folder
 _autosummary
+
+uv.lock

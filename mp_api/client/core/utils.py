@@ -62,8 +62,8 @@ def _legacy_id_validation(id_list: list[str]) -> list[str]:
         entry for entry in id_list if re.match(pattern, entry) is None
     }:
         raise ValueError(
-            f"{'Entry' if len(malformed_ids) == 1 else 'Entries'}\n"
-            f"    {', '.join(malformed_ids)}\n"
+            f"{'Entry' if len(malformed_ids) == 1 else 'Entries'}"
+            f" {', '.join(malformed_ids)}"
             f"{'is' if len(malformed_ids) == 1 else 'are'} not formatted correctly!"
         )
 
