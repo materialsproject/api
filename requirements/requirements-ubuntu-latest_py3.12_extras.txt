@@ -22,6 +22,8 @@ babel==2.17.0
     # via sphinx
 bibtexparser==1.4.3
     # via pymatgen
+blake3==1.0.7
+    # via emmet-core
 boltons==25.0.0
     # via mpcontribs-client
 boto3==1.40.43
@@ -60,16 +62,14 @@ dnspython==2.8.0
     #   pymongo
 docutils==0.21.2
     # via sphinx
-emmet-core[all]==0.84.10
+emmet-core[all]==0.85.0
     # via mp-api (pyproject.toml)
 execnet==2.1.1
     # via pytest-xdist
 executing==2.2.1
     # via stack-data
 filelock==3.19.1
-    # via
-    #   mdanalysis
-    #   virtualenv
+    # via virtualenv
 filetype==1.2.0
     # via mpcontribs-client
 flake8==7.3.0
@@ -84,8 +84,6 @@ fonttools==4.60.1
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
-griddataformats==1.0.2
-    # via mdanalysis
 identify==2.6.14
     # via pre-commit
 idna==3.10
@@ -118,7 +116,6 @@ jmespath==1.0.1
     #   botocore
 joblib==1.5.2
     # via
-    #   mdanalysis
     #   pymatgen
     #   pymatgen-analysis-diffusion
     #   scikit-learn
@@ -149,10 +146,8 @@ matminer==0.9.3
 matplotlib==3.10.6
     # via
     #   ase
-    #   mdanalysis
     #   pymatgen
     #   seaborn
-    #   solvation-analysis
 matplotlib-inline==0.1.7
     # via ipython
 mccabe==0.7.0
@@ -184,8 +179,6 @@ mpcontribs-client==5.10.4
     # via mp-api (pyproject.toml)
 mpmath==1.3.0
     # via sympy
-mrcfile==1.5.4
-    # via griddataformats
 msgpack==1.1.1
     # via
     #   bravado
@@ -211,21 +204,16 @@ numpy==1.26.4
     # via
     #   ase
     #   contourpy
-    #   griddataformats
     #   imageio
     #   matminer
     #   matplotlib
-    #   mdanalysis
     #   monty
     #   mpcontribs-client
-    #   mrcfile
     #   pandas
-    #   patsy
     #   pymatgen
     #   pymatgen-analysis-defects
     #   pymatgen-analysis-diffusion
     #   pymatgen-io-validation
-    #   rdkit
     #   robocrys
     #   scikit-image
     #   scikit-learn
@@ -233,10 +221,7 @@ numpy==1.26.4
     #   seaborn
     #   seekpath
     #   shapely
-    #   solvation-analysis
     #   spglib
-    #   statsmodels
-    #   tidynamics
     #   tifffile
 orjson==3.11.3
     # via pymatgen
@@ -249,7 +234,6 @@ packaging==25.0
     #   pytest
     #   scikit-image
     #   sphinx
-    #   statsmodels
 palettable==3.3.3
     # via pymatgen
 pandas==2.3.3
@@ -264,15 +248,12 @@ parso==0.8.5
     # via jedi
 pathspec==0.12.1
     # via mypy
-patsy==1.0.1
-    # via statsmodels
 pexpect==4.9.0
     # via ipython
 pillow==11.3.0
     # via
     #   imageio
     #   matplotlib
-    #   rdkit
     #   scikit-image
 pint==0.25
     # via mpcontribs-client
@@ -284,7 +265,6 @@ plotly==6.3.0
     # via
     #   mpcontribs-client
     #   pymatgen
-    #   solvation-analysis
 pluggy==1.6.0
     # via
     #   pytest
@@ -367,7 +347,6 @@ pytest==8.4.2
     #   pytest-cov
     #   pytest-mock
     #   pytest-xdist
-    #   solvation-analysis
 pytest-asyncio==1.2.0
     # via mp-api (pyproject.toml)
 pytest-cov==7.0.0
@@ -446,14 +425,10 @@ scikit-learn==1.7.2
 scipy==1.16.2
     # via
     #   ase
-    #   griddataformats
-    #   mdanalysis
     #   pymatgen
     #   robocrys
     #   scikit-image
     #   scikit-learn
-    #   solvation-analysis
-    #   statsmodels
 seaborn==0.13.2
     # via pymatgen-analysis-diffusion
 seekpath==2.1.0
@@ -477,8 +452,6 @@ smart-open==7.3.1
     # via mp-api (pyproject.toml)
 snowballstemmer==3.0.1
     # via sphinx
-solvation-analysis==0.4.1
-    # via emmet-core
 spglib==2.6.0
     # via
     #   pymatgen
@@ -500,8 +473,6 @@ sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
 stack-data==0.6.3
     # via ipython
-statsmodels==0.14.5
-    # via solvation-analysis
 swagger-spec-validator==3.0.4
     # via
     #   bravado-core
@@ -523,15 +494,12 @@ tifffile==2025.9.30
 tqdm==4.67.1
     # via
     #   matminer
-    #   mdanalysis
     #   mpcontribs-client
     #   pymatgen
 traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-transport-analysis==0.1.2
-    # via emmet-core
 typeguard==4.4.4
     # via inflect
 types-python-dateutil==2.9.0.20250822

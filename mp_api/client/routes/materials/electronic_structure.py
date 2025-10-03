@@ -234,7 +234,7 @@ class BandStructureRester(BaseRester):
         """
         result = self._query_open_data(
             bucket="materialsproject-parsed",
-            key=f"bandstructures/{task_id}.json.gz",
+            key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
         )[0]
 
         if result:
@@ -428,7 +428,7 @@ class DosRester(BaseRester):
         """
         result = self._query_open_data(
             bucket="materialsproject-parsed",
-            key=f"dos/{task_id}.json.gz",
+            key=f"dos/{validate_ids([task_id])[0]}.json.gz",
         )[0]
 
         if result:

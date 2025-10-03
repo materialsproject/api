@@ -141,6 +141,7 @@ tqdm==4.67.1
     # via pymatgen
 typing-extensions==4.15.0
     # via
+    #   blake3
     #   emmet-core
     #   mp-api (pyproject.toml)
     #   pydantic
