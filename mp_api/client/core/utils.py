@@ -1,16 +1,73 @@
 from __future__ import annotations
 
 import re
-from functools import cache
-from typing import Optional, get_args
+from typing import TYPE_CHECKING, Literal
 
-from maggma.utils import get_flat_models_from_model
-from monty.json import MSONable
-from pydantic import BaseModel
-from pydantic._internal._utils import lenient_issubclass
-from pydantic.fields import FieldInfo
+import orjson
+from emmet.core import __version__ as _EMMET_CORE_VER
+from monty.json import MontyDecoder
+from packaging.version import parse as parse_version
 
 from mp_api.client.core.settings import MAPIClientSettings
+
+if TYPE_CHECKING:
+    from monty.json import MSONable
+
+
+def _compare_emmet_ver(
+    ref_version: str, op: Literal["==", ">", ">=", "<", "<="]
+) -> bool:
+    """Compare the current emmet-core version to a reference for version guarding.
+
+    Example:
+        _compare_emmet_ver("0.84.0rc0","<") returns
+        emmet.core.__version__ < "0.84.0rc0"
+
+    Parameters
+    -----------
+    ref_version : str
+        A reference version of emmet-core
+    op : A mathematical operator
+    """
+    op_to_op = {"==": "eq", ">": "gt", ">=": "ge", "<": "lt", "<=": "le"}
+    return getattr(
+        parse_version(_EMMET_CORE_VER),
+        f"__{op_to_op.get(op,op)}__",
+    )(parse_version(ref_version))
+
+
+if _compare_emmet_ver("0.85.0", ">="):
+    from emmet.core.mpid_ext import validate_identifier
+else:
+    validate_identifier = None
+
+
+def load_json(json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"):
+    """Utility to load json in consistent manner."""
+    data = orjson.loads(
+        json_like if isinstance(json_like, bytes) else json_like.encode(encoding)
+    )
+    return MontyDecoder().process_decoded(data) if deser else data
+
+
+def _legacy_id_validation(id_list: list[str]) -> list[str]:
+    """Legacy utility to validate IDs, pre-AlphaID transition.
+
+    This function is temporarily maintained to allow for
+    backwards compatibility with older versions of emmet, and will
+    not be preserved.
+    """
+    pattern = "(mp|mvc|mol|mpcule)-.*"
+    if malformed_ids := {
+        entry for entry in id_list if re.match(pattern, entry) is None
+    }:
+        raise ValueError(
+            f"{'Entry' if len(malformed_ids) == 1 else 'Entries'}"
+            f" {', '.join(malformed_ids)}"
+            f"{'is' if len(malformed_ids) == 1 else 'are'} not formatted correctly!"
+        )
+
+    return id_list
 
 
 def validate_ids(id_list: list[str]):
@@ -31,74 +88,12 @@ def validate_ids(id_list: list[str]):
             " data for all IDs and filter locally."
         )
 
-    pattern = "(mp|mvc|mol|mpcule)-.*"
-
-    for entry in id_list:
-        if re.match(pattern, entry) is None:
-            raise ValueError(f"{entry} is not formatted correctly!")
-
-    return id_list
-
-
-@cache
-def api_sanitize(
-    pydantic_model: BaseModel,
-    fields_to_leave: list[str] | None = None,
-    allow_dict_msonable=False,
-):
-    """Function to clean up pydantic models for the API by:
-        1.) Making fields optional
-        2.) Allowing dictionaries in-place of the objects for MSONable quantities.
-
-    WARNING: This works in place, so it mutates the model and all sub-models
-
-    Args:
-        pydantic_model (BaseModel): Pydantic model to alter
-        fields_to_leave (list[str] | None): list of strings for model fields as "model__name__.field".
-            Defaults to None.
-        allow_dict_msonable (bool): Whether to allow dictionaries in place of MSONable quantities.
-            Defaults to False
-    """
-    models = [
-        model
-        for model in get_flat_models_from_model(pydantic_model)
-        if issubclass(model, BaseModel)
-    ]  # type: list[BaseModel]
-
-    fields_to_leave = fields_to_leave or []
-    fields_tuples = [f.split(".") for f in fields_to_leave]
-    assert all(len(f) == 2 for f in fields_tuples)
-
-    for model in models:
-        model_fields_to_leave = {f[1] for f in fields_tuples if model.__name__ == f[0]}
-        for name, field in model.model_fields.items():
-            field_type = field.annotation
-
-            if field_type is not None and allow_dict_msonable:
-                if lenient_issubclass(field_type, MSONable):
-                    field_type = allow_msonable_dict(field_type)
-                else:
-                    for sub_type in get_args(field_type):
-                        if lenient_issubclass(sub_type, MSONable):
-                            allow_msonable_dict(sub_type)
-
-            if name not in model_fields_to_leave:
-                new_field = FieldInfo.from_annotated_attribute(
-                    Optional[field_type], None
-                )
-
-                for attr in (
-                    "json_schema_extra",
-                    "exclude",
-                ):
-                    if (val := getattr(field, attr)) is not None:
-                        setattr(new_field, attr, val)
-
-                model.model_fields[name] = new_field
-
-        model.model_rebuild(force=True)
-
-    return pydantic_model
+    # TODO: after the transition to AlphaID in the document models,
+    # The following line should be changed to
+    # return [validate_identifier(idx,serialize=True) for idx in id_list]
+    if validate_identifier:
+        return [str(validate_identifier(idx)) for idx in id_list]
+    return _legacy_id_validation(id_list)
 
 
 def allow_msonable_dict(monty_cls: type[MSONable]):

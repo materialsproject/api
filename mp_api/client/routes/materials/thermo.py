@@ -3,13 +3,17 @@ from __future__ import annotations
 from collections import defaultdict
 
 import numpy as np
-from emmet.core.thermo import ThermoDoc, ThermoType
-from monty.json import MontyDecoder
+from emmet.core.thermo import ThermoDoc
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.utils import _compare_emmet_ver, load_json, validate_ids
+
+if _compare_emmet_ver("0.85.0", ">="):
+    from emmet.core.types.enums import ThermoType
+else:
+    from emmet.core.thermo import ThermoType
 
 
 class ThermoRester(BaseRester[ThermoDoc]):
@@ -170,7 +174,7 @@ class ThermoRester(BaseRester[ThermoDoc]):
         pd = self._query_open_data(
             bucket="materialsproject-build",
             key=obj_key,
-            decoder=MontyDecoder().decode,
+            decoder=lambda x: load_json(x, deser=True),
         )[0][0].get("phase_diagram")
 
         # Ensure el_ref keys are Element objects for PDPlotter.

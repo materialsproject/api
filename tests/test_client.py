@@ -25,6 +25,7 @@ search_only_resters = [
     "materials_substrates",
     "materials_synthesis",
     "materials_similarity",
+    "materials_tasks",
 ]
 
 special_resters = ["materials_charge_density", "doi"]
@@ -36,7 +37,6 @@ ignore_generic = [
     # "tasks",
     # "bonds",
     "materials_xas",
-    "materials_tasks",
     "materials_elasticity",
     "materials_fermi",
     "materials_alloys",
@@ -67,6 +67,10 @@ def test_generic_get_methods(rester):
         use_document_model=True,
     )
 
+    docs_check = lambda _docs: all(
+        rester.document_model.__module__ == _doc.__module__ for _doc in _docs
+    )
+
     if name not in ignore_generic:
         key = rester.primary_key
         if name not in key_only_resters:
@@ -74,12 +78,22 @@ def test_generic_get_methods(rester):
                 key = rester.available_fields[0]
 
             doc = rester._query_resource_data({"_limit": 1}, fields=[key])[0]
-            assert isinstance(doc, rester.document_model)
+            assert docs_check([doc])
 
             if name not in search_only_resters:
-                doc = rester.get_data_by_id(doc.model_dump()[key], fields=[key])
-                assert isinstance(doc, rester.document_model)
+                docs = rester.search(
+                    **{key + "s": [doc.model_dump()[key]]}, fields=[key]
+                )
+                assert docs_check(docs)
 
         elif name not in special_resters:
-            doc = rester.get_data_by_id(key_only_resters[name], fields=[key])
-            assert isinstance(doc, rester.document_model)
+            search_method = "search"
+            if name == "materials_robocrys":
+                search_method += "_docs"
+            docs = getattr(rester, search_method)(
+                **{key + "s": [key_only_resters[name]]}, fields=[key]
+            )
+            with pytest.warns(DeprecationWarning, match="get_data_by_id is deprecated"):
+                _ = rester.get_data_by_id(key_only_resters[name], fields=[key])
+
+            assert docs_check(docs)

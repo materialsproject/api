@@ -120,4 +120,4 @@ ENV/
 _autosummary
 
 uv.lock
-JANAF_O2_data.json
+JANAF_*_data.json

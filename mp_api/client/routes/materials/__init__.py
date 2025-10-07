@@ -6,7 +6,7 @@ from .chemenv import ChemenvRester
 from .dielectric import DielectricRester
 from .doi import DOIRester
 from .elasticity import ElasticityRester
-from .electrodes import ElectrodeRester
+from .electrodes import ConversionElectrodeRester, ElectrodeRester
 from .electronic_structure import (
     BandStructureRester,
     DosRester,

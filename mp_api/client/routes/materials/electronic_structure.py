@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import warnings
 from collections import defaultdict
 
@@ -9,7 +8,6 @@ from emmet.core.electronic_structure import (
     DOSProjectionType,
     ElectronicStructureDoc,
 )
-from monty.json import MontyDecoder
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType, Spin
@@ -234,11 +232,9 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
             bucket="materialsproject-parsed",
-            key=f"bandstructures/{task_id}.json.gz",
-            decoder=decoder,
+            key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
         )[0]
 
         if result:
@@ -430,11 +426,9 @@ class DosRester(BaseRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-        decoder = MontyDecoder().decode if self.monty_decode else json.loads
         result = self._query_open_data(
             bucket="materialsproject-parsed",
-            key=f"dos/{task_id}.json.gz",
-            decoder=decoder,
+            key=f"dos/{validate_ids([task_id])[0]}.json.gz",
         )[0]
 
         if result:
