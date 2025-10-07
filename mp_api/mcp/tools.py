@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import json
 from typing import Literal
 
 import plotly.graph_objects as plotly_go
@@ -643,7 +644,7 @@ class MPMcpTools(_NeedsMPClient):
             efermi=efermi,
             elastic_anisotropy=elastic_anisotropy,
             elements=elements,
-            energy_above_hull=energy_above_hull,
+            energy_above_hull=tuple(float(x) for x in json.loads(energy_above_hull)),
             equilibrium_reaction_energy=equilibrium_reaction_energy,
             exclude_elements=exclude_elements,
             formation_energy=formation_energy,
