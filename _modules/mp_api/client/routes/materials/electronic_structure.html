@@ -286,7 +286,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;bandstructures/</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;bandstructures/</span><span class="si">{</span><span class="n">validate_ids</span><span class="p">([</span><span class="n">task_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
@@ -495,7 +495,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;dos/</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;dos/</span><span class="si">{</span><span class="n">validate_ids</span><span class="p">([</span><span class="n">task_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">result</span><span class="p">:</span>

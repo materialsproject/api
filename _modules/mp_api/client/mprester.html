@@ -43,7 +43,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPID</span><span class="p">,</span> <span class="n">AlphaID</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmmetSettings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskDoc</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.thermo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.vasp.calc_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalcType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">packaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.phase_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseDiagram</span>
@@ -57,7 +56,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAPIClientSettings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_compare_emmet_ver</span><span class="p">,</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneralStoreRester</span><span class="p">,</span> <span class="n">MessagesRester</span><span class="p">,</span> <span class="n">UserSettingsRester</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AbsorptionRester</span><span class="p">,</span>
@@ -91,6 +90,11 @@
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials.materials</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialsRester</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.molecules</span><span class="w"> </span><span class="kn">import</span> <span class="n">MoleculeRester</span>
+
+<span class="k">if</span> <span class="n">_compare_emmet_ver</span><span class="p">(</span><span class="s2">&quot;0.85.0&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.types.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoType</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.thermo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoType</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
@@ -1442,7 +1446,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;chgcars/</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;chgcars/</span><span class="si">{</span><span class="n">validate_ids</span><span class="p">([</span><span class="n">task_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
             <span class="n">decoder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">load_json</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">deser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">chgcar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>

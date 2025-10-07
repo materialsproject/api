@@ -33,11 +33,26 @@
   <h1>Source code for mp_api.client.routes.materials.xas</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.xas</span><span class="w"> </span><span class="kn">import</span> <span class="n">Edge</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">XASDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.xas</span><span class="w"> </span><span class="kn">import</span> <span class="n">XASDoc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_compare_emmet_ver</span>
+
+    <span class="k">if</span> <span class="n">_compare_emmet_ver</span><span class="p">(</span><span class="s2">&quot;0.85.0&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.types.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">XasEdge</span><span class="p">,</span> <span class="n">XasType</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.xas</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">Edge</span> <span class="k">as</span> <span class="n">XasEdge</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.xas</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">Type</span> <span class="k">as</span> <span class="n">XasType</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="XASRester">
@@ -51,13 +66,13 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester.search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">edge</span><span class="p">:</span> <span class="n">Edge</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">edge</span><span class="p">:</span> <span class="n">XasEdge</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">absorbing_element</span><span class="p">:</span> <span class="n">Element</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">material_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">spectrum_type</span><span class="p">:</span> <span class="n">Type</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">spectrum_type</span><span class="p">:</span> <span class="n">XasType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">spectrum_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
@@ -67,7 +82,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core XAS docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            edge (Edge): The absorption edge (e.g. K, L2, L3, L2,3).</span>
+<span class="sd">            edge (XasEdge): The absorption edge (e.g. K, L2, L3, L2,3).</span>
 <span class="sd">            absorbing_element (Element): The absorbing element.</span>
 <span class="sd">            formula (str): A formula including anonymized formula</span>
 <span class="sd">                or wild cards (e.g., Fe2O3, ABO3, Si*).</span>
@@ -76,7 +91,7 @@
 <span class="sd">            elements (List[str]): A list of elements.</span>
 <span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
-<span class="sd">            spectrum_type (Type): Spectrum type (e.g. EXAFS, XAFS, or XANES).</span>
+<span class="sd">            spectrum_type (XasType): Spectrum type (e.g. EXAFS, XAFS, or XANES).</span>
 <span class="sd">            spectrum_ids (str, List[str]): A single Spectrum ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149-XANES-Li-K, [mp-149-XANES-Li-K, mp-13-XANES-Li-K]).</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>

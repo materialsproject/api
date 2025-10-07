@@ -36,12 +36,17 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.thermo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoDoc</span><span class="p">,</span> <span class="n">ThermoType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.thermo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoDoc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.phase_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseDiagram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_compare_emmet_ver</span><span class="p">,</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
+
+<span class="k">if</span> <span class="n">_compare_emmet_ver</span><span class="p">(</span><span class="s2">&quot;0.85.0&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.types.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoType</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.thermo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoType</span>
 
 
 <div class="viewcode-block" id="ThermoRester">
