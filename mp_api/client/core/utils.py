@@ -81,8 +81,8 @@ def validate_api_key(api_key: str | None = None) -> str:
 
         api_key = SETTINGS.get("PMG_MAPI_KEY")
 
-    if not api_key or (wrong_len := len(api_key) != 32):
-        addendum = " Valid API keys are 32 characters." if wrong_len else ""
+    if not api_key or len(api_key) != 32:
+        addendum = " Valid API keys are 32 characters." if api_key else ""
         raise ValueError(
             "Please obtain a valid API key from https://materialsproject.org/api "
             f"and export it as an environment variable `MP_API_KEY`.{addendum}"
