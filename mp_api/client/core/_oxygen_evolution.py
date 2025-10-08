@@ -1,4 +1,5 @@
 """Compute the oxygen evolution of a phase."""
+
 from __future__ import annotations
 
 import json
@@ -16,6 +17,8 @@ from scipy.constants import Avogadro, Boltzmann, atm, elementary_charge
 from scipy.interpolate import make_splrep, splev
 
 DEFAULT_CACHE_FILE = Path(__file__).absolute().parent / "JANAF_O2_data.json"
+# O2 partial pressure at ambient conditions, in MPa
+O2_PARTIAL_PRESSURE = 0.21 * atm * 1e-6
 
 
 class OxygenEvolution:
@@ -30,7 +33,7 @@ class OxygenEvolution:
 
     def __init__(
         self,
-        cache_file: Path | None = DEFAULT_CACHE_FILE,
+        cache_file: Path = DEFAULT_CACHE_FILE,
     ):
         self._spline_pars = None
         self.cache_file = cache_file
@@ -38,9 +41,7 @@ class OxygenEvolution:
     def get_chempot_temp_data(
         self,
         nist_url: str = "https://janaf.nist.gov/tables/O-029.txt",
-        ref_p: float = 0.21
-        * atm
-        * 1e-6,  # O2 partial pressure at ambient conditions, in MPa
+        ref_p: float = O2_PARTIAL_PRESSURE,
         meas_p: float = 0.1,  # The reference pressure reported in JANAF, 0.1 MPa
     ) -> tuple[np.ndarray, np.ndarray]:
         """Get the approximate relationship between the O2 chemical potential and temperature.
@@ -67,7 +68,7 @@ class OxygenEvolution:
         """
         if self.cache_file and self.cache_file.exists():
             data = json.loads(self.cache_file.read_text())
-            return tuple(np.array(data[k]) for k in ("temperature", "mu-mu_0K"))
+            return tuple(np.array(data[k]) for k in ("temperature", "mu-mu_0K"))  # type: ignore
 
         response = requests.get(nist_url)
 
@@ -176,7 +177,7 @@ class OxygenEvolution:
                     c * scale for c in entry["reaction"]._coeffs
                 ]
 
-        oxy_evo_data = {
+        oxy_evo_data: dict = {
             formula: {
                 k: [data[idx][k] for idx in range(len(data))]
                 for k in (
@@ -196,9 +197,8 @@ class OxygenEvolution:
                 oxy_evo_data[formula]["evolution"],
                 oxy_evo_data[formula]["reaction"],
             ) = self.stairstep(*(data[k] for k in ("mu", "evolution", "reaction")))
-            oxy_evo_data[formula][
-                "evolution"
-            ] *= -0.5  # This is the normalization convention we adopt for MP
+            # This is the normalization convention we adopt for MP
+            oxy_evo_data[formula]["evolution"] *= -0.5
             oxy_evo_data[formula]["temperature"] = self.mu_to_temp_spline(
                 data["mu"] - mu_0K
             )
