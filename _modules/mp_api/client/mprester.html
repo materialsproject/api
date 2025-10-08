@@ -55,6 +55,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span><span class="p">,</span> <span class="n">get</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._oxygen_evolution</span><span class="w"> </span><span class="kn">import</span> <span class="n">OxygenEvolution</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAPIClientSettings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_compare_emmet_ver</span><span class="p">,</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneralStoreRester</span><span class="p">,</span> <span class="n">MessagesRester</span><span class="p">,</span> <span class="n">UserSettingsRester</span>
@@ -1860,44 +1861,10 @@
             <span class="n">inserted_chemsys</span><span class="p">,</span>
             <span class="n">thermo_type</span><span class="o">=</span><span class="n">ThermoType</span><span class="p">(</span><span class="n">thermo_type</span><span class="p">),</span>
         <span class="p">)</span>
-
-        <span class="n">by_dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">composition</span><span class="o">.</span><span class="n">formula</span><span class="p">:</span> <span class="p">[</span>
-                <span class="p">{</span>
-                    <span class="n">k</span><span class="p">:</span> <span class="n">profile</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
-                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">{</span>
-                        <span class="s2">&quot;mu&quot;</span><span class="p">:</span> <span class="s2">&quot;chempot&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;reaction&quot;</span><span class="p">:</span> <span class="s2">&quot;reaction&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;evolution&quot;</span><span class="p">:</span> <span class="s2">&quot;evolution&quot;</span><span class="p">,</span>
-                    <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                <span class="p">}</span>
-                <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">phase_diagram</span><span class="o">.</span><span class="n">get_element_profile</span><span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="n">composition</span><span class="p">)</span>
-            <span class="p">]</span>
-            <span class="k">for</span> <span class="n">composition</span> <span class="ow">in</span> <span class="n">unique_composition</span>
-        <span class="p">}</span>
-
-        <span class="n">target_comp</span> <span class="o">=</span> <span class="n">Composition</span><span class="p">({</span><span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
-        <span class="k">for</span> <span class="n">formula</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">by_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-                <span class="c1"># Normalize all reactions to have integer coefficients</span>
-                <span class="n">scale</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;reaction&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">normalized_repr_and_factor</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
-                <span class="n">by_dict</span><span class="p">[</span><span class="n">formula</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;reaction&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="p">[</span>
-                    <span class="n">c</span> <span class="o">*</span> <span class="n">scale</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;reaction&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">_coeffs</span>
-                <span class="p">]</span>
-
-                <span class="n">by_dict</span><span class="p">[</span><span class="n">formula</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;O2_produced&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;reaction&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get_coeff</span><span class="p">(</span><span class="n">target_comp</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">target_comp</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;reaction&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">products</span>
-                    <span class="k">else</span> <span class="mi">0</span>
-                <span class="p">)</span>
-
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="n">formula</span><span class="p">:</span> <span class="p">{</span>
-                <span class="n">k</span><span class="p">:</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))]</span>
-                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;mu&quot;</span><span class="p">,</span> <span class="s2">&quot;reaction&quot;</span><span class="p">,</span> <span class="s2">&quot;evolution&quot;</span><span class="p">,</span> <span class="s2">&quot;O2_produced&quot;</span><span class="p">)</span>
-            <span class="p">}</span>
-            <span class="k">for</span> <span class="n">formula</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">by_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">}</span></div>
+        <span class="k">return</span> <span class="n">OxygenEvolution</span><span class="p">()</span><span class="o">.</span><span class="n">get_oxygen_evolution_from_phase_diagram</span><span class="p">(</span>
+            <span class="n">phase_diagram</span><span class="p">,</span>
+            <span class="n">unique_composition</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 </pre></div>
 
