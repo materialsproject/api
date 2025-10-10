@@ -32,7 +32,8 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-all = ["emmet-core[all]>=0.84.6rc0", "custodian", "mpcontribs-client",]
+mcp = ["fastmcp"]
+all = ["emmet-core[all]>=0.84.6rc0", "custodian", "mpcontribs-client", "mp_api[mcp]"]
 test = [
   "pre-commit",
   "pytest",
