@@ -40,17 +40,18 @@ class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
             MPRestError.
         """
         body = dict()
+        valid_fields = [
+            "institution",
+            "sector",
+            "job_role",
+            "is_email_subscribed",
+            "agreed_terms",
+            "message_last_read",
+        ]
         for key in settings:
-            if key not in [
-                "institution",
-                "sector",
-                "job_role",
-                "is_email_subscribed",
-                "agreed_terms",
-            ]:
+            if key not in valid_fields:
                 raise ValueError(
-                    f"Invalid setting key {key}. Must be one of"
-                    "institution, sector, job_role, is_email_subscribed, agreed_terms"
+                    f"Invalid setting key {key}. Must be one of {valid_fields}"
                 )
             body[f"settings.{key}"] = settings[key]
 
