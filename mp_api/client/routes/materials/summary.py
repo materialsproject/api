@@ -56,8 +56,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
         poisson_ratio: tuple[float, float] | None = None,
         possible_species: list[str] | None = None,
         shape_factor: tuple[float, float] | None = None,
-        spacegroup_number: int | None = None,
-        spacegroup_symbol: str | None = None,
+        spacegroup_number: int | list[int] | None = None,
+        spacegroup_symbol: str | list[str] | None = None,
         surface_energy_anisotropy: tuple[float, float] | None = None,
         theoretical: bool | None = None,
         total_energy: tuple[float, float] | None = None,
@@ -319,13 +319,25 @@ class SummaryRester(BaseRester[SummaryDoc]):
         if possible_species is not None:
             query_params.update({"possible_species": ",".join(possible_species)})
 
-        query_params.update(
-            {
-                "crystal_system": crystal_system,
-                "spacegroup_number": spacegroup_number,
-                "spacegroup_symbol": spacegroup_symbol,
-            }
-        )
+        symm_cardinality = {
+            "crystal_system": 7,
+            "spacegroup_number": 230,
+            "spacegroup_symbol": 230,
+        }
+        for k, cardinality in symm_cardinality.items():
+            if hasattr(symm_vals := locals().get(k), "__len__") and not isinstance(
+                symm_vals, str
+            ):
+                if len(symm_vals) < cardinality // 2:
+                    query_params.update({k: ",".join(str(v) for v in symm_vals)})
+                else:
+                    raise ValueError(
+                        f"Querying `{k}` by a list of values is only "
+                        f"supported for up to {cardinality//2 - 1} values. "
+                        f"For your query, retrieve all data first and then filter on `{k}`."
+                    )
+            else:
+                query_params.update({k: symm_vals})
 
         if is_stable is not None:
             query_params.update({"is_stable": is_stable})
