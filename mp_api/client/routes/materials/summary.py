@@ -81,7 +81,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            crystal_system (CrystalSystem): Crystal system of material.
+            crystal_system (CrystalSystem or list[CrystalSystem]): Crystal system(s) of the materials.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
             e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
@@ -128,8 +128,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for Poisson's ratio.
             possible_species (List(str)): List of element symbols appended with oxidation states. (e.g. Cr2+,O2-)
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
-            spacegroup_number (int): Space group number of material.
-            spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
+            spacegroup_number (int or list[int]): Space group number(s) of materials.
+            spacegroup_symbol (str or list[str]): Space group symbol(s) of the materials in international short symbol notation.
             surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values
                 to consider.
             theoretical: (bool): Whether the material is theoretical.

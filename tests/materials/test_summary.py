@@ -96,6 +96,13 @@ def test_list_like_input():
         doc.material_id for doc in docs_by_number
     }
 
+    # also chosen for very low document count
+    crys_sys = ["Hexagonal", "Cubic"]
+    assert {
+        doc.symmetry.crystal_system
+        for doc in search_method(elements=["Ar"], crystal_system=crys_sys)
+    } == set(crys_sys)
+
     # should fail - we don't support querying by so many list values
     with pytest.raises(ValueError, match="retrieve all data first and then filter"):
         _ = search_method(spacegroup_number=list(range(1, 231)))
