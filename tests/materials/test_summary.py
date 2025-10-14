@@ -72,3 +72,43 @@ def test_client():
         custom_field_tests=custom_field_tests,
         sub_doc_fields=[],
     )
+
+
+@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+def test_list_like_input():
+    search_method = SummaryRester().search
+
+    # These are specifically chosen for the low representation in MP
+    # Specifically, these are the four least-represented space groups
+    # with at least one member
+    sparse_sgn = (93, 101, 172, 179, 211)
+    docs_by_number = search_method(
+        spacegroup_number=sparse_sgn, fields=["material_id", "symmetry"]
+    )
+    assert {doc.symmetry.number for doc in docs_by_number} == set(sparse_sgn)
+
+    sparse_symbols = {doc.symmetry.symbol for doc in docs_by_number}
+    docs_by_symbol = search_method(
+        spacegroup_symbol=sparse_symbols, fields=["material_id", "symmetry"]
+    )
+    assert {doc.symmetry.symbol for doc in docs_by_symbol} == sparse_symbols
+    assert {doc.material_id for doc in docs_by_symbol} == {
+        doc.material_id for doc in docs_by_number
+    }
+
+    # also chosen for very low document count
+    crys_sys = ["Hexagonal", "Cubic"]
+    assert {
+        doc.symmetry.crystal_system
+        for doc in search_method(elements=["Ar"], crystal_system=crys_sys)
+    } == set(crys_sys)
+
+    # should fail - we don't support querying by so many list values
+    with pytest.raises(ValueError, match="retrieve all data first and then filter"):
+        _ = search_method(spacegroup_number=list(range(1, 231)))
+
+    with pytest.raises(ValueError, match="retrieve all data first and then filter"):
+        _ = search_method(spacegroup_number=["null" for _ in range(230)])
+
+    with pytest.raises(ValueError, match="retrieve all data first and then filter"):
+        _ = search_method(crystal_system=list(CrystalSystem))

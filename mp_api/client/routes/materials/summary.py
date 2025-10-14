@@ -56,8 +56,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
         poisson_ratio: tuple[float, float] | None = None,
         possible_species: list[str] | None = None,
         shape_factor: tuple[float, float] | None = None,
-        spacegroup_number: int | None = None,
-        spacegroup_symbol: str | None = None,
+        spacegroup_number: int | list[int] | None = None,
+        spacegroup_symbol: str | list[str] | None = None,
         surface_energy_anisotropy: tuple[float, float] | None = None,
         theoretical: bool | None = None,
         total_energy: tuple[float, float] | None = None,
@@ -81,7 +81,7 @@ class SummaryRester(BaseRester[SummaryDoc]):
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            crystal_system (CrystalSystem): Crystal system of material.
+            crystal_system (CrystalSystem or list[CrystalSystem]): Crystal system(s) of the materials.
             density (Tuple[float,float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
             e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
@@ -128,8 +128,8 @@ class SummaryRester(BaseRester[SummaryDoc]):
             poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for Poisson's ratio.
             possible_species (List(str)): List of element symbols appended with oxidation states. (e.g. Cr2+,O2-)
             shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
-            spacegroup_number (int): Space group number of material.
-            spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
+            spacegroup_number (int or list[int]): Space group number(s) of materials.
+            spacegroup_symbol (str or list[str]): Space group symbol(s) of the materials in international short symbol notation.
             surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values
                 to consider.
             theoretical: (bool): Whether the material is theoretical.
@@ -319,13 +319,25 @@ class SummaryRester(BaseRester[SummaryDoc]):
         if possible_species is not None:
             query_params.update({"possible_species": ",".join(possible_species)})
 
-        query_params.update(
-            {
-                "crystal_system": crystal_system,
-                "spacegroup_number": spacegroup_number,
-                "spacegroup_symbol": spacegroup_symbol,
-            }
-        )
+        symm_cardinality = {
+            "crystal_system": 7,
+            "spacegroup_number": 230,
+            "spacegroup_symbol": 230,
+        }
+        for k, cardinality in symm_cardinality.items():
+            if hasattr(symm_vals := locals().get(k), "__len__") and not isinstance(
+                symm_vals, str
+            ):
+                if len(symm_vals) < cardinality // 2:
+                    query_params.update({k: ",".join(str(v) for v in symm_vals)})
+                else:
+                    raise ValueError(
+                        f"Querying `{k}` by a list of values is only "
+                        f"supported for up to {cardinality//2 - 1} values. "
+                        f"For your query, retrieve all data first and then filter on `{k}`."
+                    )
+            else:
+                query_params.update({k: symm_vals})
 
         if is_stable is not None:
             query_params.update({"is_stable": is_stable})
