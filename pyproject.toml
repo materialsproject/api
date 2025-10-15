@@ -28,6 +28,7 @@ dependencies = [
   "emmet-core>=0.84.6rc0",
   "smart_open",
   "boto3",
+  "orjson >= 3.10,<4",
 ]
 dynamic = ["version"]
 
