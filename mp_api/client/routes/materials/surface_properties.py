@@ -8,7 +8,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class SurfacePropertiesRester(BaseRester[SurfacePropDoc]):
+class SurfacePropertiesRester(BaseRester):
     suffix = "materials/surface_properties"
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "material_id"

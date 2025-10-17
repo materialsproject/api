@@ -9,7 +9,7 @@ from emmet.core.synthesis import (
 from mp_api.client.core import BaseRester, MPRestError
 
 
-class SynthesisRester(BaseRester[SynthesisSearchResultModel]):
+class SynthesisRester(BaseRester):
     suffix = "materials/synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
 

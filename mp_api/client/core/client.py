@@ -21,9 +21,7 @@ from math import ceil
 from typing import (
     TYPE_CHECKING,
     ForwardRef,
-    Generic,
     Optional,
-    TypeVar,
     get_args,
 )
 from urllib.parse import quote, urljoin
@@ -65,10 +63,7 @@ except PackageNotFoundError:  # pragma: no cover
 
 SETTINGS = MAPIClientSettings()  # type: ignore
 
-T = TypeVar("T")
-
-
-class BaseRester(Generic[T]):
+class BaseRester:
     """Base client class with core stubs."""
 
     suffix: str = ""
@@ -1151,7 +1146,7 @@ class BaseRester(Generic[T]):
         suburl: str | None = None,
         use_document_model: bool | None = None,
         timeout: int | None = None,
-    ) -> list[T] | list[dict]:
+    ) -> list[BaseModel] | list[dict]:
         """Query the endpoint for a list of documents without associated meta information. Only
         returns a single page of results.
 
@@ -1181,7 +1176,7 @@ class BaseRester(Generic[T]):
         all_fields: bool = True,
         fields: list[str] | None = None,
         **kwargs,
-    ) -> list[T] | list[dict]:
+    ) -> list[BaseModel] | list[dict]:
         """A generic search method to retrieve documents matching specific parameters.
 
         Arguments:
@@ -1216,7 +1211,7 @@ class BaseRester(Generic[T]):
         self,
         document_id: str,
         fields: list[str] | None = None,
-    ) -> T | dict:
+    ) -> BaseModel | dict:
         warnings.warn(
             "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
             DeprecationWarning,
@@ -1251,7 +1246,7 @@ class BaseRester(Generic[T]):
         fields=None,
         chunk_size=1000,
         num_chunks=None,
-    ) -> list[T] | list[dict]:
+    ) -> list[BaseModel] | list[dict]:
         """Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
         implementation for the search_* methods on various endpoints. See

@@ -6,7 +6,7 @@ from emmet.core.mpid import MPculeID
 from mp_api.client.core import BaseRester
 
 
-class MoleculesRedoxRester(BaseRester[RedoxDoc]):
+class MoleculesRedoxRester(BaseRester):
     suffix = "molecules/redox"
     document_model = RedoxDoc
     primary_key = "property_id"

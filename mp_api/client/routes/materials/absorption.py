@@ -8,7 +8,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class AbsorptionRester(BaseRester[AbsorptionDoc]):
+class AbsorptionRester(BaseRester):
     suffix = "materials/absorption"
     document_model = AbsorptionDoc  # type: ignore
     primary_key = "material_id"

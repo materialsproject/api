@@ -6,7 +6,7 @@ from emmet.core.mpid import MPculeID
 from mp_api.client.core import BaseRester
 
 
-class MoleculesPartialChargesRester(BaseRester[PartialChargesDoc]):
+class MoleculesPartialChargesRester(BaseRester):
     suffix = "molecules/partial_charges"
     document_model = PartialChargesDoc
     primary_key = "property_id"

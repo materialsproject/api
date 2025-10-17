@@ -16,7 +16,7 @@ else:
     from emmet.core.thermo import ThermoType
 
 
-class ThermoRester(BaseRester[ThermoDoc]):
+class ThermoRester(BaseRester):
     suffix = "materials/thermo"
     document_model = ThermoDoc  # type: ignore
     supports_versions = True

@@ -6,7 +6,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class ProvenanceRester(BaseRester[ProvenanceDoc]):
+class ProvenanceRester(BaseRester):
     suffix = "materials/provenance"
     document_model = ProvenanceDoc  # type: ignore
     primary_key = "material_id"

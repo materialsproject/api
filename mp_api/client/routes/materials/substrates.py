@@ -7,7 +7,7 @@ from emmet.core.substrates import SubstratesDoc
 from mp_api.client.core import BaseRester
 
 
-class SubstratesRester(BaseRester[SubstratesDoc]):
+class SubstratesRester(BaseRester):
     suffix = "materials/substrates"
     document_model = SubstratesDoc  # type: ignore
     primary_key = "film_id"

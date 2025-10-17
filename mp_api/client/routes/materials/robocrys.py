@@ -6,7 +6,7 @@ from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 
-class RobocrysRester(BaseRester[RobocrystallogapherDoc]):
+class RobocrysRester(BaseRester):
     suffix = "materials/robocrys"
     document_model = RobocrystallogapherDoc  # type: ignore
     primary_key = "material_id"

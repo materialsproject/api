@@ -11,7 +11,7 @@ from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
 from mp_api.client.core.utils import validate_ids
 
 
-class SummaryRester(BaseRester[SummaryDoc]):
+class SummaryRester(BaseRester):
     suffix = "materials/summary"
     document_model = SummaryDoc  # type: ignore
     primary_key = "material_id"

@@ -9,7 +9,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class MagnetismRester(BaseRester[MagnetismDoc]):
+class MagnetismRester(BaseRester):
     suffix = "materials/magnetism"
     document_model = MagnetismDoc  # type: ignore
     primary_key = "material_id"

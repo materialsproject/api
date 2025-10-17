@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from emmet.core.tasks import TaskDoc
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
+if TYPE_CHECKING:
+    from pydantic import BaseModel
 
-class TaskRester(BaseRester[TaskDoc]):
-    suffix = "materials/tasks"
-    document_model = TaskDoc  # type: ignore
-    primary_key = "task_id"
+class TaskRester(BaseRester):
+    suffix : str = "materials/tasks"
+    document_model : type[BaseModel] = TaskDoc  # type: ignore
+    primary_key : str = "task_id"
 
     def get_trajectory(self, task_id):
         """Returns a Trajectory object containing the geometry of the
@@ -32,6 +35,21 @@ class TaskRester(BaseRester[TaskDoc]):
             raise MPRestError(f"No trajectory data for {task_id} found")
 
         return traj_data
+    
+    def _set_entry(self, task) -> dict | TaskDoc:
+        """Get the ComputedEntry corresponding to a task."""
+        cr = task.calcs_reversed if hasattr(task,"calcs_reversed") else task.get("calcs_reversed")
+        task_id = task.task_id if hasattr(task,"task_id") else task.get("task_id")
+        if not cr or not task_id:
+            return None
+        entry = TaskDoc.get_entry(cr,task_id)
+        if not self.monty_decode:
+            entry = entry.as_dict()
+        if isinstance(task,dict):
+            task["entry"] = entry
+        else:
+            task.entry = entry
+        return task
 
     def search(
         self,
@@ -89,10 +107,14 @@ class TaskRester(BaseRester[TaskDoc]):
                 }
             )
 
-        return super()._search(
+        tasks = super()._search(
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,
             fields=fields,
             **query_params,
         )
+
+        # if not fields or "entry" in fields:
+        #     tasks = [self._set_entry(task) for task in tasks]
+        return tasks

@@ -6,7 +6,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class SimilarityRester(BaseRester[SimilarityDoc]):
+class SimilarityRester(BaseRester):
     suffix = "materials/similarity"
     document_model = SimilarityDoc  # type: ignore
     primary_key = "material_id"

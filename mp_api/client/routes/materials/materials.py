@@ -40,7 +40,7 @@ from mp_api.client.routes.materials import (
 _EMMET_SETTINGS = EmmetSettings()  # type: ignore
 
 
-class MaterialsRester(BaseRester[MaterialsDoc]):
+class MaterialsRester(BaseRester):
     suffix = "materials/core"
     document_model = MaterialsDoc  # type: ignore
     supports_versions = True

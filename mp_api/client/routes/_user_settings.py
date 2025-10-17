@@ -5,7 +5,7 @@ from emmet.core._user_settings import UserSettingsDoc
 from mp_api.client.core import BaseRester
 
 
-class UserSettingsRester(BaseRester[UserSettingsDoc]):  # pragma: no cover
+class UserSettingsRester(BaseRester):  # pragma: no cover
     suffix = "_user_settings"
     document_model = UserSettingsDoc  # type: ignore
     primary_key = "consumer_id"
