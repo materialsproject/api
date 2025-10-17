@@ -1203,10 +1203,11 @@ class MPRester:
 
         elements_set = set(elements)  # remove duplicate elements
 
-        all_chemsyses = []
-        for i in range(len(elements_set)):
-            for els in itertools.combinations(elements_set, i + 1):
-                all_chemsyses.append("-".join(sorted(els)))
+        all_chemsyses = [
+            "-".join(sorted(els))
+            for i in range(len(elements_set))
+            for els in itertools.combinations(elements_set, i + 1)
+        ]
 
         entries = []
 
