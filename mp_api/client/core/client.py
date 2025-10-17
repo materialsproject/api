@@ -136,15 +136,8 @@ class BaseRester:
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        if session:
-            self._session = session
-        else:
-            self._session = None  # type: ignore
-
-        if s3_client:
-            self._s3_client = s3_client
-        else:
-            self._s3_client = None
+        self._session = session
+        self._s3_client = s3_client
 
     @property
     def session(self) -> requests.Session:
@@ -592,7 +585,7 @@ class BaseRester:
             url: url used to make request
             use_document_model: if None, will defer to the self.use_document_model attribute
             parallel_param: parameter to parallelize requests with
-            num_chu: fieldsnky: Maximum number of chunks of data to yield. None will yield all possible.
+            num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout: Time in seconds to wait until a request timeout error is thrown
 
