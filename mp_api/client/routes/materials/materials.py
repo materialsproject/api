@@ -131,6 +131,14 @@ class MaterialsRester(BaseRester):
                 response[0].model_dump() if self.use_document_model else response[0]  # type: ignore
             )
 
+            # Ensure that return type is a Structure regardless of `monty_decode` or `model_dump` output
+            if isinstance(response[field],dict):
+                response[field] = Structure.from_dict(response[field])
+            elif isinstance(response[field],list) and any(isinstance(struct,dict) for struct in response[field]):
+                response[field] = [
+                    Structure.from_dict(struct) for struct in response[field]
+                ]
+
         return response[field] if response else response  # type: ignore
 
     def search(
