@@ -1066,7 +1066,7 @@ class BaseRester:
         include_fields: dict[str, tuple[type, FieldInfo]] = {}
         for name in set_fields:
             field_copy = model_fields[name]._copy()
-            if not getattr(field_copy,"default_factory"):
+            if not field_copy.default_factory:
                 # Fields with a default_factory cannot also have a default in pydantic>=2.12.3
                 field_copy.default = None
             include_fields[name] = (

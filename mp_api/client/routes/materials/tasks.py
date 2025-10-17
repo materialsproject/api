@@ -36,7 +36,7 @@ class TaskRester(BaseRester):
             raise MPRestError(f"No trajectory data for {task_id} found")
 
         return traj_data
-    
+
     def search(
         self,
         task_ids: str | list[str] | None = None,
@@ -48,7 +48,7 @@ class TaskRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ) -> list[TaskDoc] | list[dict]:
+    ) -> list[CoreTaskDoc] | list[dict]:
         """Query core task docs using a variety of search criteria.
 
         Arguments:
@@ -62,11 +62,11 @@ class TaskRester(BaseRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in TaskDoc to return data for.
+            fields (List[str]): List of fields in CoreTaskDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
-            ([TaskDoc], [dict]) List of task documents or dictionaries.
+            ([CoreTaskDoc], [dict]) List of task documents or dictionaries.
         """
         query_params = {}  # type: dict
 
