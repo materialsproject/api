@@ -6,7 +6,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class MoleculesTaskRester(BaseRester[TaskDocument]):
+class MoleculesTaskRester(BaseRester):
     suffix = "molecules/tasks"
     document_model = TaskDocument
     primary_key = "task_id"

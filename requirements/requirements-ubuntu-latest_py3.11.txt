@@ -83,7 +83,7 @@ plotly==6.3.1
     # via pymatgen
 pybtex==0.25.1
     # via emmet-core
-pydantic==2.12.2
+pydantic==2.12.3
     # via
     #   emmet-core
     #   pydantic-settings

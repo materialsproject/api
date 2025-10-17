@@ -7,7 +7,7 @@ from emmet.core._messages import MessagesDoc, MessageType
 from mp_api.client.core import BaseRester
 
 
-class MessagesRester(BaseRester[MessagesDoc]):  # pragma: no cover
+class MessagesRester(BaseRester):  # pragma: no cover
     suffix = "_messages"
     document_model = MessagesDoc  # type: ignore
     primary_key = "title"

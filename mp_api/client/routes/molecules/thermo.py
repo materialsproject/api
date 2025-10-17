@@ -6,7 +6,7 @@ from emmet.core.mpid import MPculeID
 from mp_api.client.core import BaseRester
 
 
-class MoleculesThermoRester(BaseRester[MoleculeThermoDoc]):
+class MoleculesThermoRester(BaseRester):
     suffix = "molecules/thermo"
     document_model = MoleculeThermoDoc
     primary_key = "property_id"

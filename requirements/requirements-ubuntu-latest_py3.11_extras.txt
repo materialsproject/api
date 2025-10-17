@@ -280,7 +280,7 @@ pycodestyle==2.14.0
     # via
     #   flake8
     #   mp-api (pyproject.toml)
-pydantic==2.12.2
+pydantic==2.12.3
     # via
     #   emmet-core
     #   pydantic-settings

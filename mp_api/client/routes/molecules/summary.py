@@ -8,7 +8,7 @@ from emmet.core.mpid import MPculeID
 from mp_api.client.core import BaseRester
 
 
-class MoleculesSummaryRester(BaseRester[MoleculeSummaryDoc]):
+class MoleculesSummaryRester(BaseRester):
     suffix = "molecules/summary"
     document_model = MoleculeSummaryDoc  # type: ignore
     primary_key = "molecule_id"

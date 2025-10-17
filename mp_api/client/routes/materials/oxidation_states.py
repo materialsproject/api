@@ -8,7 +8,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 
-class OxidationStatesRester(BaseRester[OxidationStateDoc]):
+class OxidationStatesRester(BaseRester):
     suffix = "materials/oxidation_states"
     document_model = OxidationStateDoc  # type: ignore
     primary_key = "material_id"

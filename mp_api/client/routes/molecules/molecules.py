@@ -13,7 +13,7 @@ from mp_api.client.core.utils import validate_ids
 _EMMET_SETTINGS = EmmetSettings()
 
 
-class BaseMoleculeRester(BaseRester[MoleculeDoc]):
+class BaseMoleculeRester(BaseRester):
     document_model = MoleculeDoc
     primary_key = "molecule_id"
 

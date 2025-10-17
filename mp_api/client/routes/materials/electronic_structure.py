@@ -16,7 +16,7 @@ from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 
-class ElectronicStructureRester(BaseRester[ElectronicStructureDoc]):
+class ElectronicStructureRester(BaseRester):
     suffix = "materials/electronic_structure"
     document_model = ElectronicStructureDoc  # type: ignore
     primary_key = "material_id"

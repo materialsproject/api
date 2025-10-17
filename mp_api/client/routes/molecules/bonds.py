@@ -6,7 +6,7 @@ from emmet.core.mpid import MPculeID
 from mp_api.client.core import BaseRester
 
 
-class MoleculesBondRester(BaseRester[MoleculeBondingDoc]):
+class MoleculesBondRester(BaseRester):
     suffix = "molecules/bonding"
     document_model = MoleculeBondingDoc
     primary_key = "property_id"

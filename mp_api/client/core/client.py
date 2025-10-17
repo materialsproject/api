@@ -21,9 +21,7 @@ from math import ceil
 from typing import (
     TYPE_CHECKING,
     ForwardRef,
-    Generic,
     Optional,
-    TypeVar,
     get_args,
 )
 from urllib.parse import quote, urljoin
@@ -65,10 +63,8 @@ except PackageNotFoundError:  # pragma: no cover
 
 SETTINGS = MAPIClientSettings()  # type: ignore
 
-T = TypeVar("T")
 
-
-class BaseRester(Generic[T]):
+class BaseRester:
     """Base client class with core stubs."""
 
     suffix: str = ""
@@ -140,15 +136,8 @@ class BaseRester(Generic[T]):
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
-        if session:
-            self._session = session
-        else:
-            self._session = None  # type: ignore
-
-        if s3_client:
-            self._s3_client = s3_client
-        else:
-            self._s3_client = None
+        self._session = session
+        self._s3_client = s3_client
 
     @property
     def session(self) -> requests.Session:
@@ -596,7 +585,7 @@ class BaseRester(Generic[T]):
             url: url used to make request
             use_document_model: if None, will defer to the self.use_document_model attribute
             parallel_param: parameter to parallelize requests with
-            num_chu: fieldsnky: Maximum number of chunks of data to yield. None will yield all possible.
+            num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout: Time in seconds to wait until a request timeout error is thrown
 
@@ -1077,7 +1066,9 @@ class BaseRester(Generic[T]):
         include_fields: dict[str, tuple[type, FieldInfo]] = {}
         for name in set_fields:
             field_copy = model_fields[name]._copy()
-            field_copy.default = None
+            if not field_copy.default_factory:
+                # Fields with a default_factory cannot also have a default in pydantic>=2.12.3
+                field_copy.default = None
             include_fields[name] = (
                 Optional[model_fields[name].annotation],
                 field_copy,
@@ -1097,8 +1088,6 @@ class BaseRester(Generic[T]):
             ),
             __module__=self.document_model.__module__,
         )
-        # if other_vars:
-        #     data_model.model_rebuild(_types_namespace=other_vars)
 
         orig_rester_name = self.document_model.__name__
 
@@ -1151,7 +1140,7 @@ class BaseRester(Generic[T]):
         suburl: str | None = None,
         use_document_model: bool | None = None,
         timeout: int | None = None,
-    ) -> list[T] | list[dict]:
+    ) -> list[BaseModel] | list[dict]:
         """Query the endpoint for a list of documents without associated meta information. Only
         returns a single page of results.
 
@@ -1181,7 +1170,7 @@ class BaseRester(Generic[T]):
         all_fields: bool = True,
         fields: list[str] | None = None,
         **kwargs,
-    ) -> list[T] | list[dict]:
+    ) -> list[BaseModel] | list[dict]:
         """A generic search method to retrieve documents matching specific parameters.
 
         Arguments:
@@ -1216,7 +1205,7 @@ class BaseRester(Generic[T]):
         self,
         document_id: str,
         fields: list[str] | None = None,
-    ) -> T | dict:
+    ) -> BaseModel | dict:
         warnings.warn(
             "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
             DeprecationWarning,
@@ -1251,7 +1240,7 @@ class BaseRester(Generic[T]):
         fields=None,
         chunk_size=1000,
         num_chunks=None,
-    ) -> list[T] | list[dict]:
+    ) -> list[BaseModel] | list[dict]:
         """Iterates over pages until all documents are retrieved. Displays
         progress using tqdm. This method is designed to give a common
         implementation for the search_* methods on various endpoints. See

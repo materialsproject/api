@@ -5,7 +5,7 @@ from emmet.core._general_store import GeneralStoreDoc
 from mp_api.client.core import BaseRester
 
 
-class GeneralStoreRester(BaseRester[GeneralStoreDoc]):  # pragma: no cover
+class GeneralStoreRester(BaseRester):  # pragma: no cover
     suffix = "_general_store"
     document_model = GeneralStoreDoc  # type: ignore
     primary_key = "submission_id"

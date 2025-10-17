@@ -6,7 +6,7 @@ from emmet.core.mpid import MPculeID
 from mp_api.client.core import BaseRester
 
 
-class MoleculesVibrationRester(BaseRester[VibrationDoc]):
+class MoleculesVibrationRester(BaseRester):
     suffix = "molecules/vibrations"
     document_model = VibrationDoc
     primary_key = "property_id"

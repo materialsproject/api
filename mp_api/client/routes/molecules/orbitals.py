@@ -6,7 +6,7 @@ from emmet.core.mpid import MPculeID
 from mp_api.client.core import BaseRester
 
 
-class MoleculesOrbitalsRester(BaseRester[OrbitalDoc]):
+class MoleculesOrbitalsRester(BaseRester):
     suffix = "molecules/orbitals"
     document_model = OrbitalDoc
     primary_key = "property_id"

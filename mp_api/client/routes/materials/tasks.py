@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from emmet.core.tasks import TaskDoc
+from emmet.core.tasks import CoreTaskDoc
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
+if TYPE_CHECKING:
+    from pydantic import BaseModel
 
-class TaskRester(BaseRester[TaskDoc]):
-    suffix = "materials/tasks"
-    document_model = TaskDoc  # type: ignore
-    primary_key = "task_id"
+
+class TaskRester(BaseRester):
+    suffix: str = "materials/tasks"
+    document_model: type[BaseModel] = CoreTaskDoc  # type: ignore
+    primary_key: str = "task_id"
 
     def get_trajectory(self, task_id):
         """Returns a Trajectory object containing the geometry of the
@@ -44,7 +48,7 @@ class TaskRester(BaseRester[TaskDoc]):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
-    ) -> list[TaskDoc] | list[dict]:
+    ) -> list[CoreTaskDoc] | list[dict]:
         """Query core task docs using a variety of search criteria.
 
         Arguments:
@@ -58,11 +62,11 @@ class TaskRester(BaseRester[TaskDoc]):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in TaskDoc to return data for.
+            fields (List[str]): List of fields in CoreTaskDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:
-            ([TaskDoc], [dict]) List of task documents or dictionaries.
+            ([CoreTaskDoc], [dict]) List of task documents or dictionaries.
         """
         query_params = {}  # type: dict
 

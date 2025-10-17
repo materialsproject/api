@@ -22,7 +22,7 @@ if TYPE_CHECKING:
         )
 
 
-class XASRester(BaseRester[XASDoc]):
+class XASRester(BaseRester):
     suffix = "materials/xas"
     document_model = XASDoc  # type: ignore
     primary_key = "spectrum_id"

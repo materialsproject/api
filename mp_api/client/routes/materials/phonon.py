@@ -9,7 +9,7 @@ from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 
-class PhononRester(BaseRester[PhononBSDOSDoc]):
+class PhononRester(BaseRester):
     suffix = "materials/phonon"
     document_model = PhononBSDOSDoc  # type: ignore
     primary_key = "material_id"
