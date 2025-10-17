@@ -63,6 +63,7 @@ except PackageNotFoundError:  # pragma: no cover
 
 SETTINGS = MAPIClientSettings()  # type: ignore
 
+
 class BaseRester:
     """Base client class with core stubs."""
 
@@ -1072,7 +1073,9 @@ class BaseRester:
         include_fields: dict[str, tuple[type, FieldInfo]] = {}
         for name in set_fields:
             field_copy = model_fields[name]._copy()
-            field_copy.default = None
+            if not getattr(field_copy,"default_factory"):
+                # Fields with a default_factory cannot also have a default in pydantic>=2.12.3
+                field_copy.default = None
             include_fields[name] = (
                 Optional[model_fields[name].annotation],
                 field_copy,
@@ -1092,8 +1095,6 @@ class BaseRester:
             ),
             __module__=self.document_model.__module__,
         )
-        # if other_vars:
-        #     data_model.model_rebuild(_types_namespace=other_vars)
 
         orig_rester_name = self.document_model.__name__
 

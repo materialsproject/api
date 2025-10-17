@@ -11,10 +11,11 @@ from mp_api.client.core.utils import validate_ids
 if TYPE_CHECKING:
     from pydantic import BaseModel
 
+
 class TaskRester(BaseRester):
-    suffix : str = "materials/tasks"
-    document_model : type[BaseModel] = TaskDoc  # type: ignore
-    primary_key : str = "task_id"
+    suffix: str = "materials/tasks"
+    document_model: type[BaseModel] = TaskDoc  # type: ignore
+    primary_key: str = "task_id"
 
     def get_trajectory(self, task_id):
         """Returns a Trajectory object containing the geometry of the
@@ -35,17 +36,21 @@ class TaskRester(BaseRester):
             raise MPRestError(f"No trajectory data for {task_id} found")
 
         return traj_data
-    
+
     def _set_entry(self, task) -> dict | TaskDoc:
         """Get the ComputedEntry corresponding to a task."""
-        cr = task.calcs_reversed if hasattr(task,"calcs_reversed") else task.get("calcs_reversed")
-        task_id = task.task_id if hasattr(task,"task_id") else task.get("task_id")
+        cr = (
+            task.calcs_reversed
+            if hasattr(task, "calcs_reversed")
+            else task.get("calcs_reversed")
+        )
+        task_id = task.task_id if hasattr(task, "task_id") else task.get("task_id")
         if not cr or not task_id:
             return None
-        entry = TaskDoc.get_entry(cr,task_id)
+        entry = TaskDoc.get_entry(cr, task_id)
         if not self.monty_decode:
             entry = entry.as_dict()
-        if isinstance(task,dict):
+        if isinstance(task, dict):
             task["entry"] = entry
         else:
             task.entry = entry
