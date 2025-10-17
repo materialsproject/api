@@ -132,9 +132,11 @@ class MaterialsRester(BaseRester):
             )
 
             # Ensure that return type is a Structure regardless of `monty_decode` or `model_dump` output
-            if isinstance(response[field],dict):
+            if isinstance(response[field], dict):
                 response[field] = Structure.from_dict(response[field])
-            elif isinstance(response[field],list) and any(isinstance(struct,dict) for struct in response[field]):
+            elif isinstance(response[field], list) and any(
+                isinstance(struct, dict) for struct in response[field]
+            ):
                 response[field] = [
                     Structure.from_dict(struct) for struct in response[field]
                 ]
