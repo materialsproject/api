@@ -34,19 +34,23 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreTaskDoc</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+
 
 <div class="viewcode-block" id="TaskRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">TaskRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">[</span><span class="n">TaskDoc</span><span class="p">]):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/tasks&quot;</span>
-    <span class="n">document_model</span> <span class="o">=</span> <span class="n">TaskDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;task_id&quot;</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TaskRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+    <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;materials/tasks&quot;</span>
+    <span class="n">document_model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]</span> <span class="o">=</span> <span class="n">CoreTaskDoc</span>  <span class="c1"># type: ignore</span>
+    <span class="n">primary_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;task_id&quot;</span>
 
 <div class="viewcode-block" id="TaskRester.get_trajectory">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.get_trajectory">[docs]</a>
@@ -84,7 +88,7 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TaskDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CoreTaskDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core task docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
@@ -98,11 +102,11 @@
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk. Max size is 100.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in TaskDoc to return data for.</span>
+<span class="sd">            fields (List[str]): List of fields in CoreTaskDoc to return data for.</span>
 <span class="sd">                Default is material_id, last_updated, and formula_pretty if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            ([TaskDoc], [dict]) List of task documents or dictionaries.</span>
+<span class="sd">            ([CoreTaskDoc], [dict]) List of task documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: dict</span>
 
