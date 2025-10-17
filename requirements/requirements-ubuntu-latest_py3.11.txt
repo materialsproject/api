@@ -10,9 +10,9 @@ bibtexparser==1.4.3
     # via pymatgen
 blake3==1.0.8
     # via emmet-core
-boto3==1.40.52
+boto3==1.40.55
     # via mp-api (pyproject.toml)
-botocore==1.40.52
+botocore==1.40.55
     # via
     #   boto3
     #   s3transfer
@@ -24,7 +24,7 @@ contourpy==1.3.3
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
-emmet-core==0.85.1
+emmet-core==0.86.0rc0
     # via mp-api (pyproject.toml)
 fonttools==4.60.1
     # via matplotlib
