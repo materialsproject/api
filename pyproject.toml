@@ -25,7 +25,7 @@ dependencies = [
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
-  "emmet-core>=0.84.6rc0",
+  "emmet-core>=0.85.1rc0,<0.86",
   "smart_open",
   "boto3",
   "orjson >= 3.10,<4",
@@ -33,7 +33,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-all = ["emmet-core[all]>=0.84.6rc0", "custodian", "mpcontribs-client",]
+all = ["emmet-core[all]>=0.85.1rc0", "custodian", "mpcontribs-client>=5.10"]
 test = [
   "pre-commit",
   "pytest",
