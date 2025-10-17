@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from emmet.core.tasks import TaskDoc
+from emmet.core.tasks import CoreTaskDoc
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class TaskRester(BaseRester):
     suffix: str = "materials/tasks"
-    document_model: type[BaseModel] = TaskDoc  # type: ignore
+    document_model: type[BaseModel] = CoreTaskDoc  # type: ignore
     primary_key: str = "task_id"
 
     def get_trajectory(self, task_id):
