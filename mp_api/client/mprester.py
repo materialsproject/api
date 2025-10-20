@@ -723,7 +723,7 @@ class MPRester:
         if additional_criteria:
             input_params = {**input_params, **additional_criteria}
 
-        entries = []
+        entries: set[ComputedStructureEntry] = set()
 
         fields = (
             ["entries", "thermo_type"]
@@ -744,18 +744,18 @@ class MPRester:
                 else doc["entries"].values()  # type: ignore
             )
             for entry in entry_list:
-                entry_dict: dict = entry.as_dict() if self.monty_decode else entry  # type: ignore
+                entry_dict: dict = entry.as_dict() if hasattr(entry, "as_dict") else entry  # type: ignore
                 if not compatible_only:
                     entry_dict["correction"] = 0.0
                     entry_dict["energy_adjustments"] = []
 
                 if property_data:
-                    for property in property_data:
-                        entry_dict["data"][property] = (
-                            doc.model_dump()[property]  # type: ignore
-                            if self.use_document_model
-                            else doc[property]  # type: ignore
-                        )
+                    entry_dict["data"] = {
+                        property: getattr(doc, property, None)
+                        if self.use_document_model
+                        else doc[property]
+                        for property in property_data
+                    }
 
                 if conventional_unit_cell:
                     entry_struct = Structure.from_dict(entry_dict["structure"])
@@ -776,15 +776,10 @@ class MPRester:
                         if "n_atoms" in correction:
                             correction["n_atoms"] *= site_ratio
 
-                entry = (
-                    ComputedStructureEntry.from_dict(entry_dict)
-                    if self.monty_decode
-                    else entry_dict
-                )
+                # Need to store object to permit de-duplication
+                entries.add(ComputedStructureEntry.from_dict(entry_dict))
 
-                entries.append(entry)
-
-        return entries
+        return [e if self.monty_decode else e.as_dict() for e in entries]
 
     def get_pourbaix_entries(
         self,
