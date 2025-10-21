@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections import defaultdict
 import itertools
 import os
 import warnings
+from collections import defaultdict
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 
@@ -559,7 +559,7 @@ class MPRester:
         return sorted(
             doc["material_id"]
             for doc in self.materials.search(
-                **{inp_k : chemsys_formula},
+                **{inp_k: chemsys_formula},
                 all_fields=False,
                 fields=["material_id"],
             )
@@ -730,8 +730,10 @@ class MPRester:
                     entry_dict["energy_adjustments"] = []
 
                 if property_data:
-                    entry_dict["data"] = {property: doc[property] for property in property_data}
-                        
+                    entry_dict["data"] = {
+                        property: doc[property] for property in property_data
+                    }
+
                 if conventional_unit_cell:
                     entry_struct = Structure.from_dict(entry_dict["structure"])
                     s = SpacegroupAnalyzer(
@@ -1388,7 +1390,7 @@ class MPRester:
                     continue
                 mp_id = doc["material_id"]
                 meta[mp_id].append({"task_id": task_id, "calc_type": calc_type})
-                    
+
         if not meta:
             raise ValueError(f"No tasks found for material id {material_ids}.")
 

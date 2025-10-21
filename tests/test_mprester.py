@@ -149,7 +149,10 @@ class TestMPRester:
 
         # Conventional structure
         entry = next(
-            e for e in mpr.get_entry_by_material_id("mp-22526", conventional_unit_cell=True)
+            e
+            for e in mpr.get_entry_by_material_id(
+                "mp-22526", conventional_unit_cell=True
+            )
             if e.entry_id == "mp-22526-r2SCAN"
         )
 
@@ -162,7 +165,10 @@ class TestMPRester:
 
         # Ensure energy per atom is same
         entry = next(
-            e for e in mpr.get_entry_by_material_id("mp-22526", conventional_unit_cell=False)
+            e
+            for e in mpr.get_entry_by_material_id(
+                "mp-22526", conventional_unit_cell=False
+            )
             if e.entry_id == "mp-22526-r2SCAN"
         )
         s = entry.structure

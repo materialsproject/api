@@ -280,7 +280,7 @@ class BandStructureRester(BaseRester):
                 raise MPRestError(
                     f"No {path_type.value} band structure data found for {material_id}"
                 )
-            
+
             bs_data: dict = (
                 bs_data.model_dump() if self.use_document_model else bs_data  # type: ignore
             )
@@ -290,17 +290,18 @@ class BandStructureRester(BaseRester):
                     f"No {path_type.value} band structure data found for {material_id}"
                 )
             bs_task_id = bs_data[path_type.value]["task_id"]
-                
-        else:
 
-            if not (bs_doc := es_rester.search(material_ids=material_id, fields=["dos"])):
+        else:
+            if not (
+                bs_doc := es_rester.search(material_ids=material_id, fields=["dos"])
+            ):
                 raise MPRestError("No electronic structure data found.")
 
             if (bs_data := bs_doc[0]["dos"]) is None:
                 raise MPRestError(
                     f"No uniform band structure data found for {material_id}"
                 )
-            
+
             bs_data: dict = (
                 bs_data.model_dump() if self.use_document_model else bs_data  # type: ignore
             )
@@ -446,9 +447,11 @@ class DosRester(BaseRester):
 
         if not (dos_data := dos_doc[0].get("dos")):
             raise MPRestError(f"No density of states data found for {material_id}")
-        
-        dos_task_id = (dos_data.model_dump() if self.use_document_model else dos_data)["total"]["1"]["task_id"]
-        if (dos_obj := self.get_dos_from_task_id(dos_task_id)):
+
+        dos_task_id = (dos_data.model_dump() if self.use_document_model else dos_data)[
+            "total"
+        ]["1"]["task_id"]
+        if dos_obj := self.get_dos_from_task_id(dos_task_id):
             return dos_obj
-        
+
         raise MPRestError("No density of states object found.")

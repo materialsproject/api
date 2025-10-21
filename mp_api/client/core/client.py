@@ -63,23 +63,23 @@ except PackageNotFoundError:  # pragma: no cover
 
 SETTINGS = MAPIClientSettings()  # type: ignore
 
+
 class _DictLikeAccess(BaseModel):
     """Define a pydantic mix-in which permits dict-like access to model fields."""
 
-    def __getitem__(self, item : str) -> Any:
+    def __getitem__(self, item: str) -> Any:
         """Return `item` if a valid model field, otherwise raise an exception."""
         if item in self.__class__.model_fields:
-            return getattr(self,item)
-        raise AttributeError(
-            f"{self.__class__.__name__} has no model field `{item}`."
-        )
-    
-    def get(self, item : str, default : Any = None) -> Any:
+            return getattr(self, item)
+        raise AttributeError(f"{self.__class__.__name__} has no model field `{item}`.")
+
+    def get(self, item: str, default: Any = None) -> Any:
         """Return a model field `item`, or `default` if it doesn't exist."""
         try:
             return self.__getitem__(item)
         except AttributeError:
             return default
+
 
 class BaseRester:
     """Base client class with core stubs."""
@@ -1088,12 +1088,21 @@ class BaseRester:
             )
 
         validators = {}
-        for k in ("field_validators","model_validators","root_validators","validators"):
-            validators.update({
-                k : v.func
-                for k, v in getattr(self.document_model.__pydantic_decorators__,k,{}).items()
-                if hasattr(v,"func")
-            })
+        for k in (
+            "field_validators",
+            "model_validators",
+            "root_validators",
+            "validators",
+        ):
+            validators.update(
+                {
+                    k: v.func
+                    for k, v in getattr(
+                        self.document_model.__pydantic_decorators__, k, {}
+                    ).items()
+                    if hasattr(v, "func")
+                }
+            )
 
         data_model = create_model(  # type: ignore
             "MPDataDoc",
