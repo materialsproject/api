@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-import json
-from typing import Literal
+from typing import Literal, Any
 
 import plotly.graph_objects as plotly_go
 
@@ -22,9 +21,9 @@ from emmet.core.synthesis import OperationTypeEnum, SynthesisTypeEnum
 from emmet.core.thermo import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from emmet.core.xas import Edge, Type
-from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.core.periodic_table import Element
+from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.electronic_structure.core import OrbitalType, Spin
 from pymatgen.entries.computed_entries import ComputedEntry
@@ -35,30 +34,93 @@ from mp_api.mcp.utils import _NeedsMPClient
 class MPMcpTools(_NeedsMPClient):
     """Define tools needed for the MP MCP client."""
 
+    def get_structure_by_material_id(
+        self,
+        material_id: str,
+        structure_format: Literal["json", "poscar", "cif"],
+    ) -> dict[str, Any] | str:
+        """Find a structure in the Materials Project by its identifier/ID.
+
+        Return type changes based on format:
+            structure_format = "json":
+                Returns the JSON representation of a pymatgen structure object.
+            structure_format = "poscar":
+                Returns a VASP POSCAR-like representation
+            structure_format = "cif":
+                Returns a crystallographic information file (CIF)
+        """
+        struct = self.client.get_structure_by_material_id(
+            material_id=material_id,
+            final=True,
+            conventional_unit_cell=False,
+        )
+        if structure_format == "json":
+            return struct.as_dict() if hasattr(struct, "as_dict") else struct
+
+        if isinstance(struct, dict):
+            struct = Structure.from_dict(struct)
+        return struct.to(fmt=structure_format)
+
     def get_phase_diagram_from_elements(
         self,
         elements: list[str],
         thermo_type: ThermoType | str = "GGA_GGA+U_R2SCAN",
     ) -> plotly_go.Figure:
+        """Find a thermodynamic phase diagram in the Materials Project by specified elements.
+
+        ### Examples:
+        Given elements Na and Cl:
+        ```
+        phase_diagram = MPMcpTools().get_phase_diagram_from_elements(
+            elements = ["Na","Cl"],
+        )
+        ```
+
+        Given a chemical system, "K-P-O":
+        ```
+        phase_diagrasm =  MPMcpTools().get_phase_diagram_from_elements(
+            elements = "K-P-O".split("-"),
+        )
+        ```
+
+        """
         pd = self.client.materials.thermo.get_phase_diagram_from_chemsys(
             "-".join(elements), thermo_type
         )
         return pd.get_plot()  # has to be JSON serializable
 
-    def get_stability(
+    def get_stability_or_energy_above_hull(
         self,
-        composition: dict[str, float],
+        formula: str,
         energy: float,
-        run_type: Literal["GGA", "GGA+U", "R2SCAN"] | None = None,
-        thermo_type: str | ThermoType = "GGA_GGA+U",
-    ) -> list[dict]:
-        data = None
-        if run_type:
-            data = {"run_type": run_type}
-        return self.client.get_stability(
-            entries=ComputedEntry(composition, energy, data=data),
-            thermo_type=thermo_type,
-        )
+        run_type: Literal["GGA", "PBE", "GGA+U", "PBE+U", "R2SCAN"],
+    ) -> float:
+        """Get the stability of a particular material.
+
+        Given a material's formula and energy in eV, tells you the material's
+        stability from the energy above the hull (positive for unstable, 0 for stable)
+        in eV/atom.
+
+        The user must specify a particular functional:
+            - PBE or GGA
+            - PBE+U or GGA+U
+            - R2SCAN
+        this will add necessary corrections to the energy to compare with
+        the Materials Project.
+
+        """
+        run_type = run_type.replace("PBE", "GGA")
+        data = {"run_type": run_type}
+        thermo_type = "GGA_GGA+U" if run_type in {"GGA", "GGA+U"} else "R2SCAN"
+
+        try:
+            stability = self.client.get_stability(
+                entries=[ComputedEntry(Composition(formula), energy, data=data)],
+                thermo_type=thermo_type,
+            )
+            return stability[0]["e_above_hull"]
+        except ValueError:
+            return float("inf")
 
     def get_absorption_data(
         self,
@@ -644,7 +706,7 @@ class MPMcpTools(_NeedsMPClient):
             efermi=efermi,
             elastic_anisotropy=elastic_anisotropy,
             elements=elements,
-            energy_above_hull=tuple(float(x) for x in json.loads(energy_above_hull)),
+            energy_above_hull=energy_above_hull,
             equilibrium_reaction_energy=equilibrium_reaction_energy,
             exclude_elements=exclude_elements,
             formation_energy=formation_energy,
@@ -961,15 +1023,6 @@ class MPMcpTools(_NeedsMPClient):
             compatible_only=compatible_only,
             inc_structure=inc_structure,
             property_data=property_data,
-            conventional_unit_cell=conventional_unit_cell,
-        )
-
-    def get_structure_by_material_id(
-        self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
-    ) -> list[dict]:
-        return self.client.get_structure_by_material_id(
-            material_id=material_id,
-            final=final,
             conventional_unit_cell=conventional_unit_cell,
         )
 

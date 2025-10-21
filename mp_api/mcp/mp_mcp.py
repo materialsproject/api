@@ -16,6 +16,9 @@ def get_mcp() -> FastMCP:
     mcp_tools = MPMcpTools()
     for attr in {x for x in dir(mcp_tools) if x.startswith("get_")}:
         mp_mcp.tool(getattr(mcp_tools, attr))
+
+    # Register tool to set the user's API key
+    mp_mcp.tool(mcp_tools.update_user_api_key)
     return mp_mcp
 
 

@@ -1,5 +1,3 @@
-uv.lock
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -123,3 +121,4 @@ _autosummary
 
 uv.lock
 JANAF_*_data.json
+.gemini

@@ -10,6 +10,12 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
+_REQUIRED_CLIENT_KWARGS = {
+    "use_document_model": False,
+    "monty_decode": False,
+    "include_user_agent": True,
+}
+
 
 class _NeedsMPClient:
     def __init__(
@@ -17,13 +23,25 @@ class _NeedsMPClient:
         client_kwargs: dict[str, Any] | None = None,
         client: MPRester | None = None,
     ):
-        self.client = client or MPRester(
-            **{
-                **(client_kwargs or {}),
-                "use_document_model": False,
-                "monty_decode": False,
-            }
-        )
+        self._client_kwargs = {
+            **(client_kwargs or {}),
+            **_REQUIRED_CLIENT_KWARGS,
+        }
+        self.reset_client()
+
+    def reset_client(self) -> None:
+        """Reset the API client."""
+        self.client = MPRester(**self._client_kwargs)
+
+    def update_user_api_key(self, api_key: str) -> None:
+        """Change the API key used in the client.
+
+        Call this method to set the user's API correctly.
+        Ask the user for their API key as plain text,
+        and input the result to this method.
+        """
+        self._client_kwargs["api_key"] = api_key
+        self.reset_client()
 
 
 def get_annotation_signature(

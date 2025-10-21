@@ -24,7 +24,12 @@ from requests import Session, get
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import _compare_emmet_ver, load_json, validate_api_key, validate_ids
+from mp_api.client.core.utils import (
+    _compare_emmet_ver,
+    load_json,
+    validate_api_key,
+    validate_ids,
+)
 from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
 from mp_api.client.routes.materials import (
     AbsorptionRester,

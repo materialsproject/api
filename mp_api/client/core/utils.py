@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 _MAPI_SETTINGS = MAPIClientSettings()
 
+
 def _compare_emmet_ver(
     ref_version: str, op: Literal["==", ">", ">=", "<", "<="]
 ) -> bool:
