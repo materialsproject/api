@@ -170,7 +170,7 @@ class MPRester:
             headers: Custom headers for localhost connections.
             mute_progress_bars:  Whether to mute progress bars.
             local_dataset_cache: Target directory for downloading full datasets. Defaults
-                to "materialsproject_datasets" in the user's home directory
+                to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
 
         """
