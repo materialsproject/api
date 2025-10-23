@@ -54,7 +54,7 @@ class TaskRester(BaseRester):
         if not traj_data:
             raise MPRestError(f"No trajectory data for {task_id} found")
 
-        return RelaxTrajectory(**traj_data[0]).to_pmg()
+        return RelaxTrajectory(**traj_data[0]).to_pmg().as_dict()
 
     def search(
         self,
