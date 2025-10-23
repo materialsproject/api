@@ -3,7 +3,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+import pyarrow as pa
+from deltalake import DeltaTable, QueryBuilder
+from emmet.core.mpid import AlphaID
 from emmet.core.tasks import CoreTaskDoc
+from emmet.core.trajectory import RelaxTrajectory
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
@@ -16,6 +20,7 @@ class TaskRester(BaseRester):
     suffix: str = "materials/tasks"
     document_model: type[BaseModel] = CoreTaskDoc  # type: ignore
     primary_key: str = "task_id"
+    delta_backed = True
 
     def get_trajectory(self, task_id):
         """Returns a Trajectory object containing the geometry of the
@@ -26,16 +31,30 @@ class TaskRester(BaseRester):
             task_id (str): Task ID
 
         """
-        traj_data = self._query_resource_data(
-            {"task_ids": [task_id]}, suburl="trajectory/", use_document_model=False
-        )[0].get(
-            "trajectories", None
-        )  # type: ignore
+        as_alpha = str(AlphaID(task_id, padlen=8)).split("-")[-1]
 
-        if traj_data is None:
+        traj_tbl = DeltaTable(
+            "s3a://materialsproject-parsed/core/trajectories/",
+            storage_options={"AWS_SKIP_SIGNATURE": "true", "AWS_REGION": "us-east-1"},
+        )
+
+        traj_data = pa.table(
+            QueryBuilder()
+            .register("traj", traj_tbl)
+            .execute(
+                f"""
+                SELECT *
+                FROM   traj
+                WHERE  identifier='{as_alpha}'
+                """
+            )
+            .read_all()
+        ).to_pylist(maps_as_pydicts="strict")
+
+        if not traj_data:
             raise MPRestError(f"No trajectory data for {task_id} found")
 
-        return traj_data
+        return RelaxTrajectory(**traj_data[0]).to_pmg()
 
     def search(
         self,
