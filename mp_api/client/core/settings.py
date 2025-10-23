@@ -87,4 +87,18 @@ class MAPIClientSettings(BaseSettings):
         _MAX_LIST_LENGTH, description="Maximum length of query parameter list"
     )
 
+    LOCAL_DATASET_CACHE: str = Field(
+        os.path.expanduser("~") + "/mp_datasets",
+        description="Target directory for downloading full datasets",
+    )
+
+    DATASET_FLUSH_THRESHOLD: int = Field(
+        100000,
+        description="Threshold number of rows to accumulate in memory before flushing dataset to disk",
+    )
+
+    ACCESS_CONTROLLED_BATCH_IDS: list[str] = Field(
+        ["gnome_r2scan_statics"], description="Batch ids with access restrictions"
+    )
+
     model_config = SettingsConfigDict(env_prefix="MPRESTER_")
