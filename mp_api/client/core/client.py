@@ -219,7 +219,7 @@ class BaseRester:
         remains unchanged and available for querying via its task_id.
 
         The database version is set as a date in the format YYYY_MM_DD,
-        predicate "_DD" may be optional. An additional numerical or `postN` suffix
+        where "_DD" may be optional. An additional numerical or `postN` suffix
         might be added if multiple releases happen on the same day.
 
         Returns: database version as a string

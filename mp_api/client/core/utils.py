@@ -133,6 +133,7 @@ def allow_msonable_dict(monty_cls: type[MSONable]):
 
 class MPDataset:
     def __init__(self, path, document_model, use_document_model):
+        """Convenience wrapper for pyarrow datasets stored on disk."""
         self._start = 0
         self._path = path
         self._document_model = document_model
