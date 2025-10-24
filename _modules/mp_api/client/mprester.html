@@ -36,6 +36,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span><span class="p">,</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
@@ -464,11 +465,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">tasks</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
 
-        <span class="n">calculations</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">calc_types</span>  <span class="c1"># type: ignore</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-            <span class="k">else</span> <span class="n">tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;calc_types&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-        <span class="p">)</span>
+        <span class="n">calculations</span> <span class="o">=</span> <span class="n">tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;calc_types&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">calc_types</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span>
@@ -476,8 +473,7 @@
                 <span class="k">for</span> <span class="n">task</span><span class="p">,</span> <span class="n">calc_type</span> <span class="ow">in</span> <span class="n">calculations</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">calc_type</span> <span class="ow">in</span> <span class="n">calc_types</span>
             <span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">calculations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">calculations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="MPRester.get_structure_by_material_id">
@@ -594,11 +590,7 @@
 <span class="sd">            List of BibTeX references ([str])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">provenance</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">docs</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[]</span>
-
-        <span class="k">return</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">references</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;references&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span></div>
+        <span class="k">return</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;references&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">docs</span> <span class="k">else</span> <span class="p">[]</span></div>
 
 
 <div class="viewcode-block" id="MPRester.get_material_ids">
@@ -616,17 +608,16 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            List of all materials ids ([MPID])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inp_k</span> <span class="o">=</span> <span class="s2">&quot;formula&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys_formula</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
             <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys_formula</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;-&quot;</span> <span class="ow">in</span> <span class="n">chemsys_formula</span>
         <span class="p">):</span>
-            <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;chemsys&quot;</span><span class="p">:</span> <span class="n">chemsys_formula</span><span class="p">}</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span> <span class="n">chemsys_formula</span><span class="p">}</span>
+            <span class="n">inp_k</span> <span class="o">=</span> <span class="s2">&quot;chemsys&quot;</span>
 
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
-            <span class="n">doc</span><span class="o">.</span><span class="n">material_id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
-                <span class="o">**</span><span class="n">input_params</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="o">**</span><span class="p">{</span><span class="n">inp_k</span><span class="p">:</span> <span class="n">chemsys_formula</span><span class="p">},</span>
                 <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">],</span>
             <span class="p">)</span>
@@ -662,10 +653,8 @@
                 <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">],</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">[</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
 
-            <span class="k">return</span> <span class="p">[</span><span class="n">doc</span><span class="o">.</span><span class="n">structure</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -674,12 +663,7 @@
                 <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;initial_structures&quot;</span><span class="p">],</span>
             <span class="p">):</span>
-                <span class="n">initial_structures</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">doc</span><span class="o">.</span><span class="n">initial_structures</span>  <span class="c1"># type: ignore</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-                    <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;initial_structures&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-                <span class="p">)</span>
-                <span class="n">structures</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">initial_structures</span><span class="p">)</span>
+                <span class="n">structures</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;initial_structures&quot;</span><span class="p">])</span>
 
             <span class="k">return</span> <span class="n">structures</span></div>
 
@@ -790,7 +774,7 @@
         <span class="k">if</span> <span class="n">additional_criteria</span><span class="p">:</span>
             <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">input_params</span><span class="p">,</span> <span class="o">**</span><span class="n">additional_criteria</span><span class="p">}</span>
 
-        <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">entries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
         <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">,</span> <span class="s2">&quot;thermo_type&quot;</span><span class="p">]</span>
@@ -805,24 +789,17 @@
         <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
-            <span class="n">entry_list</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">doc</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-                <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
-            <span class="p">)</span>
+            <span class="n">entry_list</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entry_list</span><span class="p">:</span>
-                <span class="n">entry_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">entry</span>  <span class="c1"># type: ignore</span>
+                <span class="n">entry_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="s2">&quot;as_dict&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">entry</span>  <span class="c1"># type: ignore</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">compatible_only</span><span class="p">:</span>
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;correction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;energy_adjustments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
                 <span class="k">if</span> <span class="n">property_data</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="n">property_data</span><span class="p">:</span>
-                        <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()[</span><span class="nb">property</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-                            <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-                        <span class="p">)</span>
+                    <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="nb">property</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="n">property_data</span>
+                    <span class="p">}</span>
 
                 <span class="k">if</span> <span class="n">conventional_unit_cell</span><span class="p">:</span>
                     <span class="n">entry_struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">])</span>
@@ -843,15 +820,10 @@
                         <span class="k">if</span> <span class="s2">&quot;n_atoms&quot;</span> <span class="ow">in</span> <span class="n">correction</span><span class="p">:</span>
                             <span class="n">correction</span><span class="p">[</span><span class="s2">&quot;n_atoms&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">site_ratio</span>
 
-                <span class="n">entry</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">ComputedStructureEntry</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span>
-                    <span class="k">else</span> <span class="n">entry_dict</span>
-                <span class="p">)</span>
+                <span class="c1"># Need to store object to permit de-duplication</span>
+                <span class="n">entries</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ComputedStructureEntry</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">))</span>
 
-                <span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">entries</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span> <span class="k">else</span> <span class="n">e</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="MPRester.get_pourbaix_entries">
@@ -1415,9 +1387,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="n">surfaces</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">surfaces</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;surfaces&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-        <span class="p">)</span>
+        <span class="n">surfaces</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;surfaces&quot;</span><span class="p">]</span>
 
         <span class="n">lattice</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span><span class="o">.</span><span class="n">get_conventional_standard_structure</span><span class="p">()</span><span class="o">.</span><span class="n">lattice</span>
@@ -1493,17 +1463,8 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="n">latest_doc</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
-            <span class="n">results</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
-                <span class="n">x</span><span class="o">.</span><span class="n">last_updated</span>  <span class="c1"># type: ignore</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-                <span class="k">else</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;last_updated&quot;</span><span class="p">]</span>
-            <span class="p">),</span>  <span class="c1"># type: ignore</span>
-        <span class="p">)</span>
-        <span class="n">task_id</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">latest_doc</span><span class="o">.</span><span class="n">task_id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">latest_doc</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
-        <span class="p">)</span>
+        <span class="n">latest_doc</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;last_updated&quot;</span><span class="p">])</span>
+        <span class="n">task_id</span> <span class="o">=</span> <span class="n">latest_doc</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_charge_density_from_task_id</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">inc_task_doc</span><span class="p">)</span></div>
 
 
@@ -1528,20 +1489,17 @@
             <span class="k">else</span> <span class="p">[]</span>
         <span class="p">)</span>
 
-        <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
             <span class="n">task_ids</span><span class="o">=</span><span class="n">material_ids</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;calc_types&quot;</span><span class="p">,</span> <span class="s2">&quot;deprecated_tasks&quot;</span><span class="p">,</span> <span class="s2">&quot;material_id&quot;</span><span class="p">],</span>
         <span class="p">):</span>
-            <span class="n">doc_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">doc</span>  <span class="c1"># type: ignore</span>
-            <span class="k">for</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">calc_type</span> <span class="ow">in</span> <span class="n">doc_dict</span><span class="p">[</span><span class="s2">&quot;calc_types&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">calc_type</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;calc_types&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">calc_types</span> <span class="ow">and</span> <span class="n">calc_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">calc_types</span><span class="p">:</span>
                     <span class="k">continue</span>
-                <span class="n">mp_id</span> <span class="o">=</span> <span class="n">doc_dict</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mp_id</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">meta</span><span class="p">[</span><span class="n">mp_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s2">&quot;calc_type&quot;</span><span class="p">:</span> <span class="n">calc_type</span><span class="p">}]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">meta</span><span class="p">[</span><span class="n">mp_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s2">&quot;calc_type&quot;</span><span class="p">:</span> <span class="n">calc_type</span><span class="p">})</span>
+                <span class="n">mp_id</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span>
+                <span class="n">meta</span><span class="p">[</span><span class="n">mp_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s2">&quot;calc_type&quot;</span><span class="p">:</span> <span class="n">calc_type</span><span class="p">})</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">meta</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No tasks found for material id </span><span class="si">{</span><span class="n">material_ids</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 

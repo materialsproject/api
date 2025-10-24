@@ -331,61 +331,47 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">bs_doc</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No electronic structure data found.&quot;</span><span class="p">)</span>
 
-            <span class="n">bs_data</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bandstructure</span>  <span class="c1"># type: ignore</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-                <span class="k">else</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">bs_data</span> <span class="o">:=</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">bs_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">bs_data</span>  <span class="c1"># type: ignore</span>
             <span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">bs_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">bs_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">bs_data</span>  <span class="c1"># type: ignore</span>
-                <span class="p">)</span>
+            <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
 
-            <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">path_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">bs_doc</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">bs_doc</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+                <span class="n">bs_doc</span> <span class="o">:=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span>
+            <span class="p">):</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No electronic structure data found.&quot;</span><span class="p">)</span>
 
-            <span class="n">bs_data</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dos</span>  <span class="c1"># type: ignore</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-                <span class="k">else</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">bs_data</span> <span class="o">:=</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">bs_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">bs_data</span>  <span class="c1"># type: ignore</span>
             <span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">bs_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">bs_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">bs_data</span>  <span class="c1"># type: ignore</span>
-                <span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
+            <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
 
         <span class="n">bs_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bandstructure_from_task_id</span><span class="p">(</span><span class="n">bs_task_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">bs_obj</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">bs_obj</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No band structure object found.&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No band structure object found.&quot;</span><span class="p">)</span></div>
 </div>
 
 
@@ -526,25 +512,19 @@
             <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="n">dos_doc</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">dos_doc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">dos_doc</span> <span class="o">:=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])):</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="n">dos_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">dos_data</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]:</span>
-            <span class="n">dos_task_id</span> <span class="o">=</span> <span class="n">dos_data</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">][</span><span class="s2">&quot;total&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">dos_data</span> <span class="o">:=</span> <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dos&quot;</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No density of states data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">dos_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_task_id</span><span class="p">(</span><span class="n">dos_task_id</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">dos_obj</span><span class="p">:</span>
+        <span class="n">dos_task_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">dos_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">dos_data</span><span class="p">)[</span>
+            <span class="s2">&quot;total&quot;</span>
+        <span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dos_obj</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_task_id</span><span class="p">(</span><span class="n">dos_task_id</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">dos_obj</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No density of states object found.&quot;</span><span class="p">)</span></div>
+
+        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No density of states object found.&quot;</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
