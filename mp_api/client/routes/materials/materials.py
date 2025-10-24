@@ -126,10 +126,17 @@ class MaterialsRester(BaseRester):
 
         response = self.search(material_ids=material_id, fields=[field])
 
-        if response:
-            response = (
-                response[0].model_dump() if self.use_document_model else response[0]  # type: ignore
-            )
+        if response and response[0]:
+            response = response[0]
+            # Ensure that return type is a Structure regardless of `monty_decode` or `model_dump` output
+            if isinstance(response[field], dict):
+                response[field] = Structure.from_dict(response[field])
+            elif isinstance(response[field], list) and any(
+                isinstance(struct, dict) for struct in response[field]
+            ):
+                response[field] = [
+                    Structure.from_dict(struct) for struct in response[field]
+                ]
 
         return response[field] if response else response  # type: ignore
 
@@ -305,7 +312,4 @@ class MaterialsRester(BaseRester):
                 )
             return results  # type: ignore
 
-        if results:
-            return results[0]["material_id"]
-        else:
-            return []
+        return results[0]["material_id"] if (results and results[0]) else []
