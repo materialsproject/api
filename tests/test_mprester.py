@@ -148,7 +148,13 @@ class TestMPRester:
             assert e.data.get("energy_above_hull", None) is not None
 
         # Conventional structure
-        entry = mpr.get_entry_by_material_id("mp-22526", conventional_unit_cell=True)[1]
+        entry = next(
+            e
+            for e in mpr.get_entry_by_material_id(
+                "mp-22526", conventional_unit_cell=True
+            )
+            if e.entry_id == "mp-22526-r2SCAN"
+        )
 
         s = entry.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
@@ -158,9 +164,14 @@ class TestMPRester:
         assert pytest.approx(s.lattice.gamma) == 120
 
         # Ensure energy per atom is same
-        prim = mpr.get_entry_by_material_id("mp-22526", conventional_unit_cell=False)[1]
-
-        s = prim.structure
+        entry = next(
+            e
+            for e in mpr.get_entry_by_material_id(
+                "mp-22526", conventional_unit_cell=False
+            )
+            if e.entry_id == "mp-22526-r2SCAN"
+        )
+        s = entry.structure
         assert pytest.approx(s.lattice.a) == s.lattice.b
         assert pytest.approx(s.lattice.a, abs=1e-3) == s.lattice.c
         assert pytest.approx(s.lattice.alpha, abs=1e-3) == s.lattice.beta
