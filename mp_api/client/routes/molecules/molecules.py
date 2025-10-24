@@ -34,7 +34,7 @@ class BaseMoleculeRester(BaseRester):
         field = "molecule" if final else "initial_molecules"
 
         response = self.search(molecule_ids=[mpcule_id], fields=[field])  # type: ignore
-        return response[0][field] if response else response  # type: ignore
+        return response[0][field] if (response and response[0]) else response  # type: ignore
 
     def find_molecule(
         self,
@@ -90,10 +90,7 @@ class BaseMoleculeRester(BaseRester):
                 )
             return results  # type: ignore
 
-        if results:
-            return results[0]["molecule_id"]
-        else:
-            return []
+        return results[0]["molecule_id"] if (results and results[0]) else []
 
     def search(
         self,
