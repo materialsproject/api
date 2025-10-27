@@ -99,11 +99,11 @@ class TestMPRester:
     def test_find_structure(self, mpr):
         path = os.path.join(MAPIClientSettings().TEST_FILES, "Si_mp_149.cif")
         data = mpr.find_structure(path)
-        assert isinstance(data,str) and data == "mp-149"
+        assert isinstance(data, str) and data == "mp-149"
 
         s = CifParser(path).get_structures()[0]
         data = mpr.find_structure(s)
-        assert isinstance(data,str) and data == "mp-149"
+        assert isinstance(data, str) and data == "mp-149"
 
     def test_get_bandstructure_by_material_id(self, mpr):
         bs = mpr.get_bandstructure_by_material_id("mp-149")
