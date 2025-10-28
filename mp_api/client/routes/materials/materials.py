@@ -304,12 +304,17 @@ class MaterialsRester(BaseRester):
             use_document_model=False,
         ).get("data")
 
-        if len(results) > 1:  # type: ignore
+        if not results:
+            return []
+
+        material_ids = validate_ids([doc["material_id"] for doc in results])
+
+        if len(material_ids) > 1:  # type: ignore
             if not allow_multiple_results:
                 raise ValueError(
                     "Multiple matches found for this combination of tolerances, but "
                     "`allow_multiple_results` set to False."
                 )
-            return results  # type: ignore
+            return material_ids  # type: ignore
 
-        return results[0]["material_id"] if (results and results[0]) else []
+        return material_ids[0]
