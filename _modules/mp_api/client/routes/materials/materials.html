@@ -347,15 +347,20 @@
             <span class="n">use_document_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">material_ids</span> <span class="o">=</span> <span class="n">validate_ids</span><span class="p">([</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">material_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_multiple_results</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">&quot;Multiple matches found for this combination of tolerances, but &quot;</span>
                     <span class="s2">&quot;`allow_multiple_results` set to False.&quot;</span>
                 <span class="p">)</span>
-            <span class="k">return</span> <span class="n">results</span>  <span class="c1"># type: ignore</span>
+            <span class="k">return</span> <span class="n">material_ids</span>  <span class="c1"># type: ignore</span>
 
-        <span class="k">return</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">results</span> <span class="ow">and</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="p">[]</span></div>
+        <span class="k">return</span> <span class="n">material_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 </div>
 
 </pre></div>
