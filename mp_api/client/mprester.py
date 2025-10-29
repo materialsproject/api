@@ -134,6 +134,8 @@ class MPRester:
         session: Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
+        local_dataset_cache: str | os.PathLike = _MAPI_SETTINGS.LOCAL_DATASET_CACHE,
+        force_renew: bool = False,
     ):
         """Initialize the MPRester.
 
@@ -168,6 +170,9 @@ class MPRester:
             session: Session object to use. By default (None), the client will create one.
             headers: Custom headers for localhost connections.
             mute_progress_bars:  Whether to mute progress bars.
+            local_dataset_cache: Target directory for downloading full datasets. Defaults
+                to "mp_datasets" in the user's home directory
+            force_renew: Option to overwrite existing local dataset
 
         """
         # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
@@ -193,6 +198,8 @@ class MPRester:
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
         self.mute_progress_bars = mute_progress_bars
+        self.local_dataset_cache = local_dataset_cache
+        self.force_renew = force_renew
         self._contribs = None
 
         self._deprecated_attributes = [
@@ -268,6 +275,8 @@ class MPRester:
                 use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
+                local_dataset_cache=self.local_dataset_cache,
+                force_renew=self.force_renew,
             )
             for cls in self._all_resters
             if cls.suffix in core_suffix
@@ -294,6 +303,8 @@ class MPRester:
                         use_document_model=self.use_document_model,
                         headers=self.headers,
                         mute_progress_bars=self.mute_progress_bars,
+                        local_dataset_cache=self.local_dataset_cache,
+                        force_renew=self.force_renew,
                     )  # type: BaseRester
                     setattr(
                         self,
@@ -324,6 +335,8 @@ class MPRester:
                     use_document_model=self.use_document_model,
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
+                    local_dataset_cache=self.local_dataset_cache,
+                    force_renew=self.force_renew,
                 )  # type: BaseRester
 
                 setattr(

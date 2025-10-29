@@ -29,6 +29,8 @@ dependencies = [
   "smart_open",
   "boto3",
   "orjson >= 3.10,<4",
+  "pyarrow >= 20.0.0",
+  "deltalake >= 1.2.0",
 ]
 dynamic = ["version"]
 
