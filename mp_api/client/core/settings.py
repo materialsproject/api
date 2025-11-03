@@ -97,8 +97,4 @@ class MAPIClientSettings(BaseSettings):
         description="Threshold number of rows to accumulate in memory before flushing dataset to disk",
     )
 
-    ACCESS_CONTROLLED_BATCH_IDS: list[str] = Field(
-        ["gnome_r2scan_statics"], description="Batch ids with access restrictions"
-    )
-
     model_config = SettingsConfigDict(env_prefix="MPRESTER_")

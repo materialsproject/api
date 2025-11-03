@@ -154,6 +154,9 @@ class BaseRester:
         self.local_dataset_cache = local_dataset_cache
         self.force_renew = force_renew
         self.db_version = BaseRester._get_database_version(self.endpoint)
+        self.access_controlled_batch_ids = BaseRester._get_access_restricted_batch_ids(
+            self.endpoint
+        )
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
@@ -242,6 +245,25 @@ class BaseRester:
         Returns: database version as a string
         """
         return requests.get(url=endpoint + "heartbeat").json()["db_version"]
+
+    @staticmethod
+    @cache
+    def _get_access_restricted_batch_ids(endpoint):
+        """Certain contributions to the Materials Project have access
+        control restrictions that require explicit agreement to the
+        Terms of Use for the respective datasets prior to access being
+        granted.
+
+        A full list of the Terms of Use for all contributions in the
+        Materials Project are available at:
+
+        https://next-gen.materialsproject.org/about/terms
+
+        Returns: a list of strings
+        """
+        return requests.get(url=endpoint + "heartbeat").json()[
+            "access_controlled_batch_ids"
+        ]
 
     def _post_resource(
         self,
@@ -583,13 +605,10 @@ class BaseRester:
                         builder.execute("SELECT COUNT(*) FROM tbl").read_all()
                     )[0][0].as_py()
 
-                    # TODO: Update tasks (+ others?) resource to have emmet-api BatchIdQuery operator
-                    #   -> need to modify BatchIdQuery operator to handle root level
-                    #      batch_id, not only builder_meta.batch_id
-                    # if not has_gnome_access:
-                    #     num_docs_needed = self.count(
-                    #         {"batch_id_neq_any": SETTINGS.ACCESS_CONTROLLED_BATCH_IDS}
-                    #     )
+                    if not has_gnome_access:
+                        num_docs_needed = self.count(
+                            {"batch_id_neq_any": self.access_controlled_batch_ids}
+                        )
 
                     pbar = (
                         tqdm(
