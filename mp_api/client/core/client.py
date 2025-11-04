@@ -524,9 +524,7 @@ class BaseRester:
                 self.mute_progress_bars = True
                 has_gnome_access = bool(
                     self._submit_requests(
-                        url=urljoin(
-                            "https://api.materialsproject.org/", "materials/summary/"
-                        ),
+                        url=urljoin(self.base_endpoint, "materials/summary/"),
                         criteria={
                             "batch_id": "gnome_r2scan_statics",
                             "_fields": "material_id",
@@ -653,7 +651,7 @@ class BaseRester:
                             _flush(accumulator, group)
                             group += 1
                             size = 0
-                            accumulator = []
+                            accumulator.clear()
 
                     if accumulator:
                         _flush(accumulator, group + 1)
