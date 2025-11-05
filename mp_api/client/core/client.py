@@ -256,7 +256,8 @@ class BaseRester:
 
         Returns:
             tuple with database version as a string and a comma separated
-            string with all calculation batch identifiers
+            string with all calculation batch identifiers that have access
+            restrictions
         """
         response = requests.get(url=endpoint + "heartbeat").json()
         return response["db_version"], response["access_controlled_batch_ids"]
