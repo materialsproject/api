@@ -153,9 +153,10 @@ class BaseRester:
         self.mute_progress_bars = mute_progress_bars
         self.local_dataset_cache = local_dataset_cache
         self.force_renew = force_renew
-        self.db_version, self.access_controlled_batch_ids = (
-            BaseRester._get_hearbeat_info(self.endpoint)
-        )
+        (
+            self.db_version,
+            self.access_controlled_batch_ids,
+        ) = BaseRester._get_hearbeat_info(self.endpoint)
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
