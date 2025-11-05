@@ -153,9 +153,8 @@ class BaseRester:
         self.mute_progress_bars = mute_progress_bars
         self.local_dataset_cache = local_dataset_cache
         self.force_renew = force_renew
-        self.db_version = BaseRester._get_database_version(self.endpoint)
-        self.access_controlled_batch_ids = BaseRester._get_access_restricted_batch_ids(
-            self.endpoint
+        self.db_version, self.access_controlled_batch_ids = (
+            BaseRester._get_hearbeat_info(self.endpoint)
         )
 
         if self.suffix:
@@ -231,8 +230,9 @@ class BaseRester:
 
     @staticmethod
     @cache
-    def _get_database_version(endpoint):
-        """The Materials Project database is periodically updated and has a
+    def _get_hearbeat_info(endpoint) -> tuple[str, str]:
+        """DB version:
+        The Materials Project database is periodically updated and has a
         database version associated with it. When the database is updated,
         consolidated data (information about "a material") may and does
         change, while calculation data about a specific calculation task
@@ -242,14 +242,8 @@ class BaseRester:
         where "_DD" may be optional. An additional numerical or `postN` suffix
         might be added if multiple releases happen on the same day.
 
-        Returns: database version as a string
-        """
-        return requests.get(url=endpoint + "heartbeat").json()["db_version"]
-
-    @staticmethod
-    @cache
-    def _get_access_restricted_batch_ids(endpoint):
-        """Certain contributions to the Materials Project have access
+        Access Controlled Datasets:
+        Certain contributions to the Materials Project have access
         control restrictions that require explicit agreement to the
         Terms of Use for the respective datasets prior to access being
         granted.
@@ -259,11 +253,12 @@ class BaseRester:
 
         https://next-gen.materialsproject.org/about/terms
 
-        Returns: a list of strings
+        Returns:
+            tuple with database version as a string and a comma separated
+            string with all calculation batch identifiers
         """
-        return requests.get(url=endpoint + "heartbeat").json()[
-            "access_controlled_batch_ids"
-        ]
+        response = requests.get(url=endpoint + "heartbeat").json()
+        return response["db_version"], response["access_controlled_batch_ids"]
 
     def _post_resource(
         self,
