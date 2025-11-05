@@ -585,7 +585,7 @@ class BaseRester:
                     )
 
                     controlled_batch_str = ",".join(
-                        [f"'{tag}'" for tag in SETTINGS.ACCESS_CONTROLLED_BATCH_IDS]
+                        [f"'{tag}'" for tag in self.access_controlled_batch_ids]
                     )
 
                     predicate = (
