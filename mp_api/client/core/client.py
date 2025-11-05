@@ -156,7 +156,7 @@ class BaseRester:
         (
             self.db_version,
             self.access_controlled_batch_ids,
-        ) = BaseRester._get_hearbeat_info(self.endpoint)
+        ) = BaseRester._get_heartbeat_info(self.endpoint)
 
         if self.suffix:
             self.endpoint = urljoin(self.endpoint, self.suffix)
@@ -231,7 +231,7 @@ class BaseRester:
 
     @staticmethod
     @cache
-    def _get_hearbeat_info(endpoint) -> tuple[str, str]:
+    def _get_heartbeat_info(endpoint) -> tuple[str, str]:
         """DB version:
         The Materials Project database is periodically updated and has a
         database version associated with it. When the database is updated,
