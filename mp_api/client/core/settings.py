@@ -50,6 +50,7 @@ class MAPIClientSettings(BaseSettings):
             "condition_mixing_media",
             "condition_heating_atmosphere",
             "operations",
+            "batch_id_neq_any",
             "_fields",
         ],
         description="List API query parameters that do not support parallel requests.",
