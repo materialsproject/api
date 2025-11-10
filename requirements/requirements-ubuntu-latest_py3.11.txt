@@ -12,9 +12,9 @@ bibtexparser==1.4.3
     # via pymatgen
 blake3==1.0.8
     # via emmet-core
-boto3==1.40.66
+boto3==1.40.67
     # via mp-api (pyproject.toml)
-botocore==1.40.66
+botocore==1.40.67
     # via
     #   boto3
     #   s3transfer
@@ -91,12 +91,12 @@ pyarrow==22.0.0
     # via mp-api (pyproject.toml)
 pybtex==0.25.1
     # via emmet-core
-pydantic==2.12.3
+pydantic==2.12.4
     # via
     #   emmet-core
     #   pydantic-settings
     #   pymatgen-io-validation
-pydantic-core==2.41.4
+pydantic-core==2.41.5
     # via pydantic
 pydantic-settings==2.11.0
     # via

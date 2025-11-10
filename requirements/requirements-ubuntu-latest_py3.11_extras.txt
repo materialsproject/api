@@ -28,9 +28,9 @@ blake3==1.0.8
     # via emmet-core
 boltons==25.0.0
     # via mpcontribs-client
-boto3==1.40.66
+boto3==1.40.67
     # via mp-api (pyproject.toml)
-botocore==1.40.66
+botocore==1.40.67
     # via
     #   boto3
     #   s3transfer
@@ -68,7 +68,7 @@ dnspython==2.8.0
     #   pymongo
 docutils==0.21.2
     # via sphinx
-emmet-core[all]==0.86.0rc1
+emmet-core[all]==0.86.0
     # via mp-api (pyproject.toml)
 execnet==2.1.1
     # via pytest-xdist
@@ -106,7 +106,7 @@ inflect==7.5.0
     # via robocrys
 iniconfig==2.3.0
     # via pytest
-ipython==9.6.0
+ipython==9.7.0
     # via mpcontribs-client
 ipython-pygments-lexers==1.1.1
     # via ipython
@@ -288,12 +288,12 @@ pycodestyle==2.14.0
     # via
     #   flake8
     #   mp-api (pyproject.toml)
-pydantic==2.12.3
+pydantic==2.12.4
     # via
     #   emmet-core
     #   pydantic-settings
     #   pymatgen-io-validation
-pydantic-core==2.41.4
+pydantic-core==2.41.5
     # via pydantic
 pydantic-settings==2.11.0
     # via
