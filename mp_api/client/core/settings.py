@@ -1,6 +1,6 @@
 import os
-import pathlib
 from multiprocessing import cpu_count
+from pathlib import Path
 from typing import List
 
 from pydantic import Field
@@ -89,8 +89,8 @@ class MAPIClientSettings(BaseSettings):
         _MAX_LIST_LENGTH, description="Maximum length of query parameter list"
     )
 
-    LOCAL_DATASET_CACHE: str = Field(
-        pathlib.Path("~/mp_datasets").expanduser(),
+    LOCAL_DATASET_CACHE: Path = Field(
+        Path("~/mp_datasets").expanduser(),
         description="Target directory for downloading full datasets",
     )
 
