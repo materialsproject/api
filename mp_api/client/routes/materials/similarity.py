@@ -1,15 +1,30 @@
 from __future__ import annotations
 
-from emmet.core.similarity import SimilarityDoc
+from typing import TYPE_CHECKING
 
-from mp_api.client.core import BaseRester
+from emmet.core.mpid import MPID, AlphaID
+from emmet.core.similarity import CrystalNNSimilarity, SimilarityDoc, SimilarityEntry
+
+from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
+
+if TYPE_CHECKING:
+    from emmet.core.similarity import SimilarityScorer
+    from pymatgen.core import Structure
 
 
 class SimilarityRester(BaseRester):
     suffix = "materials/similarity"
     document_model = SimilarityDoc  # type: ignore
     primary_key = "material_id"
+
+    _fingerprinter: SimilarityScorer | None = None
+
+    @property
+    def fingerprinter(self, structure: Structure) -> list[float]:
+        if self._fingerprinter is None:
+            self._fingerprinter = CrystalNNSimilarity()
+        return self._fingerprinter()._featurize_structure(structure).tolist()
 
     def search(
         self,
@@ -53,3 +68,60 @@ class SimilarityRester(BaseRester):
             fields=fields,
             **query_params,
         )
+
+    def find_similar(
+        self,
+        structure_or_mpid: Structure | str | MPID | AlphaID,
+        num_chunks: int | None = None,
+        chunk_size: int | None = 1000,
+    ) -> list[SimilarityEntry] | list[dict]:
+        """Find structures similar to a user-submitted structure.
+
+        Arguments:
+            structure_or_mpid : pymatgen .Structure, or str, MPID, AlphaID
+                If a .Structure, the feature vector is computed on the fly
+                If a str, MPID, or AlphaID, attempts to retrieve a pre-computed
+                feature vector using the input as a material ID
+            num_chunks (int or None): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int or None): Number of data entries per chunk.
+
+        Returns:
+            ([SimilarityEntry] | [dict]) List of SimilarityEntry documents
+            (if `use_document_model`) or dict (otherwise) listing
+            structures most similar to the input structure.
+        """
+        if isinstance(structure_or_mpid, str | MPID | AlphaID):
+            fmt_idx = AlphaID(structure_or_mpid).string
+
+            docs = self.search(material_ids=[fmt_idx], fields=["feature_vector"])
+            if not docs:
+                raise MPRestError(f"No similarity data available for {fmt_idx}")
+            feature_vector = docs[0]["feature_vector"]
+        else:
+            feature_vector = self.fingerprinter(structure_or_mpid)
+
+        result = self._query_resource(
+            criteria={"feature_vector": feature_vector, "_limit": chunk_size},
+            suburl="match",
+            use_document_model=False,  # Return type is not exactly a SimilarityDoc, closer to SimilarityEntry
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
+        ).get("data", None)
+
+        if result is None:
+            raise MPRestError(
+                "Could not find any structures similar to the input structure."
+            )
+
+        sim_docs = [
+            {
+                "formula": entry["formula_pretty"],
+                "task_id": entry["material_id"],
+                "dissimilarity": 100 * (1.0 - entry["score"]),
+            }
+            for entry in result
+        ]
+
+        if self.use_document_model:
+            return [SimilarityEntry(**doc) for doc in sim_docs]
+        return sim_docs
