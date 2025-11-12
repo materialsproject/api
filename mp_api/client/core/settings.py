@@ -1,4 +1,5 @@
 import os
+import pathlib
 from multiprocessing import cpu_count
 from typing import List
 
@@ -89,7 +90,7 @@ class MAPIClientSettings(BaseSettings):
     )
 
     LOCAL_DATASET_CACHE: str = Field(
-        os.path.expanduser("~") + "/mp_datasets",
+        pathlib.Path("~/mp_datasets").expanduser(),
         description="Target directory for downloading full datasets",
     )
 
