@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools
 import os
 import warnings
+from collections import defaultdict
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 
@@ -419,11 +420,7 @@ class MPRester:
         if not tasks:
             return []
 
-        calculations = (
-            tasks[0].calc_types  # type: ignore
-            if self.use_document_model
-            else tasks[0]["calc_types"]  # type: ignore
-        )
+        calculations = tasks[0]["calc_types"]
 
         if calc_types:
             return [
@@ -431,8 +428,7 @@ class MPRester:
                 for task, calc_type in calculations.items()
                 if calc_type in calc_types
             ]
-        else:
-            return list(calculations.keys())
+        return list(calculations.keys())
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True, conventional_unit_cell: bool = False
@@ -534,11 +530,7 @@ class MPRester:
             List of BibTeX references ([str])
         """
         docs = self.materials.provenance.search(material_ids=material_id)
-
-        if not docs:
-            return []
-
-        return docs[0].references if self.use_document_model else docs[0]["references"]  # type: ignore
+        return docs[0]["references"] if docs else []
 
     def get_material_ids(
         self,
@@ -553,17 +545,16 @@ class MPRester:
         Returns:
             List of all materials ids ([MPID])
         """
+        inp_k = "formula"
         if isinstance(chemsys_formula, list) or (
             isinstance(chemsys_formula, str) and "-" in chemsys_formula
         ):
-            input_params = {"chemsys": chemsys_formula}
-        else:
-            input_params = {"formula": chemsys_formula}
+            inp_k = "chemsys"
 
         return sorted(
-            doc.material_id if self.use_document_model else doc["material_id"]  # type: ignore
+            doc["material_id"]
             for doc in self.materials.search(
-                **input_params,  # type: ignore
+                **{inp_k: chemsys_formula},
                 all_fields=False,
                 fields=["material_id"],
             )
@@ -596,10 +587,8 @@ class MPRester:
                 all_fields=False,
                 fields=["structure"],
             )
-            if not self.use_document_model:
-                return [doc["structure"] for doc in docs]  # type: ignore
 
-            return [doc.structure for doc in docs]  # type: ignore
+            return [doc["structure"] for doc in docs]
         else:
             structures = []
 
@@ -608,12 +597,7 @@ class MPRester:
                 all_fields=False,
                 fields=["initial_structures"],
             ):
-                initial_structures = (
-                    doc.initial_structures  # type: ignore
-                    if self.use_document_model
-                    else doc["initial_structures"]  # type: ignore
-                )
-                structures.extend(initial_structures)
+                structures.extend(doc["initial_structures"])
 
             return structures
 
@@ -718,7 +702,7 @@ class MPRester:
         if additional_criteria:
             input_params = {**input_params, **additional_criteria}
 
-        entries = []
+        entries: set[ComputedStructureEntry] = set()
 
         fields = (
             ["entries", "thermo_type"]
@@ -733,24 +717,17 @@ class MPRester:
         )
 
         for doc in docs:
-            entry_list = (
-                doc.entries.values()  # type: ignore
-                if self.use_document_model
-                else doc["entries"].values()  # type: ignore
-            )
+            entry_list = doc["entries"].values()
             for entry in entry_list:
-                entry_dict: dict = entry.as_dict() if self.monty_decode else entry  # type: ignore
+                entry_dict: dict = entry.as_dict() if hasattr(entry, "as_dict") else entry  # type: ignore
                 if not compatible_only:
                     entry_dict["correction"] = 0.0
                     entry_dict["energy_adjustments"] = []
 
                 if property_data:
-                    for property in property_data:
-                        entry_dict["data"][property] = (
-                            doc.model_dump()[property]  # type: ignore
-                            if self.use_document_model
-                            else doc[property]  # type: ignore
-                        )
+                    entry_dict["data"] = {
+                        property: doc[property] for property in property_data
+                    }
 
                 if conventional_unit_cell:
                     entry_struct = Structure.from_dict(entry_dict["structure"])
@@ -771,15 +748,10 @@ class MPRester:
                         if "n_atoms" in correction:
                             correction["n_atoms"] *= site_ratio
 
-                entry = (
-                    ComputedStructureEntry.from_dict(entry_dict)
-                    if self.monty_decode
-                    else entry_dict
-                )
+                # Need to store object to permit de-duplication
+                entries.add(ComputedStructureEntry.from_dict(entry_dict))
 
-                entries.append(entry)
-
-        return entries
+        return [e if self.monty_decode else e.as_dict() for e in entries]
 
     def get_pourbaix_entries(
         self,
@@ -1310,9 +1282,7 @@ class MPRester:
         if not doc:
             return None
 
-        surfaces: list = (
-            doc[0].surfaces if self.use_document_model else doc[0]["surfaces"]  # type: ignore
-        )
+        surfaces: list = doc[0]["surfaces"]
 
         lattice = (
             SpacegroupAnalyzer(structure).get_conventional_standard_structure().lattice
@@ -1382,17 +1352,8 @@ class MPRester:
         if len(results) == 0:
             return None
 
-        latest_doc = max(  # type: ignore
-            results,
-            key=lambda x: (
-                x.last_updated  # type: ignore
-                if self.use_document_model
-                else x["last_updated"]
-            ),  # type: ignore
-        )
-        task_id = (
-            latest_doc.task_id if self.use_document_model else latest_doc["task_id"]
-        )
+        latest_doc = max(results, key=lambda x: x["last_updated"])
+        task_id = latest_doc["task_id"]
         return self.get_charge_density_from_task_id(task_id, inc_task_doc)
 
     def get_download_info(self, material_ids, calc_types=None, file_patterns=None):
@@ -1414,20 +1375,17 @@ class MPRester:
             else []
         )
 
-        meta = {}
+        meta = defaultdict(list)
         for doc in self.materials.search(  # type: ignore
             task_ids=material_ids,
             fields=["calc_types", "deprecated_tasks", "material_id"],
         ):
-            doc_dict: dict = doc.model_dump() if self.use_document_model else doc  # type: ignore
-            for task_id, calc_type in doc_dict["calc_types"].items():
+            for task_id, calc_type in doc["calc_types"].items():
                 if calc_types and calc_type not in calc_types:
                     continue
-                mp_id = doc_dict["material_id"]
-                if meta.get(mp_id) is None:
-                    meta[mp_id] = [{"task_id": task_id, "calc_type": calc_type}]
-                else:
-                    meta[mp_id].append({"task_id": task_id, "calc_type": calc_type})
+                mp_id = doc["material_id"]
+                meta[mp_id].append({"task_id": task_id, "calc_type": calc_type})
+
         if not meta:
             raise ValueError(f"No tasks found for material id {material_ids}.")
 
