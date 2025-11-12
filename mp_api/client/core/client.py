@@ -545,8 +545,8 @@ class BaseRester:
                 bucket = f"materialsproject-{bucket_suffix}"
 
                 if self.delta_backed:
-                    target_path = (
-                        self.local_dataset_cache + f"/{bucket_suffix}/{prefix}"
+                    target_path = str(
+                        self.local_dataset_cache.joinpath(f"{bucket_suffix}/{prefix}")
                     )
                     os.makedirs(target_path, exist_ok=True)
 
