@@ -677,7 +677,6 @@ class BaseRester:
                         "delta-io.github.io/delta-rs/, arrow.apache.org/docs/python/"
                     )
 
-
                     return {
                         "data": MPDataset(
                             path=target_path,
