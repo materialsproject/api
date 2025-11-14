@@ -95,8 +95,8 @@ class MAPIClientSettings(BaseSettings):
     )
 
     DATASET_FLUSH_THRESHOLD: int = Field(
-        100000,
-        description="Threshold number of rows to accumulate in memory before flushing dataset to disk",
+        int(2.75 * 1024**3),
+        description="Threshold bytes to accumulate in memory before flushing dataset to disk",
     )
 
     model_config = SettingsConfigDict(env_prefix="MPRESTER_")

@@ -637,9 +637,10 @@ class BaseRester:
                     accumulator = []
                     for page in iterator:
                         # arro3 rb to pyarrow rb for compat w/ pyarrow ds writer
-                        accumulator.append(pa.record_batch(page))
+                        rg = pa.record_batch(page)
+                        accumulator.append(rg)
                         page_size = page.num_rows
-                        size += page_size
+                        size += rg.get_total_buffer_size()
 
                         if pbar is not None:
                             pbar.update(page_size)
