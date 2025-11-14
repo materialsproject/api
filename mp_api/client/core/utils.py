@@ -173,15 +173,21 @@ class MPDataset:
         return len(self._row_groups)
 
     def __getitem__(self, idx):
-        return list(
-            map(
-                lambda x: self._document_model(**x) if self._use_document_model else x,
-                self._row_groups[idx].to_table().to_pylist(maps_as_pydicts="strict"),
+        if isinstance(idx, slice):
+            start, stop, step = idx.indices(len(self))
+            _take = list(range(start, stop, step))
+            ds_slice = self._dataset.take(_take).to_pylist(maps_as_pydicts="strict")
+            return (
+                [self._document_model(**_row) for _row in ds_slice]
+                if self._use_document_model
+                else ds_slice
             )
-        )
+
+        _row = self._dataset.take([idx]).to_pylist(maps_as_pydicts="strict")[0]
+        return self._document_model(**_row) if self._use_document_model else _row
 
     def __len__(self) -> int:
-        return self.num_chunks
+        return self._dataset.count_rows()
 
     def __iter__(self):
         current = self._start
