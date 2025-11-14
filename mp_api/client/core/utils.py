@@ -191,6 +191,6 @@ class MPDataset:
 
     def __iter__(self):
         current = self._start
-        while current < self.num_chunks:
+        while current < len(self):
             yield self[current]
             current += 1
