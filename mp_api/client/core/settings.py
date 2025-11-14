@@ -1,5 +1,6 @@
 import os
 from multiprocessing import cpu_count
+from pathlib import Path
 from typing import List
 
 from pydantic import Field
@@ -50,6 +51,7 @@ class MAPIClientSettings(BaseSettings):
             "condition_mixing_media",
             "condition_heating_atmosphere",
             "operations",
+            "batch_id_neq_any",
             "_fields",
         ],
         description="List API query parameters that do not support parallel requests.",
@@ -85,6 +87,16 @@ class MAPIClientSettings(BaseSettings):
 
     MAX_LIST_LENGTH: int = Field(
         _MAX_LIST_LENGTH, description="Maximum length of query parameter list"
+    )
+
+    LOCAL_DATASET_CACHE: Path = Field(
+        Path("~/mp_datasets").expanduser(),
+        description="Target directory for downloading full datasets",
+    )
+
+    DATASET_FLUSH_THRESHOLD: int = Field(
+        int(2.75 * 1024**3),
+        description="Threshold bytes to accumulate in memory before flushing dataset to disk",
     )
 
     model_config = SettingsConfigDict(env_prefix="MPRESTER_")

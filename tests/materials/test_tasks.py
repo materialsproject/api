@@ -1,8 +1,9 @@
 import os
-from core_function import client_search_testing
-import pytest
 
+import pytest
+from core_function import client_search_testing
 from emmet.core.utils import utcnow
+
 from mp_api.client.routes.materials.tasks import TaskRester
 
 
@@ -53,7 +54,6 @@ def test_client(rester):
 
 
 def test_get_trajectories(rester):
-    trajectories = [traj for traj in rester.get_trajectory("mp-149")]
+    trajectory = rester.get_trajectory("mp-149")
 
-    for traj in trajectories:
-        assert ("@module", "pymatgen.core.trajectory") in traj.items()
+    assert trajectory["@module"] == "pymatgen.core.trajectory"

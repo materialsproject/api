@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import re
+from functools import cached_property
+from itertools import chain
 from typing import TYPE_CHECKING, Literal
 
 import orjson
+import pyarrow.dataset as ds
+from deltalake import DeltaTable
 from emmet.core import __version__ as _EMMET_CORE_VER
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
+from pydantic._internal._model_construction import ModelMetaclass
 
 from mp_api.client.core.settings import MAPIClientSettings
 
@@ -124,3 +129,68 @@ def allow_msonable_dict(monty_cls: type[MSONable]):
     monty_cls.validate_monty_v2 = classmethod(validate_monty)
 
     return monty_cls
+
+
+class MPDataset:
+    def __init__(self, path, document_model, use_document_model):
+        """Convenience wrapper for pyarrow datasets stored on disk."""
+        self._start = 0
+        self._path = path
+        self._document_model = document_model
+        self._dataset = ds.dataset(path)
+        self._row_groups = list(
+            chain.from_iterable(
+                [
+                    fragment.split_by_row_group()
+                    for fragment in self._dataset.get_fragments()
+                ]
+            )
+        )
+        self._use_document_model = use_document_model
+
+    @property
+    def pyarrow_dataset(self) -> ds.Dataset:
+        return self._dataset
+
+    @property
+    def pydantic_model(self) -> ModelMetaclass:
+        return self._document_model
+
+    @property
+    def use_document_model(self) -> bool:
+        return self._use_document_model
+
+    @use_document_model.setter
+    def use_document_model(self, value: bool):
+        self._use_document_model = value
+
+    @cached_property
+    def delta_table(self) -> DeltaTable:
+        return DeltaTable(self._path)
+
+    @cached_property
+    def num_chunks(self) -> int:
+        return len(self._row_groups)
+
+    def __getitem__(self, idx):
+        if isinstance(idx, slice):
+            start, stop, step = idx.indices(len(self))
+            _take = list(range(start, stop, step))
+            ds_slice = self._dataset.take(_take).to_pylist(maps_as_pydicts="strict")
+            return (
+                [self._document_model(**_row) for _row in ds_slice]
+                if self._use_document_model
+                else ds_slice
+            )
+
+        _row = self._dataset.take([idx]).to_pylist(maps_as_pydicts="strict")[0]
+        return self._document_model(**_row) if self._use_document_model else _row
+
+    def __len__(self) -> int:
+        return self._dataset.count_rows()
+
+    def __iter__(self):
+        current = self._start
+        while current < len(self):
+            yield self[current]
+            current += 1
