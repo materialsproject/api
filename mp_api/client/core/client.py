@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import inspect
 import itertools
+import logging
 import os
 import platform
 import shutil
@@ -61,6 +62,14 @@ except PackageNotFoundError:  # pragma: no cover
 
 
 SETTINGS = MAPIClientSettings()  # type: ignore
+
+hdlr = logging.StreamHandler()
+fmt = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
+hdlr.setFormatter(fmt)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(hdlr)
 
 
 class _DictLikeAccess(BaseModel):
@@ -553,16 +562,17 @@ class BaseRester:
                     if DeltaTable.is_deltatable(target_path):
                         if self.force_renew:
                             shutil.rmtree(target_path)
-                            warnings.warn(
-                                f"Regenerating {suffix} dataset at {target_path}...",
-                                MPLocalDatasetWarning,
+                            logger.warning(
+                                f"Regenerating {suffix} dataset at {target_path}..."
                             )
                             os.makedirs(target_path, exist_ok=True)
                         else:
-                            warnings.warn(
-                                f"Dataset for {suffix} already exists at {target_path}, delete or move existing dataset "
-                                "or re-run search query with MPRester(force_renew=True)",
-                                MPLocalDatasetWarning,
+                            logger.warning(
+                                f"Dataset for {suffix} already exists at {target_path}, returning existing dataset."
+                            )
+                            logger.info(
+                                "Delete or move existing dataset or re-run search query with MPRester(force_renew=True) "
+                                "to refresh local dataset.",
                             )
 
                             return {
@@ -654,14 +664,19 @@ class BaseRester:
                     if accumulator:
                         _flush(accumulator, group + 1)
 
+                    if pbar is not None:
+                        pbar.close()
+
+                    logger.info(f"Dataset for {suffix} written to {target_path}")
+                    logger.info("Converting to DeltaTable...")
+
                     convert_to_deltalake(target_path)
 
-                    warnings.warn(
-                        f"Dataset for {suffix} written to {target_path}. It is recommended to optimize "
-                        "the table according to your usage patterns prior to running intensive workloads, "
-                        "see: https://delta-io.github.io/delta-rs/delta-lake-best-practices/#optimizing-table-layout",
-                        MPLocalDatasetWarning,
+                    logger.info(
+                        "Consult the delta-rs and pyarrow documentation for advanced usage: "
+                        "delta-io.github.io/delta-rs/, arrow.apache.org/docs/python/"
                     )
+
 
                     return {
                         "data": MPDataset(
@@ -1537,7 +1552,3 @@ class MPRestError(Exception):
 
 class MPRestWarning(Warning):
     """Raised when a query is malformed but interpretable."""
-
-
-class MPLocalDatasetWarning(Warning):
-    """Raised when unrecoverable actions are performed on a local dataset."""
