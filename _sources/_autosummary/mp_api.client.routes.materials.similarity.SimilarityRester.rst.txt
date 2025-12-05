@@ -18,6 +18,8 @@ mp\_api.client.routes.materials.similarity.SimilarityRester
    
       ~SimilarityRester.__init__
       ~SimilarityRester.count
+      ~SimilarityRester.find_similar
+      ~SimilarityRester.fingerprint_structure
       ~SimilarityRester.get_data_by_id
       ~SimilarityRester.search
    
