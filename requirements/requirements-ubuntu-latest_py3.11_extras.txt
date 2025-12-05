@@ -62,7 +62,7 @@ dnspython==2.8.0
     #   pymongo
 docutils==0.21.2
     # via sphinx
-emmet-core[all]==0.86.0
+emmet-core[all]==0.86.2rc0
     # via mp-api (pyproject.toml)
 execnet==2.1.1
     # via pytest-xdist

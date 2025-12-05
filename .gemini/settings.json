@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "Materials_Project_MCP": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--project",
+        "/Users/aaronkaplan/Library/CloudStorage/Dropbox/mp_soft_engr/software/mp_api",
+        "--with",
+        "fastmcp",
+        "--with-requirements",
+        "/Users/aaronkaplan/Library/CloudStorage/Dropbox/mp_soft_engr/software/mp_api/requirements/requirements-ubuntu-latest_py3.12_extras.txt",
+        "fastmcp",
+        "run",
+        "/Users/aaronkaplan/Library/CloudStorage/Dropbox/mp_soft_engr/software/mp_api/mp_api/mcp/server.py"
+      ]
+    }
+  }
+}

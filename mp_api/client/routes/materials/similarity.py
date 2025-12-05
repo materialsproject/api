@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import zlib
 from typing import TYPE_CHECKING
 
+import numpy as np
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.similarity import CrystalNNSimilarity, SimilarityDoc, SimilarityEntry
+from pymatgen.core import Composition
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
@@ -101,7 +104,12 @@ class SimilarityRester(BaseRester):
             feature_vector = self.fingerprinter(structure_or_mpid)
 
         result = self._query_resource(
-            criteria={"feature_vector": feature_vector, "_limit": chunk_size},
+            criteria={
+                "feature_vector_hex": zlib.compress(
+                    np.array(feature_vector).tobytes()
+                ).hex(),
+                "_limit": chunk_size,
+            },
             suburl="match",
             use_document_model=False,  # Return type is not exactly a SimilarityDoc, closer to SimilarityEntry
             chunk_size=chunk_size,
@@ -117,6 +125,7 @@ class SimilarityRester(BaseRester):
             {
                 "formula": entry["formula_pretty"],
                 "task_id": entry["material_id"],
+                "nelements": len(Composition(entry["formula_pretty"]).elements),
                 "dissimilarity": 100 * (1.0 - entry["score"]),
             }
             for entry in result
