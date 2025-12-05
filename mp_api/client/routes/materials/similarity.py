@@ -6,14 +6,16 @@ from typing import TYPE_CHECKING
 import numpy as np
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.similarity import CrystalNNSimilarity, SimilarityDoc, SimilarityEntry
-from pymatgen.core import Composition
+from pymatgen.core import Composition, Structure
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
     from emmet.core.similarity import SimilarityScorer
-    from pymatgen.core import Structure
+
+# This limit seems to be associated with MongoDB vector search
+MAX_VECTOR_SEARCH_RESULTS = 10_000
 
 
 class SimilarityRester(BaseRester):
@@ -23,11 +25,15 @@ class SimilarityRester(BaseRester):
 
     _fingerprinter: SimilarityScorer | None = None
 
-    @property
-    def fingerprinter(self, structure: Structure) -> list[float]:
+    def fingerprint_structure(self, structure: Structure) -> np.ndarray:
+        """Get the fingerprint of a user-submitted structures."""
         if self._fingerprinter is None:
             self._fingerprinter = CrystalNNSimilarity()
-        return self._fingerprinter()._featurize_structure(structure).tolist()
+        return self._fingerprinter._featurize_structure(structure)
+
+    def _get_hex_fingerprint(self, feature_vetor: np.ndarray) -> str:
+        """Convert feature vector fingerprint to compressed hex str."""
+        return zlib.compress(feature_vetor.tobytes()).hex()
 
     def search(
         self,
@@ -75,18 +81,24 @@ class SimilarityRester(BaseRester):
     def find_similar(
         self,
         structure_or_mpid: Structure | str | MPID | AlphaID,
+        top: int | None = 50,
         num_chunks: int | None = None,
         chunk_size: int | None = 1000,
     ) -> list[SimilarityEntry] | list[dict]:
-        """Find structures similar to a user-submitted structure.
+        """Find structures most similar to a user-submitted structure.
 
         Arguments:
             structure_or_mpid : pymatgen .Structure, or str, MPID, AlphaID
                 If a .Structure, the feature vector is computed on the fly
                 If a str, MPID, or AlphaID, attempts to retrieve a pre-computed
                 feature vector using the input as a material ID
+            top : int
+                The number of most similar materials to return, defaults to 50.
+                Setting to None will return the maximum possible number of
+                most similar materials..
             num_chunks (int or None): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int or None): Number of data entries per chunk.
+                The chunk_size is also used to limit the number of responses returned.
 
         Returns:
             ([SimilarityEntry] | [dict]) List of SimilarityEntry documents
@@ -100,15 +112,24 @@ class SimilarityRester(BaseRester):
             if not docs:
                 raise MPRestError(f"No similarity data available for {fmt_idx}")
             feature_vector = docs[0]["feature_vector"]
+
+        elif isinstance(structure_or_mpid, Structure):
+            feature_vector = self.fingerprint_structure(structure_or_mpid)
+
         else:
-            feature_vector = self.fingerprinter(structure_or_mpid)
+            raise ValueError("Please submit a pymatgen Structure or MP ID.")
+
+        top = top or MAX_VECTOR_SEARCH_RESULTS
+        if not isinstance(top, int) or top < 1:
+            raise ValueError(
+                f"Invalid number of possible top matches specified = {top}."
+                "Please specify a positive integer or `None` to return all results."
+            )
 
         result = self._query_resource(
             criteria={
-                "feature_vector_hex": zlib.compress(
-                    np.array(feature_vector).tobytes()
-                ).hex(),
-                "_limit": chunk_size,
+                "feature_vector_hex": self._get_hex_fingerprint(feature_vector),
+                "_limit": top,
             },
             suburl="match",
             use_document_model=False,  # Return type is not exactly a SimilarityDoc, closer to SimilarityEntry
