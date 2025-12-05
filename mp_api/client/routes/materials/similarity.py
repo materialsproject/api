@@ -1,17 +1,21 @@
 from __future__ import annotations
 
-import zlib
 from typing import TYPE_CHECKING
 
-import numpy as np
 from emmet.core.mpid import MPID, AlphaID
-from emmet.core.similarity import CrystalNNSimilarity, SimilarityDoc, SimilarityEntry
+from emmet.core.similarity import (
+    CrystalNNSimilarity,
+    SimilarityDoc,
+    SimilarityEntry,
+    _vector_to_hex_and_norm,
+)
 from pymatgen.core import Composition, Structure
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
+    import numpy as np
     from emmet.core.similarity import SimilarityScorer
 
 # This limit seems to be associated with MongoDB vector search
@@ -30,10 +34,6 @@ class SimilarityRester(BaseRester):
         if self._fingerprinter is None:
             self._fingerprinter = CrystalNNSimilarity()
         return self._fingerprinter._featurize_structure(structure)
-
-    def _get_hex_fingerprint(self, feature_vetor: np.ndarray) -> str:
-        """Convert feature vector fingerprint to compressed hex str."""
-        return zlib.compress(feature_vetor.tobytes()).hex()
 
     def search(
         self,
@@ -126,9 +126,11 @@ class SimilarityRester(BaseRester):
                 "Please specify a positive integer or `None` to return all results."
             )
 
+        vector_hex, vector_norm = _vector_to_hex_and_norm(feature_vector)
         result = self._query_resource(
             criteria={
-                "feature_vector_hex": self._get_hex_fingerprint(feature_vector),
+                "feature_vector_hex": vector_hex,
+                "feature_vector_norm": vector_norm,
                 "_limit": top,
             },
             suburl="match",
