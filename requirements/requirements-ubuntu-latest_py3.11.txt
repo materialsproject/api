@@ -24,7 +24,7 @@ contourpy==1.3.3
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
-emmet-core==0.86.0
+emmet-core==0.86.2rc1
     # via mp-api (pyproject.toml)
 fonttools==4.60.1
     # via matplotlib
