@@ -77,7 +77,6 @@ def test_conversion_client(conversion_rester):
         custom_field_tests={
             "battery_ids": ["mp-1067_Al"],
             "working_ion": Element("Li"),
-            "exclude_elements": ["Co", "O"],
         },
         sub_doc_fields=sub_doc_fields,
     )

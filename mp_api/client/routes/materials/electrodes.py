@@ -173,4 +173,5 @@ class ConversionElectrodeRester(BaseElectrodeRester):
         "elements",
         "stability_charge",
         "stability_discharge",
+        "exclude_elements",
     ]
