@@ -24,6 +24,10 @@ def _compare_emmet_ver(
         _compare_emmet_ver("0.84.0rc0","<") returns
         emmet.core.__version__ < "0.84.0rc0"
 
+    This function may not be used anywhere in the client, but it should
+    be preserved for future use, in case some degree of backwards
+    compatibility or feature buy-in is needed.
+
     Parameters
     -----------
     ref_version : str
