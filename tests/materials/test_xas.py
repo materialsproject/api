@@ -31,20 +31,21 @@ alt_name_dict = {
     "required_elements": "elements",
     "formula": "formula_pretty",
     "exclude_elements": "material_id",
+    "spectrum_ids": "spectrum_id"
 }  # type: dict
 
 custom_field_tests = {
-    "edge": XasEdge.L2_3,
+    "edge": XasEdge.L2,
     "spectrum_type": XasType.EXAFS,
     "absorbing_element": Element("Ce"),
     "required_elements": [Element("Ce")],
     "formula": "Ce(WO4)2",
     "chemsys": "Ce-O-W",
     "elements": ["Ce"],
+    "spectrum_ids": ["mp-1194531-XANES-Fe-L2","mp-1194531-XANES-Fe-K"],
 }  # type: dict
 
 
-@pytest.mark.skip(reason="Temp skip until timeout update.")
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 def test_client(rester):
     search_method = rester.search
