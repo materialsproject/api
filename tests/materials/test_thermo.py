@@ -2,16 +2,10 @@ import os
 from core_function import client_search_testing
 
 import pytest
+from emmet.core.types.enums import ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 from mp_api.client.routes.materials.thermo import ThermoRester
-from mp_api.client.core.utils import _compare_emmet_ver
-
-if _compare_emmet_ver("0.85.0", ">="):
-    from emmet.core.types.enums import ThermoType
-else:
-    from emmet.core.thermo import ThermoType
-
 
 @pytest.fixture
 def rester():

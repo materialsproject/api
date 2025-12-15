@@ -4,16 +4,12 @@ from collections import defaultdict
 
 import numpy as np
 from emmet.core.thermo import ThermoDoc
+from emmet.core.types.enums import ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import _compare_emmet_ver, load_json, validate_ids
-
-if _compare_emmet_ver("0.85.0", ">="):
-    from emmet.core.types.enums import ThermoType
-else:
-    from emmet.core.thermo import ThermoType
+from mp_api.client.core.utils import load_json, validate_ids
 
 
 class ThermoRester(BaseRester):

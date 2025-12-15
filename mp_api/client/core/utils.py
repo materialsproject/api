@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 import orjson
 from emmet.core import __version__ as _EMMET_CORE_VER
+from emmet.core.mpid_ext import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
@@ -34,13 +35,6 @@ def _compare_emmet_ver(
         parse_version(_EMMET_CORE_VER),
         f"__{op_to_op.get(op,op)}__",
     )(parse_version(ref_version))
-
-
-if _compare_emmet_ver("0.85.0", ">="):
-    from emmet.core.mpid_ext import validate_identifier
-else:
-    validate_identifier = None
-
 
 def load_json(json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"):
     """Utility to load json in consistent manner."""

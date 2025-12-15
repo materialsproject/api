@@ -9,17 +9,7 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
-    from mp_api.client.core.utils import _compare_emmet_ver
-
-    if _compare_emmet_ver("0.85.0", ">="):
-        from emmet.core.types.enums import XasEdge, XasType
-    else:
-        from emmet.core.xas import (
-            Edge as XasEdge,
-        )
-        from emmet.core.xas import (
-            Type as XasType,
-        )
+   from emmet.core.types.enums import XasEdge, XasType
 
 
 class XASRester(BaseRester):
