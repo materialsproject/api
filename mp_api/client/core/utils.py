@@ -44,27 +44,7 @@ def load_json(json_like: str | bytes, deser: bool = False, encoding: str = "utf-
     return MontyDecoder().process_decoded(data) if deser else data
 
 
-def _legacy_id_validation(id_list: list[str]) -> list[str]:
-    """Legacy utility to validate IDs, pre-AlphaID transition.
-
-    This function is temporarily maintained to allow for
-    backwards compatibility with older versions of emmet, and will
-    not be preserved.
-    """
-    pattern = "(mp|mvc|mol|mpcule)-.*"
-    if malformed_ids := {
-        entry for entry in id_list if re.match(pattern, entry) is None
-    }:
-        raise ValueError(
-            f"{'Entry' if len(malformed_ids) == 1 else 'Entries'}"
-            f" {', '.join(malformed_ids)}"
-            f"{'is' if len(malformed_ids) == 1 else 'are'} not formatted correctly!"
-        )
-
-    return id_list
-
-
-def validate_ids(id_list: list[str]):
+def validate_ids(id_list: list[str]) -> list[str]:
     """Function to validate material and task IDs.
 
     Args:
@@ -85,6 +65,4 @@ def validate_ids(id_list: list[str]):
     # TODO: after the transition to AlphaID in the document models,
     # The following line should be changed to
     # return [validate_identifier(idx,serialize=True) for idx in id_list]
-    if validate_identifier:
-        return [str(validate_identifier(idx)) for idx in id_list]
-    return _legacy_id_validation(id_list)
+    return [validate_identifier(idx).string for idx in id_list]
