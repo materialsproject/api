@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import numpy as np
 from emmet.core.phonon import PhononBS, PhononBSDOSDoc, PhononDOS
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
+
+if TYPE_CHECKING:
+    from typing import Any
+    from emmet.core.math import Matrix3D
 
 
 class PhononRester(BaseRester):
@@ -63,7 +68,7 @@ class PhononRester(BaseRester):
             **query_params,
         )
 
-    def get_bandstructure_from_material_id(self, material_id: str, phonon_method: str):
+    def get_bandstructure_from_material_id(self, material_id: str, phonon_method: str) -> PhononBS | dict[str,Any]:
         """Get the phonon band structure pymatgen object associated with a given material ID and phonon method.
 
         Arguments:
@@ -73,10 +78,13 @@ class PhononRester(BaseRester):
         Returns:
             bandstructure (PhononBS): PhononBS object
         """
-        result = self._query_open_data(
-            bucket="materialsproject-parsed",
-            key=f"ph-bandstructures/{phonon_method}/{material_id}.json.gz",
-        )[0]
+        try:
+            result = self._query_open_data(
+                bucket="materialsproject-parsed",
+                key=f"ph-bandstructures/{phonon_method}/{material_id}.json.gz",
+            )[0]
+        except OSError:
+            result = None
 
         if not result or not result[0]:
             raise MPRestError("No object found")
@@ -86,7 +94,7 @@ class PhononRester(BaseRester):
 
         return result[0]
 
-    def get_dos_from_material_id(self, material_id: str, phonon_method: str):
+    def get_dos_from_material_id(self, material_id: str, phonon_method: str) -> PhononDOS | dict[str,Any]:
         """Get the phonon dos pymatgen object associated with a given material ID and phonon method.
 
         Arguments:
@@ -96,10 +104,13 @@ class PhononRester(BaseRester):
         Returns:
             dos (PhononDOS): PhononDOS object
         """
-        result = self._query_open_data(
-            bucket="materialsproject-parsed",
-            key=f"ph-dos/{phonon_method}/{material_id}.json.gz",
-        )[0]
+        try:
+            result = self._query_open_data(
+                bucket="materialsproject-parsed",
+                key=f"ph-dos/{phonon_method}/{material_id}.json.gz",
+            )[0]
+        except OSError:
+            result = None
 
         if not result or not result[0]:
             raise MPRestError("No object found")
@@ -109,7 +120,7 @@ class PhononRester(BaseRester):
 
         return result[0]
 
-    def get_forceconstants_from_material_id(self, material_id: str):
+    def get_forceconstants_from_material_id(self, material_id: str) -> list[list[Matrix3D]]:
         """Get the force constants associated with a given material ID.
 
         Arguments:
@@ -118,10 +129,13 @@ class PhononRester(BaseRester):
         Returns:
             force constants (list[list[Matrix3D]]): PhononDOS object
         """
-        result = self._query_open_data(
-            bucket="materialsproject-parsed",
-            key=f"ph-force-constants/{material_id}.json.gz",
-        )[0]
+        try:
+            result = self._query_open_data(
+                bucket="materialsproject-parsed",
+                key=f"ph-force-constants/{material_id}.json.gz",
+            )[0]
+        except OSError:
+            result = None
 
         if not result or not result[0]:
             raise MPRestError("No object found")

@@ -28,7 +28,7 @@ direct
     return Structure.from_str(poscar,fmt="poscar")
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
-def test_client():
+def test_similarity_search():
     client_search_testing(
         search_method=SimilarityRester().search,
         excluded_params=[
