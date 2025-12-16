@@ -6,9 +6,9 @@ from mp_api.client.routes.materials import DOIRester
 
 from core_function import client_search_testing
 
+
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 def test_doi_search():
-
     client_search_testing(
         search_method=DOIRester().search,
         excluded_params=[
