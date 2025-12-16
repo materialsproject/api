@@ -221,6 +221,9 @@ class MPRester:
             "chemenv",
         ]
 
+        if not self.endpoint.endswith("/"):
+            self.endpoint += "/"
+
         # Check if emmet version of server is compatible
         emmet_version = MPRester.get_emmet_version(self.endpoint)
 
@@ -234,9 +237,6 @@ class MPRester:
 
         if notify_db_version:
             raise NotImplementedError("This has not yet been implemented.")
-
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
 
         # Dynamically set rester attributes.
         # First, materials and molecules top level resters are set.
