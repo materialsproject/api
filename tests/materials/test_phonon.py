@@ -1,4 +1,3 @@
-
 import os
 
 import numpy as np
@@ -10,6 +9,7 @@ from mp_api.client.core import MPRestError
 from mp_api.client.routes.materials.phonon import PhononRester
 
 from core_function import client_search_testing
+
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 def test_phonon_search():
@@ -24,23 +24,23 @@ def test_phonon_search():
         alt_name_dict={
             "material_ids": "material_id",
         },
-        custom_field_tests = {
-            "material_ids": ["mp-149","mp-13"],
+        custom_field_tests={
+            "material_ids": ["mp-149", "mp-13"],
             "material_ids": "mp-149",
             "phonon_method": "dfpt",
         },
         sub_doc_fields=[],
     )
 
+
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
-@pytest.mark.parametrize("use_document_model",[True,False])
+@pytest.mark.parametrize("use_document_model", [True, False])
 def test_phonon_get_methods(use_document_model):
-    
     rester = PhononRester(use_document_model=use_document_model)
 
     # TODO: update when there is force constant data
     for func_name, schema in {
-        "bandstructure" : PhononBS,
+        "bandstructure": PhononBS,
         "dos": PhononDOS,
         # "forceconstants": list
     }.items():
@@ -49,31 +49,29 @@ def test_phonon_get_methods(use_document_model):
             f"get_{func_name}_from_material_id",
         )
         assert isinstance(
-            search_method("mp-149","dfpt"),
-            schema if use_document_model else dict
+            search_method("mp-149", "dfpt"), schema if use_document_model else dict
         )
 
-        with pytest.raises(MPRestError,match="No object found"):
-            _ = search_method("mp-0","dfpt")
+        with pytest.raises(MPRestError, match="No object found"):
+            _ = search_method("mp-0", "dfpt")
+
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
-@pytest.mark.parametrize("use_document_model",[True,False])
+@pytest.mark.parametrize("use_document_model", [True, False])
 def test_phonon_thermo(use_document_model):
-
-    with pytest.raises(MPRestError,match="No phonon document found"):
+    with pytest.raises(MPRestError, match="No phonon document found"):
         _ = PhononRester(
             use_document_model=use_document_model
-        ).compute_thermo_quantities("mp-0","dfpt")
+        ).compute_thermo_quantities("mp-0", "dfpt")
 
     thermo_props = PhononRester(
         use_document_model=use_document_model
-    ).compute_thermo_quantities("mp-149","dfpt")
-    
+    ).compute_thermo_quantities("mp-149", "dfpt")
+
     # Default set in the method
     num_vals = 100
-    
+
     assert all(
-        isinstance(v, np.ndarray if k == "temperature" else list)
-        and len(v) == num_vals
+        isinstance(v, np.ndarray if k == "temperature" else list) and len(v) == num_vals
         for k, v in thermo_props.items()
     )

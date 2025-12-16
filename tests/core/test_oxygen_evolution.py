@@ -9,7 +9,11 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Composition
 from pymatgen.entries.computed_entries import ComputedEntry
 
-from mp_api.client.core._oxygen_evolution import DEFAULT_CACHE_FILE, NIST_JANAF_O2_MU_T, OxygenEvolution
+from mp_api.client.core._oxygen_evolution import (
+    DEFAULT_CACHE_FILE,
+    NIST_JANAF_O2_MU_T,
+    OxygenEvolution,
+)
 
 
 def test_interp():
@@ -38,19 +42,16 @@ def test_interp():
         with pytest.warns(UserWarning, match="outside the fitting range"):
             oxyevo.mu_to_temp_spline(badval)
 
+
 def test_get():
     """Test data retrieval from NIST."""
 
     data = {}
     data["temperature"], data["mu-mu_0K"] = OxygenEvolution().get_chempot_temp_data()
     assert DEFAULT_CACHE_FILE.exists()
-    assert all(
-        np.allclose(data[k],v) for k, v in NIST_JANAF_O2_MU_T.items()
-    )
+    assert all(np.allclose(data[k], v) for k, v in NIST_JANAF_O2_MU_T.items())
     json_data = json.loads(DEFAULT_CACHE_FILE.read_text())
-    assert all(
-        np.allclose(json_data[k],v) for k, v in NIST_JANAF_O2_MU_T.items()
-    )
+    assert all(np.allclose(json_data[k], v) for k, v in NIST_JANAF_O2_MU_T.items())
 
 
 def test_oxy_evo():

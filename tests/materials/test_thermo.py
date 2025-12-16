@@ -7,6 +7,7 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 from mp_api.client.routes.materials.thermo import ThermoRester
 
+
 @pytest.fixture
 def rester():
     rester = ThermoRester()

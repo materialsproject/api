@@ -45,7 +45,7 @@ alt_name_dict = {
 }  # type: dict
 
 custom_field_tests = {
-    "material_ids": ["mp-149","mp-13"],
+    "material_ids": ["mp-149", "mp-13"],
     "material_ids": "mp-149",
     "formula": "SiO2",
     "chemsys": "Si-O",
@@ -115,19 +115,22 @@ def test_list_like_input():
     with pytest.raises(ValueError, match="retrieve all data first and then filter"):
         _ = search_method(crystal_system=list(CrystalSystem))
 
+
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 def test_warning_messages():
-
     search_method = SummaryRester().search
 
-    with pytest.warns(MPRestWarning,match="You have specified fields used by"):
+    with pytest.warns(MPRestWarning, match="You have specified fields used by"):
         _ = search_method(nelements=10)
-    
-    with pytest.raises(MPRestError,match="You have specified fields known to both"):
-        _ = search_method(nelements=10,num_elements=11)
 
-    with pytest.raises(MPRestError,match="You have specified the following kwargs which are unknown to"):
-        _ = search_method(apples = "oranges")
+    with pytest.raises(MPRestError, match="You have specified fields known to both"):
+        _ = search_method(nelements=10, num_elements=11)
 
-    with pytest.raises(MPRestError,match="not a valid property"):
+    with pytest.raises(
+        MPRestError,
+        match="You have specified the following kwargs which are unknown to",
+    ):
+        _ = search_method(apples="oranges")
+
+    with pytest.raises(MPRestError, match="not a valid property"):
         _ = search_method(num_elements=10, has_props=["apples"])

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING, Literal
 
 import orjson
@@ -12,7 +11,7 @@ from packaging.version import parse as parse_version
 from mp_api.client.core.settings import MAPIClientSettings
 
 if TYPE_CHECKING:
-    from monty.json import MSONable
+    pass
 
 
 def _compare_emmet_ver(
@@ -39,6 +38,7 @@ def _compare_emmet_ver(
         parse_version(_EMMET_CORE_VER),
         f"__{op_to_op.get(op,op)}__",
     )(parse_version(ref_version))
+
 
 def load_json(json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"):
     """Utility to load json in consistent manner."""

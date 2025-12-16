@@ -11,6 +11,7 @@ from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
     from typing import Any
+
     from emmet.core.math import Matrix3D
 
 
@@ -68,7 +69,9 @@ class PhononRester(BaseRester):
             **query_params,
         )
 
-    def get_bandstructure_from_material_id(self, material_id: str, phonon_method: str) -> PhononBS | dict[str,Any]:
+    def get_bandstructure_from_material_id(
+        self, material_id: str, phonon_method: str
+    ) -> PhononBS | dict[str, Any]:
         """Get the phonon band structure pymatgen object associated with a given material ID and phonon method.
 
         Arguments:
@@ -94,7 +97,9 @@ class PhononRester(BaseRester):
 
         return result[0]
 
-    def get_dos_from_material_id(self, material_id: str, phonon_method: str) -> PhononDOS | dict[str,Any]:
+    def get_dos_from_material_id(
+        self, material_id: str, phonon_method: str
+    ) -> PhononDOS | dict[str, Any]:
         """Get the phonon dos pymatgen object associated with a given material ID and phonon method.
 
         Arguments:
@@ -120,7 +125,9 @@ class PhononRester(BaseRester):
 
         return result[0]
 
-    def get_forceconstants_from_material_id(self, material_id: str) -> list[list[Matrix3D]]:
+    def get_forceconstants_from_material_id(
+        self, material_id: str
+    ) -> list[list[Matrix3D]]:
         """Get the force constants associated with a given material ID.
 
         Arguments:

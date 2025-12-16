@@ -527,30 +527,28 @@ class TestMPRester:
     @pytest.mark.parametrize(
         "mpid, working_ion, thermo_type",
         [
-            ("mp-1248282","Al", ThermoType.GGA_GGA_U),
-            (MPID("mp-1248282"),Element.Al, "R2SCAN"),
-            (AlphaID("mp-1248282"),"Al",ThermoType.GGA_GGA_U_R2SCAN),
-        ]
+            ("mp-1248282", "Al", ThermoType.GGA_GGA_U),
+            (MPID("mp-1248282"), Element.Al, "R2SCAN"),
+            (AlphaID("mp-1248282"), "Al", ThermoType.GGA_GGA_U_R2SCAN),
+        ],
     )
     def test_oxygen_evolution(self, mpid, working_ion, thermo_type, mpr):
         # Ensure oxygen evolution data has the anticipated schema
         # and is robust to different permutations of input
 
-        oxy_evo = mpr.get_oxygen_evolution(
-            mpid, working_ion, thermo_type = thermo_type
-        )
+        oxy_evo = mpr.get_oxygen_evolution(mpid, working_ion, thermo_type=thermo_type)
         assert all(
-            isinstance(entry.get(k),np.ndarray)
+            isinstance(entry.get(k), np.ndarray)
             for entry in oxy_evo.values()
-            for k in ("mu","evolution","temperature","reaction")
+            for k in ("mu", "evolution", "temperature", "reaction")
         )
         assert all(Composition(k).formula == k for k in oxy_evo)
 
-    def test_oxygen_evolution_bad_input(self,mpr):
+    def test_oxygen_evolution_bad_input(self, mpr):
         # Ensure oxygen evolution fails gracefully if no O present
         # or no insertion electrode data
-        with pytest.raises(ValueError,match="No oxygen in the host"):
-            _ = mpr.get_oxygen_evolution("mp-2207",Element.K)
+        with pytest.raises(ValueError, match="No oxygen in the host"):
+            _ = mpr.get_oxygen_evolution("mp-2207", Element.K)
 
         with pytest.raises(ValueError, match="No available insertion electrode data"):
-            _ = mpr.get_oxygen_evolution("mp-2207","Al")
+            _ = mpr.get_oxygen_evolution("mp-2207", "Al")

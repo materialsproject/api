@@ -1,4 +1,3 @@
-
 import os
 
 import numpy as np
@@ -11,6 +10,7 @@ from mp_api.client.core import MPRestError
 from mp_api.client.routes.materials.similarity import SimilarityRester
 
 from core_function import client_search_testing
+
 
 @pytest.fixture(scope="module")
 def test_struct():
@@ -25,7 +25,8 @@ direct
    0.875    0.875    0.875 Al
    0.125    0.125    0.125 Al
 """
-    return Structure.from_str(poscar,fmt="poscar")
+    return Structure.from_str(poscar, fmt="poscar")
+
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 def test_similarity_search():
@@ -40,45 +41,48 @@ def test_similarity_search():
         alt_name_dict={
             "material_ids": "material_id",
         },
-        custom_field_tests = {
-            "material_ids": ["mp-149","mp-13"],
-            "material_ids": "mp-149"
+        custom_field_tests={
+            "material_ids": ["mp-149", "mp-13"],
+            "material_ids": "mp-149",
         },
         sub_doc_fields=[],
     )
 
+
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 def test_similarity_vector_search(test_struct):
-
     rester = SimilarityRester()
     fv = rester.fingerprint_structure(test_struct)
-    assert isinstance(fv,np.ndarray)
+    assert isinstance(fv, np.ndarray)
     assert len(fv) == 122
-    assert isinstance(rester._fingerprinter,SimilarityScorer)
-
+    assert isinstance(rester._fingerprinter, SimilarityScorer)
 
     get_top = 5
-    sim_entries = rester.find_similar("mp-149",top=get_top)
-    assert all(
-        isinstance(entry,SimilarityEntry) for entry in sim_entries
-    )
+    sim_entries = rester.find_similar("mp-149", top=get_top)
+    assert all(isinstance(entry, SimilarityEntry) for entry in sim_entries)
     assert len(sim_entries) == get_top
 
-    sim_dict_entries = SimilarityRester(use_document_model=False).find_similar("mp-149",top=get_top)
+    sim_dict_entries = SimilarityRester(use_document_model=False).find_similar(
+        "mp-149", top=get_top
+    )
     assert all(
-        isinstance(entry,dict) and all(
-            k in entry for k in SimilarityEntry.model_fields
-        )
+        isinstance(entry, dict)
+        and all(k in entry for k in SimilarityEntry.model_fields)
         for entry in sim_dict_entries
     )
 
-    with pytest.raises(MPRestError,match="No similarity data available for"):
+    with pytest.raises(MPRestError, match="No similarity data available for"):
         _ = rester.find_similar("mp-0")
 
     assert all(
-        isinstance(entry,SimilarityEntry) and isinstance(entry.dissimilarity,float)
-        for entry in rester.find_similar(test_struct, top = 2,)
+        isinstance(entry, SimilarityEntry) and isinstance(entry.dissimilarity, float)
+        for entry in rester.find_similar(
+            test_struct,
+            top=2,
+        )
     )
 
-    with pytest.raises(MPRestError,match="Please submit a pymatgen Structure or MP ID"):
+    with pytest.raises(
+        MPRestError, match="Please submit a pymatgen Structure or MP ID"
+    ):
         _ = rester.find_similar(fv)

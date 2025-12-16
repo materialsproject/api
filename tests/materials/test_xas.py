@@ -31,7 +31,7 @@ alt_name_dict = {
     "required_elements": "elements",
     "formula": "formula_pretty",
     "exclude_elements": "material_id",
-    "spectrum_ids": "spectrum_id"
+    "spectrum_ids": "spectrum_id",
 }  # type: dict
 
 custom_field_tests = {
@@ -42,7 +42,7 @@ custom_field_tests = {
     "formula": "Ce(WO4)2",
     "chemsys": "Ce-O-W",
     "elements": ["Ce"],
-    "spectrum_ids": ["mp-1194531-XANES-Fe-L2","mp-1194531-XANES-Fe-K"],
+    "spectrum_ids": ["mp-1194531-XANES-Fe-L2", "mp-1194531-XANES-Fe-K"],
 }  # type: dict
 
 
