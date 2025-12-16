@@ -3,16 +3,14 @@
 from packaging.version import parse as parse_version
 import pytest
 
-from emmet.core.mpid import MPID, AlphaID
-
 
 def test_emmet_core_version_checks(monkeypatch: pytest.MonkeyPatch):
     ref_ver = (1, 2, "3rc5")
     ref_ver_str = ".".join(str(x) for x in ref_ver)
 
-    import emmet.core
+    import mp_api.client.core.utils
 
-    monkeypatch.setattr(emmet.core, "__version__", ref_ver_str)
+    monkeypatch.setattr(mp_api.client.core.utils, "_EMMET_CORE_VER", ref_ver_str)
     from mp_api.client.core.utils import _compare_emmet_ver
 
     assert _compare_emmet_ver(ref_ver_str, "==")
@@ -27,6 +25,8 @@ def test_emmet_core_version_checks(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_id_validation():
+    from emmet.core.mpid import MPID, AlphaID
+
     from mp_api.client.core.utils import validate_ids
     from mp_api.client.core.settings import MAPIClientSettings
 

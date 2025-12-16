@@ -11,7 +11,7 @@ from packaging.version import parse as parse_version
 from mp_api.client.core.settings import MAPIClientSettings
 
 if TYPE_CHECKING:
-    pass
+    from typing import Any
 
 
 def _compare_emmet_ver(
@@ -40,7 +40,9 @@ def _compare_emmet_ver(
     )(parse_version(ref_version))
 
 
-def load_json(json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"):
+def load_json(
+    json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"
+) -> Any:
     """Utility to load json in consistent manner."""
     data = orjson.loads(
         json_like if isinstance(json_like, bytes) else json_like.encode(encoding)
@@ -69,4 +71,4 @@ def validate_ids(id_list: list[str]) -> list[str]:
     # TODO: after the transition to AlphaID in the document models,
     # The following line should be changed to
     # return [validate_identifier(idx,serialize=True) for idx in id_list]
-    return [validate_identifier(idx).string for idx in id_list]
+    return [str(validate_identifier(idx)) for idx in id_list]
