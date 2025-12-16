@@ -5,7 +5,7 @@ import pytest
 from mp_api.client import MPRester
 from mp_api.client.routes.materials import TaskRester, ProvenanceRester
 
-from conftest import requires_api_key
+from .conftest import requires_api_key
 
 # -- Rester name data for generic tests
 
