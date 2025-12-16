@@ -42,18 +42,21 @@ def test_phonon_get_methods(use_document_model):
     for func_name, schema in {
         "bandstructure": PhononBS,
         "dos": PhononDOS,
-        # "forceconstants": list
+        "forceconstants": list,
     }.items():
+        args = tuple() if func_name == "forceconstants" else ("dfpt",)
         search_method = getattr(
             rester,
             f"get_{func_name}_from_material_id",
         )
-        assert isinstance(
-            search_method("mp-149", "dfpt"), schema if use_document_model else dict
-        )
+
+        if func_name != "forceconstants":
+            assert isinstance(
+                search_method("mp-149", *args), schema if use_document_model else dict
+            )
 
         with pytest.raises(MPRestError, match="No object found"):
-            _ = search_method("mp-0", "dfpt")
+            _ = search_method("mp-0", *args)
 
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
