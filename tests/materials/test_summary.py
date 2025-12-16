@@ -1,5 +1,5 @@
 import os
-from core_function import client_search_testing
+from ..conftest import client_search_testing, requires_api_key
 
 import pytest
 from emmet.core.summary import HasProps
@@ -63,7 +63,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_client():
     search_method = SummaryRester().search
 
@@ -76,7 +76,7 @@ def test_client():
     )
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_list_like_input():
     search_method = SummaryRester().search
 
@@ -116,7 +116,7 @@ def test_list_like_input():
         _ = search_method(crystal_system=list(CrystalSystem))
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_warning_messages():
     search_method = SummaryRester().search
 

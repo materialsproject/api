@@ -1,13 +1,9 @@
-import os
-
-import pytest
-
 from mp_api.client.routes.materials import DOIRester
 
-from core_function import client_search_testing
+from ..conftest import client_search_testing, requires_api_key
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_doi_search():
     client_search_testing(
         search_method=DOIRester().search,

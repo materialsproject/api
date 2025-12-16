@@ -8,10 +8,10 @@ from emmet.core.phonon import PhononBS, PhononDOS
 from mp_api.client.core import MPRestError
 from mp_api.client.routes.materials.phonon import PhononRester
 
-from core_function import client_search_testing
+from ..conftest import client_search_testing, requires_api_key
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_phonon_search():
     client_search_testing(
         search_method=PhononRester().search,
@@ -33,7 +33,7 @@ def test_phonon_search():
     )
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 @pytest.mark.parametrize("use_document_model", [True, False])
 def test_phonon_get_methods(use_document_model):
     rester = PhononRester(use_document_model=use_document_model)
@@ -59,7 +59,7 @@ def test_phonon_get_methods(use_document_model):
             _ = search_method("mp-0", *args)
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 @pytest.mark.parametrize("use_document_model", [True, False])
 def test_phonon_thermo(use_document_model):
     with pytest.raises(MPRestError, match="No phonon document found"):

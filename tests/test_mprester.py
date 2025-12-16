@@ -36,6 +36,8 @@ from mp_api.client import MPRester
 from mp_api.client.core.client import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 
+from .conftest import requires_api_key
+
 
 @pytest.fixture()
 def mpr():
@@ -44,7 +46,7 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 class TestMPRester:
     fake_mp_api_key = "12345678901234567890123456789012"  # 32 chars
     default_endpoint = "https://api.materialsproject.org/"
@@ -334,11 +336,11 @@ class TestMPRester:
     def test_large_list(self, mpr):
         mpids = [
             str(doc.material_id)
-            for doc in mpr.summary.search(
+            for doc in mpr.materials.summary.search(
                 chunk_size=1000, num_chunks=10, fields=["material_id"]
             )
         ]
-        docs = mpr.summary.search(material_ids=mpids, fields=["material_id"])
+        docs = mpr.materials.summary.search(material_ids=mpids, fields=["material_id"])
         assert len(docs) == 10000
 
     def test_get_api_key_endpoint_from_env_var(self, monkeypatch: pytest.MonkeyPatch):

@@ -9,7 +9,7 @@ from pymatgen.core import Structure
 from mp_api.client.core import MPRestError
 from mp_api.client.routes.materials.similarity import SimilarityRester
 
-from core_function import client_search_testing
+from ..conftest import client_search_testing, requires_api_key
 
 
 @pytest.fixture(scope="module")
@@ -28,7 +28,7 @@ direct
     return Structure.from_str(poscar, fmt="poscar")
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_similarity_search():
     client_search_testing(
         search_method=SimilarityRester().search,
@@ -49,7 +49,7 @@ def test_similarity_search():
     )
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_similarity_vector_search(test_struct):
     rester = SimilarityRester()
     fv = rester.fingerprint_structure(test_struct)

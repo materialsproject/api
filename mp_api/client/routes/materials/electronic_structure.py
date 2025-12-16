@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import (
     BSPathType,
@@ -14,6 +15,9 @@ from pymatgen.electronic_structure.core import OrbitalType, Spin
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
+
+if TYPE_CHECKING:
+    from pymatgen.electronic_structure.dos import CompleteDos
 
 
 class ElectronicStructureRester(BaseRester):
@@ -142,9 +146,28 @@ class ElectronicStructureRester(BaseRester):
         )
 
 
-class BandStructureRester(BaseRester):
+class BaseESPropertyRester(BaseRester):
+    _es_rester: ElectronicStructureRester | None = None
+    document_model = ElectronicStructureDoc
+
+    @property
+    def es_rester(self) -> ElectronicStructureRester:
+        if not self._es_rester:
+            self._es_rester = ElectronicStructureRester(
+                api_key=self.api_key,
+                endpoint=self.base_endpoint,
+                include_user_agent=self.include_user_agent,
+                session=self.session,
+                monty_decode=self.monty_decode,
+                use_document_model=self.use_document_model,
+                headers=self.headers,
+                mute_progress_bars=self.mute_progress_bars,
+            )
+        return self._es_rester
+
+
+class BandStructureRester(BaseESPropertyRester):
     suffix = "materials/electronic_structure/bandstructure"
-    document_model = ElectronicStructureDoc  # type: ignore
 
     def search_bandstructure_summary(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
@@ -258,19 +281,8 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        es_rester = ElectronicStructureRester(
-            api_key=self.api_key,
-            endpoint=self.base_endpoint,
-            include_user_agent=self.include_user_agent,
-            session=self.session,
-            monty_decode=self.monty_decode,
-            use_document_model=self.use_document_model,
-            headers=self.headers,
-            mute_progress_bars=self.mute_progress_bars,
-        )
-
         if line_mode:
-            bs_doc = es_rester.search(
+            bs_doc = self.es_rester.search(
                 material_ids=material_id, fields=["bandstructure"]
             )
             if not bs_doc:
@@ -293,7 +305,9 @@ class BandStructureRester(BaseRester):
 
         else:
             if not (
-                bs_doc := es_rester.search(material_ids=material_id, fields=["dos"])
+                bs_doc := self.es_rester.search(
+                    material_ids=material_id, fields=["dos"]
+                )
             ):
                 raise MPRestError("No electronic structure data found.")
 
@@ -319,9 +333,8 @@ class BandStructureRester(BaseRester):
         raise MPRestError("No band structure object found.")
 
 
-class DosRester(BaseRester):
+class DosRester(BaseESPropertyRester):
     suffix = "materials/electronic_structure/dos"
-    document_model = ElectronicStructureDoc  # type: ignore
 
     def search_dos_summary(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
@@ -403,7 +416,7 @@ class DosRester(BaseRester):
             **query_params,
         )
 
-    def get_dos_from_task_id(self, task_id: str):
+    def get_dos_from_task_id(self, task_id: str) -> CompleteDos:
         """Get the density of states pymatgen object associated with a given calculation ID.
 
         Arguments:
@@ -431,18 +444,9 @@ class DosRester(BaseRester):
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-        es_rester = ElectronicStructureRester(
-            api_key=self.api_key,
-            endpoint=self.base_endpoint,
-            include_user_agent=self.include_user_agent,
-            session=self.session,
-            monty_decode=self.monty_decode,
-            use_document_model=self.use_document_model,
-            headers=self.headers,
-            mute_progress_bars=self.mute_progress_bars,
-        )
-
-        if not (dos_doc := es_rester.search(material_ids=material_id, fields=["dos"])):
+        if not (
+            dos_doc := self.es_rester.search(material_ids=material_id, fields=["dos"])
+        ):
             return None
 
         if not (dos_data := dos_doc[0].get("dos")):
