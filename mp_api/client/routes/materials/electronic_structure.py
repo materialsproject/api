@@ -75,7 +75,7 @@ class ElectronicStructureRester(BaseRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
@@ -186,8 +186,8 @@ class BandStructureRester(BaseESPropertyRester):
         efermi: tuple[float, float] | None = None,
         is_gap_direct: bool | None = None,
         is_metal: bool | None = None,
-        magnetic_ordering: Ordering | None = None,
-        path_type: BSPathType = BSPathType.setyawan_curtarolo,
+        magnetic_ordering: Ordering | str | None = None,
+        path_type: BSPathType | str = BSPathType.setyawan_curtarolo,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -200,8 +200,8 @@ class BandStructureRester(BaseESPropertyRester):
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
-            magnetic_ordering (Ordering): Magnetic ordering of the material.
-            path_type (BSPathType): k-path selection convention for the band structure.
+            magnetic_ordering (Ordering or str): Magnetic ordering of the material.
+            path_type (BSPathType or str): k-path selection convention for the band structure.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -213,7 +213,9 @@ class BandStructureRester(BaseESPropertyRester):
         """
         query_params = defaultdict(dict)  # type: dict
 
-        query_params["path_type"] = path_type.value
+        query_params["path_type"] = (
+            BSPathType[path_type] if isinstance(path_type, str) else path_type
+        ).value
 
         if band_gap:
             query_params.update(
@@ -224,7 +226,15 @@ class BandStructureRester(BaseESPropertyRester):
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
 
         if magnetic_ordering:
-            query_params.update({"magnetic_ordering": magnetic_ordering.value})
+            query_params.update(
+                {
+                    "magnetic_ordering": (
+                        Ordering(magnetic_ordering)
+                        if isinstance(magnetic_ordering, str)
+                        else magnetic_ordering
+                    ).value
+                }
+            )
 
         if is_gap_direct is not None:
             query_params.update({"is_gap_direct": is_gap_direct})
@@ -351,11 +361,11 @@ class DosRester(BaseESPropertyRester):
         self,
         band_gap: tuple[float, float] | None = None,
         efermi: tuple[float, float] | None = None,
-        element: Element | None = None,
-        magnetic_ordering: Ordering | None = None,
-        orbital: OrbitalType | None = None,
-        projection_type: DOSProjectionType = DOSProjectionType.total,
-        spin: Spin = Spin.up,
+        element: Element | str | None = None,
+        magnetic_ordering: Ordering | str | None = None,
+        orbital: OrbitalType | str | None = None,
+        projection_type: DOSProjectionType | str = DOSProjectionType.total,
+        spin: Spin | str = Spin.up,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -366,15 +376,15 @@ class DosRester(BaseESPropertyRester):
         Arguments:
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
-            element (Element): Element for element-projected dos data.
-            magnetic_ordering (Ordering): Magnetic ordering of the material.
-            orbital (OrbitalType): Orbital for orbital-projected dos data.
-            projection_type (DOSProjectionType): Projection type of dos data. Default is the total dos.
-            spin (Spin): Spin channel of dos data. If non spin-polarized data is stored in Spin.up
+            element (Element or str): Element for element-projected dos data.
+            magnetic_ordering (Ordering or str): Magnetic ordering of the material.
+            orbital (OrbitalType or str): Orbital for orbital-projected dos data.
+            projection_type (DOSProjectionType or str): Projection type of dos data. Default is the total dos.
+            spin (Spin or str): Spin channel of dos data. If non spin-polarized data is stored in Spin.up
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
@@ -382,14 +392,38 @@ class DosRester(BaseESPropertyRester):
         """
         query_params = defaultdict(dict)  # type: dict
 
-        query_params["projection_type"] = projection_type.value
-        query_params["spin"] = spin.value
+        query_params["projection_type"] = (
+            DOSProjectionType[projection_type]
+            if isinstance(projection_type, str)
+            else projection_type
+        ).value
+        query_params["spin"] = (Spin[spin] if isinstance(spin, str) else spin).value
+
+        if (
+            query_params["projection_type"] == DOSProjectionType.elemental.value
+            and element is None
+        ):
+            raise MPRestError(
+                "To query element-projected DOS, you must also specify the `element` onto which the DOS is projected."
+            )
+
+        if (
+            query_params["projection_type"] == DOSProjectionType.orbital.value
+            and orbital is None
+        ):
+            raise MPRestError(
+                "To query orbital-projected DOS, you must also specify the `orbital` character onto which the DOS is projected."
+            )
 
         if element:
-            query_params["element"] = element.value
+            query_params["element"] = (
+                Element[element] if isinstance(element, str) else element
+            ).value
 
         if orbital:
-            query_params["orbital"] = orbital.value
+            query_params["orbital"] = (
+                OrbitalType[orbital] if isinstance(orbital, str) else orbital
+            ).value
 
         if band_gap:
             query_params.update(
@@ -400,7 +434,15 @@ class DosRester(BaseESPropertyRester):
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
 
         if magnetic_ordering:
-            query_params.update({"magnetic_ordering": magnetic_ordering.value})
+            query_params.update(
+                {
+                    "magnetic_ordering": (
+                        Ordering[magnetic_ordering]
+                        if isinstance(magnetic_ordering, str)
+                        else magnetic_ordering
+                    ).value
+                }
+            )
 
         query_params = {
             entry: query_params[entry]

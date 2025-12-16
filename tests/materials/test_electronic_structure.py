@@ -47,7 +47,6 @@ es_custom_field_tests = {
 
 
 @requires_api_key
-@pytest.mark.skip(reason="magnetic ordering fields not built correctly")
 def test_es_client(es_rester):
     search_method = es_rester.search
 
@@ -66,6 +65,7 @@ bs_custom_field_tests = {
     "is_gap_direct": True,
     "efermi": (0, 100),
     "band_gap": (0, 5),
+    "path_type": "hinuma",
 }
 
 bs_sub_doc_fields = ["bandstructure"]
@@ -73,44 +73,43 @@ bs_sub_doc_fields = ["bandstructure"]
 bs_alt_name_dict = {}  # type: dict
 
 
-@pytest.fixture
-def bs_rester():
-    rester = BandStructureRester()
-    yield rester
-    rester.session.close()
-
-
 @requires_api_key
-@pytest.mark.skip(reason="magnetic ordering fields not built correctly")
-def test_bs_client(bs_rester):
+def test_bs_client():
     # Get specific search method
-    search_method = bs_rester.search
 
-    # Query fields
-    for param in bs_custom_field_tests:
-        project_field = bs_alt_name_dict.get(param, None)
-        q = {
-            param: bs_custom_field_tests[param],
-            "chunk_size": 1,
-            "num_chunks": 1,
-        }
-        doc = search_method(**q)[0].model_dump()
+    with BandStructureRester() as bs_rester:
+        # Query fields
+        for param in bs_custom_field_tests:
+            project_field = bs_alt_name_dict.get(param, None)
+            q = {
+                param: bs_custom_field_tests[param],
+                "chunk_size": 1,
+                "num_chunks": 1,
+            }
+            doc = bs_rester.search(**q)[0].model_dump()
 
-        for sub_field in bs_sub_doc_fields:
-            if sub_field in doc:
-                doc = doc[sub_field]
+            for sub_field in bs_sub_doc_fields:
+                if sub_field in doc:
+                    doc = doc[sub_field]
 
-        if param != "path_type":
-            doc = doc["setyawan_curtarolo"]
+            if param != "path_type":
+                doc = doc["setyawan_curtarolo"]
 
-        assert doc[project_field if project_field is not None else param] is not None
+                assert (
+                    doc[project_field if project_field is not None else param]
+                    is not None
+                )
 
 
-dos_custom_field_tests = {
-    "magnetic_ordering": Ordering.FM,
-    "efermi": (0, 100),
-    "band_gap": (0, 5),
-}
+dos_custom_field_tests = [
+    {"magnetic_ordering": Ordering.FM},
+    {"efermi": (1, 1.1)},
+    {"band_gap": (8.0, 9.0)},
+    {"projection_type": "elemental", "element": "As"},
+    {
+        "magnetic_ordering": "FM",
+    },
+]
 
 dos_excluded_params = ["orbital", "element"]
 
@@ -119,35 +118,28 @@ dos_sub_doc_fields = ["dos"]
 dos_alt_name_dict = {}  # type: dict
 
 
-@pytest.fixture
-def dos_rester():
-    rester = DosRester()
-    yield rester
-    rester.session.close()
-
-
 @requires_api_key
-@pytest.mark.skip(reason="magnetic ordering fields not built correctly")
-def test_dos_client(dos_rester):
-    search_method = dos_rester.search
-
-    # Query fields
-    for param in dos_custom_field_tests:
-        if param not in dos_excluded_params:
-            project_field = dos_alt_name_dict.get(param, None)
+def test_dos_client():
+    with DosRester() as dos_rester:
+        # Query fields
+        for params in dos_custom_field_tests:
+            if any(param in dos_excluded_params for param in params):
+                continue
             q = {
-                param: dos_custom_field_tests[param],
+                **params,
                 "chunk_size": 1,
                 "num_chunks": 1,
             }
-            doc = search_method(**q)[0].model_dump()
+            doc = dos_rester.search(**q)[0].model_dump()
             for sub_field in dos_sub_doc_fields:
                 if sub_field in doc:
                     doc = doc[sub_field]
 
-            if param != "projection_type" and param != "magnetic_ordering":
+            if not any(
+                param in params for param in {"projection_type", "magnetic_ordering"}
+            ):
                 doc = doc["total"]["1"]
 
-            assert (
-                doc[project_field if project_field is not None else param] is not None
+            assert all(
+                doc[dos_alt_name_dict.get(param, param)] is not None for param in params
             )
