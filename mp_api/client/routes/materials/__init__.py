@@ -1,33 +1,42 @@
 """Define routes and imports to materials resters."""
+from __future__ import annotations
 
 from mp_api.client.core.utils import LazyImport
 
-MATERIALS_RESTERS : dict[str,LazyImport] = {
-    route : LazyImport(f"mp_api.client.routes.materials.{module_name}", cls_name)
+MATERIALS_RESTERS: dict[str, LazyImport] = {
+    route: LazyImport(f"mp_api.client.routes.materials.{module_name}", cls_name)
     for route, module_name, cls_name in [
         ("absorption", "absorption", "AbsorptionRester"),
         ("alloys", "alloys", "AlloysRester"),
         ("bonds", "bonds", "BondsRester"),
         ("charge_density", "charge_density", "ChargeDensityRester"),
-        ("chemenv", "chemenv", "ChemenvRester",),
-        ("conversion_electrodes","electrodes","ConversionElectrodeRester"), 
+        (
+            "chemenv",
+            "chemenv",
+            "ChemenvRester",
+        ),
+        ("conversion_electrodes", "electrodes", "ConversionElectrodeRester"),
         ("dielectric", "dielectric", "DielectricRester"),
         ("doi", "doi", "DOIRester"),
         ("elasticity", "elasticity", "ElasticityRester"),
-        ("electronic_structure","electronic_structure","ElectronicStructureRester"),
-        ("electronic_structure_bandstructure","electronic_structure", "BandStructureRester"),
+        ("electronic_structure", "electronic_structure", "ElectronicStructureRester"),
+        (
+            "electronic_structure_bandstructure",
+            "electronic_structure",
+            "BandStructureRester",
+        ),
         ("electronic_structure_dos", "electronic_structure", "DosRester"),
-        ("eos","eos","EOSRester"),
+        ("eos", "eos", "EOSRester"),
         ("grain_boundaries", "grain_boundaries", "GrainBoundaryRester"),
-        ("insertion_electrodes","electrodes","ElectrodeRester"),
-        ("magnetism","magnetism","MagnetismRester"),
+        ("insertion_electrodes", "electrodes", "ElectrodeRester"),
+        ("magnetism", "magnetism", "MagnetismRester"),
         ("materials", "materials", "MaterialsRester"),
         ("oxidation_states", "oxidation_states", "OxidationStatesRester"),
-        ("phonon","phonon","PhononRester"),
-        ("piezoelectric","piezoelectric", "PiezoRester"),
-        ("provenance","provenance","ProvenanceRester"),
+        ("phonon", "phonon", "PhononRester"),
+        ("piezoelectric", "piezoelectric", "PiezoRester"),
+        ("provenance", "provenance", "ProvenanceRester"),
         ("robocrys", "robocrys", "RobocrysRester"),
-        ("similarity","similarity","SimilarityRester"),
+        ("similarity", "similarity", "SimilarityRester"),
         ("substrates", "substrates", "SubstratesRester"),
         ("summary", "summary", "SummaryRester"),
         ("surface_properties", "surface_properties", "SurfacePropertiesRester"),

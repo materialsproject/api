@@ -26,7 +26,7 @@ from requests import Session, get
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import load_json, validate_ids, LazyImport
+from mp_api.client.core.utils import LazyImport, load_json, validate_ids
 from mp_api.client.routes import GENERIC_RESTERS
 from mp_api.client.routes.materials.materials import MATERIALS_RESTERS
 
@@ -42,15 +42,16 @@ DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
 RESTER_LAYOUT = {
     **{
-        f"materials/{k}" : v
+        f"materials/{k}": v
         for k, v in MATERIALS_RESTERS.items()
-        if k not in {"materials","doi"}
+        if k not in {"materials", "doi"}
     },
     "materials/core": MATERIALS_RESTERS["materials"],
     "doi": MATERIALS_RESTERS["doi"],
     **GENERIC_RESTERS,
-    "molecules/core": LazyImport("mp_api.client.routes.molecules","MoleculeRester")        
+    "molecules/core": LazyImport("mp_api.client.routes.molecules", "MoleculeRester"),
 }
+
 
 class MPRester:
     """Access the new Materials Project API."""
@@ -238,7 +239,10 @@ class MPRester:
         def __core_custom_getattr(_self, _attr, _rester_map):
             if _attr in RESTER_LAYOUT:
                 lazy_rester = RESTER_LAYOUT[_attr]
-                monty_disable = lazy_rester._class_name in ["TaskRester", "ProvenanceRester"]
+                monty_disable = lazy_rester._class_name in [
+                    "TaskRester",
+                    "ProvenanceRester",
+                ]
                 monty_decode = False if monty_disable else self.monty_decode
                 rester = lazy_rester(
                     api_key=api_key,

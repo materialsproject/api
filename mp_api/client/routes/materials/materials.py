@@ -47,12 +47,14 @@ class MaterialsRester(BaseRester):
         "chemenv",
     ]
 
-    def __getattr__(self, v : str):
+    def __getattr__(self, v: str):
         if v in self._sub_resters:
             if MATERIALS_RESTERS[v]._obj is None:
-
                 # TODO: Enable monty decoding when tasks and SNL schema is normalized
-                monty_disable = MATERIALS_RESTERS[v]._class_name in ["TaskRester", "ProvenanceRester"]
+                monty_disable = MATERIALS_RESTERS[v]._class_name in [
+                    "TaskRester",
+                    "ProvenanceRester",
+                ]
 
                 MATERIALS_RESTERS[v](
                     api_key=self.api_key,

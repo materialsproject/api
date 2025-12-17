@@ -74,36 +74,37 @@ def validate_ids(id_list: list[str]) -> list[str]:
     # return [validate_identifier(idx,serialize=True) for idx in id_list]
     return [str(validate_identifier(idx)) for idx in id_list]
 
+
 class LazyImport:
+    """Lazily import and load an object."""
 
     __slots__ = ["_module_name", "_class_name", "_obj"]
 
-    def __init__(self, module_name : str, class_name : str,) -> None:
+    def __init__(  # noqa: D107
+        self,
+        module_name: str,
+        class_name: str,
+    ) -> None:
         self._module_name = module_name
         self._class_name = class_name
         self._obj = None
-    
+
     def __str__(self) -> str:
         return f"LazyImport of {self._module_name}.{self._class_name}"
-    
+
     def __repr__(self) -> str:
         return self.__str__()
 
     def __call__(self, *args, **kwargs):
         if self._obj is None:
             try:
-                self._obj = getattr(
-                    import_module(self._module_name),
-                    self._class_name
-                )(
+                self._obj = getattr(import_module(self._module_name), self._class_name)(
                     *args,
                     **kwargs,
                 )
             except Exception as exc:
-                raise ImportError(
-                    f"Failed to import {self._class_name}:\n{exc}"
-                )
+                raise ImportError(f"Failed to import {self._class_name}:\n{exc}")
         return self._obj
-    
-    def __getattr__(self,v):
-        return getattr(self._obj,v)
+
+    def __getattr__(self, v):
+        return getattr(self._obj, v)
