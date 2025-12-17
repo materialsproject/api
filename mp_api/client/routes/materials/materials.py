@@ -7,35 +7,7 @@ from pymatgen.core.structure import Structure
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
-from mp_api.client.routes.materials import (
-    AbsorptionRester,
-    AlloysRester,
-    BandStructureRester,
-    BondsRester,
-    ChemenvRester,
-    ConversionElectrodeRester,
-    DielectricRester,
-    DosRester,
-    ElasticityRester,
-    ElectrodeRester,
-    ElectronicStructureRester,
-    EOSRester,
-    GrainBoundaryRester,
-    MagnetismRester,
-    OxidationStatesRester,
-    PhononRester,
-    PiezoRester,
-    ProvenanceRester,
-    RobocrysRester,
-    SimilarityRester,
-    SubstratesRester,
-    SummaryRester,
-    SurfacePropertiesRester,
-    SynthesisRester,
-    TaskRester,
-    ThermoRester,
-    XASRester,
-)
+from mp_api.client.routes.materials import MATERIALS_RESTERS
 
 _EMMET_SETTINGS = EmmetSettings()  # type: ignore
 
@@ -75,35 +47,24 @@ class MaterialsRester(BaseRester):
         "chemenv",
     ]
 
-    # Materials subresters
-    eos: EOSRester
-    materials: MaterialsRester
-    similarity: SimilarityRester
-    tasks: TaskRester
-    xas: XASRester
-    grain_boundary: GrainBoundaryRester
-    substrates: SubstratesRester
-    surface_properties: SurfacePropertiesRester
-    phonon: PhononRester
-    elasticity: ElasticityRester
-    thermo: ThermoRester
-    dielectric: DielectricRester
-    piezoelectric: PiezoRester
-    magnetism: MagnetismRester
-    summary: SummaryRester
-    robocrys: RobocrysRester
-    synthesis: SynthesisRester
-    insertion_electrodes: ElectrodeRester
-    conversion_electrodes: ConversionElectrodeRester
-    electronic_structure: ElectronicStructureRester
-    electronic_structure_bandstructure: BandStructureRester
-    electronic_structure_dos: DosRester
-    oxidation_states: OxidationStatesRester
-    provenance: ProvenanceRester
-    bonds: BondsRester
-    alloys: AlloysRester
-    absorption: AbsorptionRester
-    chemenv: ChemenvRester
+    def __getattr__(self, v : str):
+        if v in self._sub_resters:
+            if MATERIALS_RESTERS[v]._obj is None:
+
+                # TODO: Enable monty decoding when tasks and SNL schema is normalized
+                monty_disable = MATERIALS_RESTERS[v]._class_name in ["TaskRester", "ProvenanceRester"]
+
+                MATERIALS_RESTERS[v](
+                    api_key=self.api_key,
+                    endpoint=self.endpoint.split(self.suffix)[0],
+                    include_user_agent=self._include_user_agent,
+                    session=self.session,
+                    monty_decode=False if monty_disable else self.monty_decode,
+                    use_document_model=self.use_document_model,
+                    headers=self.headers,
+                    mute_progress_bars=self.mute_progress_bars,
+                )
+            return MATERIALS_RESTERS[v]
 
     def __dir__(self):
         return dir(MaterialsRester) + self._sub_resters

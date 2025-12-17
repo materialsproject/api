@@ -11,6 +11,7 @@ from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
+from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
@@ -25,45 +26,9 @@ from requests import Session, get
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import _compare_emmet_ver, load_json, validate_ids
-from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
-from mp_api.client.routes.materials import (
-    AbsorptionRester,
-    AlloysRester,
-    BandStructureRester,
-    BondsRester,
-    ChemenvRester,
-    ConversionElectrodeRester,
-    DielectricRester,
-    DOIRester,
-    DosRester,
-    ElasticityRester,
-    ElectrodeRester,
-    ElectronicStructureRester,
-    EOSRester,
-    GrainBoundaryRester,
-    MagnetismRester,
-    OxidationStatesRester,
-    PhononRester,
-    PiezoRester,
-    ProvenanceRester,
-    RobocrysRester,
-    SimilarityRester,
-    SubstratesRester,
-    SummaryRester,
-    SurfacePropertiesRester,
-    SynthesisRester,
-    TaskRester,
-    ThermoRester,
-    XASRester,
-)
-from mp_api.client.routes.materials.materials import MaterialsRester
-from mp_api.client.routes.molecules import MoleculeRester
-
-if _compare_emmet_ver("0.85.0", ">="):
-    from emmet.core.types.enums import ThermoType
-else:
-    from emmet.core.thermo import ThermoType
+from mp_api.client.core.utils import load_json, validate_ids, LazyImport
+from mp_api.client.routes import GENERIC_RESTERS
+from mp_api.client.routes.materials.materials import MATERIALS_RESTERS
 
 if TYPE_CHECKING:
     from typing import Any, Literal
@@ -75,53 +40,20 @@ _EMMET_SETTINGS = EmmetSettings()
 _MAPI_SETTINGS = MAPIClientSettings()
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
+RESTER_LAYOUT = {
+    **{
+        f"materials/{k}" : v
+        for k, v in MATERIALS_RESTERS.items()
+        if k not in {"materials","doi"}
+    },
+    "materials/core": MATERIALS_RESTERS["materials"],
+    "doi": MATERIALS_RESTERS["doi"],
+    **GENERIC_RESTERS,
+    "molecules/core": LazyImport("mp_api.client.routes.molecules","MoleculeRester")        
+}
 
 class MPRester:
     """Access the new Materials Project API."""
-
-    # Type hints for all routes
-    # To re-generate this list, use:
-    # for rester in MPRester()._all_resters:
-    #     print(f"{rester.suffix.replace('/', '_')}: {rester.__class__.__name__}")
-
-    # Materials
-    eos: EOSRester
-    materials: MaterialsRester
-    similarity: SimilarityRester
-    tasks: TaskRester
-    xas: XASRester
-    grain_boundaries: GrainBoundaryRester
-    substrates: SubstratesRester
-    surface_properties: SurfacePropertiesRester
-    phonon: PhononRester
-    elasticity: ElasticityRester
-    thermo: ThermoRester
-    dielectric: DielectricRester
-    piezoelectric: PiezoRester
-    magnetism: MagnetismRester
-    summary: SummaryRester
-    robocrys: RobocrysRester
-    synthesis: SynthesisRester
-    insertion_electrodes: ElectrodeRester
-    conversion_electrodes: ConversionElectrodeRester
-    electronic_structure: ElectronicStructureRester
-    electronic_structure_bandstructure: BandStructureRester
-    electronic_structure_dos: DosRester
-    oxidation_states: OxidationStatesRester
-    provenance: ProvenanceRester
-    bonds: BondsRester
-    alloys: AlloysRester
-    absorption: AbsorptionRester
-    chemenv: ChemenvRester
-
-    # Molecules
-    molecules: MoleculeRester
-
-    # Generic
-    doi: DOIRester
-    _user_settings: UserSettingsRester
-    _general_store: GeneralStoreRester
-    _messages: MessagesRester
 
     def __init__(
         self,
@@ -190,6 +122,7 @@ class MPRester:
             include_user_agent=include_user_agent,
             headers=self.headers,
         )
+        self._include_user_agent = include_user_agent
         self.use_document_model = use_document_model
         self.monty_decode = monty_decode
         self.mute_progress_bars = mute_progress_bars
@@ -225,6 +158,9 @@ class MPRester:
             "chemenv",
         ]
 
+        if not self.endpoint.endswith("/"):
+            self.endpoint += "/"
+
         # Check if emmet version of server is compatible
         emmet_version = MPRester.get_emmet_version(self.endpoint)
 
@@ -239,83 +175,72 @@ class MPRester:
         if notify_db_version:
             raise NotImplementedError("This has not yet been implemented.")
 
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
-
         # Dynamically set rester attributes.
         # First, materials and molecules top level resters are set.
         # Nested rested are then setup to be loaded dynamically with custom __getattr__ functions.
-        self._all_resters = []
-
-        # Get all rester classes
-        for _cls in BaseRester.__subclasses__():
-            sub_resters = _cls.__subclasses__()
-            if sub_resters:
-                self._all_resters.extend(sub_resters)
-            else:
-                self._all_resters.append(_cls)
+        self._all_resters = list(RESTER_LAYOUT.values())
 
         # Instantiate top level molecules and materials resters and set them as attributes
         core_suffix = ["molecules/core", "materials/core"]
 
         core_resters = {
-            cls.suffix.split("/")[0]: cls(
-                api_key=api_key,
+            rest_name.split("/")[0]: lazy_rester(
+                api_key=self.api_key,
                 endpoint=self.endpoint,
-                include_user_agent=include_user_agent,
+                include_user_agent=self._include_user_agent,
                 session=self.session,
                 monty_decode=self.monty_decode,
                 use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
             )
-            for cls in self._all_resters
-            if cls.suffix in core_suffix
+            for rest_name, lazy_rester in RESTER_LAYOUT.items()
+            if rest_name in core_suffix
         }
 
         # Set remaining top level resters, or get an attribute-class name mapping
         # for all sub-resters
         _sub_rester_suffix_map = {"materials": {}, "molecules": {}}
 
-        for cls in self._all_resters:
-            if cls.suffix not in core_suffix:
-                suffix_split = cls.suffix.split("/")
+        # for cls in self._all_resters:
+        #     if cls.suffix not in core_suffix:
+        #         suffix_split = cls.suffix.split("/")
 
-                if len(suffix_split) == 1:
-                    # Disable monty decode on nested data which may give errors
-                    monty_disable = cls in [TaskRester, ProvenanceRester]
-                    monty_decode = False if monty_disable else self.monty_decode
-                    rester = cls(
-                        api_key=api_key,
-                        endpoint=self.endpoint,
-                        include_user_agent=include_user_agent,
-                        session=self.session,
-                        monty_decode=monty_decode,
-                        use_document_model=self.use_document_model,
-                        headers=self.headers,
-                        mute_progress_bars=self.mute_progress_bars,
-                    )  # type: BaseRester
-                    setattr(
-                        self,
-                        suffix_split[0],
-                        rester,
-                    )
-                else:
-                    attr = "_".join(suffix_split[1:])
-                    if "materials" in suffix_split:
-                        _sub_rester_suffix_map["materials"][attr] = cls
-                    elif "molecules" in suffix_split:
-                        _sub_rester_suffix_map["molecules"][attr] = cls
+        #         if len(suffix_split) == 1:
+        #             # Disable monty decode on nested data which may give errors
+        #             monty_disable = cls.__name__ in ["TaskRester", "ProvenanceRester"]
+        #             monty_decode = False if monty_disable else self.monty_decode
+        #             rester = cls(
+        #                 api_key=api_key,
+        #                 endpoint=self.endpoint,
+        #                 include_user_agent=include_user_agent,
+        #                 session=self.session,
+        #                 monty_decode=monty_decode,
+        #                 use_document_model=self.use_document_model,
+        #                 headers=self.headers,
+        #                 mute_progress_bars=self.mute_progress_bars,
+        #             )  # type: BaseRester
+        #             setattr(
+        #                 self,
+        #                 suffix_split[0],
+        #                 rester,
+        #             )
+        #         else:
+        #             attr = "_".join(suffix_split[1:])
+        #             if "materials" in suffix_split:
+        #                 _sub_rester_suffix_map["materials"][attr] = cls
+        #             elif "molecules" in suffix_split:
+        #                 _sub_rester_suffix_map["molecules"][attr] = cls
 
         # TODO: Enable monty decoding when tasks and SNL schema is normalized
         #
         # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
         def __core_custom_getattr(_self, _attr, _rester_map):
-            if _attr in _rester_map:
-                cls = _rester_map[_attr]
-                monty_disable = cls in [TaskRester, ProvenanceRester]
+            if _attr in RESTER_LAYOUT:
+                lazy_rester = RESTER_LAYOUT[_attr]
+                monty_disable = lazy_rester._class_name in ["TaskRester", "ProvenanceRester"]
                 monty_decode = False if monty_disable else self.monty_decode
-                rester = cls(
+                rester = lazy_rester(
                     api_key=api_key,
                     endpoint=self.endpoint,
                     include_user_agent=include_user_agent,
@@ -326,12 +251,6 @@ class MPRester:
                     mute_progress_bars=self.mute_progress_bars,
                 )  # type: BaseRester
 
-                setattr(
-                    _self,
-                    _attr,
-                    rester,
-                )
-
                 return rester
             else:
                 raise AttributeError(
@@ -339,8 +258,7 @@ class MPRester:
                 )
 
         def __materials_getattr__(_self, attr):
-            _rester_map = _sub_rester_suffix_map["materials"]
-            rester = __core_custom_getattr(_self, attr, _rester_map)
+            rester = __core_custom_getattr(_self, attr, MATERIALS_RESTERS)
             return rester
 
         def __molecules_getattr__(_self, attr):
@@ -348,15 +266,11 @@ class MPRester:
             rester = __core_custom_getattr(_self, attr, _rester_map)
             return rester
 
-        MaterialsRester.__getattr__ = __materials_getattr__  # type: ignore
-        MoleculeRester.__getattr__ = __molecules_getattr__  # type: ignore
-
         for attr, rester in core_resters.items():
-            setattr(
-                self,
-                attr,
-                rester,
-            )
+            setattr(self, attr, rester)
+
+        # self.materials.__getattr__ = __materials_getattr__  # type: ignore
+        # MoleculeRester.__getattr__ = __molecules_getattr__  # type: ignore
 
     @property
     def contribs(self):
