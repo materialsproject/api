@@ -31,7 +31,6 @@ from mp_api.client.routes import GENERIC_RESTERS
 from mp_api.client.routes.materials import MATERIALS_RESTERS
 from mp_api.client.routes.molecules import MOLECULES_RESTERS
 
-
 if TYPE_CHECKING:
     from typing import Any, Literal
 
@@ -43,7 +42,9 @@ _MAPI_SETTINGS = MAPIClientSettings()
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
 RESTER_LAYOUT = {
-    "molecules/core": LazyImport("mp_api.client.routes.molecules.molecules.MoleculeRester"),
+    "molecules/core": LazyImport(
+        "mp_api.client.routes.molecules.molecules.MoleculeRester"
+    ),
     "materials/core": MATERIALS_RESTERS["materials"],
     **{
         f"materials/{k}": v
@@ -54,7 +55,10 @@ RESTER_LAYOUT = {
     **{
         f"molecules/{k}": v
         for k, v in MOLECULES_RESTERS.items()
-        if k not in {"molecules",}
+        if k
+        not in {
+            "molecules",
+        }
     },
     **GENERIC_RESTERS,
 }

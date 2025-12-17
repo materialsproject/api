@@ -49,8 +49,11 @@ mpr = MPRester()
 
 # Temporarily ignore molecules resters while molecules query operators are changed
 resters_to_test = [
-    rester for rester in mpr._all_resters if "molecule" not in rester._class_name.lower()
+    rester
+    for rester in mpr._all_resters
+    if "molecule" not in rester._class_name.lower()
 ]
+
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 @pytest.mark.parametrize("rester", resters_to_test)
@@ -65,7 +68,7 @@ def test_generic_get_methods(rester):
         monty_decode=rester not in [TaskRester, ProvenanceRester],
         use_document_model=True,
     )
-    
+
     name = rester.suffix.replace("/", "_")
 
     docs_check = lambda _docs: all(

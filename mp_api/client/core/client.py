@@ -49,6 +49,7 @@ if TYPE_CHECKING:
     from typing import Any, Callable
 
     from pydantic.fields import FieldInfo
+
     from mp_api.client.core.utils import LazyImport
 
 try:
@@ -1353,6 +1354,7 @@ class BaseRester:
             f"Available fields: {', '.join(self.available_fields)}\n\n"
         )
 
+
 class CoreRester(BaseRester):
     """Define a BaseRester with extra features for core resters.
 
@@ -1361,7 +1363,8 @@ class CoreRester(BaseRester):
     of endpoints names to LazyImport objects.
 
     """
-    _sub_resters : dict[str,LazyImport] = {}
+
+    _sub_resters: dict[str, LazyImport] = {}
 
     def __getattr__(self, v: str):
         if v in self._sub_resters:
