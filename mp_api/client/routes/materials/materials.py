@@ -5,71 +5,19 @@ from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.material import MaterialsDoc
 from pymatgen.core.structure import Structure
 
-from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.client import CoreRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes.materials import MATERIALS_RESTERS
 
 _EMMET_SETTINGS = EmmetSettings()  # type: ignore
 
 
-class MaterialsRester(BaseRester):
+class MaterialsRester(CoreRester):
     suffix = "materials/core"
     document_model = MaterialsDoc  # type: ignore
     supports_versions = True
     primary_key = "material_id"
-    _sub_resters = [
-        "eos",
-        "similarity",
-        "tasks",
-        "xas",
-        "grain_boundaries",
-        "substrates",
-        "surface_properties",
-        "phonon",
-        "elasticity",
-        "thermo",
-        "dielectric",
-        "piezoelectric",
-        "magnetism",
-        "summary",
-        "robocrys",
-        "synthesis",
-        "insertion_electrodes",
-        "conversion_electrodes",
-        "electronic_structure",
-        "electronic_structure_bandstructure",
-        "electronic_structure_dos",
-        "oxidation_states",
-        "provenance",
-        "bonds",
-        "alloys",
-        "absorption",
-        "chemenv",
-    ]
-
-    def __getattr__(self, v: str):
-        if v in self._sub_resters:
-            if MATERIALS_RESTERS[v]._obj is None:
-                # TODO: Enable monty decoding when tasks and SNL schema is normalized
-                monty_disable = MATERIALS_RESTERS[v]._class_name in [
-                    "TaskRester",
-                    "ProvenanceRester",
-                ]
-
-                MATERIALS_RESTERS[v](
-                    api_key=self.api_key,
-                    endpoint=self.endpoint.split(self.suffix)[0],
-                    include_user_agent=self._include_user_agent,
-                    session=self.session,
-                    monty_decode=False if monty_disable else self.monty_decode,
-                    use_document_model=self.use_document_model,
-                    headers=self.headers,
-                    mute_progress_bars=self.mute_progress_bars,
-                )
-            return MATERIALS_RESTERS[v]
-
-    def __dir__(self):
-        return dir(MaterialsRester) + self._sub_resters
+    _sub_resters = MATERIALS_RESTERS
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True

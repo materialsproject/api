@@ -4,7 +4,8 @@ import warnings
 import pytest
 
 from mp_api.client import MPRester
-from mp_api.client.routes.materials import TaskRester, ProvenanceRester
+from mp_api.client.routes.materials.tasks import TaskRester
+from mp_api.client.routes.materials.provenance import ProvenanceRester
 
 # -- Rester name data for generic tests
 
@@ -48,15 +49,13 @@ mpr = MPRester()
 
 # Temporarily ignore molecules resters while molecules query operators are changed
 resters_to_test = [
-    rester for rester in mpr._all_resters if "molecule" not in rester.suffix
+    rester for rester in mpr._all_resters if "molecule" not in rester._class_name.lower()
 ]
-
 
 @pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
 @pytest.mark.parametrize("rester", resters_to_test)
 def test_generic_get_methods(rester):
     # -- Test generic search and get_data_by_id methods
-    name = rester.suffix.replace("/", "_")
 
     rester = rester(
         endpoint=mpr.endpoint,
@@ -66,6 +65,8 @@ def test_generic_get_methods(rester):
         monty_decode=rester not in [TaskRester, ProvenanceRester],
         use_document_model=True,
     )
+    
+    name = rester.suffix.replace("/", "_")
 
     docs_check = lambda _docs: all(
         rester.document_model.__module__ == _doc.__module__ for _doc in _docs

@@ -4,12 +4,11 @@ from __future__ import annotations
 from mp_api.client.core.utils import LazyImport
 
 MATERIALS_RESTERS: dict[str, LazyImport] = {
-    route: LazyImport(f"mp_api.client.routes.materials.{module_name}", cls_name)
-    for route, module_name, cls_name in [
+    route: LazyImport(f"mp_api.client.routes.materials.{module_name}.{cls_name}")
+    for route, module_name, cls_name in (
         ("absorption", "absorption", "AbsorptionRester"),
         ("alloys", "alloys", "AlloysRester"),
         ("bonds", "bonds", "BondsRester"),
-        ("charge_density", "charge_density", "ChargeDensityRester"),
         (
             "chemenv",
             "chemenv",
@@ -33,7 +32,7 @@ MATERIALS_RESTERS: dict[str, LazyImport] = {
         ("materials", "materials", "MaterialsRester"),
         ("oxidation_states", "oxidation_states", "OxidationStatesRester"),
         ("phonon", "phonon", "PhononRester"),
-        ("piezoelectric", "piezoelectric", "PiezoRester"),
+        ("piezoelectric", "piezo", "PiezoRester"),
         ("provenance", "provenance", "ProvenanceRester"),
         ("robocrys", "robocrys", "RobocrysRester"),
         ("similarity", "similarity", "SimilarityRester"),
@@ -44,5 +43,5 @@ MATERIALS_RESTERS: dict[str, LazyImport] = {
         ("tasks", "tasks", "TaskRester"),
         ("thermo", "thermo", "ThermoRester"),
         ("xas", "xas", "XASRester"),
-    ]
+    )
 }

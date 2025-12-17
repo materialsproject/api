@@ -28,7 +28,9 @@ from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import LazyImport, load_json, validate_ids
 from mp_api.client.routes import GENERIC_RESTERS
-from mp_api.client.routes.materials.materials import MATERIALS_RESTERS
+from mp_api.client.routes.materials import MATERIALS_RESTERS
+from mp_api.client.routes.molecules import MOLECULES_RESTERS
+
 
 if TYPE_CHECKING:
     from typing import Any, Literal
@@ -41,15 +43,20 @@ _MAPI_SETTINGS = MAPIClientSettings()
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
 RESTER_LAYOUT = {
+    "molecules/core": LazyImport("mp_api.client.routes.molecules.molecules.MoleculeRester"),
+    "materials/core": MATERIALS_RESTERS["materials"],
     **{
         f"materials/{k}": v
         for k, v in MATERIALS_RESTERS.items()
         if k not in {"materials", "doi"}
     },
-    "materials/core": MATERIALS_RESTERS["materials"],
     "doi": MATERIALS_RESTERS["doi"],
+    **{
+        f"molecules/{k}": v
+        for k, v in MOLECULES_RESTERS.items()
+        if k not in {"molecules",}
+    },
     **GENERIC_RESTERS,
-    "molecules/core": LazyImport("mp_api.client.routes.molecules", "MoleculeRester"),
 }
 
 
@@ -200,81 +207,9 @@ class MPRester:
         }
 
         # Set remaining top level resters, or get an attribute-class name mapping
-        # for all sub-resters
-        _sub_rester_suffix_map = {"materials": {}, "molecules": {}}
-
-        # for cls in self._all_resters:
-        #     if cls.suffix not in core_suffix:
-        #         suffix_split = cls.suffix.split("/")
-
-        #         if len(suffix_split) == 1:
-        #             # Disable monty decode on nested data which may give errors
-        #             monty_disable = cls.__name__ in ["TaskRester", "ProvenanceRester"]
-        #             monty_decode = False if monty_disable else self.monty_decode
-        #             rester = cls(
-        #                 api_key=api_key,
-        #                 endpoint=self.endpoint,
-        #                 include_user_agent=include_user_agent,
-        #                 session=self.session,
-        #                 monty_decode=monty_decode,
-        #                 use_document_model=self.use_document_model,
-        #                 headers=self.headers,
-        #                 mute_progress_bars=self.mute_progress_bars,
-        #             )  # type: BaseRester
-        #             setattr(
-        #                 self,
-        #                 suffix_split[0],
-        #                 rester,
-        #             )
-        #         else:
-        #             attr = "_".join(suffix_split[1:])
-        #             if "materials" in suffix_split:
-        #                 _sub_rester_suffix_map["materials"][attr] = cls
-        #             elif "molecules" in suffix_split:
-        #                 _sub_rester_suffix_map["molecules"][attr] = cls
-
-        # TODO: Enable monty decoding when tasks and SNL schema is normalized
-        #
-        # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
-        def __core_custom_getattr(_self, _attr, _rester_map):
-            if _attr in RESTER_LAYOUT:
-                lazy_rester = RESTER_LAYOUT[_attr]
-                monty_disable = lazy_rester._class_name in [
-                    "TaskRester",
-                    "ProvenanceRester",
-                ]
-                monty_decode = False if monty_disable else self.monty_decode
-                rester = lazy_rester(
-                    api_key=api_key,
-                    endpoint=self.endpoint,
-                    include_user_agent=include_user_agent,
-                    session=self.session,
-                    monty_decode=monty_decode,
-                    use_document_model=self.use_document_model,
-                    headers=self.headers,
-                    mute_progress_bars=self.mute_progress_bars,
-                )  # type: BaseRester
-
-                return rester
-            else:
-                raise AttributeError(
-                    f"{_self.__class__.__name__!r} object has no attribute {_attr!r}"
-                )
-
-        def __materials_getattr__(_self, attr):
-            rester = __core_custom_getattr(_self, attr, MATERIALS_RESTERS)
-            return rester
-
-        def __molecules_getattr__(_self, attr):
-            _rester_map = _sub_rester_suffix_map["molecules"]
-            rester = __core_custom_getattr(_self, attr, _rester_map)
-            return rester
 
         for attr, rester in core_resters.items():
             setattr(self, attr, rester)
-
-        # self.materials.__getattr__ = __materials_getattr__  # type: ignore
-        # MoleculeRester.__getattr__ = __molecules_getattr__  # type: ignore
 
     @property
     def contribs(self):

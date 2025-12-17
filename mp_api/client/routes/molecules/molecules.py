@@ -7,13 +7,14 @@ from emmet.core.qchem.molecule import MoleculeDoc
 from emmet.core.settings import EmmetSettings
 from pymatgen.core.structure import Molecule
 
-from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.client import CoreRester, MPRestError
 from mp_api.client.core.utils import validate_ids
+from mp_api.client.routes.molecules import MOLECULES_RESTERS
 
 _EMMET_SETTINGS = EmmetSettings()
 
 
-class BaseMoleculeRester(BaseRester):
+class BaseMoleculeRester(CoreRester):
     document_model = MoleculeDoc
     primary_key = "molecule_id"
 
@@ -193,16 +194,15 @@ class AssociatedMoleculeRester(BaseMoleculeRester):
 
 class MoleculeRester(BaseMoleculeRester):
     suffix = "molecules/core"
-    _sub_resters = ["summary", "jcesr"]
+    _sub_resters = MOLECULES_RESTERS
 
-    def __getattribute__(self, attr):
-        if "jcesr" in attr:
+    def __getattr__(self, v: str):
+        if "jcesr" in v:
             warnings.warn(
                 "NOTE: You are accessing the unmaintained legacy molecules data, "
                 "please use MPRester.molecules.summary."
             )
-
-        return super().__getattribute__(attr)
+        super().__getattr__(v)
 
     def __dir__(self):
         return dir(MoleculeRester) + self._sub_resters

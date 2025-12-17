@@ -49,6 +49,7 @@ if TYPE_CHECKING:
     from typing import Any, Callable
 
     from pydantic.fields import FieldInfo
+    from mp_api.client.core.utils import LazyImport
 
 try:
     __version__ = version("mp_api")
@@ -1351,6 +1352,40 @@ class BaseRester:
             f"{self.__class__.__name__} connected to {self.endpoint}\n\n"
             f"Available fields: {', '.join(self.available_fields)}\n\n"
         )
+
+class CoreRester(BaseRester):
+    """Define a BaseRester with extra features for core resters.
+
+    Enables lazy importing / initialization of sub resters
+    provided in `_sub_resters`, which should be a map
+    of endpoints names to LazyImport objects.
+
+    """
+    _sub_resters : dict[str,LazyImport] = {}
+
+    def __getattr__(self, v: str):
+        if v in self._sub_resters:
+            if self._sub_resters[v]._obj is None:
+                # TODO: Enable monty decoding when tasks and SNL schema is normalized
+                monty_disable = self._sub_resters[v]._class_name in [
+                    "TaskRester",
+                    "ProvenanceRester",
+                ]
+
+                self._sub_resters[v](
+                    api_key=self.api_key,
+                    endpoint=self.endpoint.split(self.suffix)[0],
+                    include_user_agent=self._include_user_agent,
+                    session=self.session,
+                    monty_decode=False if monty_disable else self.monty_decode,
+                    use_document_model=self.use_document_model,
+                    headers=self.headers,
+                    mute_progress_bars=self.mute_progress_bars,
+                )
+            return self._sub_resters[v]
+
+    def __dir__(self):
+        return dir(self.__class__) + list(self._sub_resters)
 
 
 class MPRestError(Exception):

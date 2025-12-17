@@ -76,35 +76,76 @@ def validate_ids(id_list: list[str]) -> list[str]:
 
 
 class LazyImport:
-    """Lazily import and load an object."""
+    """Lazily import and load an object.
+    
+    This class is super lazy, in that it lazily imports and caches an object.
+    If the object is a function, the function itself will be cached.
 
-    __slots__ = ["_module_name", "_class_name", "_obj"]
+    If the object is a class, and the class is initialized, the
+    current instance of the class will be cached.
 
-    def __init__(  # noqa: D107
-        self,
-        module_name: str,
-        class_name: str,
-    ) -> None:
-        self._module_name = module_name
-        self._class_name = class_name
-        self._obj = None
+    Parameters
+    -----------
+    import_str : str
+        A dot-separated, import-like string.
+    """
+
+    __slots__ = ["_module_name", "_class_name", "_obj","_imported"]
+
+    def __init__(self, import_str: str,) -> None:
+        if len(
+            splitted := import_str.rsplit(".",1)
+        ) > 1:
+            self._module_name, self._class_name = splitted
+        else:
+            self._module_name = splitted[0]
+            self._class_name = None
+
+        self._imported : Any | None = None
+        self._obj : Any | None = None
 
     def __str__(self) -> str:
-        return f"LazyImport of {self._module_name}.{self._class_name}"
+        return f"LazyImport of {self._module_name}" + (f".{self._class_name}" if self._class_name else "")
 
     def __repr__(self) -> str:
         return self.__str__()
 
-    def __call__(self, *args, **kwargs):
-        if self._obj is None:
-            try:
-                self._obj = getattr(import_module(self._module_name), self._class_name)(
-                    *args,
-                    **kwargs,
-                )
-            except Exception as exc:
-                raise ImportError(f"Failed to import {self._class_name}:\n{exc}")
-        return self._obj
+    def _load(self,) -> None:
+        try:
+            _imported = import_module(self._module_name)
+            if self._class_name:
+                _imported = getattr(_imported, self._class_name)
+            self._imported = _imported
+        except Exception as exc:
+            raise ImportError(f"Failed to import {self._module_name}.{self._class_name}:\n{exc}")
 
-    def __getattr__(self, v):
-        return getattr(self._obj, v)
+    def __call__(self, *args, **kwargs) -> Any:
+        """Call a function or (re-)initialize a class.
+        
+        If the object itself has not been imported, this will first import it.
+
+        If the object is a class, it will be initialized, cached, and returned.
+
+        If the object is a function, it will be cached, and this will return
+        the value(s) of the function at (*args,**kwargs).
+        """
+        if self._imported is None:
+            self._load()
+
+        if isinstance(self._imported,type):
+            self._obj = self._imported(*args, **kwargs)
+            return self._obj
+        else:
+            self._obj = self._imported
+            return self._obj(*args,**kwargs)
+
+    def __getattr__(self, v : str) -> Any:
+        """Get an attribute on a super lazy object."""
+        if self._obj is not None and hasattr(self._obj, v):
+            return getattr(self._obj, v)
+
+        if self._imported is None:
+            self._load()
+        if hasattr(self._imported,v):
+            return getattr(self._imported,v)
+        
