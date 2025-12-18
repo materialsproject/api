@@ -1,5 +1,18 @@
 from __future__ import annotations
-from typing import Callable, Any
+
+import os
+from typing import TYPE_CHECKING
+
+import pytest
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Any
+
+requires_api_key = pytest.mark.skipif(
+    os.getenv("MP_API_KEY") is None,
+    reason="No API key found.",
+)
 
 
 def client_search_testing(

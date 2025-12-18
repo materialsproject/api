@@ -5,12 +5,17 @@ import importlib
 
 import numpy as np
 import pytest
+from emmet.core.mpid import MPID, AlphaID
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
+from emmet.core.phonon import PhononDOS, PhononBS
+from emmet.core.types.enums import ThermoType
+
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
 from pymatgen.analysis.wulff import WulffShape
 from pymatgen.core import SETTINGS
+from pymatgen.core.composition import Composition
 from pymatgen.core.ion import Ion
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.bandstructure import (
@@ -26,17 +31,12 @@ from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
-from emmet.core.phonon import PhononDOS, PhononBS
 
 from mp_api.client import MPRester
 from mp_api.client.core.client import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import _compare_emmet_ver
 
-if _compare_emmet_ver("0.85.0", ">="):
-    from emmet.core.types.enums import ThermoType
-else:
-    from emmet.core.thermo import ThermoType
+from .conftest import requires_api_key
 
 
 @pytest.fixture()
@@ -46,7 +46,7 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 class TestMPRester:
     fake_mp_api_key = "12345678901234567890123456789012"  # 32 chars
     default_endpoint = "https://api.materialsproject.org/"
@@ -336,11 +336,11 @@ class TestMPRester:
     def test_large_list(self, mpr):
         mpids = [
             str(doc.material_id)
-            for doc in mpr.summary.search(
+            for doc in mpr.materials.summary.search(
                 chunk_size=1000, num_chunks=10, fields=["material_id"]
             )
         ]
-        docs = mpr.summary.search(material_ids=mpids, fields=["material_id"])
+        docs = mpr.materials.summary.search(material_ids=mpids, fields=["material_id"])
         assert len(docs) == 10000
 
     def test_get_api_key_endpoint_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
@@ -360,6 +360,9 @@ class TestMPRester:
         monkeypatch.setenv("MP_API_ENDPOINT", self.default_endpoint)
         assert MPRester().api_key == self.fake_mp_api_key
         assert MPRester().endpoint == self.default_endpoint
+
+        monkeypatch.setenv("MP_API_ENDPOINT", self.default_endpoint[:-1])
+        assert MPRester().endpoint.endswith("/")
 
     def test_get_api_key_endpoint_from_settings(self, monkeypatch: pytest.MonkeyPatch):
         """Test environment variable "MP_API_KEY" is not set and
@@ -522,3 +525,32 @@ class TestMPRester:
                         data = dct
                         break
                 assert pd.get_e_above_hull(entry) == pytest.approx(data["e_above_hull"])
+
+    @pytest.mark.parametrize(
+        "mpid, working_ion, thermo_type",
+        [
+            ("mp-1248282", "Al", ThermoType.GGA_GGA_U),
+            (MPID("mp-1248282"), Element.Al, "R2SCAN"),
+            (AlphaID("mp-1248282"), "Al", ThermoType.GGA_GGA_U_R2SCAN),
+        ],
+    )
+    def test_oxygen_evolution(self, mpid, working_ion, thermo_type, mpr):
+        # Ensure oxygen evolution data has the anticipated schema
+        # and is robust to different permutations of input
+
+        oxy_evo = mpr.get_oxygen_evolution(mpid, working_ion, thermo_type=thermo_type)
+        assert all(
+            isinstance(entry.get(k), np.ndarray)
+            for entry in oxy_evo.values()
+            for k in ("mu", "evolution", "temperature", "reaction")
+        )
+        assert all(Composition(k).formula == k for k in oxy_evo)
+
+    def test_oxygen_evolution_bad_input(self, mpr):
+        # Ensure oxygen evolution fails gracefully if no O present
+        # or no insertion electrode data
+        with pytest.raises(ValueError, match="No oxygen in the host"):
+            _ = mpr.get_oxygen_evolution("mp-2207", Element.K)
+
+        with pytest.raises(ValueError, match="No available insertion electrode data"):
+            _ = mpr.get_oxygen_evolution("mp-2207", "Al")

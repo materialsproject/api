@@ -117,7 +117,10 @@ class SimilarityRester(BaseRester):
             feature_vector = self.fingerprint_structure(structure_or_mpid)
 
         else:
-            raise ValueError("Please submit a pymatgen Structure or MP ID.")
+            raise MPRestError(
+                "Please submit a pymatgen Structure or MP ID, found ."
+                f"structure_or_mpid = {type(structure_or_mpid)}."
+            )
 
         top = top or MAX_VECTOR_SEARCH_RESULTS
         if not isinstance(top, int) or top < 1:
