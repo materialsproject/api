@@ -11,6 +11,11 @@ from mp_api.client.routes.materials.similarity import SimilarityRester
 
 from ..conftest import client_search_testing, requires_api_key
 
+try:
+    import matminer
+except ImportError:
+    matminer = None
+
 
 @pytest.fixture(scope="module")
 def test_struct():
@@ -52,10 +57,22 @@ def test_similarity_search():
 @requires_api_key
 def test_similarity_vector_search(test_struct):
     rester = SimilarityRester()
-    fv = rester.fingerprint_structure(test_struct)
-    assert isinstance(fv, np.ndarray)
-    assert len(fv) == 122
-    assert isinstance(rester._fingerprinter, SimilarityScorer)
+
+    # skip these tests if `matminer` is not installed
+    if matminer is not None:
+        fv = rester.fingerprint_structure(test_struct)
+        assert isinstance(fv, np.ndarray)
+        assert len(fv) == 122
+        assert isinstance(rester._fingerprinter, SimilarityScorer)
+
+        assert all(
+            isinstance(entry, SimilarityEntry)
+            and isinstance(entry.dissimilarity, float)
+            for entry in rester.find_similar(
+                test_struct,
+                top=2,
+            )
+        )
 
     get_top = 5
     sim_entries = rester.find_similar("mp-149", top=get_top)
@@ -74,15 +91,7 @@ def test_similarity_vector_search(test_struct):
     with pytest.raises(MPRestError, match="No similarity data available for"):
         _ = rester.find_similar("mp-0")
 
-    assert all(
-        isinstance(entry, SimilarityEntry) and isinstance(entry.dissimilarity, float)
-        for entry in rester.find_similar(
-            test_struct,
-            top=2,
-        )
-    )
-
     with pytest.raises(
         MPRestError, match="Please submit a pymatgen Structure or MP ID"
     ):
-        _ = rester.find_similar(fv)
+        _ = rester.find_similar(np.random.rand(122))
