@@ -370,8 +370,8 @@ class MPRester:
                 self._contribs = None
                 warnings.warn(
                     "mpcontribs-client not installed. "
-                    "Install the package to query MPContribs data, or construct pourbaix diagrams: "
-                    "'pip install mpcontribs-client'"
+                    "Install the package to query MPContribs data, construct pourbaix diagrams, "
+                    "or to compute cohesive energies: 'pip install mpcontribs-client'"
                 )
             except Exception as error:
                 self._contribs = None

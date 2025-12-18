@@ -38,6 +38,11 @@ from mp_api.client.core.settings import MAPIClientSettings
 
 from .conftest import requires_api_key
 
+try:
+    import mpcontribs.client as contribs_client
+except ImportError:
+    contribs_client = None
+
 
 @pytest.fixture()
 def mpr():
@@ -210,22 +215,21 @@ class TestMPRester:
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
-    @pytest.mark.skip(reason="SSL issues")
+    @pytest.mark.skipif(
+        contribs_client is None,
+        reason="`pip install mpcontribs-client` to use pourbaix functionality.",
+    )
     def test_get_pourbaix_entries(self, mpr):
-        # test input chemsys as a list of elements
-        pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
-        for pbx_entry in pbx_entries:
-            assert isinstance(pbx_entry, PourbaixEntry)
-
-        # test input chemsys as a string
-        pbx_entries = mpr.get_pourbaix_entries("Fe-Cr")
-        for pbx_entry in pbx_entries:
-            assert isinstance(pbx_entry, PourbaixEntry)
-
-        # test use_gibbs kwarg
-        pbx_entries = mpr.get_pourbaix_entries("Li-O", use_gibbs=300)
-        for pbx_entry in pbx_entries:
-            assert isinstance(pbx_entry, PourbaixEntry)
+        # test input chemsys as a list of elements, chemsys, wiith and without kwargs
+        for chemsys, kwargs in [
+            [["Fe", "Cr"], {}],
+            ["Fe-Cr", {}],
+            ["Li-O", {"use_gibbs": 300}],
+        ]:
+            pbx_entries = mpr.get_pourbaix_entries(chemsys, **kwargs)
+            assert all(
+                isinstance(pbx_entry, PourbaixEntry) for pbx_entry in pbx_entries
+            )
 
         # test solid_compat kwarg
         with pytest.raises(ValueError, match="Solid compatibility can only be"):
@@ -237,7 +241,7 @@ class TestMPRester:
         assert not any(e for e in pbx_entries if "Na" in e.composition)
 
         # Ensure entries are pourbaix compatible
-        PourbaixDiagram(pbx_entries)
+        _ = PourbaixDiagram(pbx_entries)
 
         # TODO - old tests copied from pymatgen with specific energy values. Update or delete
         # fe_two_plus = [e for e in pbx_entries if e.entry_id == "ion-0"][0]
@@ -251,7 +255,10 @@ class TestMPRester:
         # so4_two_minus = pbx_entries[9]
         # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
 
-    @pytest.mark.skip(reason="SSL issues")
+    @pytest.mark.skipif(
+        contribs_client is None,
+        reason="`pip install mpcontribs-client` to use pourbaix functionality.",
+    )
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
@@ -262,7 +269,7 @@ class TestMPRester:
         bi_v_entry_data = mpr.get_ion_reference_data_for_chemsys("Bi-V")
         bi_data = mpr.get_ion_reference_data_for_chemsys("Bi")
         v_data = mpr.get_ion_reference_data_for_chemsys("V")
-        assert len(bi_v_entry_data) == len(bi_data) + v_data
+        assert len(bi_v_entry_data) == len(bi_data + v_data)
 
         # test an incomplete phase diagram
         entries = mpr.get_entries_in_chemsys("Ti-O")
@@ -296,7 +303,9 @@ class TestMPRester:
         # the ref solid is Na2SO4, ground state mp-4770
         # the rf factor correction is necessary to make sure the composition
         # of the reference solid is normalized to a single formula unit
-        ref_solid_entry = [e for e in ion_ref_entries if e.entry_id == "mp-4770"][0]
+        ref_solid_entry = next(
+            e for e in ion_ref_entries if e.entry_id.startswith("mp-4770")
+        )
         rf = ref_solid_entry.composition.get_reduced_composition_and_factor()[1]
         solid_energy = ion_ref_pd.get_form_energy(ref_solid_entry) / rf
 
@@ -380,6 +389,8 @@ class TestMPRester:
         assert MPRester().endpoint == self.default_endpoint
 
         monkeypatch.delenv("MP_API_KEY", raising=False)
+        monkeypatch.delenv("PMG_MAPI_KEY", raising=False)
+        monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", None)
         with pytest.raises(MPRestError, match="No API key found in request"):
             MPRester().get_structure_by_material_id("mp-149")
 
@@ -405,6 +416,10 @@ class TestMPRester:
             composition, toten_per_atom, atomic_energies
         ) == pytest.approx(by_hand_e_coh)
 
+    @pytest.mark.skipif(
+        contribs_client is None,
+        reason="`pip install mpcontribs-client` to use cohesive energy functionality.",
+    )
     def test_get_atom_references(self, mpr):
         ae = mpr.get_atom_reference_data(funcs=("PBE",))
         assert list(ae) == ["PBE"]
@@ -418,6 +433,10 @@ class TestMPRester:
             isinstance(v, float) for entries in ae.values() for v in entries.values()
         )
 
+    @pytest.mark.skipif(
+        contribs_client is None,
+        reason="`pip install mpcontribs-client` to use cohesive energy functionality.",
+    )
     def test_get_cohesive_energy(self):
         ref_e_coh = {
             "atom": {

@@ -2,6 +2,14 @@ import os
 
 import pytest
 
+try:
+    import pymatgen.analysis.alloys
+except ImportError:
+    pytest.skip(
+        "Please `pip install pymatgen-analysis-alloys` to use the `materials.alloys` endpoint",
+        allow_module_level=True,
+    )
+
 from mp_api.client.routes.materials.alloys import AlloysRester
 
 from ..conftest import client_search_testing, requires_api_key
