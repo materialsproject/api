@@ -2,6 +2,8 @@ import os
 
 import pytest
 
+pytest.importorskip("pymatgen.analysis.alloys", reason="pymatgen-analysis-alloys not installed")
+
 from mp_api.client.routes.materials.alloys import AlloysRester
 
 from ..conftest import client_search_testing, requires_api_key
