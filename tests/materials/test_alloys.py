@@ -2,7 +2,14 @@ import os
 
 import pytest
 
-pytest.importorskip("pymatgen.analysis.alloys", reason="pymatgen-analysis-alloys not installed")
+
+try:
+    import pymatgen.analysis.alloys
+except ImportError:
+    pytest.skip(
+        "Please `pip install pymatgen-analysis-alloys` to use the `materials.alloys` endpoint",
+        allow_module_level=True,
+    )
 
 from mp_api.client.routes.materials.alloys import AlloysRester
 
