@@ -577,6 +577,9 @@ class BaseRester:
     ) -> dict:
         """Handle submitting requests sequentially with pagination.
 
+        If criteria contains comma-separated parameters (except those that are naturally comma-separated),
+        split them into multiple sequential requests and combine results.
+
         Arguments:
             criteria: dictionary of criteria to filter down
             url: url used to make request
@@ -588,22 +591,148 @@ class BaseRester:
         Returns:
             Dictionary containing data and metadata
         """
-        total_data = {"data": []}  # type: dict
+        # Parameters that naturally support comma-separated values and should NOT be split
+        no_split_params = {
+            "elements",
+            "exclude_elements",
+            "possible_species",
+            "coordination_envs",
+            "coordination_envs_anonymous",
+            "has_props",
+            "gb_plane",
+            "rotation_axis",
+            "keywords",
+            "substrate_orientation",
+            "film_orientation",
+            "synthesis_type",
+            "operations",
+            "condition_mixing_device",
+            "condition_mixing_media",
+            "condition_heating_atmosphere",
+            "_fields",
+            "formula",
+            "chemsys",
+        }
 
-        # Get first page to determine total number of documents
-        initial_criteria = copy(criteria)
-        data, total_num_docs = self._submit_request_and_process(
-            url=url,
-            verify=True,
-            params=initial_criteria,
-            use_document_model=use_document_model,
-            timeout=timeout,
-        )
+        # Check if we need to split any comma-separated parameters
+        split_param = None
+        split_values = None
+        total_num_docs = 0  # Initialize before try/else blocks
 
-        total_data["data"].extend(data["data"])
+        for key, value in criteria.items():
+            if (
+                isinstance(value, str)
+                and "," in value
+                and key not in no_split_params
+                and not key.startswith("_")
+            ):
+                split_param = key
+                split_values = value.split(",")
+                break
 
-        if "meta" in data:
-            total_data["meta"] = data["meta"]
+        # If we found a parameter to split, try the request first and only split on error
+        if split_param and split_values and len(split_values) > 1:
+            try:
+                # First, try the request with all values as-is
+                initial_criteria = copy(criteria)
+                data, total_num_docs = self._submit_request_and_process(
+                    url=url,
+                    verify=True,
+                    params=initial_criteria,
+                    use_document_model=use_document_model,
+                    timeout=timeout,
+                )
+
+                # Check if we got 0 results - some parameters are silently ignored by the API
+                # when passed as comma-separated values, so we need to split them anyway
+                if total_num_docs == 0 and len(split_values) > 1:
+                    # Treat this the same as a 422 error - split into batches
+                    raise MPRestError(
+                        "Got 0 results for comma-separated parameter, will try splitting"
+                    )
+
+                # If successful, continue with normal pagination
+                total_data = {"data": []}  # type: dict
+                total_data["data"].extend(data["data"])
+
+                if "meta" in data:
+                    total_data["meta"] = data["meta"]
+
+                # Continue with pagination if needed (handled below)
+
+            except MPRestError as e:
+                # If we get 422 or 414 error, or 0 results for comma-separated params, split into batches
+                if "422" in str(e) or "414" in str(e) or "Got 0 results" in str(e):
+                    total_data = {"data": []}  # type: dict
+                    total_num_docs = 0
+
+                    # Batch the split values to reduce number of requests
+                    # Use batches of up to 100 values to balance URL length and request count
+                    batch_size = min(100, max(1, len(split_values) // 10))
+
+                    # Setup progress bar for split parameter requests
+                    num_batches = ceil(len(split_values) / batch_size)
+                    pbar_message = f"Retrieving {len(split_values)} {split_param} values in {num_batches} batches"
+                    pbar = (
+                        tqdm(
+                            desc=pbar_message,
+                            total=num_batches,
+                        )
+                        if not self.mute_progress_bars
+                        else None
+                    )
+
+                    for i in range(0, len(split_values), batch_size):
+                        batch = split_values[i : i + batch_size]
+                        split_criteria = copy(criteria)
+                        split_criteria[split_param] = ",".join(batch)
+
+                        # Recursively call _submit_requests with the batch
+                        # This will trigger another split if the batch is still too large
+                        result = self._submit_requests(
+                            url=url,
+                            criteria=split_criteria,
+                            use_document_model=use_document_model,
+                            chunk_size=chunk_size,
+                            num_chunks=num_chunks,
+                            timeout=timeout,
+                        )
+
+                        total_data["data"].extend(result["data"])
+                        if "meta" in result:
+                            total_data["meta"] = result["meta"]
+                            total_num_docs += result["meta"].get("total_doc", 0)
+
+                        if pbar is not None:
+                            pbar.update(1)
+
+                    if pbar is not None:
+                        pbar.close()
+
+                    # Update total_doc if we have meta
+                    if "meta" in total_data:
+                        total_data["meta"]["total_doc"] = total_num_docs
+
+                    return total_data
+                else:
+                    # Re-raise other errors
+                    raise
+        else:
+            # No splitting needed - get first page
+            total_data = {"data": []}  # type: dict
+            initial_criteria = copy(criteria)
+            data, total_num_docs = self._submit_request_and_process(
+                url=url,
+                verify=True,
+                params=initial_criteria,
+                use_document_model=use_document_model,
+                timeout=timeout,
+            )
+
+            total_data["data"].extend(data["data"])
+
+            if "meta" in data:
+                total_data["meta"] = data["meta"]
 
         # Get max number of response pages
         max_pages = (
