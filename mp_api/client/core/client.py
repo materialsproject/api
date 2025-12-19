@@ -6,12 +6,10 @@ Materials Project data.
 from __future__ import annotations
 
 import inspect
-import itertools
 import os
 import platform
 import sys
 import warnings
-from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
 from functools import cache
 from importlib import import_module
@@ -410,7 +408,6 @@ class BaseRester:
         fields: list[str] | None = None,
         suburl: str | None = None,
         use_document_model: bool | None = None,
-        parallel_param: str | None = None,
         num_chunks: int | None = None,
         chunk_size: int | None = None,
         timeout: int | None = None,
@@ -426,7 +423,6 @@ class BaseRester:
             fields: list of fields to return
             suburl: make a request to a specified sub-url
             use_document_model: if None, will defer to the self.use_document_model attribute
-            parallel_param: parameter used to make parallel requests
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout : Time in seconds to wait until a request timeout error is thrown
@@ -505,7 +501,6 @@ class BaseRester:
                         url=url,
                         criteria=criteria,
                         use_document_model=use_document_model,
-                        parallel_param=parallel_param,
                         num_chunks=num_chunks,
                         chunk_size=chunk_size,
                         timeout=timeout,
@@ -562,7 +557,6 @@ class BaseRester:
                     url=url,
                     criteria=criteria,
                     use_document_model=not query_s3 and use_document_model,
-                    parallel_param=parallel_param,
                     num_chunks=num_chunks,
                     chunk_size=chunk_size,
                     timeout=timeout,
@@ -578,21 +572,15 @@ class BaseRester:
         criteria,
         use_document_model,
         chunk_size,
-        parallel_param=None,
         num_chunks=None,
         timeout=None,
     ) -> dict:
-        """Handle submitting requests. Parallel requests supported if possible.
-        Parallelization will occur either over the largest list of supported
-        query parameters used and/or over pagination.
-
-        The number of threads is chosen by NUM_PARALLEL_REQUESTS in settings.
+        """Handle submitting requests sequentially with pagination.
 
         Arguments:
             criteria: dictionary of criteria to filter down
             url: url used to make request
             use_document_model: if None, will defer to the self.use_document_model attribute
-            parallel_param: parameter to parallelize requests with
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout: Time in seconds to wait until a request timeout error is thrown
@@ -600,183 +588,22 @@ class BaseRester:
         Returns:
             Dictionary containing data and metadata
         """
-        # Generate new sets of criteria dicts to be run in parallel
-        # with new appropriate limit values. New limits obtained from
-        # trying to evenly divide num_chunks by the total number of new
-        # criteria dicts.
-        if parallel_param is not None:
-            # Determine slice size accounting for character maximum in HTTP URL
-            # First get URl length without parallel param
-            url_string = ""
-            for key, value in criteria.items():
-                if key != parallel_param:
-                    parsed_val = quote(str(value))
-                    url_string += f"{key}={parsed_val}&"
-
-            bare_url_len = len(url_string)
-            max_param_str_length = (
-                MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len  # type: ignore
-            )
-
-            # Next, check if default number of parallel requests works.
-            # If not, make slice size the minimum number of param entries
-            # contained in any substring of length max_param_str_length.
-            param_length = len(criteria[parallel_param].split(","))
-            slice_size = (
-                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1  # type: ignore
-            )
-
-            url_param_string = quote(criteria[parallel_param])
-
-            parallel_param_str_chunks = [
-                url_param_string[i : i + max_param_str_length]
-                for i in range(0, len(url_param_string), max_param_str_length)
-                if (i + max_param_str_length) <= len(url_param_string)
-            ]
-
-            if len(parallel_param_str_chunks) > 0:
-                params_min_chunk = min(
-                    parallel_param_str_chunks, key=lambda x: len(x.split("%2C"))
-                )
-
-                num_params_min_chunk = len(params_min_chunk.split("%2C"))
-
-                if num_params_min_chunk < slice_size:
-                    slice_size = num_params_min_chunk or 1
-
-            new_param_values = [
-                entry
-                for entry in (
-                    criteria[parallel_param].split(",")[i : (i + slice_size)]
-                    for i in range(0, param_length, slice_size)
-                )
-                if entry != []
-            ]
-
-            # Get new limit values that sum to chunk_size
-            num_new_params = len(new_param_values)
-            q = int(chunk_size / num_new_params)  # quotient
-            r = chunk_size % num_new_params  # remainder
-            new_limits = []
-
-            for _ in range(num_new_params):
-                val = q + 1 if r > 0 else q if q > 0 else 1
-                new_limits.append(val)
-                r -= 1
-
-            # Split list and generate multiple criteria
-            new_criteria = [
-                {
-                    **{
-                        key: criteria[key]
-                        for key in criteria
-                        if key not in [parallel_param, "_limit"]
-                    },
-                    parallel_param: ",".join(list_chunk),
-                    "_limit": new_limits[list_num],
-                }
-                for list_num, list_chunk in enumerate(new_param_values)
-            ]
-
-        else:
-            # Only parallelize over pagination parameters
-            new_criteria = [criteria]
-            new_limits = [chunk_size]
-
-        total_num_docs = 0
         total_data = {"data": []}  # type: dict
 
-        # Obtain first page of results and get pagination information.
-        # Individual total document limits (subtotal) will potentially
-        # be used for rebalancing should one new of the criteria
-        # queries result in a smaller amount of docs compared to the
-        # new limit value we assigned.
-        subtotals = []
-        remaining_docs_avail = {}
-
-        initial_params_list = [
-            {
-                "url": url,
-                "verify": True,
-                "params": copy(crit),
-                "use_document_model": use_document_model,
-                "timeout": timeout,
-            }
-            for crit in new_criteria
-        ]
-
-        initial_data_tuples = self._multi_thread(
-            self._submit_request_and_process, initial_params_list
+        # Get first page to determine total number of documents
+        initial_criteria = copy(criteria)
+        data, total_num_docs = self._submit_request_and_process(
+            url=url,
+            verify=True,
+            params=initial_criteria,
+            use_document_model=use_document_model,
+            timeout=timeout,
         )
 
-        for data, subtotal, crit_ind in initial_data_tuples:
-            subtotals.append(subtotal)
-            sub_diff = subtotal - new_limits[crit_ind]
-            remaining_docs_avail[crit_ind] = sub_diff
-            total_data["data"].extend(data["data"])
+        total_data["data"].extend(data["data"])
 
-        last_data_entry = initial_data_tuples[-1][0]
-
-        # Rebalance if some parallel queries produced too few results
-        if len(remaining_docs_avail) > 1 and len(total_data["data"]) < chunk_size:
-            remaining_docs_avail = dict(
-                sorted(remaining_docs_avail.items(), key=lambda item: item[1])
-            )
-
-            # Redistribute missing docs from initial chunk among queries
-            # which have head room with respect to remaining document number.
-            fill_docs = 0
-            rebalance_params = []
-            for crit_ind, amount_avail in remaining_docs_avail.items():
-                if amount_avail <= 0:
-                    fill_docs += abs(amount_avail)
-                    new_limits[crit_ind] = 0
-                else:
-                    crit = new_criteria[crit_ind]
-                    crit["_skip"] = crit["_limit"]
-
-                    if fill_docs == 0:
-                        continue
-
-                    if fill_docs >= amount_avail:
-                        crit["_limit"] = amount_avail
-                        new_limits[crit_ind] += amount_avail
-                        fill_docs -= amount_avail
-
-                    else:
-                        crit["_limit"] = fill_docs
-                        new_limits[crit_ind] += fill_docs
-                        fill_docs = 0
-
-                    rebalance_params.append(
-                        {
-                            "url": url,
-                            "verify": True,
-                            "params": copy(crit),
-                            "use_document_model": use_document_model,
-                            "timeout": timeout,
-                        }
-                    )
-
-                    new_criteria[crit_ind]["_skip"] += crit["_limit"]
-                    new_criteria[crit_ind]["_limit"] = chunk_size
-
-            # Obtain missing initial data after rebalancing
-            if len(rebalance_params) > 0:
-                rebalance_data_tuples = self._multi_thread(
-                    self._submit_request_and_process, rebalance_params
-                )
-
-                for data, _, _ in rebalance_data_tuples:
-                    total_data["data"].extend(data["data"])
-
-                last_data_entry = rebalance_data_tuples[-1][0]
-
-        total_num_docs = sum(subtotals)
-
-        if "meta" in last_data_entry:
-            last_data_entry["meta"]["total_doc"] = total_num_docs
-            total_data["meta"] = last_data_entry["meta"]
+        if "meta" in data:
+            total_data["meta"] = data["meta"]
 
         # Get max number of response pages
         max_pages = (
@@ -803,22 +630,21 @@ class BaseRester:
 
         initial_data_length = len(total_data["data"])
 
+        if pbar is not None:
+            pbar.update(initial_data_length)
+
         # If we have all the results in a single page, return directly
         if initial_data_length >= num_docs_needed or num_chunks == 1:
             new_total_data = copy(total_data)
             new_total_data["data"] = total_data["data"][:num_docs_needed]
 
             if pbar is not None:
-                pbar.update(num_docs_needed)
                 pbar.close()
             return new_total_data
 
-        # otherwise, prepare to paginate in parallel
+        # otherwise, paginate sequentially
         if chunk_size is None:
             raise ValueError("A chunk size must be provided to enable pagination")
-
-        if pbar is not None:
-            pbar.update(initial_data_length)
 
         # Warning to select specific fields only for many results
         if criteria.get("_all_fields", False) and (total_num_docs / chunk_size > 10):
@@ -828,130 +654,42 @@ class BaseRester:
                 f"Choose from: {self.available_fields}"
             )
 
-        # Get all pagination input params for parallel requests
-        params_list = []
-        doc_counter = 0
+        # Paginate through remaining results
+        skip = chunk_size if "_limit" not in criteria else criteria["_limit"]
+        remaining_docs = total_num_docs - initial_data_length
 
-        for crit_num, crit in enumerate(new_criteria):
-            remaining = remaining_docs_avail[crit_num]
-            if "_skip" not in crit:
-                crit["_skip"] = chunk_size if "_limit" not in crit else crit["_limit"]
+        while len(total_data["data"]) < num_docs_needed and remaining_docs > 0:
+            page_criteria = copy(criteria)
+            page_criteria["_skip"] = skip
 
-            while remaining > 0:
-                if doc_counter == (num_docs_needed - initial_data_length):
-                    break
+            # Determine limit for this request
+            docs_still_needed = num_docs_needed - len(total_data["data"])
+            page_criteria["_limit"] = min(chunk_size, docs_still_needed, remaining_docs)
 
-                if remaining < chunk_size:
-                    crit["_limit"] = remaining
-                    doc_counter += remaining
-                else:
-                    n = chunk_size - (doc_counter % chunk_size)
-                    crit["_limit"] = n
-                    doc_counter += n
+            data, _ = self._submit_request_and_process(
+                url=url,
+                verify=True,
+                params=page_criteria,
+                use_document_model=use_document_model,
+                timeout=timeout,
+            )
 
-                params_list.append(
-                    {
-                        "url": url,
-                        "verify": True,
-                        "params": {**crit, "_skip": crit["_skip"]},
-                        "use_document_model": use_document_model,
-                        "timeout": timeout,
-                    }
-                )
-
-                crit["_skip"] += crit["_limit"]
-                remaining -= crit["_limit"]
-
-        # Submit requests and process data
-        data_tuples = self._multi_thread(
-            self._submit_request_and_process, params_list, pbar
-        )
-
-        for data, _, _ in data_tuples:
             total_data["data"].extend(data["data"])
 
-        if data_tuples and "meta" in data_tuples[0][0]:
-            total_data["meta"]["time_stamp"] = data_tuples[0][0]["meta"]["time_stamp"]
+            if pbar is not None:
+                pbar.update(len(data["data"]))
+
+            skip += page_criteria["_limit"]
+            remaining_docs -= len(data["data"])
+
+            # Break if we didn't get any data (shouldn't happen, but safety check)
+            if len(data["data"]) == 0:
+                break
 
         if pbar is not None:
             pbar.close()
 
         return total_data
-
-    def _multi_thread(
-        self,
-        func: Callable,
-        params_list: list[dict],
-        progress_bar: tqdm | None = None,
-    ):
-        """Handles setting up a threadpool and sending parallel requests.
-
-        Arguments:
-            func (Callable): Callable function to multi
-            params_list (list): list of dictionaries containing url and params for each request
-            progress_bar (tqdm): progress bar to update with progress
-
-        Returns:
-            Tuples with data, total number of docs in matching the query in the database,
-            and the index of the criteria dictionary in the provided parameter list
-        """
-        return_data = []
-
-        params_gen = iter(
-            params_list
-        )  # Iter necessary for islice to keep track of what has been accessed
-
-        params_ind = 0
-
-        with ThreadPoolExecutor(
-            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS  # type: ignore
-        ) as executor:
-            # Get list of initial futures defined by max number of parallel requests
-            futures = set()
-
-            for params in itertools.islice(
-                params_gen,
-                MAPIClientSettings().NUM_PARALLEL_REQUESTS,  # type: ignore
-            ):
-                future = executor.submit(
-                    func,
-                    **params,
-                )
-
-                future.crit_ind = params_ind  # type: ignore
-                futures.add(future)
-                params_ind += 1
-
-            while futures:
-                # Wait for at least one future to complete and process finished
-                finished, futures = wait(futures, return_when=FIRST_COMPLETED)
-
-                for future in finished:
-                    data, subtotal = future.result()
-
-                    if progress_bar is not None:
-                        if isinstance(data, dict):
-                            size = len(data["data"])
-                        elif isinstance(data, list):
-                            size = len(data)
-                        else:
-                            size = 1
-                        progress_bar.update(size)
-
-                    return_data.append((data, subtotal, future.crit_ind))  # type: ignore
-
-                # Populate more futures to replace finished
-                for params in itertools.islice(params_gen, len(finished)):
-                    new_future = executor.submit(
-                        func,
-                        **params,
-                    )
-
-                    new_future.crit_ind = params_ind  # type: ignore
-                    futures.add(new_future)
-                    params_ind += 1
-
-        return return_data
 
     def _submit_request_and_process(
         self,
@@ -1266,25 +1004,9 @@ class BaseRester:
 
         query_params["_limit"] = chunk_size
 
-        # Check if specific parameters are present that can be parallelized over
-        list_entries = sorted(
-            (
-                (key, len(entry.split(",")))
-                for key, entry in query_params.items()
-                if isinstance(entry, str)
-                and len(entry.split(",")) > 0
-                and key not in MAPIClientSettings().QUERY_NO_PARALLEL  # type: ignore
-            ),
-            key=lambda item: item[1],
-            reverse=True,
-        )
-
-        chosen_param = list_entries[0][0] if len(list_entries) > 0 else None
-
         results = self._query_resource(
             query_params,
             fields=fields,
-            parallel_param=chosen_param,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
         )
