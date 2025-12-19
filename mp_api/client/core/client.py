@@ -17,7 +17,7 @@ from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
 from math import ceil
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
-from urllib.parse import quote, urljoin
+from urllib.parse import urljoin
 
 import requests
 from emmet.core.utils import jsanitize
