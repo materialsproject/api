@@ -453,14 +453,16 @@ class TestMPRester:
             },
         }
         e_coh = {}
-        for monty_decode in (True, False):
+        for use_document_model in (True, False):
             with MPRester(
-                use_document_model=monty_decode, monty_decode=monty_decode
+                use_document_model=use_document_model,
             ) as _mpr:
                 for norm, refs in ref_e_coh.items():
                     _e_coh = _mpr.get_cohesive_energy(list(refs), normalization=norm)
                     if norm == "atom":
-                        e_coh["serial" if monty_decode else "noserial"] = _e_coh.copy()
+                        e_coh[
+                            "serial" if use_document_model else "noserial"
+                        ] = _e_coh.copy()
 
                     # Ensure energies match reference data
                     assert all(v == pytest.approx(refs[k]) for k, v in _e_coh.items())

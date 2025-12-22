@@ -14,7 +14,7 @@ from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType, Spin
 
 from mp_api.client.core import BaseRester, MPRestError
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.utils import load_json, validate_ids
 
 if TYPE_CHECKING:
     from pymatgen.electronic_structure.dos import CompleteDos
@@ -158,7 +158,6 @@ class BaseESPropertyRester(BaseRester):
                 endpoint=self.base_endpoint,
                 include_user_agent=self.include_user_agent,
                 session=self.session,
-                monty_decode=self.monty_decode,
                 use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
@@ -269,6 +268,7 @@ class BandStructureRester(BaseESPropertyRester):
             result = self._query_open_data(
                 bucket="materialsproject-parsed",
                 key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
+                decoder=lambda x: load_json(x, deser=True),
             )[0]
         except OSError:
             result = None
@@ -473,6 +473,7 @@ class DosRester(BaseESPropertyRester):
             result = self._query_open_data(
                 bucket="materialsproject-parsed",
                 key=f"dos/{validate_ids([task_id])[0]}.json.gz",
+                decoder=lambda x: load_json(x, deser=True),
             )[0]
         except OSError:
             result = None

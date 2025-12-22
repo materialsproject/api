@@ -125,11 +125,11 @@ class MPRester:
         endpoint: str | None = None,
         notify_db_version: bool = False,
         include_user_agent: bool = True,
-        monty_decode: bool = True,
         use_document_model: bool = True,
         session: Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
+        **kwargs,
     ):
         """Initialize the MPRester.
 
@@ -157,14 +157,13 @@ class MPRester:
                 making the API request. This helps MP support pymatgen users, and
                 is similar to what most web browsers send with each page request.
                 Set to False to disable the user agent.
-            monty_decode: Decode the data using monty into python objects
             use_document_model: If False, skip the creating the document model and return data
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
             session: Session object to use. By default (None), the client will create one.
             headers: Custom headers for localhost connections.
             mute_progress_bars:  Whether to mute progress bars.
-
+            **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
         # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
         api_key = api_key or os.getenv("MP_API_KEY") or SETTINGS.get("PMG_MAPI_KEY")
@@ -187,7 +186,6 @@ class MPRester:
             headers=self.headers,
         )
         self.use_document_model = use_document_model
-        self.monty_decode = monty_decode
         self.mute_progress_bars = mute_progress_bars
         self._contribs = None
 
@@ -223,6 +221,12 @@ class MPRester:
 
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
+
+        if "monty_decode" in kwargs:
+            warnings.warn(
+                "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
+                "The client by default returns results consistent with `monty_decode=True`."
+            )
 
         # Check if emmet version of server is compatible
         emmet_version = MPRester.get_emmet_version(self.endpoint)
@@ -260,7 +264,6 @@ class MPRester:
                 endpoint=self.endpoint,
                 include_user_agent=include_user_agent,
                 session=self.session,
-                monty_decode=self.monty_decode,
                 use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
@@ -278,15 +281,11 @@ class MPRester:
                 suffix_split = cls.suffix.split("/")
 
                 if len(suffix_split) == 1:
-                    # Disable monty decode on nested data which may give errors
-                    monty_disable = cls in [TaskRester, ProvenanceRester]
-                    monty_decode = False if monty_disable else self.monty_decode
                     rester = cls(
                         api_key=api_key,
                         endpoint=self.endpoint,
                         include_user_agent=include_user_agent,
                         session=self.session,
-                        monty_decode=monty_decode,
                         use_document_model=self.use_document_model,
                         headers=self.headers,
                         mute_progress_bars=self.mute_progress_bars,
@@ -309,14 +308,11 @@ class MPRester:
         def __core_custom_getattr(_self, _attr, _rester_map):
             if _attr in _rester_map:
                 cls = _rester_map[_attr]
-                monty_disable = cls in [TaskRester, ProvenanceRester]
-                monty_decode = False if monty_disable else self.monty_decode
                 rester = cls(
                     api_key=api_key,
                     endpoint=self.endpoint,
                     include_user_agent=include_user_agent,
                     session=self.session,
-                    monty_decode=monty_decode,
                     use_document_model=self.use_document_model,
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
@@ -752,7 +748,7 @@ class MPRester:
                 # Need to store object to permit de-duplication
                 entries.add(ComputedStructureEntry.from_dict(entry_dict))
 
-        return [e if self.monty_decode else e.as_dict() for e in entries]
+        return list(entries)
 
     def get_pourbaix_entries(
         self,
@@ -1190,17 +1186,11 @@ class MPRester:
             )
         )
 
-        if not self.monty_decode:
-            entries = [ComputedStructureEntry.from_dict(entry) for entry in entries]
-
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
             from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
             entries = GibbsComputedStructureEntry.from_entries(entries, temp=use_gibbs)
-
-            if not self.monty_decode:
-                entries = [entry.as_dict() for entry in entries]
 
         return entries
 
@@ -1312,7 +1302,7 @@ class MPRester:
         kwargs = dict(
             bucket="materialsproject-parsed",
             key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
-            decoder=lambda x: load_json(x, deser=self.monty_decode),
+            decoder=lambda x: load_json(x, deser=True),
         )
         chgcar = self.materials.tasks._query_open_data(**kwargs)[0]
         if not chgcar:
@@ -1493,17 +1483,11 @@ class MPRester:
             conventional_unit_cell=False,
         )
         for entry in entries:
-            # Ensure that this works with monty_decode = False and True
-            if not self.monty_decode:
-                entry["uncorrected_energy_per_atom"] = entry["energy"] / sum(
-                    entry["composition"].values()
-                )
-            else:
-                entry = {
-                    "data": entry.data,
-                    "uncorrected_energy_per_atom": entry.uncorrected_energy_per_atom,
-                    "composition": entry.composition,
-                }
+            entry = {
+                "data": entry.data,
+                "uncorrected_energy_per_atom": entry.uncorrected_energy_per_atom,
+                "composition": entry.composition,
+            }
 
             mp_id = entry["data"]["material_id"]
             if (run_type := entry["data"]["run_type"]) not in energies[mp_id]:
