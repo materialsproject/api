@@ -1,6 +1,6 @@
 # The Materials Project API
 
-[![testing](https://github.com/materialsproject/api/workflows/testing/badge.svg)](https://github.com/materialsproject/api/actions?query=workflow%3Atesting+branch%3Amain)
+[![testing](https://github.com/materialsproject/api/workflows/testing/badge.svg?branch=main)](https://github.com/materialsproject/api/actions?query=workflow%3Atesting+branch%3Amain)
 [![codecov](https://codecov.io/gh/materialsproject/api/branch/main/graph/badge.svg)](https://codecov.io/gh/materialsproject/api)
 ![python](https://img.shields.io/badge/Python-3.11+-blue.svg?logo=python&amp;logoColor=white)
 
