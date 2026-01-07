@@ -33,7 +33,7 @@ from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 
 from mp_api.client import MPRester
-from mp_api.client.core.client import MPRestError
+from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 
 from .conftest import requires_api_key
@@ -391,12 +391,12 @@ class TestMPRester:
         monkeypatch.delenv("MP_API_KEY", raising=False)
         monkeypatch.delenv("PMG_MAPI_KEY", raising=False)
         monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", None)
-        with pytest.raises(MPRestError, match="No API key found in request"):
+        with pytest.raises(MPRestError, match="Please obtain a valid API key"):
             MPRester().get_structure_by_material_id("mp-149")
 
     def test_invalid_api_key(self, monkeypatch):
         monkeypatch.setenv("MP_API_KEY", "INVALID")
-        with pytest.raises(ValueError, match="Keys for the new API are 32 characters"):
+        with pytest.raises(MPRestError, match="Valid API keys are 32 characters"):
             MPRester().get_structure_by_material_id("mp-149")
 
     def test_get_cohesive_energy_per_atom_utility(self):

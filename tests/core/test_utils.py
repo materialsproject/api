@@ -3,6 +3,8 @@
 from packaging.version import parse as parse_version
 import pytest
 
+from mp_api.client.core.exceptions import MPRestError
+
 
 def test_emmet_core_version_checks(monkeypatch: pytest.MonkeyPatch):
     ref_ver = (1, 2, "3rc5")
@@ -32,7 +34,7 @@ def test_id_validation():
 
     max_num_idxs = MAPIClientSettings().MAX_LIST_LENGTH
 
-    with pytest.raises(ValueError, match="too long"):
+    with pytest.raises(MPRestError, match="too long"):
         _ = validate_ids([f"mp-{x}" for x in range(max_num_idxs + 1)])
 
     # For all legacy MPIDs, ensure these validate correctly
@@ -60,10 +62,10 @@ def test_api_key_validation(monkeypatch: pytest.MonkeyPatch):
     }
     monkeypatch.setattr(pymatgen.core, "SETTINGS", non_api_key_settings)
 
-    with pytest.raises(ValueError, match="32 characters"):
+    with pytest.raises(MPRestError, match="32 characters"):
         validate_api_key("invalid_key")
 
-    with pytest.raises(ValueError, match="Please obtain a valid"):
+    with pytest.raises(MPRestError, match="Please obtain a valid"):
         validate_api_key()
 
     junk_api_key = "a" * 32
@@ -80,5 +82,6 @@ def test_api_key_validation(monkeypatch: pytest.MonkeyPatch):
     # MP API environment variable takes precedence
     assert validate_api_key() == junk_api_key
 
+    # Check that pymatgen API key is used
     monkeypatch.setenv("MP_API_KEY", "")
     assert validate_api_key() == other_junk_api_key

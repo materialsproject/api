@@ -9,6 +9,7 @@ from emmet.core.mpid_ext import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
+from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 
 if TYPE_CHECKING:
@@ -62,7 +63,7 @@ def validate_api_key(api_key: str | None = None) -> str:
 
     if not api_key or len(api_key) != 32:
         addendum = " Valid API keys are 32 characters." if api_key else ""
-        raise ValueError(
+        raise MPRestError(
             "Please obtain a valid API key from https://materialsproject.org/api "
             f"and export it as an environment variable `MP_API_KEY`.{addendum}"
         )
@@ -77,13 +78,13 @@ def validate_ids(id_list: list[str]) -> list[str]:
         id_list (List[str]): List of material or task IDs.
 
     Raises:
-        ValueError: If at least one ID is not formatted correctly.
+        MPRestError: If at least one ID is not formatted correctly.
 
     Returns:
         id_list: Returns original ID list if everything is formatted correctly.
     """
     if len(id_list) > MAPIClientSettings().MAX_LIST_LENGTH:
-        raise ValueError(
+        raise MPRestError(
             "List of material/molecule IDs provided is too long. Consider removing the ID filter to automatically pull"
             " data for all IDs and filter locally."
         )

@@ -30,6 +30,7 @@ from smart_open import open
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
+from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import load_json, validate_ids
 
@@ -1350,11 +1351,3 @@ class BaseRester:
             f"{self.__class__.__name__} connected to {self.endpoint}\n\n"
             f"Available fields: {', '.join(self.available_fields)}\n\n"
         )
-
-
-class MPRestError(Exception):
-    """Raised when the query has problems, e.g., bad query format."""
-
-
-class MPRestWarning(Warning):
-    """Raised when a query is malformed but interpretable."""

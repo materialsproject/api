@@ -290,8 +290,6 @@ class MPRester:
                     elif "molecules" in suffix_split:
                         _sub_rester_suffix_map["molecules"][attr] = cls
 
-        # TODO: Enable monty decoding when tasks and SNL schema is normalized
-        #
         # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
         def __core_custom_getattr(_self, _attr, _rester_map):
             if _attr in _rester_map:
