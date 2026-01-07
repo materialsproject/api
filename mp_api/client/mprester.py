@@ -22,7 +22,7 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import load_json, validate_api_key, validate_ids
@@ -213,7 +213,9 @@ class MPRester:
         if "monty_decode" in kwargs:
             warnings.warn(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
-                "The client by default returns results consistent with `monty_decode=True`."
+                "The client by default returns results consistent with `monty_decode=True`.",
+                stacklevel=2,
+                category=MPRestWarning,
             )
 
         # Check if emmet version of server is compatible

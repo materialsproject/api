@@ -33,7 +33,7 @@ from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 
 from mp_api.client import MPRester
-from mp_api.client.core.exceptions import MPRestError
+from mp_api.client.core import MPRestError, MPRestWarning
 from mp_api.client.core.settings import MAPIClientSettings
 
 from .conftest import requires_api_key
@@ -575,3 +575,7 @@ class TestMPRester:
 
         with pytest.raises(ValueError, match="No available insertion electrode data"):
             _ = mpr.get_oxygen_evolution("mp-2207", "Al")
+
+    def test_monty_decode_warning(self):
+        with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
+            MPRester(monty_decode=False)
