@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import itertools
-import os
 import warnings
 from collections import defaultdict
 from functools import cache, lru_cache
@@ -16,7 +15,7 @@ from emmet.core.vasp.calc_types import CalcType
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
-from pymatgen.core import SETTINGS, Composition, Element, Structure
+from pymatgen.core import Composition, Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.io.vasp import Chgcar
@@ -26,7 +25,7 @@ from requests import Session, get
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import load_json, validate_ids
+from mp_api.client.core.utils import load_json, validate_api_key, validate_ids
 from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
 from mp_api.client.routes.materials import (
     AbsorptionRester,
@@ -165,20 +164,12 @@ class MPRester:
             mute_progress_bars:  Whether to mute progress bars.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
-        api_key = api_key or os.getenv("MP_API_KEY") or SETTINGS.get("PMG_MAPI_KEY")
+        self.api_key = validate_api_key(api_key)
 
-        if api_key and len(api_key) != 32:
-            raise ValueError(
-                "Please use a new API key from https://materialsproject.org/api "
-                "Keys for the new API are 32 characters, whereas keys for the legacy "
-                "API are 16 characters."
-            )
+        self.endpoint = endpoint or _MAPI_SETTINGS.ENDPOINT
+        if not self.endpoint.endswith("/"):
+            self.endpoint += "/"
 
-        self.api_key = api_key
-        self.endpoint = endpoint or os.getenv(
-            "MP_API_ENDPOINT", "https://api.materialsproject.org/"
-        )
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
             api_key=self.api_key,
@@ -218,9 +209,6 @@ class MPRester:
             "absorption",
             "chemenv",
         ]
-
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
 
         if "monty_decode" in kwargs:
             warnings.warn(

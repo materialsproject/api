@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING, Literal
 
 import orjson
@@ -48,6 +49,25 @@ def load_json(
         json_like if isinstance(json_like, bytes) else json_like.encode(encoding)
     )
     return MontyDecoder().process_decoded(data) if deser else data
+
+
+def validate_api_key(api_key: str | None = None) -> str:
+    """Find and validate an API key."""
+    # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
+    api_key = api_key or os.getenv("MP_API_KEY")
+    if not api_key:
+        from pymatgen.core import SETTINGS
+
+        api_key = SETTINGS.get("PMG_MAPI_KEY")
+
+    if not api_key or len(api_key) != 32:
+        addendum = " Valid API keys are 32 characters." if api_key else ""
+        raise ValueError(
+            "Please obtain a valid API key from https://materialsproject.org/api "
+            f"and export it as an environment variable `MP_API_KEY`.{addendum}"
+        )
+
+    return api_key
 
 
 def validate_ids(id_list: list[str]) -> list[str]:

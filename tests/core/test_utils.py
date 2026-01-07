@@ -46,3 +46,39 @@ def test_id_validation():
         isinstance(x, str) and AlphaID(x).string == x
         for x in validate_ids([y + AlphaID._cut_point for y in range(max_num_idxs)])
     )
+
+
+def test_api_key_validation(monkeypatch: pytest.MonkeyPatch):
+    from mp_api.client.core.utils import validate_api_key
+    import pymatgen.core
+
+    # Ensure any user settings are ignored
+    monkeypatch.setenv("MP_API_KEY", "")
+    monkeypatch.setenv("PMG_MAPI_KEY", "")
+    non_api_key_settings = {
+        k: v for k, v in pymatgen.core.SETTINGS.items() if k != "PMG_MAPI_KEY"
+    }
+    monkeypatch.setattr(pymatgen.core, "SETTINGS", non_api_key_settings)
+
+    with pytest.raises(ValueError, match="32 characters"):
+        validate_api_key("invalid_key")
+
+    with pytest.raises(ValueError, match="Please obtain a valid"):
+        validate_api_key()
+
+    junk_api_key = "a" * 32
+    monkeypatch.setenv("MP_API_KEY", junk_api_key)
+    assert validate_api_key() == junk_api_key
+    assert validate_api_key(junk_api_key) == junk_api_key
+
+    other_junk_api_key = "b" * 32
+    monkeypatch.setattr(
+        pymatgen.core,
+        "SETTINGS",
+        {**non_api_key_settings, "PMG_MAPI_KEY": other_junk_api_key},
+    )
+    # MP API environment variable takes precedence
+    assert validate_api_key() == junk_api_key
+
+    monkeypatch.setenv("MP_API_KEY", "")
+    assert validate_api_key() == other_junk_api_key
