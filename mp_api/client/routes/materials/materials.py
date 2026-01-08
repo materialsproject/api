@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import RunType
-from emmet.core.vasp.material import MaterialsDoc, BlessedCalcs
+from emmet.core.vasp.material import BlessedCalcs, MaterialsDoc
 from pymatgen.core.structure import Structure
 
 from mp_api.client.core import BaseRester, MPRestError
@@ -42,6 +42,7 @@ from mp_api.client.routes.materials import (
 
 if TYPE_CHECKING:
     from typing import Any
+
     from pymatgen.entries.computed_entries import ComputedStructureEntry
 
 _EMMET_SETTINGS = EmmetSettings()  # type: ignore
@@ -376,16 +377,16 @@ class MaterialsRester(BaseRester):
             parallel_param="material_ids" if material_ids else None,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
-        )        
-        
+        )
+
         return [
             {
                 "material_id": doc["material_id"],
                 "blessed_entry": (
                     next(
-                        getattr(doc["entries"],k,None)
+                        getattr(doc["entries"], k, None)
                         for k in BlessedCalcs.model_fields
-                        if getattr(doc["entries"],k,None)
+                        if getattr(doc["entries"], k, None)
                     )
                     if self.use_document_model
                     else next(
