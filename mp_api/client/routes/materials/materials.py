@@ -365,8 +365,8 @@ class MaterialsRester(BaseRester):
 
             query_params.update(
                 {
-                    "uncorrected_energy_min": uncorrected_energy[0],
-                    "uncorrected_energy_max": uncorrected_energy[1],
+                    "energy_min": uncorrected_energy[0],
+                    "energy_max": uncorrected_energy[1],
                 }
             )
 

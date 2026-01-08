@@ -62,3 +62,24 @@ def test_client(rester):
         custom_field_tests=custom_field_tests,
         sub_doc_fields=sub_doc_fields,
     )
+
+
+@pytest.mark.xfail(condition=True, reason="Needs new deployment.", strict=False)
+@pytest.mark.parametrize(
+    "run_type, uncorrected_energy, use_document_model",
+    [("PBE", None, True), ("r2SCAN", 1.0, False), ("GGA_U", (-50e4, 0.0), True)],
+)
+def test_blessed_entry(run_type, uncorrected_energy, use_document_model):
+    # Si and NiO. Si has GGA and r2SCAN entries, NiO has GGA, GGA+U, and r2SCAN
+    with MaterialsRester(use_document_model=use_document_model) as rester:
+        blessed = rester.get_blessed_entries(
+            run_type,
+            material_ids=["mp-149", "mp-19009"],
+            uncorrected_energy=uncorrected_energy,
+        )
+
+    assert all(
+        isinstance(entry, dict)
+        and all(entry.get(k) is not None for k in ("material_id", "blessed_entry"))
+        for entry in blessed
+    )
