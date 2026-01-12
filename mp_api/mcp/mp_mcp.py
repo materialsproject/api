@@ -17,6 +17,7 @@ keywords.
 Then use the fetch tool to retrieve complete materials summary information.
 """
 
+
 def get_openai_compat_mcp() -> FastMCP:
     """Create MCP for compatibility with OpenAI models."""
     mp_mcp = FastMCP(
@@ -24,9 +25,10 @@ def get_openai_compat_mcp() -> FastMCP:
         instructions=MCP_SERVER_INSTRUCTIONS,
     )
     openai_compat_tools = MPOpenAIMcpTools()
-    for k in {"search","fetch"}:
-        mp_mcp.tool(getattr(openai_compat_tools,k))
+    for k in {"search", "fetch"}:
+        mp_mcp.tool(getattr(openai_compat_tools, k))
     return mp_mcp
+
 
 def get_mcp() -> FastMCP:
     """MCP with finer depth of control over tool names."""
