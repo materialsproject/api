@@ -26,7 +26,7 @@ def get_openai_compat_mcp() -> FastMCP:
     )
     openai_compat_tools = MPOpenAIMcpTools()
     for k in {"search", "fetch"}:
-        mp_mcp.tool(getattr(openai_compat_tools, k))
+        mp_mcp.tool(getattr(openai_compat_tools, k), name=k)
     return mp_mcp
 
 

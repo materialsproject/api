@@ -54,7 +54,7 @@ class MPOpenAIMcpTools(_NeedsMPClient):
         return OpenAISearchOutput(
             retults=[
                 OpenAIResult(id=doc["material_id"], text=doc["description"])
-                for doc in self.client.robocrys.search(query.split(","))
+                for doc in self.client.robocrys.search(query)
             ]
         )
 
