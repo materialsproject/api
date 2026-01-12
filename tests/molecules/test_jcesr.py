@@ -6,6 +6,8 @@ from pymatgen.core.periodic_table import Element
 
 from mp_api.client.routes.molecules.jcesr import JcesrMoleculesRester
 
+from ..conftest import requires_api_key
+
 
 @pytest.fixture
 def rester():
@@ -35,7 +37,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_client(rester):
     search_method = rester.search
 

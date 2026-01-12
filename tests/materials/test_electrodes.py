@@ -1,5 +1,5 @@
 import os
-from core_function import client_search_testing
+from ..conftest import client_search_testing, requires_api_key
 
 import pytest
 from pymatgen.core.periodic_table import Element
@@ -52,7 +52,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 def test_insertion_client(insertion_rester):
     search_method = insertion_rester.search
 
@@ -65,7 +65,7 @@ def test_insertion_client(insertion_rester):
     )
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 def test_conversion_client(conversion_rester):
     search_method = conversion_rester.search
 
@@ -77,7 +77,6 @@ def test_conversion_client(conversion_rester):
         custom_field_tests={
             "battery_ids": ["mp-1067_Al"],
             "working_ion": Element("Li"),
-            "exclude_elements": ["Co", "O"],
         },
         sub_doc_fields=sub_doc_fields,
     )

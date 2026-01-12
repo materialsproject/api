@@ -5,12 +5,17 @@ import importlib
 
 import numpy as np
 import pytest
+from emmet.core.mpid import MPID, AlphaID
 from emmet.core.tasks import TaskDoc
 from emmet.core.vasp.calc_types import CalcType
+from emmet.core.phonon import PhononDOS, PhononBS
+from emmet.core.types.enums import ThermoType
+
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
 from pymatgen.analysis.wulff import WulffShape
 from pymatgen.core import SETTINGS
+from pymatgen.core.composition import Composition
 from pymatgen.core.ion import Ion
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.bandstructure import (
@@ -26,17 +31,17 @@ from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
-from emmet.core.phonon import PhononDOS, PhononBS
 
 from mp_api.client import MPRester
 from mp_api.client.core.client import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import _compare_emmet_ver
 
-if _compare_emmet_ver("0.85.0", ">="):
-    from emmet.core.types.enums import ThermoType
-else:
-    from emmet.core.thermo import ThermoType
+from .conftest import requires_api_key
+
+try:
+    import mpcontribs.client as contribs_client
+except ImportError:
+    contribs_client = None
 
 
 @pytest.fixture()
@@ -46,7 +51,7 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 class TestMPRester:
     fake_mp_api_key = "12345678901234567890123456789012"  # 32 chars
     default_endpoint = "https://api.materialsproject.org/"
@@ -210,22 +215,21 @@ class TestMPRester:
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
-    @pytest.mark.skip(reason="SSL issues")
+    @pytest.mark.skipif(
+        contribs_client is None,
+        reason="`pip install mpcontribs-client` to use pourbaix functionality.",
+    )
     def test_get_pourbaix_entries(self, mpr):
-        # test input chemsys as a list of elements
-        pbx_entries = mpr.get_pourbaix_entries(["Fe", "Cr"])
-        for pbx_entry in pbx_entries:
-            assert isinstance(pbx_entry, PourbaixEntry)
-
-        # test input chemsys as a string
-        pbx_entries = mpr.get_pourbaix_entries("Fe-Cr")
-        for pbx_entry in pbx_entries:
-            assert isinstance(pbx_entry, PourbaixEntry)
-
-        # test use_gibbs kwarg
-        pbx_entries = mpr.get_pourbaix_entries("Li-O", use_gibbs=300)
-        for pbx_entry in pbx_entries:
-            assert isinstance(pbx_entry, PourbaixEntry)
+        # test input chemsys as a list of elements, chemsys, wiith and without kwargs
+        for chemsys, kwargs in [
+            [["Fe", "Cr"], {}],
+            ["Fe-Cr", {}],
+            ["Li-O", {"use_gibbs": 300}],
+        ]:
+            pbx_entries = mpr.get_pourbaix_entries(chemsys, **kwargs)
+            assert all(
+                isinstance(pbx_entry, PourbaixEntry) for pbx_entry in pbx_entries
+            )
 
         # test solid_compat kwarg
         with pytest.raises(ValueError, match="Solid compatibility can only be"):
@@ -237,7 +241,7 @@ class TestMPRester:
         assert not any(e for e in pbx_entries if "Na" in e.composition)
 
         # Ensure entries are pourbaix compatible
-        PourbaixDiagram(pbx_entries)
+        _ = PourbaixDiagram(pbx_entries)
 
         # TODO - old tests copied from pymatgen with specific energy values. Update or delete
         # fe_two_plus = [e for e in pbx_entries if e.entry_id == "ion-0"][0]
@@ -251,7 +255,10 @@ class TestMPRester:
         # so4_two_minus = pbx_entries[9]
         # self.assertAlmostEqual(so4_two_minus.energy, 0.301511, places=3)
 
-    @pytest.mark.skip(reason="SSL issues")
+    @pytest.mark.skipif(
+        contribs_client is None,
+        reason="`pip install mpcontribs-client` to use pourbaix functionality.",
+    )
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
         pd = PhaseDiagram(entries)
@@ -262,7 +269,7 @@ class TestMPRester:
         bi_v_entry_data = mpr.get_ion_reference_data_for_chemsys("Bi-V")
         bi_data = mpr.get_ion_reference_data_for_chemsys("Bi")
         v_data = mpr.get_ion_reference_data_for_chemsys("V")
-        assert len(bi_v_entry_data) == len(bi_data) + v_data
+        assert len(bi_v_entry_data) == len(bi_data + v_data)
 
         # test an incomplete phase diagram
         entries = mpr.get_entries_in_chemsys("Ti-O")
@@ -296,7 +303,9 @@ class TestMPRester:
         # the ref solid is Na2SO4, ground state mp-4770
         # the rf factor correction is necessary to make sure the composition
         # of the reference solid is normalized to a single formula unit
-        ref_solid_entry = [e for e in ion_ref_entries if e.entry_id == "mp-4770"][0]
+        ref_solid_entry = next(
+            e for e in ion_ref_entries if e.entry_id.startswith("mp-4770")
+        )
         rf = ref_solid_entry.composition.get_reduced_composition_and_factor()[1]
         solid_energy = ion_ref_pd.get_form_energy(ref_solid_entry) / rf
 
@@ -336,11 +345,11 @@ class TestMPRester:
     def test_large_list(self, mpr):
         mpids = [
             str(doc.material_id)
-            for doc in mpr.summary.search(
+            for doc in mpr.materials.summary.search(
                 chunk_size=1000, num_chunks=10, fields=["material_id"]
             )
         ]
-        docs = mpr.summary.search(material_ids=mpids, fields=["material_id"])
+        docs = mpr.materials.summary.search(material_ids=mpids, fields=["material_id"])
         assert len(docs) == 10000
 
     def test_get_api_key_endpoint_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
@@ -361,6 +370,9 @@ class TestMPRester:
         assert MPRester().api_key == self.fake_mp_api_key
         assert MPRester().endpoint == self.default_endpoint
 
+        monkeypatch.setenv("MP_API_ENDPOINT", self.default_endpoint[:-1])
+        assert MPRester().endpoint.endswith("/")
+
     def test_get_api_key_endpoint_from_settings(self, monkeypatch: pytest.MonkeyPatch):
         """Test environment variable "MP_API_KEY" is not set and
         get "PMG_MAPI_KEY" from "SETTINGS".
@@ -377,12 +389,14 @@ class TestMPRester:
         assert MPRester().endpoint == self.default_endpoint
 
         monkeypatch.delenv("MP_API_KEY", raising=False)
-        with pytest.raises(MPRestError, match="No API key found in request"):
+        monkeypatch.delenv("PMG_MAPI_KEY", raising=False)
+        monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", None)
+        with pytest.raises(ValueError, match="Please obtain a valid API key"):
             MPRester().get_structure_by_material_id("mp-149")
 
     def test_invalid_api_key(self, monkeypatch):
         monkeypatch.setenv("MP_API_KEY", "INVALID")
-        with pytest.raises(ValueError, match="Keys for the new API are 32 characters"):
+        with pytest.raises(ValueError, match="Valid API keys are 32 characters"):
             MPRester().get_structure_by_material_id("mp-149")
 
     def test_get_cohesive_energy_per_atom_utility(self):
@@ -402,6 +416,10 @@ class TestMPRester:
             composition, toten_per_atom, atomic_energies
         ) == pytest.approx(by_hand_e_coh)
 
+    @pytest.mark.skipif(
+        contribs_client is None,
+        reason="`pip install mpcontribs-client` to use cohesive energy functionality.",
+    )
     def test_get_atom_references(self, mpr):
         ae = mpr.get_atom_reference_data(funcs=("PBE",))
         assert list(ae) == ["PBE"]
@@ -415,6 +433,10 @@ class TestMPRester:
             isinstance(v, float) for entries in ae.values() for v in entries.values()
         )
 
+    @pytest.mark.skipif(
+        contribs_client is None,
+        reason="`pip install mpcontribs-client` to use cohesive energy functionality.",
+    )
     def test_get_cohesive_energy(self):
         ref_e_coh = {
             "atom": {
@@ -522,3 +544,32 @@ class TestMPRester:
                         data = dct
                         break
                 assert pd.get_e_above_hull(entry) == pytest.approx(data["e_above_hull"])
+
+    @pytest.mark.parametrize(
+        "mpid, working_ion, thermo_type",
+        [
+            ("mp-1248282", "Al", ThermoType.GGA_GGA_U),
+            (MPID("mp-1248282"), Element.Al, "R2SCAN"),
+            (AlphaID("mp-1248282"), "Al", ThermoType.GGA_GGA_U_R2SCAN),
+        ],
+    )
+    def test_oxygen_evolution(self, mpid, working_ion, thermo_type, mpr):
+        # Ensure oxygen evolution data has the anticipated schema
+        # and is robust to different permutations of input
+
+        oxy_evo = mpr.get_oxygen_evolution(mpid, working_ion, thermo_type=thermo_type)
+        assert all(
+            isinstance(entry.get(k), np.ndarray)
+            for entry in oxy_evo.values()
+            for k in ("mu", "evolution", "temperature", "reaction")
+        )
+        assert all(Composition(k).formula == k for k in oxy_evo)
+
+    def test_oxygen_evolution_bad_input(self, mpr):
+        # Ensure oxygen evolution fails gracefully if no O present
+        # or no insertion electrode data
+        with pytest.raises(ValueError, match="No oxygen in the host"):
+            _ = mpr.get_oxygen_evolution("mp-2207", Element.K)
+
+        with pytest.raises(ValueError, match="No available insertion electrode data"):
+            _ = mpr.get_oxygen_evolution("mp-2207", "Al")

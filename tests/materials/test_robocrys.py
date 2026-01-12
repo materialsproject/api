@@ -4,6 +4,8 @@ import pytest
 
 from mp_api.client.routes.materials.robocrys import RobocrysRester
 
+from ..conftest import requires_api_key
+
 
 @pytest.fixture
 def rester():
@@ -12,7 +14,7 @@ def rester():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 def test_client(rester):
     search_method = rester.search
 
@@ -25,7 +27,7 @@ def test_client(rester):
         assert doc.condensed_structure is not None
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 def test_client_large_result_set(rester):
     search_method = rester.search
 

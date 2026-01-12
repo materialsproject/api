@@ -1,9 +1,9 @@
-import os
-
 import pytest
 
 from mp_api.client import MPRester
 from mp_api.client.core import BaseRester
+
+from .conftest import requires_api_key
 
 
 @pytest.fixture
@@ -20,13 +20,13 @@ def mpr():
     rester.session.close()
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 @pytest.mark.xfail
 def test_post_fail(rester):
     rester._post_resource({}, suburl="materials/find_structure")
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 def test_pagination(mpr):
     mpids = mpr.materials.search(
         all_fields=False, fields=["material_id"], num_chunks=2, chunk_size=1000
@@ -34,7 +34,7 @@ def test_pagination(mpr):
     assert len(mpids) > 1000
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY", None) is None, reason="No API key found.")
+@requires_api_key
 def test_count(mpr):
     count = mpr.materials.count(
         dict(task_ids="mp-149", _all_fields=False, _fields="material_id")

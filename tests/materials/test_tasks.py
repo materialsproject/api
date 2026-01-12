@@ -1,7 +1,9 @@
 import os
-from core_function import client_search_testing
+from ..conftest import client_search_testing, requires_api_key
 import pytest
 
+from emmet.core.mpid import MPID, AlphaID
+from emmet.core.trajectory import Trajectory
 from emmet.core.utils import utcnow
 from mp_api.client.routes.materials.tasks import TaskRester
 
@@ -39,7 +41,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_client(rester):
     search_method = rester.search
 
@@ -52,8 +54,13 @@ def test_client(rester):
     )
 
 
-def test_get_trajectories(rester):
-    trajectories = [traj for traj in rester.get_trajectory("mp-149")]
+@pytest.mark.parametrize("mpid", ["mp-149", MPID("mp-149"), AlphaID("mp-149")])
+def test_get_trajectories(rester, mpid):
+    trajectories = [traj for traj in rester.get_trajectory(mpid)]
 
-    for traj in trajectories:
-        assert ("@module", "pymatgen.core.trajectory") in traj.items()
+    expected_model_fields = {
+        field_name
+        for field_name, field in Trajectory.model_fields.items()
+        if not field.exclude
+    }
+    assert all(set(traj) == expected_model_fields for traj in trajectories)

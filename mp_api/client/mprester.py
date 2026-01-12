@@ -11,6 +11,7 @@ from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
+from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
 from pymatgen.analysis.phase_diagram import PhaseDiagram
@@ -25,12 +26,7 @@ from requests import Session, get
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import (
-    _compare_emmet_ver,
-    load_json,
-    validate_api_key,
-    validate_ids,
-)
+from mp_api.client.core.utils import load_json, validate_api_key, validate_ids
 from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
 from mp_api.client.routes.materials import (
     AbsorptionRester,
@@ -64,11 +60,6 @@ from mp_api.client.routes.materials import (
 )
 from mp_api.client.routes.materials.materials import MaterialsRester
 from mp_api.client.routes.molecules import MoleculeRester
-
-if _compare_emmet_ver("0.85.0", ">="):
-    from emmet.core.types.enums import ThermoType
-else:
-    from emmet.core.thermo import ThermoType
 
 if TYPE_CHECKING:
     from typing import Any, Literal
@@ -220,6 +211,9 @@ class MPRester:
             "chemenv",
         ]
 
+        if not self.endpoint.endswith("/"):
+            self.endpoint += "/"
+
         # Check if emmet version of server is compatible
         emmet_version = MPRester.get_emmet_version(self.endpoint)
 
@@ -233,9 +227,6 @@ class MPRester:
 
         if notify_db_version:
             raise NotImplementedError("This has not yet been implemented.")
-
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
 
         # Dynamically set rester attributes.
         # First, materials and molecules top level resters are set.
@@ -369,8 +360,8 @@ class MPRester:
                 self._contribs = None
                 warnings.warn(
                     "mpcontribs-client not installed. "
-                    "Install the package to query MPContribs data, or construct pourbaix diagrams: "
-                    "'pip install mpcontribs-client'"
+                    "Install the package to query MPContribs data, construct pourbaix diagrams, "
+                    "or to compute cohesive energies: 'pip install mpcontribs-client'"
                 )
             except Exception as error:
                 self._contribs = None
