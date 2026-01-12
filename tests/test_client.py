@@ -63,8 +63,6 @@ def test_generic_get_methods(rester):
         endpoint=mpr.endpoint,
         include_user_agent=True,
         session=mpr.session,
-        # Disable monty decode on nested data which may give errors
-        monty_decode=rester not in [TaskRester, ProvenanceRester],
         use_document_model=True,
     )
 

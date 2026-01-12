@@ -10,7 +10,7 @@ from mp_api.client.routes.materials.tasks import TaskRester
 
 @pytest.fixture
 def rester():
-    rester = TaskRester(monty_decode=False)
+    rester = TaskRester()
     yield rester
     rester.session.close()
 

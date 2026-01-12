@@ -2,7 +2,7 @@ import os
 from multiprocessing import cpu_count
 from typing import List
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pymatgen.core import _load_pmg_settings
 
@@ -14,6 +14,7 @@ _MAX_RETRIES = min(PMG_SETTINGS.get("MPRESTER_MAX_RETRIES", 3), 3)
 _MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BARS", False)
 _MAX_HTTP_URL_LENGTH = PMG_SETTINGS.get("MPRESTER_MAX_HTTP_URL_LENGTH", 2000)
 _MAX_LIST_LENGTH = min(PMG_SETTINGS.get("MPRESTER_MAX_LIST_LENGTH", 10000), 10000)
+_DEFAULT_ENDPOINT = "https://api.materialsproject.org/"
 
 try:
     CPU_COUNT = cpu_count()
@@ -80,11 +81,21 @@ class MAPIClientSettings(BaseSettings):
     )
 
     MIN_EMMET_VERSION: str = Field(
-        "0.54.0", description="Minimum compatible version of emmet-core for the client."
+        "0.86.3rc0",
+        description="Minimum compatible version of emmet-core for the client.",
     )
 
     MAX_LIST_LENGTH: int = Field(
         _MAX_LIST_LENGTH, description="Maximum length of query parameter list"
     )
 
+    ENDPOINT: str = Field(
+        _DEFAULT_ENDPOINT, description="The default API endpoint to use."
+    )
+
     model_config = SettingsConfigDict(env_prefix="MPRESTER_")
+
+    @field_validator("ENDPOINT", mode="before")
+    def _get_endpoint_from_env(cls, v: str | None) -> str:
+        """Support setting endpoint via MP_API_ENDPOINT environment variable."""
+        return v or os.environ.get("MP_API_ENDPOINT") or _DEFAULT_ENDPOINT
