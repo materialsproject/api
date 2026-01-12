@@ -25,7 +25,7 @@ dependencies = [
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
-  "emmet-core>=0.86.2",
+  "emmet-core>=0.86.3rc0",
   "smart_open",
   "boto3",
   "orjson >= 3.10,<4",

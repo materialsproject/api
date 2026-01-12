@@ -7,7 +7,7 @@ from emmet.core.symmetry import CrystalSystem
 from pymatgen.analysis.magnetism import Ordering
 
 from mp_api.client.routes.materials.summary import SummaryRester
-from mp_api.client.core.client import MPRestWarning, MPRestError
+from mp_api.client.core.exceptions import MPRestWarning, MPRestError
 
 excluded_params = [
     "include_gnome",

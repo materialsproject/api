@@ -33,7 +33,7 @@ from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 
 from mp_api.client import MPRester
-from mp_api.client.core.client import MPRestError
+from mp_api.client.core import MPRestError, MPRestWarning
 from mp_api.client.core.settings import MAPIClientSettings
 
 from .conftest import requires_api_key
@@ -391,12 +391,12 @@ class TestMPRester:
         monkeypatch.delenv("MP_API_KEY", raising=False)
         monkeypatch.delenv("PMG_MAPI_KEY", raising=False)
         monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", None)
-        with pytest.raises(ValueError, match="Please obtain a valid API key"):
+        with pytest.raises(MPRestError, match="Please obtain a valid API key"):
             MPRester().get_structure_by_material_id("mp-149")
 
     def test_invalid_api_key(self, monkeypatch):
         monkeypatch.setenv("MP_API_KEY", "INVALID")
-        with pytest.raises(ValueError, match="Valid API keys are 32 characters"):
+        with pytest.raises(MPRestError, match="Valid API keys are 32 characters"):
             MPRester().get_structure_by_material_id("mp-149")
 
     def test_get_cohesive_energy_per_atom_utility(self):
@@ -453,14 +453,16 @@ class TestMPRester:
             },
         }
         e_coh = {}
-        for monty_decode in (True, False):
+        for use_document_model in (True, False):
             with MPRester(
-                use_document_model=monty_decode, monty_decode=monty_decode
+                use_document_model=use_document_model,
             ) as _mpr:
                 for norm, refs in ref_e_coh.items():
                     _e_coh = _mpr.get_cohesive_energy(list(refs), normalization=norm)
                     if norm == "atom":
-                        e_coh["serial" if monty_decode else "noserial"] = _e_coh.copy()
+                        e_coh[
+                            "serial" if use_document_model else "noserial"
+                        ] = _e_coh.copy()
 
                     # Ensure energies match reference data
                     assert all(v == pytest.approx(refs[k]) for k, v in _e_coh.items())
@@ -573,3 +575,7 @@ class TestMPRester:
 
         with pytest.raises(ValueError, match="No available insertion electrode data"):
             _ = mpr.get_oxygen_evolution("mp-2207", "Al")
+
+    def test_monty_decode_warning(self):
+        with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
+            MPRester(monty_decode=False)
