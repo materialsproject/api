@@ -15,8 +15,6 @@ from mp_api.client.core.settings import MAPIClientSettings
 if TYPE_CHECKING:
     from typing import Any
 
-_MAPI_SETTINGS = MAPIClientSettings()
-
 
 def _compare_emmet_ver(
     ref_version: str, op: Literal["==", ">", ">=", "<", "<="]

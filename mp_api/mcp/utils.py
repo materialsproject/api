@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 _REQUIRED_CLIENT_KWARGS = {
     "use_document_model": False,
-    "monty_decode": False,
     "include_user_agent": True,
 }
 
