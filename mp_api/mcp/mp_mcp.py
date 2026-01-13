@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import httpx
 from fastmcp import FastMCP
 
-from mp_api.mcp.tools import MPMcpTools, MPOpenAIMcpTools
+from mp_api.mcp.tools import MPCoreMCP, MPMcpTools
 from mp_api.mcp.utils import _NeedsMPClient
 
 MCP_SERVER_INSTRUCTIONS = """
@@ -18,15 +18,15 @@ Then use the fetch tool to retrieve complete materials summary information.
 """
 
 
-def get_openai_compat_mcp() -> FastMCP:
-    """Create MCP for compatibility with OpenAI models."""
+def get_core_mcp() -> FastMCP:
+    """Create an MCP compatible with OpenAI models."""
     mp_mcp = FastMCP(
         "Materials_Project_MCP",
         instructions=MCP_SERVER_INSTRUCTIONS,
     )
-    openai_compat_tools = MPOpenAIMcpTools()
+    core_tools = MPCoreMCP()
     for k in {"search", "fetch"}:
-        mp_mcp.tool(getattr(openai_compat_tools, k), name=k)
+        mp_mcp.tool(getattr(core_tools, k), name=k)
     return mp_mcp
 
 

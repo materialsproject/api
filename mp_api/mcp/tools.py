@@ -33,7 +33,7 @@ from mp_api.mcp.utils import _NeedsMPClient
 from mp_api.mcp._schemas import SearchOutput, FetchResult, MaterialMetadata
 
 
-class MaterialsProjectCoreMcp(_NeedsMPClient):
+class MPCoreMCP(_NeedsMPClient):
     """Define LLM-agnostic MCP for the Materials Project API.
 
     Because this MCP must support all common LLMs, it defines two methods,
