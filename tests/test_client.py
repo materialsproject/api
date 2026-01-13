@@ -1,4 +1,3 @@
-import os
 import warnings
 
 import pytest
@@ -6,6 +5,8 @@ import pytest
 from mp_api.client import MPRester
 from mp_api.client.routes.materials.tasks import TaskRester
 from mp_api.client.routes.materials.provenance import ProvenanceRester
+
+from .conftest import requires_api_key
 
 # -- Rester name data for generic tests
 
@@ -55,7 +56,7 @@ resters_to_test = [
 ]
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 @pytest.mark.parametrize("rester", resters_to_test)
 def test_generic_get_methods(rester):
     # -- Test generic search and get_data_by_id methods
@@ -64,8 +65,6 @@ def test_generic_get_methods(rester):
         endpoint=mpr.endpoint,
         include_user_agent=True,
         session=mpr.session,
-        # Disable monty decode on nested data which may give errors
-        monty_decode=rester not in [TaskRester, ProvenanceRester],
         use_document_model=True,
     )
 

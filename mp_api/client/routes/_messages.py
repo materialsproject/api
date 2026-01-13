@@ -11,7 +11,6 @@ class MessagesRester(BaseRester):  # pragma: no cover
     suffix = "_messages"
     document_model = MessagesDoc  # type: ignore
     primary_key = "title"
-    monty_decode = False
     use_document_model = False
 
     def set_message(

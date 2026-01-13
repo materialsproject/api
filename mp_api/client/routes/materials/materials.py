@@ -39,7 +39,7 @@ class MaterialsRester(CoreRester):
 
         if response and response[0]:
             response = response[0]
-            # Ensure that return type is a Structure regardless of `monty_decode` or `model_dump` output
+            # Ensure that return type is a Structure regardless of `model_dump`
             if isinstance(response[field], dict):
                 response[field] = Structure.from_dict(response[field])
             elif isinstance(response[field], list) and any(

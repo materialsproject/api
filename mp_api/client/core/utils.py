@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from importlib import import_module
 from typing import TYPE_CHECKING, Literal
 
@@ -9,6 +10,7 @@ from emmet.core.mpid_ext import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
+from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 
 if TYPE_CHECKING:
@@ -51,6 +53,25 @@ def load_json(
     return MontyDecoder().process_decoded(data) if deser else data
 
 
+def validate_api_key(api_key: str | None = None) -> str:
+    """Find and validate an API key."""
+    # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
+    api_key = api_key or os.getenv("MP_API_KEY")
+    if not api_key:
+        from pymatgen.core import SETTINGS
+
+        api_key = SETTINGS.get("PMG_MAPI_KEY")
+
+    if not api_key or len(api_key) != 32:
+        addendum = " Valid API keys are 32 characters." if api_key else ""
+        raise MPRestError(
+            "Please obtain a valid API key from https://materialsproject.org/api "
+            f"and export it as an environment variable `MP_API_KEY`.{addendum}"
+        )
+
+    return api_key
+
+
 def validate_ids(id_list: list[str]) -> list[str]:
     """Function to validate material and task IDs.
 
@@ -58,13 +79,13 @@ def validate_ids(id_list: list[str]) -> list[str]:
         id_list (List[str]): List of material or task IDs.
 
     Raises:
-        ValueError: If at least one ID is not formatted correctly.
+        MPRestError: If at least one ID is not formatted correctly.
 
     Returns:
         id_list: Returns original ID list if everything is formatted correctly.
     """
     if len(id_list) > MAPIClientSettings().MAX_LIST_LENGTH:
-        raise ValueError(
+        raise MPRestError(
             "List of material/molecule IDs provided is too long. Consider removing the ID filter to automatically pull"
             " data for all IDs and filter locally."
         )

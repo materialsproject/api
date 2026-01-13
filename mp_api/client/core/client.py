@@ -30,6 +30,7 @@ from smart_open import open
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
+from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.settings import MAPIClientSettings
 from mp_api.client.core.utils import load_json, validate_ids
 
@@ -94,11 +95,11 @@ class BaseRester:
         session: requests.Session | None = None,
         s3_client: Any | None = None,
         debug: bool = False,
-        monty_decode: bool = True,
         use_document_model: bool = True,
         timeout: int = 20,
         headers: dict | None = None,
         mute_progress_bars: bool = SETTINGS.MUTE_PROGRESS_BARS,
+        **kwargs,
     ):
         """Initialize the REST API helper class.
 
@@ -123,13 +124,13 @@ class BaseRester:
                 advanced usage only.
             s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
             debug: if True, print the URL for every request
-            monty_decode: Decode the data using monty into python objects
             use_document_model: If False, skip the creating the document model and return data
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
             timeout: Time in seconds to wait until a request timeout error is thrown
             headers: Custom headers for localhost connections.
             mute_progress_bars: Whether to disable progress bars.
+            **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
         # TODO: think about how to migrate from PMG_MAPI_KEY
         self.api_key = api_key or os.getenv("MP_API_KEY")
@@ -138,7 +139,6 @@ class BaseRester:
         )
         self.debug = debug
         self.include_user_agent = include_user_agent
-        self.monty_decode = monty_decode
         self.use_document_model = use_document_model
         self.timeout = timeout
         self.headers = headers or {}
@@ -152,6 +152,12 @@ class BaseRester:
 
         self._session = session
         self._s3_client = s3_client
+
+        if "monty_decode" in kwargs:
+            warnings.warn(
+                "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
+                "The client by default returns results consistent with `monty_decode=True`."
+            )
 
     @property
     def session(self) -> requests.Session:
@@ -267,7 +273,7 @@ class BaseRester:
             response = self.session.post(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
-                data = load_json(response.text, deser=self.monty_decode)
+                data = load_json(response.text)
                 if self.document_model and use_document_model:
                     if isinstance(data["data"], dict):
                         data["data"] = self.document_model.model_validate(data["data"])  # type: ignore
@@ -335,7 +341,7 @@ class BaseRester:
             response = self.session.patch(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
-                data = load_json(response.text, deser=self.monty_decode)
+                data = load_json(response.text)
                 if self.document_model and use_document_model:
                     if isinstance(data["data"], dict):
                         data["data"] = self.document_model.model_validate(data["data"])  # type: ignore
@@ -386,10 +392,7 @@ class BaseRester:
         Returns:
             dict: MontyDecoded data
         """
-        if not decoder:
-
-            def decoder(x):
-                return load_json(x, deser=self.monty_decode)
+        decoder = decoder or load_json
 
         file = open(
             f"s3://{bucket}/{key}",
@@ -999,7 +1002,7 @@ class BaseRester:
             )
 
         if response.status_code == 200:
-            data = load_json(response.text, deser=self.monty_decode)
+            data = load_json(response.text)
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
@@ -1304,12 +1307,10 @@ class BaseRester:
         """
         criteria = criteria or {}
         user_preferences = (
-            self.monty_decode,
             self.use_document_model,
             self.mute_progress_bars,
         )
-        self.monty_decode, self.use_document_model, self.mute_progress_bars = (
-            False,
+        self.use_document_model, self.mute_progress_bars = (
             False,
             True,
         )  # do not waste cycles decoding
@@ -1331,7 +1332,6 @@ class BaseRester:
                 )
 
         (
-            self.monty_decode,
             self.use_document_model,
             self.mute_progress_bars,
         ) = user_preferences
@@ -1389,11 +1389,3 @@ class CoreRester(BaseRester):
 
     def __dir__(self):
         return dir(self.__class__) + list(self._sub_resters)
-
-
-class MPRestError(Exception):
-    """Raised when the query has problems, e.g., bad query format."""
-
-
-class MPRestWarning(Warning):
-    """Raised when a query is malformed but interpretable."""

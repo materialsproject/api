@@ -1,5 +1,5 @@
 import os
-from core_function import client_search_testing
+from ..conftest import client_search_testing, requires_api_key
 import pytest
 
 from emmet.core.mpid import MPID, AlphaID
@@ -10,7 +10,7 @@ from mp_api.client.routes.materials.tasks import TaskRester
 
 @pytest.fixture
 def rester():
-    rester = TaskRester(monty_decode=False)
+    rester = TaskRester()
     yield rester
     rester.session.close()
 
@@ -41,7 +41,7 @@ custom_field_tests = {
 }  # type: dict
 
 
-@pytest.mark.skipif(os.getenv("MP_API_KEY") is None, reason="No API key found.")
+@requires_api_key
 def test_client(rester):
     search_method = rester.search
 
