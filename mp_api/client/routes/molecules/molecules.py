@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import warnings
-
 from emmet.core.mpid import MPculeID
 from emmet.core.qchem.molecule import MoleculeDoc
 from emmet.core.settings import EmmetSettings
@@ -195,14 +193,6 @@ class AssociatedMoleculeRester(BaseMoleculeRester):
 class MoleculeRester(BaseMoleculeRester):
     suffix = "molecules/core"
     _sub_resters = MOLECULES_RESTERS
-
-    def __getattr__(self, v: str):
-        if "jcesr" in v:
-            warnings.warn(
-                "NOTE: You are accessing the unmaintained legacy molecules data, "
-                "please use MPRester.molecules.summary."
-            )
-        super().__getattr__(v)
 
     def __dir__(self):
         return dir(MoleculeRester) + self._sub_resters

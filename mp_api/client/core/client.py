@@ -19,7 +19,7 @@ from importlib.metadata import PackageNotFoundError, version
 from json import JSONDecodeError
 from math import ceil
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
-from urllib.parse import quote, urljoin
+from urllib.parse import quote
 
 import requests
 from emmet.core.utils import jsanitize
@@ -31,8 +31,13 @@ from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
 from mp_api.client.core.exceptions import MPRestError
-from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import load_json, validate_ids
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
+from mp_api.client.core.utils import (
+    load_json,
+    validate_api_key,
+    validate_endpoint,
+    validate_ids,
+)
 
 try:
     import boto3
@@ -57,9 +62,6 @@ try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
-
-
-SETTINGS = MAPIClientSettings()  # type: ignore
 
 
 class _DictLikeAccess(BaseModel):
@@ -98,7 +100,7 @@ class BaseRester:
         use_document_model: bool = True,
         timeout: int = 20,
         headers: dict | None = None,
-        mute_progress_bars: bool = SETTINGS.MUTE_PROGRESS_BARS,
+        mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
         **kwargs,
     ):
         """Initialize the REST API helper class.
@@ -132,23 +134,17 @@ class BaseRester:
             mute_progress_bars: Whether to disable progress bars.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        # TODO: think about how to migrate from PMG_MAPI_KEY
-        self.api_key = api_key or os.getenv("MP_API_KEY")
-        self.base_endpoint = self.endpoint = endpoint or os.getenv(
-            "MP_API_ENDPOINT", "https://api.materialsproject.org/"
-        )
+        self.api_key = validate_api_key(api_key)
+        self.base_endpoint = validate_endpoint(endpoint)
+        self.endpoint = validate_endpoint(endpoint, suffix=self.suffix)
+
         self.debug = debug
         self.include_user_agent = include_user_agent
         self.use_document_model = use_document_model
         self.timeout = timeout
         self.headers = headers or {}
         self.mute_progress_bars = mute_progress_bars
-        self.db_version = BaseRester._get_database_version(self.endpoint)
-
-        if self.suffix:
-            self.endpoint = urljoin(self.endpoint, self.suffix)
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
+        self.db_version = BaseRester._get_database_version(self.base_endpoint)
 
         self._session = session
         self._s3_client = s3_client
@@ -196,15 +192,14 @@ class BaseRester:
             user_agent = f"{mp_api_info} ({python_info} {platform_info})"
             session.headers["user-agent"] = user_agent
 
-        settings = MAPIClientSettings()  # type: ignore
-        max_retry_num = settings.MAX_RETRIES
+        max_retry_num = MAPI_CLIENT_SETTINGS.MAX_RETRIES
         retry = Retry(
             total=max_retry_num,
             read=max_retry_num,
             connect=max_retry_num,
             respect_retry_after_header=True,
             status_forcelist=[429, 504, 502],  # rate limiting
-            backoff_factor=settings.BACKOFF_FACTOR,
+            backoff_factor=MAPI_CLIENT_SETTINGS.BACKOFF_FACTOR,
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
@@ -265,11 +260,7 @@ class BaseRester:
         payload = jsanitize(body)
 
         try:
-            url = self.endpoint
-            if suburl:
-                url = urljoin(self.endpoint, suburl)
-                if not url.endswith("/"):
-                    url += "/"
+            url = validate_endpoint(self.endpoint, suffix=suburl)
             response = self.session.post(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
@@ -333,11 +324,7 @@ class BaseRester:
         payload = jsanitize(body)
 
         try:
-            url = self.endpoint
-            if suburl:
-                url = urljoin(self.endpoint, suburl)
-                if not url.endswith("/"):
-                    url += "/"
+            url = validate_endpoint(self.endpoint, suffix=suburl)
             response = self.session.patch(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
@@ -469,11 +456,7 @@ class BaseRester:
             criteria["_fields"] = ",".join(fields)
 
         try:
-            url = self.endpoint
-            if suburl:
-                url = urljoin(self.endpoint, suburl)
-                if not url.endswith("/"):
-                    url += "/"
+            url = validate_endpoint(self.endpoint, suffix=suburl)
 
             if query_s3:
                 db_version = self.db_version.replace(".", "-")
@@ -620,7 +603,7 @@ class BaseRester:
 
             bare_url_len = len(url_string)
             max_param_str_length = (
-                MAPIClientSettings().MAX_HTTP_URL_LENGTH - bare_url_len  # type: ignore
+                MAPI_CLIENT_SETTINGS.MAX_HTTP_URL_LENGTH - bare_url_len  # type: ignore
             )
 
             # Next, check if default number of parallel requests works.
@@ -628,7 +611,7 @@ class BaseRester:
             # contained in any substring of length max_param_str_length.
             param_length = len(criteria[parallel_param].split(","))
             slice_size = (
-                int(param_length / MAPIClientSettings().NUM_PARALLEL_REQUESTS) or 1  # type: ignore
+                int(param_length / MAPI_CLIENT_SETTINGS.NUM_PARALLEL_REQUESTS) or 1  # type: ignore
             )
 
             url_param_string = quote(criteria[parallel_param])
@@ -909,14 +892,14 @@ class BaseRester:
         params_ind = 0
 
         with ThreadPoolExecutor(
-            max_workers=MAPIClientSettings().NUM_PARALLEL_REQUESTS  # type: ignore
+            max_workers=MAPI_CLIENT_SETTINGS.NUM_PARALLEL_REQUESTS  # type: ignore
         ) as executor:
             # Get list of initial futures defined by max number of parallel requests
             futures = set()
 
             for params in itertools.islice(
                 params_gen,
-                MAPIClientSettings().NUM_PARALLEL_REQUESTS,  # type: ignore
+                MAPI_CLIENT_SETTINGS.NUM_PARALLEL_REQUESTS,  # type: ignore
             ):
                 future = executor.submit(
                     func,
@@ -1278,7 +1261,7 @@ class BaseRester:
                 for key, entry in query_params.items()
                 if isinstance(entry, str)
                 and len(entry.split(",")) > 0
-                and key not in MAPIClientSettings().QUERY_NO_PARALLEL  # type: ignore
+                and key not in MAPI_CLIENT_SETTINGS.QUERY_NO_PARALLEL  # type: ignore
             ),
             key=lambda item: item[1],
             reverse=True,
@@ -1369,10 +1352,9 @@ class CoreRester(BaseRester):
     def __getattr__(self, v: str):
         if v in self._sub_resters:
             if self._sub_resters[v]._obj is None:
-
                 self._sub_resters[v](
                     api_key=self.api_key,
-                    endpoint=self.endpoint.split(self.suffix)[0],
+                    endpoint=self.base_endpoint,
                     include_user_agent=self._include_user_agent,
                     session=self.session,
                     use_document_model=self.use_document_model,

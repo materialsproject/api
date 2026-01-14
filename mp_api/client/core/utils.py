@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from importlib import import_module
 from typing import TYPE_CHECKING, Literal
+from urllib.parse import urljoin
 
 import orjson
 from emmet.core import __version__ as _EMMET_CORE_VER
@@ -11,7 +12,7 @@ from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
 from mp_api.client.core.exceptions import MPRestError
-from mp_api.client.core.settings import MAPIClientSettings
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
 if TYPE_CHECKING:
     from typing import Any
@@ -58,9 +59,9 @@ def validate_api_key(api_key: str | None = None) -> str:
     # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
     api_key = api_key or os.getenv("MP_API_KEY")
     if not api_key:
-        from pymatgen.core import SETTINGS
+        from pymatgen.core import SETTINGS as PMG_SETTINGS
 
-        api_key = SETTINGS.get("PMG_MAPI_KEY")
+        api_key = PMG_SETTINGS.get("PMG_MAPI_KEY")
 
     if not api_key or len(api_key) != 32:
         addendum = " Valid API keys are 32 characters." if api_key else ""
@@ -84,7 +85,7 @@ def validate_ids(id_list: list[str]) -> list[str]:
     Returns:
         id_list: Returns original ID list if everything is formatted correctly.
     """
-    if len(id_list) > MAPIClientSettings().MAX_LIST_LENGTH:
+    if len(id_list) > MAPI_CLIENT_SETTINGS.MAX_LIST_LENGTH:
         raise MPRestError(
             "List of material/molecule IDs provided is too long. Consider removing the ID filter to automatically pull"
             " data for all IDs and filter locally."
@@ -94,6 +95,32 @@ def validate_ids(id_list: list[str]) -> list[str]:
     # The following line should be changed to
     # return [validate_identifier(idx,serialize=True) for idx in id_list]
     return [str(validate_identifier(idx)) for idx in id_list]
+
+
+def validate_endpoint(endpoint: str | None, suffix: str | None = None) -> str:
+    """Validate an endpoint with optional suffix.
+
+    NB: does not modify the endpoint in place,
+    returns a new variable.
+
+    Parameters
+    -----------
+    endpoint : str or None (default)
+        A string representing the endpoint URL or the default
+        in `mp_api.client.core.settings`
+    suffix : str or None (default)
+        Optional suffix to append to the endpoint.
+
+    Returns:
+    -----------
+    str : the validated endpoint
+    """
+    new_endpoint = endpoint or MAPI_CLIENT_SETTINGS.ENDPOINT
+    if suffix:
+        new_endpoint = urljoin(new_endpoint, suffix)
+    if not new_endpoint.endswith("/"):
+        new_endpoint += "/"
+    return new_endpoint
 
 
 class LazyImport:

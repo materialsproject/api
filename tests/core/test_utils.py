@@ -85,9 +85,9 @@ def test_id_validation():
     from emmet.core.mpid import MPID, AlphaID
 
     from mp_api.client.core.utils import validate_ids
-    from mp_api.client.core.settings import MAPIClientSettings
+    from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
-    max_num_idxs = MAPIClientSettings().MAX_LIST_LENGTH
+    max_num_idxs = MAPI_CLIENT_SETTINGS.MAX_LIST_LENGTH
 
     with pytest.raises(MPRestError, match="too long"):
         _ = validate_ids([f"mp-{x}" for x in range(max_num_idxs + 1)])

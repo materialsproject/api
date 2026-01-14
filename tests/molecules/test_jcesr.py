@@ -48,3 +48,8 @@ def test_client(rester):
         custom_field_tests=custom_field_tests,
         sub_doc_fields=sub_doc_fields,
     )
+
+
+def test_warning():
+    with pytest.warns(UserWarning, match="unmaintained legacy molecules"):
+        JcesrMoleculesRester()

@@ -24,11 +24,12 @@ from requests import Session, get
 
 from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
-from mp_api.client.core.settings import MAPIClientSettings
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     LazyImport,
     load_json,
     validate_api_key,
+    validate_endpoint,
     validate_ids,
 )
 from mp_api.client.routes import GENERIC_RESTERS
@@ -42,7 +43,6 @@ if TYPE_CHECKING:
     from pymatgen.entries.computed_entries import ComputedEntry
 
 _EMMET_SETTINGS = EmmetSettings()
-_MAPI_SETTINGS = MAPIClientSettings()
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
 RESTER_LAYOUT = {
@@ -80,7 +80,7 @@ class MPRester:
         use_document_model: bool = True,
         session: Session | None = None,
         headers: dict | None = None,
-        mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
+        mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
         **kwargs,
     ):
         """Initialize the MPRester.
@@ -119,7 +119,7 @@ class MPRester:
         """
         self.api_key = validate_api_key(api_key)
 
-        self.endpoint = endpoint or _MAPI_SETTINGS.ENDPOINT
+        self.endpoint = validate_endpoint(endpoint) or MAPI_CLIENT_SETTINGS.ENDPOINT
         if not self.endpoint.endswith("/"):
             self.endpoint += "/"
 
@@ -176,7 +176,7 @@ class MPRester:
         emmet_version = MPRester.get_emmet_version(self.endpoint)
 
         if version.parse(emmet_version.base_version) < version.parse(
-            _MAPI_SETTINGS.MIN_EMMET_VERSION
+            MAPI_CLIENT_SETTINGS.MIN_EMMET_VERSION
         ):
             warnings.warn(
                 "The installed version of the mp-api client may not be compatible with the API server. "

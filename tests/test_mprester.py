@@ -35,7 +35,6 @@ from pymatgen.io.vasp import Chgcar
 
 from mp_api.client import MPRester
 from mp_api.client.core import MPRestError, MPRestWarning
-from mp_api.client.core.settings import MAPIClientSettings
 
 from .conftest import requires_api_key
 

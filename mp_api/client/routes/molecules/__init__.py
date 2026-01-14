@@ -6,7 +6,7 @@ MOLECULES_RESTERS = {
     k: LazyImport(f"mp_api.client.routes.molecules.{k}.{v}")
     for k, v in (
         ("molecules", "MoleculeRester"),
-        ("jcser", "JcesrMoleculesRester"),
+        ("jcesr", "JcesrMoleculesRester"),
         ("summary", "MoleculesSummaryRester"),
     )
 }

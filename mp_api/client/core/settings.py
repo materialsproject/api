@@ -99,3 +99,6 @@ class MAPIClientSettings(BaseSettings):
     def _get_endpoint_from_env(cls, v: str | None) -> str:
         """Support setting endpoint via MP_API_ENDPOINT environment variable."""
         return v or os.environ.get("MP_API_ENDPOINT") or _DEFAULT_ENDPOINT
+
+
+MAPI_CLIENT_SETTINGS = MAPIClientSettings()
