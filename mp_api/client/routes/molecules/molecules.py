@@ -1,3 +1,10 @@
+"""Define core molecules functionality.
+
+Note that these classes are not currently working.
+The `MoleculeRester` methods: `search`, `find_molecule`, `get_molecule_by_mpculeid`,
+all return 404s when attempting to use them.
+"""
+
 from __future__ import annotations
 
 from emmet.core.mpid import MPculeID
@@ -190,6 +197,3 @@ class AssociatedMoleculeRester(BaseMoleculeRester):
 class MoleculeRester(BaseMoleculeRester):
     suffix = "molecules/core"
     _sub_resters = MOLECULES_RESTERS
-
-    def __dir__(self):
-        return dir(MoleculeRester) + self._sub_resters

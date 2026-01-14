@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID, AlphaID
-from emmet.core.tasks import TaskDoc
 from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
@@ -38,8 +37,10 @@ from mp_api.client.routes.molecules import MOLECULES_RESTERS
 if TYPE_CHECKING:
     from typing import Any, Literal
 
+    from emmet.core.tasks import CoreTaskDoc
     from pymatgen.analysis.phase_diagram import PDEntry
     from pymatgen.entries.computed_entries import ComputedEntry
+
 
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
@@ -47,21 +48,12 @@ RESTER_LAYOUT = {
     "molecules/core": LazyImport(
         "mp_api.client.routes.molecules.molecules.MoleculeRester"
     ),
-    "materials/core": MATERIALS_RESTERS["materials"],
-    **{
-        f"materials/{k}": v
-        for k, v in MATERIALS_RESTERS.items()
-        if k not in {"materials", "doi"}
-    },
+    "materials/core": LazyImport(
+        "mp_api.client.routes.materials.materials.MaterialsRester"
+    ),
+    **{f"materials/{k}": v for k, v in MATERIALS_RESTERS.items() if k not in {"doi"}},
     "doi": MATERIALS_RESTERS["doi"],
-    **{
-        f"molecules/{k}": v
-        for k, v in MOLECULES_RESTERS.items()
-        if k
-        not in {
-            "molecules",
-        }
-    },
+    **{f"molecules/{k}": v for k, v in MOLECULES_RESTERS.items()},
     **GENERIC_RESTERS,
 }
 
@@ -1134,7 +1126,7 @@ class MPRester:
 
     def get_charge_density_from_task_id(
         self, task_id: str, inc_task_doc: bool = False
-    ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
+    ) -> Chgcar | tuple[Chgcar, CoreTaskDoc | dict] | None:
         """Get charge density data for a given task_id.
 
         Arguments:
@@ -1142,14 +1134,13 @@ class MPRester:
             inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
+            (Chgcar, (Chgcar, CoreTaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and CoreTaskDoc
         """
-        kwargs = dict(
+        chgcar = self.materials.tasks._query_open_data(
             bucket="materialsproject-parsed",
             key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
             decoder=lambda x: load_json(x, deser=True),
-        )
-        chgcar = self.materials.tasks._query_open_data(**kwargs)[0][0]["data"]
+        )[0][0]["data"]
 
         if inc_task_doc:
             task_doc = self.materials.tasks.search(task_ids=task_id)[0]
@@ -1159,7 +1150,7 @@ class MPRester:
 
     def get_charge_density_from_material_id(
         self, material_id: str, inc_task_doc: bool = False
-    ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
+    ) -> Chgcar | tuple[Chgcar, CoreTaskDoc | dict] | None:
         """Get charge density data for a given Materials Project ID.
 
         Arguments:
@@ -1167,7 +1158,8 @@ class MPRester:
             inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
+            (Chgcar, (Chgcar, CoreTaskDoc | dict), None): Pymatgen Chgcar object,
+            or tuple with object and CoreTaskDoc
         """
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
@@ -1177,7 +1169,7 @@ class MPRester:
         if not task_ids:
             return None
 
-        results: list[TaskDoc] = self.materials.tasks.search(
+        results: list[CoreTaskDoc] = self.materials.tasks.search(
             task_ids=task_ids, fields=["last_updated", "task_id"]
         )  # type: ignore
 

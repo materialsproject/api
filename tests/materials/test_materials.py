@@ -5,6 +5,7 @@ import pytest
 from emmet.core.symmetry import CrystalSystem
 
 from mp_api.client.routes.materials.materials import MaterialsRester
+from mp_api.client.routes.materials import MATERIALS_RESTERS
 
 
 @pytest.fixture
@@ -54,6 +55,10 @@ custom_field_tests = {
 @requires_api_key
 def test_client(rester):
     search_method = rester.search
+
+    assert sorted(dir(rester)) == sorted(
+        dir(rester.__class__) + list(MATERIALS_RESTERS)
+    )
 
     client_search_testing(
         search_method=search_method,

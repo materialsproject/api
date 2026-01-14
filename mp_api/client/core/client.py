@@ -461,7 +461,6 @@ class BaseRester:
             url = validate_endpoint(self.endpoint, suffix=suburl)
 
             if query_s3:
-                db_version = self.db_version.replace(".", "-")
                 if "/" not in self.suffix:
                     suffix = self.suffix
                 elif self.suffix == "molecules/summary":
@@ -477,7 +476,7 @@ class BaseRester:
                     bucket_suffix, prefix = "parsed", "tasks_atomate2"
                 else:
                     bucket_suffix = "build"
-                    prefix = f"collections/{db_version}/{suffix}"
+                    prefix = f"collections/{self.db_version.replace('.', '-')}/{suffix}"
 
                 bucket = f"materialsproject-{bucket_suffix}"
                 paginator = self.s3_client.get_paginator("list_objects_v2")

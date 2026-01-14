@@ -365,6 +365,8 @@ loop_
         assert isinstance(chgcar, Chgcar)
         assert isinstance(TaskDoc.model_validate(task_doc.model_dump()), TaskDoc)
 
+        assert mpr.get_charge_density_from_material_id("mp-0") is None
+
     def test_get_charge_density_from_task_id(self, mpr):
         chgcar = mpr.get_charge_density_from_task_id("mp-2246557")
         assert isinstance(chgcar, Chgcar)

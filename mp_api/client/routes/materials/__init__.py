@@ -1,4 +1,4 @@
-"""Define routes and imports to materials resters."""
+"""Define routes and imports to non-core materials resters."""
 from __future__ import annotations
 
 from mp_api.client.core.utils import LazyImport
@@ -29,7 +29,6 @@ MATERIALS_RESTERS: dict[str, LazyImport] = {
         ("grain_boundaries", "grain_boundaries", "GrainBoundaryRester"),
         ("insertion_electrodes", "electrodes", "ElectrodeRester"),
         ("magnetism", "magnetism", "MagnetismRester"),
-        ("materials", "materials", "MaterialsRester"),
         ("oxidation_states", "oxidation_states", "OxidationStatesRester"),
         ("phonon", "phonon", "PhononRester"),
         ("piezoelectric", "piezo", "PiezoRester"),

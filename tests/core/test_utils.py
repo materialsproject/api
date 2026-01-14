@@ -7,6 +7,23 @@ from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.utils import LazyImport
 
 
+def test_lazy_import_module():
+    import_str = "typing"
+    lazy_mod = LazyImport(import_str)
+    assert lazy_mod._module_name == import_str
+    assert lazy_mod._class_name is None
+    assert lazy_mod.__repr__() == str(lazy_mod)
+    lazy_any = lazy_mod.Any
+
+    from typing import Any
+
+    assert lazy_any == Any
+
+    # Ensure failure to load raises error
+    with pytest.raises(ImportError, match="Failed to import"):
+        _ = LazyImport("tieping")._load()
+
+
 def test_lazy_import_function():
     import_str = "json.dumps"
     lazy_func = LazyImport(import_str)
