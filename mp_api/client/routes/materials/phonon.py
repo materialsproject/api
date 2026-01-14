@@ -81,21 +81,15 @@ class PhononRester(BaseRester):
         Returns:
             bandstructure (PhononBS): PhononBS object
         """
-        try:
-            result = self._query_open_data(
-                bucket="materialsproject-parsed",
-                key=f"ph-bandstructures/{phonon_method}/{material_id}.json.gz",
-            )[0]
-        except OSError:
-            result = None
-
-        if not result or not result[0]:
-            raise MPRestError("No object found")
+        result = self._query_open_data(
+            bucket="materialsproject-parsed",
+            key=f"ph-bandstructures/{phonon_method}/{material_id}.json.gz",
+        )[0][0]
 
         if self.use_document_model:
-            return PhononBS(**result[0])
+            return PhononBS(**result)
 
-        return result[0]
+        return result
 
     def get_dos_from_material_id(
         self, material_id: str, phonon_method: str
@@ -109,21 +103,15 @@ class PhononRester(BaseRester):
         Returns:
             dos (PhononDOS): PhononDOS object
         """
-        try:
-            result = self._query_open_data(
-                bucket="materialsproject-parsed",
-                key=f"ph-dos/{phonon_method}/{material_id}.json.gz",
-            )[0]
-        except OSError:
-            result = None
-
-        if not result or not result[0]:
-            raise MPRestError("No object found")
+        result = self._query_open_data(
+            bucket="materialsproject-parsed",
+            key=f"ph-dos/{phonon_method}/{material_id}.json.gz",
+        )[0][0]
 
         if self.use_document_model:
-            return PhononDOS(**result[0])
+            return PhononDOS(**result)
 
-        return result[0]
+        return result
 
     def get_forceconstants_from_material_id(
         self, material_id: str
@@ -136,18 +124,10 @@ class PhononRester(BaseRester):
         Returns:
             force constants (list[list[Matrix3D]]): PhononDOS object
         """
-        try:
-            result = self._query_open_data(
-                bucket="materialsproject-parsed",
-                key=f"ph-force-constants/{material_id}.json.gz",
-            )[0]
-        except OSError:
-            result = None
-
-        if not result or not result[0]:
-            raise MPRestError("No object found")
-
-        return result[0]
+        return self._query_open_data(
+            bucket="materialsproject-parsed",
+            key=f"ph-force-constants/{material_id}.json.gz",
+        )[0][0]
 
     def compute_thermo_quantities(self, material_id: str, phonon_method: str):
         """Compute thermodynamical quantities for given material ID and phonon_method.

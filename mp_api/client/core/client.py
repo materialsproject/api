@@ -5,6 +5,7 @@ Materials Project data.
 
 from __future__ import annotations
 
+import gzip
 import inspect
 import itertools
 import os
@@ -16,17 +17,21 @@ from copy import copy
 from functools import cache
 from importlib import import_module
 from importlib.metadata import PackageNotFoundError, version
+from io import BytesIO
 from json import JSONDecodeError
 from math import ceil
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
 from urllib.parse import quote
 
+import boto3
 import requests
+from botocore import UNSIGNED
+from botocore.config import Config
+from botocore.exceptions import ClientError
 from emmet.core.utils import jsanitize
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
-from smart_open import open
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
@@ -38,13 +43,6 @@ from mp_api.client.core.utils import (
     validate_endpoint,
     validate_ids,
 )
-
-try:
-    import boto3
-    from botocore import UNSIGNED
-    from botocore.config import Config
-except ImportError:
-    boto3 = None
 
 try:
     import flask
@@ -165,13 +163,6 @@ class BaseRester:
 
     @property
     def s3_client(self):
-        if boto3 is None:
-            raise MPRestError(
-                "boto3 not installed. To query charge density, "
-                "band structure, or density of states data first "
-                "install with: 'pip install boto3'"
-            )
-
         if not self._s3_client:
             self._s3_client = boto3.client(
                 "s3",
@@ -379,20 +370,31 @@ class BaseRester:
         Returns:
             dict: MontyDecoded data
         """
-        decoder = decoder or load_json
+        try:
+            byio = BytesIO()
+            self.s3_client.download_fileobj(bucket, key, byio)
+            byio.seek(0)
+            if (file_data := byio.read()).startswith(b"\x1f\x8b"):
+                file_data = gzip.decompress(file_data)
+            byio.close()
 
-        file = open(
-            f"s3://{bucket}/{key}",
-            encoding="utf-8",
-            transport_params={"client": self.s3_client},
-        )
+            decoder = decoder or load_json
 
-        if "jsonl" in key:
-            decoded_data = [decoder(jline) for jline in file.read().splitlines()]
-        else:
-            decoded_data = decoder(file.read())
-            if not isinstance(decoded_data, list):
-                decoded_data = [decoded_data]
+            if "jsonl" in key:
+                decoded_data = [decoder(jline) for jline in file_data.splitlines()]
+            else:
+                decoded_data = decoder(file_data)
+                if not isinstance(decoded_data, list):
+                    decoded_data = [decoded_data]
+
+            raise_error = not decoded_data or len(decoded_data) == 0
+
+        except ClientError:
+            # No such object exists
+            raise_error = True
+
+        if raise_error:
+            raise MPRestError(f"No object found: s3://{bucket}/{key}")
 
         return decoded_data, len(decoded_data)  # type: ignore
 

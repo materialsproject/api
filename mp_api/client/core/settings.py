@@ -1,7 +1,6 @@
 import os
-from multiprocessing import cpu_count
-from typing import List
 
+from emmet.core.settings import EmmetSettings
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pymatgen.core import _load_pmg_settings
@@ -14,12 +13,9 @@ _MAX_RETRIES = min(PMG_SETTINGS.get("MPRESTER_MAX_RETRIES", 3), 3)
 _MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BARS", False)
 _MAX_HTTP_URL_LENGTH = PMG_SETTINGS.get("MPRESTER_MAX_HTTP_URL_LENGTH", 2000)
 _MAX_LIST_LENGTH = min(PMG_SETTINGS.get("MPRESTER_MAX_LIST_LENGTH", 10000), 10000)
-_DEFAULT_ENDPOINT = "https://api.materialsproject.org/"
 
-try:
-    CPU_COUNT = cpu_count()
-except NotImplementedError:
-    pass
+_EMMET_SETTINGS = EmmetSettings()
+_DEFAULT_ENDPOINT = "https://api.materialsproject.org/"
 
 
 class MAPIClientSettings(BaseSettings):
@@ -32,7 +28,7 @@ class MAPIClientSettings(BaseSettings):
         description="Directory with test files",
     )
 
-    QUERY_NO_PARALLEL: List[str] = Field(
+    QUERY_NO_PARALLEL: list[str] = Field(
         [
             "elements",
             "exclude_elements",
@@ -91,6 +87,20 @@ class MAPIClientSettings(BaseSettings):
 
     ENDPOINT: str = Field(
         _DEFAULT_ENDPOINT, description="The default API endpoint to use."
+    )
+
+    LTOL: float = Field(
+        _EMMET_SETTINGS.LTOL,
+        description="Fractional length tolerance for structure matching",
+    )
+
+    STOL: float = Field(
+        _EMMET_SETTINGS.STOL, description="Site tolerance for structure matching."
+    )
+
+    ANGLE_TOL: float = Field(
+        _EMMET_SETTINGS.ANGLE_TOL,
+        description="Angle tolerance for structure matching in degrees.",
     )
 
     model_config = SettingsConfigDict(env_prefix="MPRESTER_")

@@ -163,7 +163,10 @@ loop_
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
-        entries = mpr.get_entries(chemsys)
+        with pytest.warns(
+            UserWarning, match="The `inc_structure` argument is deprecated"
+        ):
+            entries = mpr.get_entries(chemsys, inc_structure=False)
 
         elements = {Element(sym) for sym in syms}
         for e in entries:

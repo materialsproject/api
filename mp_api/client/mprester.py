@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID, AlphaID
-from emmet.core.settings import EmmetSettings
 from emmet.core.tasks import TaskDoc
 from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
@@ -42,7 +41,6 @@ if TYPE_CHECKING:
     from pymatgen.analysis.phase_diagram import PDEntry
     from pymatgen.entries.computed_entries import ComputedEntry
 
-_EMMET_SETTINGS = EmmetSettings()
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
 RESTER_LAYOUT = {
@@ -119,9 +117,7 @@ class MPRester:
         """
         self.api_key = validate_api_key(api_key)
 
-        self.endpoint = validate_endpoint(endpoint) or MAPI_CLIENT_SETTINGS.ENDPOINT
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
+        self.endpoint = validate_endpoint(endpoint)
 
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
@@ -464,9 +460,9 @@ class MPRester:
     def find_structure(
         self,
         filename_or_structure: str | Structure,
-        ltol: float = _EMMET_SETTINGS.LTOL,
-        stol: float = _EMMET_SETTINGS.STOL,
-        angle_tol: float = _EMMET_SETTINGS.ANGLE_TOL,
+        ltol: float = MAPI_CLIENT_SETTINGS.LTOL,
+        stol: float = MAPI_CLIENT_SETTINGS.STOL,
+        angle_tol: float = MAPI_CLIENT_SETTINGS.ANGLE_TOL,
         allow_multiple_results: bool = False,
     ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.
@@ -501,13 +497,14 @@ class MPRester:
         self,
         chemsys_formula_mpids: str | list[str],
         compatible_only: bool = True,
-        inc_structure: bool | None = None,
         property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
         additional_criteria: dict | None = None,
+        **kwargs,
     ) -> list[ComputedStructureEntry]:
-        """Get a list of ComputedEntries or ComputedStructureEntries corresponding
-        to a chemical system or formula. This returns entries for all thermo types
+        """Get a list of ComputedStructureEntry from a chemical system, or formula, or MPID.
+
+        This returns ComputedStructureEntries with final structures for all thermo types
         represented in the database. Each type corresponds to a different mixing scheme
         (i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN). By default the thermo_type of the
         entry is also returned.
@@ -523,12 +520,6 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
-                returned were ComputedEntries. If inc_structure="initial",
-                ComputedStructureEntries with initial structures were returned.
-                Otherwise, ComputedStructureEntries with final structures
-                were returned. This is no longer needed as all entries will contain the
-                final structure data by default.
             property_data (list): Specify additional properties to include in
                 entry.data. If None, only default data is included. Should be a subset of
                 input parameters in the 'MPRester.thermo.available_fields' list.
@@ -538,14 +529,15 @@ class MPRester:
                 correspond to proper function inputs to `MPRester.thermo.search`. For instance,
                 if you are only interested in entries on the convex hull, you could pass
                 {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}.
+            kwargs: Used here only to gracefully handle deprecated arguments. All kwargs are ignored.
 
         Returns:
             List ComputedStructureEntry objects.
         """
-        if inc_structure is not None:
+        if kwargs.pop("inc_structure", None) is not None:
             warnings.warn(
-                "The 'inc_structure' argument is deprecated as structure "
-                "data is now always included in all returned entry objects."
+                "The `inc_structure` argument is deprecated as final structures "
+                "are always included in all returned ComputedStructureEntry objects."
             )
 
         if isinstance(chemsys_formula_mpids, str):
@@ -935,9 +927,9 @@ class MPRester:
         self,
         material_id: str,
         compatible_only: bool = True,
-        inc_structure: bool | None = None,
         property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
+        **kwargs,
     ):
         """Get all ComputedEntry objects corresponding to a material_id.
 
@@ -950,26 +942,21 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
-                returned were ComputedEntries. If inc_structure="initial",
-                ComputedStructureEntries with initial structures were returned.
-                Otherwise, ComputedStructureEntries with final structures
-                were returned. This is no longer needed as all entries will contain
-                structure data by default.
             property_data (list): Specify additional properties to include in
                 entry.data. If None, only default data is included. Should be a subset of
                 input parameters in the 'MPRester.thermo.available_fields' list.
             conventional_unit_cell (bool): Whether to get the standard
                 conventional unit cell
+            kwargs : Other kwargs to pass to `get_entries`
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
         return self.get_entries(
             material_id,
             compatible_only=compatible_only,
-            inc_structure=inc_structure,
             property_data=property_data,
             conventional_unit_cell=conventional_unit_cell,
+            **kwargs,
         )
 
     def get_entries_in_chemsys(
@@ -977,10 +964,10 @@ class MPRester:
         elements: str | list[str],
         use_gibbs: int | None = None,
         compatible_only: bool = True,
-        inc_structure: bool | None = None,
         property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
         additional_criteria: dict = DEFAULT_THERMOTYPE_CRITERIA,
+        **kwargs,
     ):
         """Helper method to get a list of ComputedEntries in a chemical system.
         For example, elements = ["Li", "Fe", "O"] will return a list of all
@@ -1006,12 +993,6 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
-                returned were ComputedEntries. If inc_structure="initial",
-                ComputedStructureEntries with initial structures were returned.
-                Otherwise, ComputedStructureEntries with final structures
-                were returned. This is no longer needed as all entries will contain
-                structure data by default.
             property_data (list): Specify additional properties to include in
                 entry.data. If None, only default data is included. Should be a subset of
                 input parameters in the 'MPRester.thermo.available_fields' list.
@@ -1022,6 +1003,7 @@ class MPRester:
                 if you are only interested in entries on the convex hull, you could pass
                 {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}, or if you are only interested
                 in entry data
+            kwargs : Other kwargs to pass to `get_entries`
         Returns:
             List of ComputedStructureEntries.
         """
@@ -1042,10 +1024,10 @@ class MPRester:
             self.get_entries(
                 all_chemsyses,
                 compatible_only=compatible_only,
-                inc_structure=inc_structure,
                 property_data=property_data,
                 conventional_unit_cell=conventional_unit_cell,
                 additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
+                **kwargs,
             )
         )
 
@@ -1167,11 +1149,7 @@ class MPRester:
             key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
             decoder=lambda x: load_json(x, deser=True),
         )
-        chgcar = self.materials.tasks._query_open_data(**kwargs)[0]
-        if not chgcar:
-            raise MPRestError(f"No charge density fetched for task_id {task_id}.")
-
-        chgcar = chgcar[0]["data"]  # type: ignore
+        chgcar = self.materials.tasks._query_open_data(**kwargs)[0][0]["data"]
 
         if inc_task_doc:
             task_doc = self.materials.tasks.search(task_ids=task_id)[0]
@@ -1341,7 +1319,6 @@ class MPRester:
         entries = self.get_entries(
             material_ids,
             compatible_only=False,
-            inc_structure=True,
             property_data=None,
             conventional_unit_cell=False,
         )
@@ -1481,7 +1458,7 @@ class MPRester:
             pd = self.materials.thermo.get_phase_diagram_from_chemsys(
                 chemsys_str, thermo_type=thermo_type
             )
-        except OSError:
+        except MPRestError:
             pd = None
 
         if not pd:

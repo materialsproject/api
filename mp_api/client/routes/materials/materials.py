@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.material import MaterialsDoc
 from pymatgen.core.structure import Structure
 
 from mp_api.client.core.client import CoreRester, MPRestError
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes.materials import MATERIALS_RESTERS
-
-_EMMET_SETTINGS = EmmetSettings()  # type: ignore
 
 
 class MaterialsRester(CoreRester):
@@ -174,9 +172,9 @@ class MaterialsRester(CoreRester):
     def find_structure(
         self,
         filename_or_structure,
-        ltol=_EMMET_SETTINGS.LTOL,
-        stol=_EMMET_SETTINGS.STOL,
-        angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
+        ltol=MAPI_CLIENT_SETTINGS.LTOL,
+        stol=MAPI_CLIENT_SETTINGS.STOL,
+        angle_tol=MAPI_CLIENT_SETTINGS.ANGLE_TOL,
         allow_multiple_results=False,
     ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.
