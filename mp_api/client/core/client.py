@@ -1369,18 +1369,12 @@ class CoreRester(BaseRester):
     def __getattr__(self, v: str):
         if v in self._sub_resters:
             if self._sub_resters[v]._obj is None:
-                # TODO: Enable monty decoding when tasks and SNL schema is normalized
-                monty_disable = self._sub_resters[v]._class_name in [
-                    "TaskRester",
-                    "ProvenanceRester",
-                ]
 
                 self._sub_resters[v](
                     api_key=self.api_key,
                     endpoint=self.endpoint.split(self.suffix)[0],
                     include_user_agent=self._include_user_agent,
                     session=self.session,
-                    monty_decode=False if monty_disable else self.monty_decode,
                     use_document_model=self.use_document_model,
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
