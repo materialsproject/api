@@ -84,7 +84,6 @@ class BaseRester:
 
     suffix: str = ""
     document_model: type[BaseModel] | None = None
-    supports_versions: bool = False
     primary_key: str = "material_id"
 
     def __init__(

@@ -13,7 +13,6 @@ from mp_api.client.routes.materials import MATERIALS_RESTERS
 class MaterialsRester(CoreRester):
     suffix = "materials/core"
     document_model = MaterialsDoc  # type: ignore
-    supports_versions = True
     primary_key = "material_id"
     _sub_resters = MATERIALS_RESTERS
 
