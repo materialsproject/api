@@ -1350,10 +1350,15 @@ class CoreRester(BaseRester):
 
     _sub_resters: dict[str, LazyImport] = {}
 
+    def __init__(self, **kwargs):
+        """Ensure that sub resters are unset on re-init."""
+        super().__init__(**kwargs)
+        self.sub_resters = {k: v.copy() for k, v in self._sub_resters.items()}
+
     def __getattr__(self, v: str):
-        if v in self._sub_resters:
-            if self._sub_resters[v]._obj is None:
-                self._sub_resters[v](
+        if v in self.sub_resters:
+            if self.sub_resters[v]._obj is None:
+                self.sub_resters[v](
                     api_key=self.api_key,
                     endpoint=self.base_endpoint,
                     include_user_agent=self._include_user_agent,
@@ -1362,7 +1367,7 @@ class CoreRester(BaseRester):
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
                 )
-            return self._sub_resters[v]
+            return self.sub_resters[v]
 
     def __dir__(self):
         return dir(self.__class__) + list(self._sub_resters)

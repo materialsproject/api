@@ -160,6 +160,13 @@ class LazyImport:
         self._imported: Any | None = None
         self._obj: Any | None = None
 
+    def copy(self) -> LazyImport:
+        """Return a new copy of the current instance."""
+        return LazyImport(
+            f"{self._module_name}"
+            + (f".{self._class_name}" if self._class_name else "")
+        )
+
     def __str__(self) -> str:
         return f"LazyImport of {self._module_name}" + (
             f".{self._class_name}" if self._class_name else ""

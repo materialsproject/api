@@ -77,6 +77,14 @@ direct
 
     assert Structure.from_str(structure_str, fmt="poscar") == struct_from_str
 
+    # ensure copy yields an independent object
+    lazy_copy = lazy_class.copy()
+    lazy_class(
+        struct_from_str.lattice, struct_from_str.species, struct_from_str.frac_coords
+    )
+    assert lazy_copy._obj is None
+    assert lazy_class._obj == struct_from_str
+
 
 def test_emmet_core_version_checks(monkeypatch: pytest.MonkeyPatch):
     ref_ver = (1, 2, "3rc5")

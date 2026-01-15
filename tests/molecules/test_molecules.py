@@ -15,5 +15,6 @@ def test_molecule_rester():
         )
 
         assert all(
-            getattr(rester, k) == lazy_obj for k, lazy_obj in MOLECULES_RESTERS.items()
+            getattr(rester, k)._class_name == lazy_obj._class_name
+            for k, lazy_obj in MOLECULES_RESTERS.items()
         )
