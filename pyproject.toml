@@ -34,7 +34,13 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 mcp = ["fastmcp"]
-all = ["emmet-core[all]>=0.86.2", "custodian", "mpcontribs-client>=5.10", "mp_api[mcp]"]
+all = [
+  "emmet-core[all]>=0.86.2",
+  "custodian",
+  "mpcontribs-client>=5.10",
+  "mp_api[mcp]",
+  "scipy<1.17.0", # pending fixes in matminer
+]
 test = [
   "pre-commit",
   "pytest",
