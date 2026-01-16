@@ -587,7 +587,7 @@ scikit-image==0.26.0
     # via pymatgen-analysis-defects
 scikit-learn==1.8.0
     # via matminer
-scipy==1.17.0
+scipy==1.16.3
     # via
     #   ase
     #   pymatgen

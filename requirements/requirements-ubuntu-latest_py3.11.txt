@@ -127,7 +127,7 @@ ruamel-yaml==0.19.1
     #   pymatgen
 s3transfer==0.16.0
     # via boto3
-scipy==1.17.0
+scipy==1.16.3
     # via pymatgen
 six==1.17.0
     # via python-dateutil
