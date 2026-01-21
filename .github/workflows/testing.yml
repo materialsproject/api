@@ -15,7 +15,6 @@ concurrency:
 jobs:
   test:
     strategy:
-      max-parallel: 2
       matrix:
         os: ["ubuntu-latest"]
         python-version: ["3.11", "3.12"]
@@ -64,13 +63,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
-
-  auto-gen-release:
-    needs: [test]
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.API_VER_BUMP_TOKEN }}
-    steps:
-      - uses: rymndhng/release-on-push-action@v0.20.0
-        with:
-          bump_version_scheme: norelease
