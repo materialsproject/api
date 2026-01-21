@@ -20,7 +20,7 @@ def test_core_tools():
     with MPCoreMCP() as mcp_tools:
         search_results = mcp_tools.search("Ga-W")
         fetch_results = mcp_tools.fetch("Ir2 Br6")
-        robo_desc_docs = mcp_tools.client.robocrys.search_docs(
+        robo_desc_docs = mcp_tools.client.materials.robocrys.search_docs(
             material_ids=[*[doc.id for doc in search_results.results], fetch_results.id]
         )
 

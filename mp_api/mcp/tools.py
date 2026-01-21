@@ -170,7 +170,13 @@ class MPCoreMCP(_NeedsMPClient):
         metadata: dict[str, str] | None = None
         if (
             len(
-                summary_docs := self.client.materials.summary.search(material_ids=[idx])
+                summary_docs := self.client.materials.summary.search(
+                    material_ids=[idx],
+                    fields=list(
+                        set(MaterialMetadata.model_fields)
+                        & set(self.client.materials.summary.document_model.model_fields)
+                    ),
+                )
             )
             > 0
         ):
