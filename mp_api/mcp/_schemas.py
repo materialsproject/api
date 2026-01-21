@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from emmet.core.summary import SummaryDoc
 from pydantic import BaseModel, Field, model_validator
+from typing_extensions import Self
 
 from mp_api.client.core.utils import validate_ids
 
@@ -263,6 +265,120 @@ class MaterialMetadata(BaseModel):
             r"'mp-104: LiS (98.1% similar); mp-50505: NaP (94.3% similar)'"
         ),
     )
+
+    cell_vectors: list[list[float]] | None = Field(
+        None,
+        description=(
+            "The 3x3 array of (lattice) cell vectors, all values in Å."
+            "The first row is the a vector, the second the b vector, "
+            "and the third the c vector."
+        ),
+    )
+
+    atoms: list[str] | None = Field(
+        None,
+        description=(
+            "A list of atom symbols on each site. Should have length `nsites`."
+        ),
+    )
+
+    cartesian_coordinates: list[list[float]] | None = Field(
+        None,
+        description=(
+            "A `nsites` x 3 array of floats, all values in Å, "
+            "representing the Cartesian coordinates of the atoms."
+            "The order is the same as in `atoms`."
+        ),
+    )
+    magnetic_moments: list[float] | None = Field(
+        None,
+        description=(
+            "A `nsites` array of floats, all values in μB, representing "
+            "the on-site magnetic moments found by integrating the "
+            "electronic spin density in a sphere surrounding each site "
+            "in the structure."
+        ),
+    )
+
+    @staticmethod
+    def _summary_fields() -> list[str]:
+        """Get a list of the fields needed in a SummaryDoc to populate this document."""
+        return [
+            *(set(MaterialMetadata.model_fields) & set(SummaryDoc.model_fields)),
+            # The following fields get renamed and flattened in `MaterialMetadata`
+            "structure",
+            "bulk_modulus",
+            "shear_modulus",
+            "database_IDs",
+            "symmetry",
+        ]
+
+    @classmethod
+    def from_summary_data(cls, summary_data: dict[str, Any], **kwargs) -> Self:
+        """Create a MaterialMetadata document from materials summary data.
+
+        Args:
+            summary_data : dict of str to Any
+                The dict representation of an `emmet.core.summary.SummaryDoc`
+                document (i.e., its `model_dump_json`)
+            **kwargs : to pass to `MaterialMetadata`
+        """
+        metadata = {
+            **kwargs,
+            **{
+                k: summary_data[k]
+                for k in MaterialMetadata.model_fields
+                if summary_data.get(k) is not None
+            },
+        }
+        for k in {"bulk", "shear"}:
+            if summary_data.get(f"{k}_modulus"):
+                metadata.update(
+                    {
+                        f"{k}_modulus_{v}": summary_data[f"{k}_modulus"].get(v)
+                        for v in ("voigt", "reuss", "hill")
+                    }
+                )
+
+        # Augment with experimental database id information
+        if summary_data.get("database_IDs"):
+            metadata.update(
+                {
+                    f"linked_{database}_ids": ", ".join(matched_ids)
+                    for database, matched_ids in summary_data["database_IDs"].items()
+                }
+            )
+
+        if (symm_meta := summary_data.get("symmetry")) is not None:
+            metadata.update(
+                {
+                    k: symm_meta.get(v)
+                    for k, v in {
+                        "space_group_number": "number",
+                        "space_group_symbol": "symbol",
+                        "crystal_system": "crystal_system",
+                        "point_group": "point_group",
+                    }.items()
+                }
+            )
+
+        # flatten structure data
+        if struct_dict := summary_data.get("structure"):
+            magnetic_moments = [
+                site["properties"].get("magmom") for site in struct_dict["sites"]
+            ]
+            metadata.update(
+                cell_vectors=struct_dict["lattice"]["matrix"],
+                atoms=[site["species"][0]["element"] for site in struct_dict["sites"]],
+                cartesian_coordinates=[site["xyz"] for site in struct_dict["sites"]],
+                magnetic_moments=(
+                    None
+                    if any(magmom is None for magmom in magnetic_moments)
+                    else magnetic_moments
+                ),
+            )
+
+        return cls(**metadata)
 
 
 class FetchResult(BaseModel):

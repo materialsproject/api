@@ -167,57 +167,7 @@ class MPCoreMCP(_NeedsMPClient):
         if not robo_desc:
             return FetchResult(id=idx)
 
-        metadata: dict[str, str] | None = None
-        if (
-            len(
-                summary_docs := self.client.materials.summary.search(
-                    material_ids=[idx],
-                    fields=list(
-                        set(MaterialMetadata.model_fields)
-                        & set(self.client.materials.summary.document_model.model_fields)
-                    ),
-                )
-            )
-            > 0
-        ):
-            # Try to avoid more nested fields, just provide things with
-            # simple str or numeric type
-            summary_doc = summary_docs[0]
-            metadata = {
-                k: summary_doc[k]
-                for k in MaterialMetadata.model_fields
-                if summary_doc.get(k) is not None
-            }
-            for k in {"bulk", "shear"}:
-                if summary_doc.get(f"{k}_modulus"):
-                    metadata.update(
-                        {
-                            f"{k}_modulus_{v}": summary_doc[f"{k}_modulus"].get(v)
-                            for v in ("voigt", "reuss", "hill")
-                        }
-                    )
-
-            # Augment with experimental database id information
-            if summary_doc.get("database_IDs"):
-                metadata.update(
-                    {
-                        f"linked_{database}_ids": ", ".join(matched_ids)
-                        for database, matched_ids in summary_doc["database_IDs"].items()
-                    }
-                )
-
-            if (symm_meta := summary_doc.get("symmetry")) is not None:
-                metadata.update(
-                    {
-                        k: symm_meta.get(v)
-                        for k, v in {
-                            "space_group_number": "number",
-                            "space_group_symbol": "symbol",
-                            "crystal_system": "crystal_system",
-                            "point_group": "point_group",
-                        }.items()
-                    }
-                )
+        metadata: dict[str, str] = {}
 
         if len(sim_docs := self.client.materials.similarity.find_similar(idx, top=10)):
             if not isinstance(sim_docs[0], dict):
@@ -231,7 +181,25 @@ class MPCoreMCP(_NeedsMPClient):
                 )
             )
 
-        return FetchResult(id=idx, text=robo_desc, metadata=metadata)
+        summary_doc = {}
+        if (
+            len(
+                summary_docs := self.client.materials.summary.search(
+                    material_ids=[idx],
+                    fields=MaterialMetadata._summary_fields(),
+                )
+            )
+            > 0
+        ):
+            # Try to avoid more nested fields, just provide things with
+            # simple str or numeric type
+            summary_doc = summary_docs[0]
+
+        return FetchResult(
+            id=idx,
+            text=robo_desc,
+            metadata=MaterialMetadata.from_summary_data(summary_doc, **metadata),
+        )
 
     def get_phase_diagram_from_elements(
         self,

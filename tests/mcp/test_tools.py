@@ -1,5 +1,6 @@
-from re import search
+import numpy as np
 from pymatgen.core import Composition
+import pytest
 
 from mp_api.mcp._schemas import SearchOutput, FetchResult, MaterialMetadata
 from mp_api.mcp.tools import MPCoreMCP
@@ -23,6 +24,7 @@ def test_core_tools():
         robo_desc_docs = mcp_tools.client.materials.robocrys.search_docs(
             material_ids=[*[doc.id for doc in search_results.results], fetch_results.id]
         )
+        ref_struct = mcp_tools.client.get_structure_by_material_id(fetch_results.id)
 
     robo_descs = {doc["material_id"]: doc["description"] for doc in robo_desc_docs}
 
@@ -41,3 +43,19 @@ def test_core_tools():
     assert isinstance(fetch_results.metadata, MaterialMetadata)
     assert isinstance(fetch_results.metadata.structurally_similar_materials, str)
     assert fetch_results.text == robo_descs[fetch_results.id]
+
+    assert np.allclose(
+        ref_struct.lattice.matrix,
+        fetch_results.metadata.cell_vectors,
+    )
+    assert np.allclose(
+        ref_struct.cart_coords,
+        fetch_results.metadata.cartesian_coordinates,
+    )
+    assert fetch_results.metadata.atoms == [
+        str(site.species.elements[0]) for site in ref_struct
+    ]
+    if magmoms := ref_struct.site_properties.get("magmom"):
+        assert fetch_results.metadata.magnetic_moments == pytest.approx(magmoms)
+    else:
+        assert fetch_results.metadata.magnetic_moments is None
