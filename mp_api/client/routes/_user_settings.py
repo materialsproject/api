@@ -9,7 +9,6 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
     suffix = "_user_settings"
     document_model = UserSettingsDoc  # type: ignore
     primary_key = "consumer_id"
-    monty_decode = False
     use_document_model = False
 
     def create_user_settings(self, consumer_id, settings):
