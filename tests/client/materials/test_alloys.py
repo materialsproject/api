@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-
 try:
     import pymatgen.analysis.alloys
 except ImportError:
