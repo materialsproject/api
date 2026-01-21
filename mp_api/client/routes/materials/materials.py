@@ -99,7 +99,7 @@ class MaterialsRester(CoreRester):
         Returns:
             ([MaterialsDoc], [dict]) List of material documents or dictionaries.
         """
-        query_params = {"deprecated": deprecated}  # type: dict
+        query_params: dict = {"deprecated": deprecated}
 
         if material_ids:
             if isinstance(material_ids, str):

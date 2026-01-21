@@ -26,19 +26,19 @@ excluded_params = [
     "exclude_elements",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "formula": "task_id",
     "task_ids": "task_id",
     "exclude_elements": "task_id",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "chemsys": "Si-O",
     "last_updated": (None, utcnow()),
     "task_ids": ["mp-149"],
-}  # type: dict
+}
 
 
 @requires_api_key

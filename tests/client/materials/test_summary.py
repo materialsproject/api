@@ -18,7 +18,7 @@ excluded_params = [
     "fields",
 ]
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "material_ids": "material_id",
     "formula": "formula_pretty",
     "exclude_elements": "formula_pretty",
@@ -42,9 +42,9 @@ alt_name_dict = {
     "num_sites": "nsites",
     "num_elements": "nelements",
     "surface_energy_anisotropy": "surface_anisotropy",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "material_ids": ["mp-149", "mp-13"],
     "material_ids": "mp-149",
     "formula": "SiO2",
@@ -60,7 +60,7 @@ custom_field_tests = {
     "has_reconstructed": False,
     "magnetic_ordering": Ordering.FM,
     "nelements": (8, 9),
-}  # type: dict
+}
 
 
 @requires_api_key

@@ -23,16 +23,16 @@ excluded_params = [
     "csm",  # temp until timeout fix
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "material_ids": "material_id",
     "exclude_elements": "material_id",
     "num_elements": "nelements",
     "num_sites": "nsites",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "material_ids": ["mp-22526"],
     "elements": ["Si", "O"],
     "exclude_elements": ["Si", "O"],
@@ -41,7 +41,7 @@ custom_field_tests = {
     "chemenv_iucr": ["[2l]"],
     "chemenv_name": ["Octahedron"],
     "species": ["Cu2+"],
-}  # type: dict
+}
 
 
 @requires_api_key

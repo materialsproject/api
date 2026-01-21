@@ -38,7 +38,7 @@ class EOSRester(BaseRester):
         Returns:
             ([EOSDoc], [dict]) List of equations of state docs or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if material_ids:
             if isinstance(material_ids, str):

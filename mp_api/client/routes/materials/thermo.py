@@ -68,7 +68,7 @@ class ThermoRester(BaseRester):
         Returns:
             ([ThermoDoc], [dict]) List of thermo documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if formula:
             if isinstance(formula, str):

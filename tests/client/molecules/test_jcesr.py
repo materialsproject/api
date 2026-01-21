@@ -25,16 +25,16 @@ excluded_params = [
     "charge",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {"task_ids": "task_id"}  # type: dict
+alt_name_dict: dict = {"task_ids": "task_id"}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "task_ids": ["mol-45228"],
     "elements": [Element("H")],
     "pointgroup": "C1",
     "smiles": "C#CC(=C)C.CNCCNC",
-}  # type: dict
+}
 
 
 @requires_api_key

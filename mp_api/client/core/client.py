@@ -672,7 +672,7 @@ class BaseRester:
             new_limits = [chunk_size]
 
         total_num_docs = 0
-        total_data = {"data": []}  # type: dict
+        total_data: dict[str, list[Any]] = {"data": []}
 
         # Obtain first page of results and get pagination information.
         # Individual total document limits (subtotal) will potentially

@@ -60,7 +60,7 @@ class JcesrMoleculesRester(BaseRester):
         Returns:
             ([MoleculesDoc]) List of molecule documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if task_ids:
             if isinstance(task_ids, str):

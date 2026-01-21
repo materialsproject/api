@@ -81,7 +81,7 @@ class ElectronicStructureRester(BaseRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -210,7 +210,7 @@ class BandStructureRester(BaseESPropertyRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         query_params["path_type"] = (
             BSPathType[path_type] if isinstance(path_type, str) else path_type
@@ -385,7 +385,7 @@ class DosRester(BaseESPropertyRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         query_params["projection_type"] = (
             DOSProjectionType[projection_type]

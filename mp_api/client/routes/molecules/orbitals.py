@@ -144,7 +144,7 @@ class MoleculesOrbitalsRester(BaseRester):
         Returns:
             ([RedoxDoc]) List of molecule redox documents
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         min_max = [
             "core_electrons",

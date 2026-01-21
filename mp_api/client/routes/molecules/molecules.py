@@ -137,7 +137,7 @@ class BaseMoleculeRester(CoreRester):
         Returns:
             ([MoleculeDoc]) List of molecules documents
         """
-        query_params = {"deprecated": deprecated}  # type: dict
+        query_params: dict = {"deprecated": deprecated}
 
         if molecule_ids:
             if isinstance(molecule_ids, str):

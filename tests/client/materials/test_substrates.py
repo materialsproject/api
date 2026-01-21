@@ -21,22 +21,22 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "substrate_id": "sub_id",
     "substrate_formula": "sub_form",
     "film_orientation": "film_orient",
     "substrate_orientation": "orient",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "film_id": "mp-1046",
     "substrate_id": "mp-804",
     "substrate_formula": "GaN",
     "film_orientation": [1, 0, 0],
     "substrate_orientation": [1, 0, 0],
-}  # type: dict
+}
 
 
 @requires_api_key

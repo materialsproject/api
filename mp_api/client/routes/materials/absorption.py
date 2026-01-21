@@ -57,7 +57,7 @@ class AbsorptionRester(BaseRester):
         Returns:
             ([AbsorptionDoc], [dict]) List of optical absorption documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         aliased = {
             "num_sites": "nsites",
