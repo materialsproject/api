@@ -35,6 +35,5 @@ mp\_api.client.routes.materials.electrodes.BaseElectrodeRester
       ~BaseElectrodeRester.s3_client
       ~BaseElectrodeRester.session
       ~BaseElectrodeRester.suffix
-      ~BaseElectrodeRester.supports_versions
    
    

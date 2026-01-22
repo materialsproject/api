@@ -34,6 +34,5 @@ mp\_api.client.routes.molecules.partial\_spins.MoleculesPartialSpinsRester
       ~MoleculesPartialSpinsRester.s3_client
       ~MoleculesPartialSpinsRester.session
       ~MoleculesPartialSpinsRester.suffix
-      ~MoleculesPartialSpinsRester.supports_versions
    
    

@@ -36,6 +36,5 @@ mp\_api.client.routes.molecules.molecules.BaseMoleculeRester
       ~BaseMoleculeRester.s3_client
       ~BaseMoleculeRester.session
       ~BaseMoleculeRester.suffix
-      ~BaseMoleculeRester.supports_versions
    
    

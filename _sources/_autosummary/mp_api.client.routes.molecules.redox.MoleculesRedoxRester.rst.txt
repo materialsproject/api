@@ -34,6 +34,5 @@ mp\_api.client.routes.molecules.redox.MoleculesRedoxRester
       ~MoleculesRedoxRester.s3_client
       ~MoleculesRedoxRester.session
       ~MoleculesRedoxRester.suffix
-      ~MoleculesRedoxRester.supports_versions
    
    

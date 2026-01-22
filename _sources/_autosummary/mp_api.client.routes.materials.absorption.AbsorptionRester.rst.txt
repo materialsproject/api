@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.absorption.AbsorptionRester
       ~AbsorptionRester.s3_client
       ~AbsorptionRester.session
       ~AbsorptionRester.suffix
-      ~AbsorptionRester.supports_versions
    
    

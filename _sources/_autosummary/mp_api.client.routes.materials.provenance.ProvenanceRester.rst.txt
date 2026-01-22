@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.provenance.ProvenanceRester
       ~ProvenanceRester.s3_client
       ~ProvenanceRester.session
       ~ProvenanceRester.suffix
-      ~ProvenanceRester.supports_versions
    
    

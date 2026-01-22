@@ -56,35 +56,5 @@ mp\_api.client.mprester.MPRester
    .. autosummary::
    
       ~MPRester.contribs
-      ~MPRester.eos
-      ~MPRester.materials
-      ~MPRester.similarity
-      ~MPRester.tasks
-      ~MPRester.xas
-      ~MPRester.grain_boundaries
-      ~MPRester.substrates
-      ~MPRester.surface_properties
-      ~MPRester.phonon
-      ~MPRester.elasticity
-      ~MPRester.thermo
-      ~MPRester.dielectric
-      ~MPRester.piezoelectric
-      ~MPRester.magnetism
-      ~MPRester.summary
-      ~MPRester.robocrys
-      ~MPRester.synthesis
-      ~MPRester.insertion_electrodes
-      ~MPRester.conversion_electrodes
-      ~MPRester.electronic_structure
-      ~MPRester.electronic_structure_bandstructure
-      ~MPRester.electronic_structure_dos
-      ~MPRester.oxidation_states
-      ~MPRester.provenance
-      ~MPRester.bonds
-      ~MPRester.alloys
-      ~MPRester.absorption
-      ~MPRester.chemenv
-      ~MPRester.molecules
-      ~MPRester.doi
    
    

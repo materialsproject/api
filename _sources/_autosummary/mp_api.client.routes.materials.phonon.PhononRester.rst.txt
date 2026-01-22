@@ -38,6 +38,5 @@ mp\_api.client.routes.materials.phonon.PhononRester
       ~PhononRester.s3_client
       ~PhononRester.session
       ~PhononRester.suffix
-      ~PhononRester.supports_versions
    
    

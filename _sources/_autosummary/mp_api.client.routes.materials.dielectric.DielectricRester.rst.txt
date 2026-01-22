@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.dielectric.DielectricRester
       ~DielectricRester.s3_client
       ~DielectricRester.session
       ~DielectricRester.suffix
-      ~DielectricRester.supports_versions
    
    

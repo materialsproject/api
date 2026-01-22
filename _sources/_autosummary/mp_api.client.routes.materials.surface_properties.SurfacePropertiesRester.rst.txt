@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.surface\_properties.SurfacePropertiesRester
       ~SurfacePropertiesRester.s3_client
       ~SurfacePropertiesRester.session
       ~SurfacePropertiesRester.suffix
-      ~SurfacePropertiesRester.supports_versions
    
    

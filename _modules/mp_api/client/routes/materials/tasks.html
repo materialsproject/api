@@ -36,12 +36,15 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPID</span><span class="p">,</span> <span class="n">AlphaID</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreTaskDoc</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
     <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
 
 
@@ -54,17 +57,21 @@
 
 <div class="viewcode-block" id="TaskRester.get_trajectory">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.get_trajectory">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="n">MPID</span> <span class="o">|</span> <span class="n">AlphaID</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a Trajectory object containing the geometry of the</span>
 <span class="sd">        material throughout a calculation. This is most useful for</span>
 <span class="sd">        observing how a material relaxes during a geometry optimization.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            task_id (str): Task ID</span>
+<span class="sd">            task_id (str, MPID, AlphaID): Task ID</span>
 
+<span class="sd">        Returns:</span>
+<span class="sd">            list of dict representing emmet.core.trajectory.Trajectory</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">traj_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_resource_data</span><span class="p">(</span>
-            <span class="p">{</span><span class="s2">&quot;task_ids&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">task_id</span><span class="p">]},</span> <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;trajectory/&quot;</span><span class="p">,</span> <span class="n">use_document_model</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">{</span><span class="s2">&quot;task_ids&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span><span class="o">.</span><span class="n">string</span><span class="p">]},</span>
+            <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;trajectory/&quot;</span><span class="p">,</span>
+            <span class="n">use_document_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s2">&quot;trajectories&quot;</span><span class="p">,</span> <span class="kc">None</span>
         <span class="p">)</span>  <span class="c1"># type: ignore</span>
@@ -108,7 +115,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([CoreTaskDoc], [dict]) List of task documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">task_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>

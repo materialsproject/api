@@ -34,12 +34,18 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.phonon</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhononBS</span><span class="p">,</span> <span class="n">PhononBSDOSDoc</span><span class="p">,</span> <span class="n">PhononDOS</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.math</span><span class="w"> </span><span class="kn">import</span> <span class="n">Matrix3D</span>
 
 
 <div class="viewcode-block" id="PhononRester">
@@ -75,7 +81,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([PhononBSDOSDoc], [dict]) List of phonon documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -103,7 +109,9 @@
 
 <div class="viewcode-block" id="PhononRester.get_bandstructure_from_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.get_bandstructure_from_material_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_bandstructure_from_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_bandstructure_from_material_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhononBS</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the phonon band structure pymatgen object associated with a given material ID and phonon method.</span>
 
 <span class="sd">        Arguments:</span>
@@ -116,20 +124,19 @@
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-bandstructures/</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No object found&quot;</span><span class="p">)</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">PhononBS</span><span class="p">(</span><span class="o">**</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">PhononBS</span><span class="p">(</span><span class="o">**</span><span class="n">result</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="PhononRester.get_dos_from_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.get_dos_from_material_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_material_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhononDOS</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the phonon dos pymatgen object associated with a given material ID and phonon method.</span>
 
 <span class="sd">        Arguments:</span>
@@ -142,20 +149,19 @@
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-dos/</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No object found&quot;</span><span class="p">)</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">PhononDOS</span><span class="p">(</span><span class="o">**</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">PhononDOS</span><span class="p">(</span><span class="o">**</span><span class="n">result</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="PhononRester.get_forceconstants_from_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.get_forceconstants_from_material_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_forceconstants_from_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_forceconstants_from_material_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Matrix3D</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the force constants associated with a given material ID.</span>
 
 <span class="sd">        Arguments:</span>
@@ -164,15 +170,10 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            force constants (list[list[Matrix3D]]): PhononDOS object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-force-constants/</span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No object found&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="PhononRester.compute_thermo_quantities">

@@ -35,6 +35,5 @@ mp\_api.client.routes.materials.robocrys.RobocrysRester
       ~RobocrysRester.s3_client
       ~RobocrysRester.session
       ~RobocrysRester.suffix
-      ~RobocrysRester.supports_versions
    
    

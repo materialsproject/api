@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.summary.SummaryRester
       ~SummaryRester.s3_client
       ~SummaryRester.session
       ~SummaryRester.suffix
-      ~SummaryRester.supports_versions
    
    

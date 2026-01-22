@@ -34,6 +34,5 @@ mp\_api.client.routes.molecules.thermo.MoleculesThermoRester
       ~MoleculesThermoRester.s3_client
       ~MoleculesThermoRester.session
       ~MoleculesThermoRester.suffix
-      ~MoleculesThermoRester.supports_versions
    
    

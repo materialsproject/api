@@ -35,6 +35,5 @@ mp\_api.client.routes.materials.electronic\_structure.ElectronicStructureRester
       ~ElectronicStructureRester.s3_client
       ~ElectronicStructureRester.session
       ~ElectronicStructureRester.suffix
-      ~ElectronicStructureRester.supports_versions
    
    

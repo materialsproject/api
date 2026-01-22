@@ -31,24 +31,27 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.molecules.molecules</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span></span><span class="sd">&quot;&quot;&quot;Define core molecules functionality.</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="sd">Note that these classes are not currently working.</span>
+<span class="sd">The `MoleculeRester` methods: `search`, `find_molecule`, `get_molecule_by_mpculeid`,</span>
+<span class="sd">all return 404s when attempting to use them.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPculeID</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.qchem.molecule</span><span class="w"> </span><span class="kn">import</span> <span class="n">MoleculeDoc</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmmetSettings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Molecule</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
-
-<span class="n">_EMMET_SETTINGS</span> <span class="o">=</span> <span class="n">EmmetSettings</span><span class="p">()</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.molecules</span><span class="w"> </span><span class="kn">import</span> <span class="n">MOLECULES_RESTERS</span>
 
 
 <div class="viewcode-block" id="BaseMoleculeRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.BaseMoleculeRester.html#mp_api.client.routes.molecules.molecules.BaseMoleculeRester">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">BaseMoleculeRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseMoleculeRester</span><span class="p">(</span><span class="n">CoreRester</span><span class="p">):</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">MoleculeDoc</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;molecule_id&quot;</span>
 
@@ -177,7 +180,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([MoleculeDoc]) List of molecules documents</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">}</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">molecule_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">molecule_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -243,19 +246,7 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.MoleculeRester.html#mp_api.client.routes.molecules.molecules.MoleculeRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MoleculeRester</span><span class="p">(</span><span class="n">BaseMoleculeRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/core&quot;</span>
-    <span class="n">_sub_resters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;summary&quot;</span><span class="p">,</span> <span class="s2">&quot;jcesr&quot;</span><span class="p">]</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
-        <span class="k">if</span> <span class="s2">&quot;jcesr&quot;</span> <span class="ow">in</span> <span class="n">attr</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">&quot;NOTE: You are accessing the unmaintained legacy molecules data, &quot;</span>
-                <span class="s2">&quot;please use MPRester.molecules.summary.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">dir</span><span class="p">(</span><span class="n">MoleculeRester</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_resters</span></div>
+    <span class="n">_sub_resters</span> <span class="o">=</span> <span class="n">MOLECULES_RESTERS</span></div>
 
 </pre></div>
 

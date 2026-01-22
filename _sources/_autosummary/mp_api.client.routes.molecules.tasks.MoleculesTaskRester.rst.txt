@@ -34,6 +34,5 @@ mp\_api.client.routes.molecules.tasks.MoleculesTaskRester
       ~MoleculesTaskRester.s3_client
       ~MoleculesTaskRester.session
       ~MoleculesTaskRester.suffix
-      ~MoleculesTaskRester.supports_versions
    
    

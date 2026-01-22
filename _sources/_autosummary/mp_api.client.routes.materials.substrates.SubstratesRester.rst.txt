@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.substrates.SubstratesRester
       ~SubstratesRester.s3_client
       ~SubstratesRester.session
       ~SubstratesRester.suffix
-      ~SubstratesRester.supports_versions
    
    

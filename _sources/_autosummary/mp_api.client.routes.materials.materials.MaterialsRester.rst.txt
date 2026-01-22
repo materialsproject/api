@@ -19,6 +19,7 @@ mp\_api.client.routes.materials.materials.MaterialsRester
       ~MaterialsRester.__init__
       ~MaterialsRester.count
       ~MaterialsRester.find_structure
+      ~MaterialsRester.get_blessed_entries
       ~MaterialsRester.get_data_by_id
       ~MaterialsRester.get_structure_by_material_id
       ~MaterialsRester.search
@@ -36,34 +37,5 @@ mp\_api.client.routes.materials.materials.MaterialsRester
       ~MaterialsRester.s3_client
       ~MaterialsRester.session
       ~MaterialsRester.suffix
-      ~MaterialsRester.supports_versions
-      ~MaterialsRester.eos
-      ~MaterialsRester.materials
-      ~MaterialsRester.similarity
-      ~MaterialsRester.tasks
-      ~MaterialsRester.xas
-      ~MaterialsRester.grain_boundary
-      ~MaterialsRester.substrates
-      ~MaterialsRester.surface_properties
-      ~MaterialsRester.phonon
-      ~MaterialsRester.elasticity
-      ~MaterialsRester.thermo
-      ~MaterialsRester.dielectric
-      ~MaterialsRester.piezoelectric
-      ~MaterialsRester.magnetism
-      ~MaterialsRester.summary
-      ~MaterialsRester.robocrys
-      ~MaterialsRester.synthesis
-      ~MaterialsRester.insertion_electrodes
-      ~MaterialsRester.conversion_electrodes
-      ~MaterialsRester.electronic_structure
-      ~MaterialsRester.electronic_structure_bandstructure
-      ~MaterialsRester.electronic_structure_dos
-      ~MaterialsRester.oxidation_states
-      ~MaterialsRester.provenance
-      ~MaterialsRester.bonds
-      ~MaterialsRester.alloys
-      ~MaterialsRester.absorption
-      ~MaterialsRester.chemenv
    
    

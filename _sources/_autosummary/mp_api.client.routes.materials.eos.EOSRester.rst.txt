@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.eos.EOSRester
       ~EOSRester.s3_client
       ~EOSRester.session
       ~EOSRester.suffix
-      ~EOSRester.supports_versions
    
    

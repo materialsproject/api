@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.grain\_boundaries.GrainBoundaryRester
       ~GrainBoundaryRester.s3_client
       ~GrainBoundaryRester.session
       ~GrainBoundaryRester.suffix
-      ~GrainBoundaryRester.supports_versions
    
    

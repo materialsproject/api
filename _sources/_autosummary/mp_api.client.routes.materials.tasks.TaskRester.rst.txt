@@ -35,6 +35,5 @@ mp\_api.client.routes.materials.tasks.TaskRester
       ~TaskRester.s3_client
       ~TaskRester.session
       ~TaskRester.suffix
-      ~TaskRester.supports_versions
    
    

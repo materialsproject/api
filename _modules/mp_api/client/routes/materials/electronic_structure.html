@@ -35,6 +35,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.electronic_structure</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BSPathType</span><span class="p">,</span>
@@ -46,7 +47,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrbitalType</span><span class="p">,</span> <span class="n">Spin</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.dos</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompleteDos</span>
 
 
 <div class="viewcode-block" id="ElectronicStructureRester">
@@ -111,13 +115,13 @@
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in EOSDoc to return data for.</span>
+<span class="sd">            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.</span>
 <span class="sd">                Default is material_id and last_updated if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([ElectronicStructureDoc]) List of electronic structure documents</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -184,11 +188,32 @@
 
 
 
+<div class="viewcode-block" id="BaseESPropertyRester">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BaseESPropertyRester.html#mp_api.client.routes.materials.electronic_structure.BaseESPropertyRester">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseESPropertyRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+    <span class="n">_es_rester</span><span class="p">:</span> <span class="n">ElectronicStructureRester</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">document_model</span> <span class="o">=</span> <span class="n">ElectronicStructureDoc</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">es_rester</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ElectronicStructureRester</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_es_rester</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_es_rester</span> <span class="o">=</span> <span class="n">ElectronicStructureRester</span><span class="p">(</span>
+                <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
+                <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_endpoint</span><span class="p">,</span>
+                <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include_user_agent</span><span class="p">,</span>
+                <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+                <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+                <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_es_rester</span></div>
+
+
+
 <div class="viewcode-block" id="BandStructureRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">BandStructureRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BandStructureRester</span><span class="p">(</span><span class="n">BaseESPropertyRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/electronic_structure/bandstructure&quot;</span>
-    <span class="n">document_model</span> <span class="o">=</span> <span class="n">ElectronicStructureDoc</span>  <span class="c1"># type: ignore</span>
 
 <div class="viewcode-block" id="BandStructureRester.search_bandstructure_summary">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester.search_bandstructure_summary">[docs]</a>
@@ -212,8 +237,8 @@
         <span class="n">efermi</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_gap_direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_metal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">magnetic_ordering</span><span class="p">:</span> <span class="n">Ordering</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">path_type</span><span class="p">:</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">setyawan_curtarolo</span><span class="p">,</span>
+        <span class="n">magnetic_ordering</span><span class="p">:</span> <span class="n">Ordering</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">path_type</span><span class="p">:</span> <span class="n">BSPathType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">setyawan_curtarolo</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -226,8 +251,8 @@
 <span class="sd">            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.</span>
 <span class="sd">            is_gap_direct (bool): Whether the material has a direct band gap.</span>
 <span class="sd">            is_metal (bool): Whether the material is considered a metal.</span>
-<span class="sd">            magnetic_ordering (Ordering): Magnetic ordering of the material.</span>
-<span class="sd">            path_type (BSPathType): k-path selection convention for the band structure.</span>
+<span class="sd">            magnetic_ordering (Ordering or str): Magnetic ordering of the material.</span>
+<span class="sd">            path_type (BSPathType or str): k-path selection convention for the band structure.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
@@ -237,9 +262,11 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([ElectronicStructureDoc]) List of electronic structure documents</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
-        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;path_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_type</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;path_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">BSPathType</span><span class="p">[</span><span class="n">path_type</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">path_type</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">value</span>
 
         <span class="k">if</span> <span class="n">band_gap</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
@@ -250,7 +277,15 @@
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;efermi_min&quot;</span><span class="p">:</span> <span class="n">efermi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;efermi_max&quot;</span><span class="p">:</span> <span class="n">efermi</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
 
         <span class="k">if</span> <span class="n">magnetic_ordering</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;magnetic_ordering&quot;</span><span class="p">:</span> <span class="n">magnetic_ordering</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;magnetic_ordering&quot;</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">Ordering</span><span class="p">(</span><span class="n">magnetic_ordering</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">magnetic_ordering</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                        <span class="k">else</span> <span class="n">magnetic_ordering</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">value</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">is_gap_direct</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;is_gap_direct&quot;</span><span class="p">:</span> <span class="n">is_gap_direct</span><span class="p">})</span>
@@ -284,15 +319,11 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (BandStructure): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;bandstructures/</span><span class="si">{</span><span class="n">validate_ids</span><span class="p">([</span><span class="n">task_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No object found&quot;</span><span class="p">)</span></div>
+            <span class="n">decoder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">load_json</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">deser</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="BandStructureRester.get_bandstructure_from_material_id">
@@ -313,19 +344,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">es_rester</span> <span class="o">=</span> <span class="n">ElectronicStructureRester</span><span class="p">(</span>
-            <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-            <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_endpoint</span><span class="p">,</span>
-            <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include_user_agent</span><span class="p">,</span>
-            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
-            <span class="n">monty_decode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span><span class="p">,</span>
-            <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
-            <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
-            <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
-        <span class="p">)</span>
-
         <span class="k">if</span> <span class="n">line_mode</span><span class="p">:</span>
-            <span class="n">bs_doc</span> <span class="o">=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+            <span class="n">bs_doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
                 <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">]</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">bs_doc</span><span class="p">:</span>
@@ -348,7 +368,9 @@
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
-                <span class="n">bs_doc</span> <span class="o">:=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span>
+                <span class="n">bs_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                    <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
             <span class="p">):</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No electronic structure data found.&quot;</span><span class="p">)</span>
 
@@ -378,9 +400,8 @@
 
 <div class="viewcode-block" id="DosRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">DosRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DosRester</span><span class="p">(</span><span class="n">BaseESPropertyRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/electronic_structure/dos&quot;</span>
-    <span class="n">document_model</span> <span class="o">=</span> <span class="n">ElectronicStructureDoc</span>  <span class="c1"># type: ignore</span>
 
 <div class="viewcode-block" id="DosRester.search_dos_summary">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.search_dos_summary">[docs]</a>
@@ -402,11 +423,11 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">band_gap</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">efermi</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">element</span><span class="p">:</span> <span class="n">Element</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">magnetic_ordering</span><span class="p">:</span> <span class="n">Ordering</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">orbital</span><span class="p">:</span> <span class="n">OrbitalType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">projection_type</span><span class="p">:</span> <span class="n">DOSProjectionType</span> <span class="o">=</span> <span class="n">DOSProjectionType</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
-        <span class="n">spin</span><span class="p">:</span> <span class="n">Spin</span> <span class="o">=</span> <span class="n">Spin</span><span class="o">.</span><span class="n">up</span><span class="p">,</span>
+        <span class="n">element</span><span class="p">:</span> <span class="n">Element</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">magnetic_ordering</span><span class="p">:</span> <span class="n">Ordering</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">orbital</span><span class="p">:</span> <span class="n">OrbitalType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">projection_type</span><span class="p">:</span> <span class="n">DOSProjectionType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DOSProjectionType</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">spin</span><span class="p">:</span> <span class="n">Spin</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Spin</span><span class="o">.</span><span class="n">up</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -417,30 +438,54 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.</span>
 <span class="sd">            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.</span>
-<span class="sd">            element (Element): Element for element-projected dos data.</span>
-<span class="sd">            magnetic_ordering (Ordering): Magnetic ordering of the material.</span>
-<span class="sd">            orbital (OrbitalType): Orbital for orbital-projected dos data.</span>
-<span class="sd">            projection_type (DOSProjectionType): Projection type of dos data. Default is the total dos.</span>
-<span class="sd">            spin (Spin): Spin channel of dos data. If non spin-polarized data is stored in Spin.up</span>
+<span class="sd">            element (Element or str): Element for element-projected dos data.</span>
+<span class="sd">            magnetic_ordering (Ordering or str): Magnetic ordering of the material.</span>
+<span class="sd">            orbital (OrbitalType or str): Orbital for orbital-projected dos data.</span>
+<span class="sd">            projection_type (DOSProjectionType or str): Projection type of dos data. Default is the total dos.</span>
+<span class="sd">            spin (Spin or str): Spin channel of dos data. If non spin-polarized data is stored in Spin.up</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in EOSDoc to return data for.</span>
+<span class="sd">            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.</span>
 <span class="sd">                Default is material_id and last_updated if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([ElectronicStructureDoc]) List of electronic structure documents</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
-        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;projection_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">projection_type</span><span class="o">.</span><span class="n">value</span>
-        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spin</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;projection_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">DOSProjectionType</span><span class="p">[</span><span class="n">projection_type</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">projection_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">projection_type</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">Spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">spin</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;projection_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">DOSProjectionType</span><span class="o">.</span><span class="n">elemental</span><span class="o">.</span><span class="n">value</span>
+            <span class="ow">and</span> <span class="n">element</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;To query element-projected DOS, you must also specify the `element` onto which the DOS is projected.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;projection_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">DOSProjectionType</span><span class="o">.</span><span class="n">orbital</span><span class="o">.</span><span class="n">value</span>
+            <span class="ow">and</span> <span class="n">orbital</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;To query orbital-projected DOS, you must also specify the `orbital` character onto which the DOS is projected.&quot;</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">element</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;element&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;element&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">Element</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">element</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">value</span>
 
         <span class="k">if</span> <span class="n">orbital</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;orbital&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orbital</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;orbital&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">OrbitalType</span><span class="p">[</span><span class="n">orbital</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orbital</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">orbital</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">value</span>
 
         <span class="k">if</span> <span class="n">band_gap</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
@@ -451,7 +496,15 @@
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;efermi_min&quot;</span><span class="p">:</span> <span class="n">efermi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;efermi_max&quot;</span><span class="p">:</span> <span class="n">efermi</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
 
         <span class="k">if</span> <span class="n">magnetic_ordering</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;magnetic_ordering&quot;</span><span class="p">:</span> <span class="n">magnetic_ordering</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;magnetic_ordering&quot;</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">Ordering</span><span class="p">[</span><span class="n">magnetic_ordering</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">magnetic_ordering</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                        <span class="k">else</span> <span class="n">magnetic_ordering</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">value</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
@@ -470,7 +523,7 @@
 
 <div class="viewcode-block" id="DosRester.get_dos_from_task_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.get_dos_from_task_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompleteDos</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the density of states pymatgen object associated with a given calculation ID.</span>
 
 <span class="sd">        Arguments:</span>
@@ -479,15 +532,11 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (CompleteDos): CompleteDos object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
             <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
             <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;dos/</span><span class="si">{</span><span class="n">validate_ids</span><span class="p">([</span><span class="n">task_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No object found&quot;</span><span class="p">)</span></div>
+            <span class="n">decoder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">load_json</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">deser</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="DosRester.get_dos_from_material_id">
@@ -501,18 +550,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            dos (CompleteDos): CompleteDos object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">es_rester</span> <span class="o">=</span> <span class="n">ElectronicStructureRester</span><span class="p">(</span>
-            <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
-            <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_endpoint</span><span class="p">,</span>
-            <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include_user_agent</span><span class="p">,</span>
-            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
-            <span class="n">monty_decode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">monty_decode</span><span class="p">,</span>
-            <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
-            <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
-            <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">dos_doc</span> <span class="o">:=</span> <span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">dos_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span>
+        <span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">dos_data</span> <span class="o">:=</span> <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dos&quot;</span><span class="p">)):</span>

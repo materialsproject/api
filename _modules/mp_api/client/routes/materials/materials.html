@@ -33,115 +33,31 @@
   <h1>Source code for mp_api.client.routes.materials.materials</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmmetSettings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.symmetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrystalSystem</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.vasp.material</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialsDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.vasp.calc_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.vasp.material</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlessedCalcs</span><span class="p">,</span> <span class="n">MaterialsDoc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Structure</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreRester</span><span class="p">,</span> <span class="n">MPRestError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAPI_CLIENT_SETTINGS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">AbsorptionRester</span><span class="p">,</span>
-    <span class="n">AlloysRester</span><span class="p">,</span>
-    <span class="n">BandStructureRester</span><span class="p">,</span>
-    <span class="n">BondsRester</span><span class="p">,</span>
-    <span class="n">ChemenvRester</span><span class="p">,</span>
-    <span class="n">ConversionElectrodeRester</span><span class="p">,</span>
-    <span class="n">DielectricRester</span><span class="p">,</span>
-    <span class="n">DosRester</span><span class="p">,</span>
-    <span class="n">ElasticityRester</span><span class="p">,</span>
-    <span class="n">ElectrodeRester</span><span class="p">,</span>
-    <span class="n">ElectronicStructureRester</span><span class="p">,</span>
-    <span class="n">EOSRester</span><span class="p">,</span>
-    <span class="n">GrainBoundaryRester</span><span class="p">,</span>
-    <span class="n">MagnetismRester</span><span class="p">,</span>
-    <span class="n">OxidationStatesRester</span><span class="p">,</span>
-    <span class="n">PhononRester</span><span class="p">,</span>
-    <span class="n">PiezoRester</span><span class="p">,</span>
-    <span class="n">ProvenanceRester</span><span class="p">,</span>
-    <span class="n">RobocrysRester</span><span class="p">,</span>
-    <span class="n">SimilarityRester</span><span class="p">,</span>
-    <span class="n">SubstratesRester</span><span class="p">,</span>
-    <span class="n">SummaryRester</span><span class="p">,</span>
-    <span class="n">SurfacePropertiesRester</span><span class="p">,</span>
-    <span class="n">SynthesisRester</span><span class="p">,</span>
-    <span class="n">TaskRester</span><span class="p">,</span>
-    <span class="n">ThermoRester</span><span class="p">,</span>
-    <span class="n">XASRester</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials</span><span class="w"> </span><span class="kn">import</span> <span class="n">MATERIALS_RESTERS</span>
 
-<span class="n">_EMMET_SETTINGS</span> <span class="o">=</span> <span class="n">EmmetSettings</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.computed_entries</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComputedStructureEntry</span>
 
 
 <div class="viewcode-block" id="MaterialsRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.materials.MaterialsRester.html#mp_api.client.routes.materials.materials.MaterialsRester">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MaterialsRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaterialsRester</span><span class="p">(</span><span class="n">CoreRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/core&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">MaterialsDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">supports_versions</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
-    <span class="n">_sub_resters</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;eos&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;similarity&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;tasks&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;xas&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;grain_boundaries&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;substrates&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;surface_properties&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;phonon&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;elasticity&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;thermo&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;dielectric&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;piezoelectric&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;magnetism&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;summary&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;robocrys&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;synthesis&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;insertion_electrodes&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;conversion_electrodes&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;electronic_structure&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;electronic_structure_bandstructure&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;electronic_structure_dos&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;oxidation_states&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;provenance&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;bonds&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;alloys&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;absorption&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;chemenv&quot;</span><span class="p">,</span>
-    <span class="p">]</span>
-
-    <span class="c1"># Materials subresters</span>
-    <span class="n">eos</span><span class="p">:</span> <span class="n">EOSRester</span>
-    <span class="n">materials</span><span class="p">:</span> <span class="n">MaterialsRester</span>
-    <span class="n">similarity</span><span class="p">:</span> <span class="n">SimilarityRester</span>
-    <span class="n">tasks</span><span class="p">:</span> <span class="n">TaskRester</span>
-    <span class="n">xas</span><span class="p">:</span> <span class="n">XASRester</span>
-    <span class="n">grain_boundary</span><span class="p">:</span> <span class="n">GrainBoundaryRester</span>
-    <span class="n">substrates</span><span class="p">:</span> <span class="n">SubstratesRester</span>
-    <span class="n">surface_properties</span><span class="p">:</span> <span class="n">SurfacePropertiesRester</span>
-    <span class="n">phonon</span><span class="p">:</span> <span class="n">PhononRester</span>
-    <span class="n">elasticity</span><span class="p">:</span> <span class="n">ElasticityRester</span>
-    <span class="n">thermo</span><span class="p">:</span> <span class="n">ThermoRester</span>
-    <span class="n">dielectric</span><span class="p">:</span> <span class="n">DielectricRester</span>
-    <span class="n">piezoelectric</span><span class="p">:</span> <span class="n">PiezoRester</span>
-    <span class="n">magnetism</span><span class="p">:</span> <span class="n">MagnetismRester</span>
-    <span class="n">summary</span><span class="p">:</span> <span class="n">SummaryRester</span>
-    <span class="n">robocrys</span><span class="p">:</span> <span class="n">RobocrysRester</span>
-    <span class="n">synthesis</span><span class="p">:</span> <span class="n">SynthesisRester</span>
-    <span class="n">insertion_electrodes</span><span class="p">:</span> <span class="n">ElectrodeRester</span>
-    <span class="n">conversion_electrodes</span><span class="p">:</span> <span class="n">ConversionElectrodeRester</span>
-    <span class="n">electronic_structure</span><span class="p">:</span> <span class="n">ElectronicStructureRester</span>
-    <span class="n">electronic_structure_bandstructure</span><span class="p">:</span> <span class="n">BandStructureRester</span>
-    <span class="n">electronic_structure_dos</span><span class="p">:</span> <span class="n">DosRester</span>
-    <span class="n">oxidation_states</span><span class="p">:</span> <span class="n">OxidationStatesRester</span>
-    <span class="n">provenance</span><span class="p">:</span> <span class="n">ProvenanceRester</span>
-    <span class="n">bonds</span><span class="p">:</span> <span class="n">BondsRester</span>
-    <span class="n">alloys</span><span class="p">:</span> <span class="n">AlloysRester</span>
-    <span class="n">absorption</span><span class="p">:</span> <span class="n">AbsorptionRester</span>
-    <span class="n">chemenv</span><span class="p">:</span> <span class="n">ChemenvRester</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">dir</span><span class="p">(</span><span class="n">MaterialsRester</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_resters</span>
+    <span class="n">_sub_resters</span> <span class="o">=</span> <span class="n">MATERIALS_RESTERS</span>
 
 <div class="viewcode-block" id="MaterialsRester.get_structure_by_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.materials.MaterialsRester.html#mp_api.client.routes.materials.materials.MaterialsRester.get_structure_by_material_id">[docs]</a>
@@ -165,7 +81,7 @@
 
         <span class="k">if</span> <span class="n">response</span> <span class="ow">and</span> <span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="c1"># Ensure that return type is a Structure regardless of `monty_decode` or `model_dump` output</span>
+            <span class="c1"># Ensure that return type is a Structure regardless of `model_dump`</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">response</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
@@ -231,7 +147,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([MaterialsDoc], [dict]) List of material documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">}</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -306,9 +222,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">find_structure</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">filename_or_structure</span><span class="p">,</span>
-        <span class="n">ltol</span><span class="o">=</span><span class="n">_EMMET_SETTINGS</span><span class="o">.</span><span class="n">LTOL</span><span class="p">,</span>
-        <span class="n">stol</span><span class="o">=</span><span class="n">_EMMET_SETTINGS</span><span class="o">.</span><span class="n">STOL</span><span class="p">,</span>
-        <span class="n">angle_tol</span><span class="o">=</span><span class="n">_EMMET_SETTINGS</span><span class="o">.</span><span class="n">ANGLE_TOL</span><span class="p">,</span>
+        <span class="n">ltol</span><span class="o">=</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LTOL</span><span class="p">,</span>
+        <span class="n">stol</span><span class="o">=</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">STOL</span><span class="p">,</span>
+        <span class="n">angle_tol</span><span class="o">=</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">ANGLE_TOL</span><span class="p">,</span>
         <span class="n">allow_multiple_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds matching structures from the Materials Project database.</span>
@@ -361,6 +277,81 @@
             <span class="k">return</span> <span class="n">material_ids</span>  <span class="c1"># type: ignore</span>
 
         <span class="k">return</span> <span class="n">material_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="MaterialsRester.get_blessed_entries">
+<a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.materials.MaterialsRester.html#mp_api.client.routes.materials.materials.MaterialsRester.get_blessed_entries">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_blessed_entries</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">run_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">RunType</span> <span class="o">=</span> <span class="n">RunType</span><span class="o">.</span><span class="n">r2SCAN</span><span class="p">,</span>
+        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">uncorrected_energy</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">|</span> <span class="n">ComputedStructureEntry</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get blessed calculation entries for a given material and run type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            run_type (str or RunType): Calculation run type (e.g. GGA, GGA+U, r2SCAN, PBESol)</span>
+<span class="sd">            material_ids (list[str]): List of material ID values</span>
+<span class="sd">            uncorrected_energy (tuple[Optional[float], Optional[float]] | float): Tuple of minimum and maximum uncorrected DFT energy in eV/atom.</span>
+<span class="sd">                Note that if a single value is passed, it will be used as the minimum and maximum.</span>
+<span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
+<span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list of dict, of the form:</span>
+<span class="sd">                {</span>
+<span class="sd">                    &quot;material_id&quot;: MPID,</span>
+<span class="sd">                    &quot;blessed_entry&quot;: ComputedStructureEntry</span>
+<span class="sd">                }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;run_type&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">run_type</span><span class="p">)}</span>
+        <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
+
+        <span class="k">if</span> <span class="n">uncorrected_energy</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uncorrected_energy</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="n">uncorrected_energy</span> <span class="o">=</span> <span class="p">(</span><span class="n">uncorrected_energy</span><span class="p">,</span> <span class="n">uncorrected_energy</span><span class="p">)</span>
+
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;energy_min&quot;</span><span class="p">:</span> <span class="n">uncorrected_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">&quot;energy_max&quot;</span><span class="p">:</span> <span class="n">uncorrected_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_resource</span><span class="p">(</span>
+            <span class="n">query_params</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">,</span> <span class="s2">&quot;entries&quot;</span><span class="p">],</span>
+            <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;blessed_tasks&quot;</span><span class="p">,</span>
+            <span class="n">parallel_param</span><span class="o">=</span><span class="s2">&quot;material_ids&quot;</span> <span class="k">if</span> <span class="n">material_ids</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+            <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;material_id&quot;</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;blessed_entry&quot;</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="nb">next</span><span class="p">(</span>
+                        <span class="nb">getattr</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">BlessedCalcs</span><span class="o">.</span><span class="n">model_fields</span>
+                        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
+                    <span class="k">else</span> <span class="nb">next</span><span class="p">(</span>
+                        <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">BlessedCalcs</span><span class="o">.</span><span class="n">model_fields</span>
+                        <span class="k">if</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="p">]</span></div>
 </div>
 
 </pre></div>

@@ -97,7 +97,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([SimilarityDoc], [dict]) List of similarity documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -160,7 +160,10 @@
             <span class="n">feature_vector</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fingerprint_structure</span><span class="p">(</span><span class="n">structure_or_mpid</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please submit a pymatgen Structure or MP ID.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;Please submit a pymatgen Structure or MP ID, found .&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;structure_or_mpid = </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">structure_or_mpid</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
 
         <span class="n">top</span> <span class="o">=</span> <span class="n">top</span> <span class="ow">or</span> <span class="n">MAX_VECTOR_SEARCH_RESULTS</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">top</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>

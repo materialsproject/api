@@ -20,6 +20,7 @@ mp\_api.client.routes.materials.electronic\_structure
       :template: custom-class-template.rst
    
       BandStructureRester
+      BaseESPropertyRester
       DosRester
       ElectronicStructureRester
    

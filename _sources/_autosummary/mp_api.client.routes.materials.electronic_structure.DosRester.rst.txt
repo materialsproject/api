@@ -33,10 +33,10 @@ mp\_api.client.routes.materials.electronic\_structure.DosRester
    .. autosummary::
    
       ~DosRester.available_fields
+      ~DosRester.es_rester
       ~DosRester.primary_key
       ~DosRester.s3_client
       ~DosRester.session
       ~DosRester.suffix
-      ~DosRester.supports_versions
    
    

@@ -34,6 +34,5 @@ mp\_api.client.routes.molecules.orbitals.MoleculesOrbitalsRester
       ~MoleculesOrbitalsRester.s3_client
       ~MoleculesOrbitalsRester.session
       ~MoleculesOrbitalsRester.suffix
-      ~MoleculesOrbitalsRester.supports_versions
    
    

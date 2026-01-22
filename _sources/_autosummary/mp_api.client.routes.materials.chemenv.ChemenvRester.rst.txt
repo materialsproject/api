@@ -34,6 +34,5 @@ mp\_api.client.routes.materials.chemenv.ChemenvRester
       ~ChemenvRester.s3_client
       ~ChemenvRester.session
       ~ChemenvRester.suffix
-      ~ChemenvRester.supports_versions
    
    

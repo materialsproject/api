@@ -112,7 +112,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ([ChemEnvDoc], [dict]) List of chemenv documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># type: dict</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">csm</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;csm_min&quot;</span><span class="p">:</span> <span class="n">csm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;csm_max&quot;</span><span class="p">:</span> <span class="n">csm</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
