@@ -2,119 +2,27 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from emmet.core.settings import EmmetSettings
 from emmet.core.symmetry import CrystalSystem
 from emmet.core.vasp.calc_types import RunType
 from emmet.core.vasp.material import BlessedCalcs, MaterialsDoc
 from pymatgen.core.structure import Structure
 
-from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.client import CoreRester, MPRestError
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import validate_ids
-from mp_api.client.routes.materials import (
-    AbsorptionRester,
-    AlloysRester,
-    BandStructureRester,
-    BondsRester,
-    ChemenvRester,
-    ConversionElectrodeRester,
-    DielectricRester,
-    DosRester,
-    ElasticityRester,
-    ElectrodeRester,
-    ElectronicStructureRester,
-    EOSRester,
-    GrainBoundaryRester,
-    MagnetismRester,
-    OxidationStatesRester,
-    PhononRester,
-    PiezoRester,
-    ProvenanceRester,
-    RobocrysRester,
-    SimilarityRester,
-    SubstratesRester,
-    SummaryRester,
-    SurfacePropertiesRester,
-    SynthesisRester,
-    TaskRester,
-    ThermoRester,
-    XASRester,
-)
+from mp_api.client.routes.materials import MATERIALS_RESTERS
 
 if TYPE_CHECKING:
     from typing import Any
 
     from pymatgen.entries.computed_entries import ComputedStructureEntry
 
-_EMMET_SETTINGS = EmmetSettings()  # type: ignore
 
-
-class MaterialsRester(BaseRester):
+class MaterialsRester(CoreRester):
     suffix = "materials/core"
     document_model = MaterialsDoc  # type: ignore
-    supports_versions = True
     primary_key = "material_id"
-    _sub_resters = [
-        "eos",
-        "similarity",
-        "tasks",
-        "xas",
-        "grain_boundaries",
-        "substrates",
-        "surface_properties",
-        "phonon",
-        "elasticity",
-        "thermo",
-        "dielectric",
-        "piezoelectric",
-        "magnetism",
-        "summary",
-        "robocrys",
-        "synthesis",
-        "insertion_electrodes",
-        "conversion_electrodes",
-        "electronic_structure",
-        "electronic_structure_bandstructure",
-        "electronic_structure_dos",
-        "oxidation_states",
-        "provenance",
-        "bonds",
-        "alloys",
-        "absorption",
-        "chemenv",
-    ]
-
-    # Materials subresters
-    eos: EOSRester
-    materials: MaterialsRester
-    similarity: SimilarityRester
-    tasks: TaskRester
-    xas: XASRester
-    grain_boundary: GrainBoundaryRester
-    substrates: SubstratesRester
-    surface_properties: SurfacePropertiesRester
-    phonon: PhononRester
-    elasticity: ElasticityRester
-    thermo: ThermoRester
-    dielectric: DielectricRester
-    piezoelectric: PiezoRester
-    magnetism: MagnetismRester
-    summary: SummaryRester
-    robocrys: RobocrysRester
-    synthesis: SynthesisRester
-    insertion_electrodes: ElectrodeRester
-    conversion_electrodes: ConversionElectrodeRester
-    electronic_structure: ElectronicStructureRester
-    electronic_structure_bandstructure: BandStructureRester
-    electronic_structure_dos: DosRester
-    oxidation_states: OxidationStatesRester
-    provenance: ProvenanceRester
-    bonds: BondsRester
-    alloys: AlloysRester
-    absorption: AbsorptionRester
-    chemenv: ChemenvRester
-
-    def __dir__(self):
-        return dir(MaterialsRester) + self._sub_resters
+    _sub_resters = MATERIALS_RESTERS
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True
@@ -199,7 +107,7 @@ class MaterialsRester(BaseRester):
         Returns:
             ([MaterialsDoc], [dict]) List of material documents or dictionaries.
         """
-        query_params = {"deprecated": deprecated}  # type: dict
+        query_params: dict = {"deprecated": deprecated}
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -271,9 +179,9 @@ class MaterialsRester(BaseRester):
     def find_structure(
         self,
         filename_or_structure,
-        ltol=_EMMET_SETTINGS.LTOL,
-        stol=_EMMET_SETTINGS.STOL,
-        angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
+        ltol=MAPI_CLIENT_SETTINGS.LTOL,
+        stol=MAPI_CLIENT_SETTINGS.STOL,
+        angle_tol=MAPI_CLIENT_SETTINGS.ANGLE_TOL,
         allow_multiple_results=False,
     ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.

@@ -90,7 +90,7 @@ class MoleculesThermoRester(BaseRester):
         Returns:
             ([MoleculeThermoDoc]) List of molecule thermo documents
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         min_max = [
             "electronic_energy",

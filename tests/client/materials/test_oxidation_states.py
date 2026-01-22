@@ -21,16 +21,16 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {"formula": "material_id", "material_ids": "material_id"}  # type: dict
+alt_name_dict: dict = {"formula": "material_id", "material_ids": "material_id"}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "material_ids": ["mp-149"],
     "formula": "Si",
     "chemsys": "Si-O",
     "possible_species": ["Cr2+", "O2-"],
-}  # type: dict
+}
 
 
 @requires_api_key

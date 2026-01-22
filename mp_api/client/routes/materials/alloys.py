@@ -40,7 +40,7 @@ class AlloysRester(BaseRester):
         Returns:
             ([AlloyPairDoc], [dict]) List of alloy pair documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         query_params = {
             entry: query_params[entry]

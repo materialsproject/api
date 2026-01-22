@@ -21,14 +21,14 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "surface_energy_anisotropy": "surface_anisotropy",
     "material_ids": "material_id",
-}  # type: dict
+}
 
-custom_field_tests = {"material_ids": ["mp-23152"]}  # type: dict
+custom_field_tests: dict = {"material_ids": ["mp-23152"]}
 
 
 @requires_api_key

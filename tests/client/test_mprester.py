@@ -2,6 +2,7 @@ import itertools
 import os
 import random
 import importlib
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
@@ -34,7 +35,6 @@ from pymatgen.io.vasp import Chgcar
 
 from mp_api.client import MPRester
 from mp_api.client.core import MPRestError, MPRestWarning
-from mp_api.client.core.settings import MAPIClientSettings
 
 from .conftest import requires_api_key
 
@@ -102,13 +102,47 @@ class TestMPRester:
         assert len(structs) > 0
 
     def test_find_structure(self, mpr):
-        path = os.path.join(MAPIClientSettings().TEST_FILES, "Si_mp_149.cif")
-        data = mpr.find_structure(path)
-        assert isinstance(data, str) and data == "mp-149"
+        cif_str = """# mp-111
+data_Ne
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.96632550
+_cell_length_b   2.96632684
+_cell_length_c   2.96632748
+_cell_angle_alpha   60.00001414
+_cell_angle_beta   59.99999919
+_cell_angle_gamma   60.00001422
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ne
+_chemical_formula_sum   Ne1
+_cell_volume   18.45618751
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ne  Ne0  1  0.00000000  0.00000000  -0.00000000  1
+"""
+        temp_file = NamedTemporaryFile(suffix=".cif")
+        with open(temp_file.name, "wt") as f:
+            f.write(cif_str)
+            f.seek(0)
 
-        s = CifParser(path).get_structures()[0]
-        data = mpr.find_structure(s)
-        assert isinstance(data, str) and data == "mp-149"
+        for struct_or_path in (
+            temp_file.name,
+            CifParser.from_str(cif_str).parse_structures(primitive=True)[0],
+        ):
+            data = mpr.find_structure(struct_or_path)
+            assert isinstance(data, str) and data == "mp-111"
+
+        f.close()
 
     def test_get_bandstructure_by_material_id(self, mpr):
         bs = mpr.get_bandstructure_by_material_id("mp-149")
@@ -129,7 +163,10 @@ class TestMPRester:
     def test_get_entries(self, mpr):
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
-        entries = mpr.get_entries(chemsys)
+        with pytest.warns(
+            UserWarning, match="The `inc_structure` argument is deprecated"
+        ):
+            entries = mpr.get_entries(chemsys, inc_structure=False)
 
         elements = {Element(sym) for sym in syms}
         for e in entries:
@@ -327,6 +364,8 @@ class TestMPRester:
         )
         assert isinstance(chgcar, Chgcar)
         assert isinstance(TaskDoc.model_validate(task_doc.model_dump()), TaskDoc)
+
+        assert mpr.get_charge_density_from_material_id("mp-0") is None
 
     def test_get_charge_density_from_task_id(self, mpr):
         chgcar = mpr.get_charge_density_from_task_id("mp-2246557")

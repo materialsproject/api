@@ -38,7 +38,7 @@ class PiezoRester(BaseRester):
         Returns:
             ([PiezoDoc], [dict]) List of piezoelectric documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if material_ids:
             if isinstance(material_ids, str):

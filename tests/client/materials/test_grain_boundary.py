@@ -22,14 +22,14 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "material_ids": "material_id",
     "separation_energy": "w_sep",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "material_ids": ["mp-81"],
     "gb_plane": ["1", "0", "0"],
     "rotation_axis": ["1", "0", "0"],
@@ -37,7 +37,7 @@ custom_field_tests = {
     "type": GBTypeEnum.twist,
     "chemsys": "Mo",
     "pretty_formula": "Mo",
-}  # type: dict
+}
 
 
 @requires_api_key

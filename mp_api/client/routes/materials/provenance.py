@@ -35,7 +35,7 @@ class ProvenanceRester(BaseRester):
         Returns:
             ([ProvenanceDoc], [dict]) List of provenance documents or dictionaries.
         """
-        query_params = {"deprecated": deprecated}  # type: dict
+        query_params: dict = {"deprecated": deprecated}
 
         if material_ids:
             if isinstance(material_ids, str):

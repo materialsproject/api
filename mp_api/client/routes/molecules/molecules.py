@@ -1,19 +1,22 @@
-from __future__ import annotations
+"""Define core molecules functionality.
 
-import warnings
+Note that these classes are not currently working.
+The `MoleculeRester` methods: `search`, `find_molecule`, `get_molecule_by_mpculeid`,
+all return 404s when attempting to use them.
+"""
+
+from __future__ import annotations
 
 from emmet.core.mpid import MPculeID
 from emmet.core.qchem.molecule import MoleculeDoc
-from emmet.core.settings import EmmetSettings
 from pymatgen.core.structure import Molecule
 
-from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.client import CoreRester, MPRestError
 from mp_api.client.core.utils import validate_ids
+from mp_api.client.routes.molecules import MOLECULES_RESTERS
 
-_EMMET_SETTINGS = EmmetSettings()
 
-
-class BaseMoleculeRester(BaseRester):
+class BaseMoleculeRester(CoreRester):
     document_model = MoleculeDoc
     primary_key = "molecule_id"
 
@@ -134,7 +137,7 @@ class BaseMoleculeRester(BaseRester):
         Returns:
             ([MoleculeDoc]) List of molecules documents
         """
-        query_params = {"deprecated": deprecated}  # type: dict
+        query_params: dict = {"deprecated": deprecated}
 
         if molecule_ids:
             if isinstance(molecule_ids, str):
@@ -193,16 +196,4 @@ class AssociatedMoleculeRester(BaseMoleculeRester):
 
 class MoleculeRester(BaseMoleculeRester):
     suffix = "molecules/core"
-    _sub_resters = ["summary", "jcesr"]
-
-    def __getattribute__(self, attr):
-        if "jcesr" in attr:
-            warnings.warn(
-                "NOTE: You are accessing the unmaintained legacy molecules data, "
-                "please use MPRester.molecules.summary."
-            )
-
-        return super().__getattribute__(attr)
-
-    def __dir__(self):
-        return dir(MoleculeRester) + self._sub_resters
+    _sub_resters = MOLECULES_RESTERS

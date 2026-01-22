@@ -4,6 +4,86 @@ from packaging.version import parse as parse_version
 import pytest
 
 from mp_api.client.core.exceptions import MPRestError
+from mp_api.client.core.utils import LazyImport
+
+
+def test_lazy_import_module():
+    import_str = "typing"
+    lazy_mod = LazyImport(import_str)
+    assert lazy_mod._module_name == import_str
+    assert lazy_mod._class_name is None
+    assert lazy_mod.__repr__() == str(lazy_mod)
+    lazy_any = lazy_mod.Any
+
+    from typing import Any
+
+    assert lazy_any == Any
+
+    # Ensure failure to load raises error
+    with pytest.raises(ImportError, match="Failed to import"):
+        _ = LazyImport("tieping")._load()
+
+
+def test_lazy_import_function():
+    import_str = "json.dumps"
+    lazy_func = LazyImport(import_str)
+    assert lazy_func._module_name == "json"
+    assert lazy_func._class_name == "dumps"
+    assert str(lazy_func) == f"LazyImport of {import_str}"
+
+    jsonables = [
+        {"apple": "pineapple", "banana": "orange"},
+        [1, 2, 3, 4, 5],
+        [{"nothing": {"of": {"grand": "import"}}}],
+    ]
+
+    dumped = [lazy_func(jsonable) for jsonable in jsonables]
+
+    import json as _real_json
+
+    assert lazy_func._imported == _real_json.dumps
+    assert all(
+        dumped[i] == _real_json.dumps(jsonable) for i, jsonable in enumerate(jsonables)
+    )
+
+
+def test_lazy_import_class():
+    import_str = "pymatgen.core.Structure"
+    lazy_class = LazyImport(import_str)
+    assert lazy_class._module_name == "pymatgen.core"
+    assert lazy_class._class_name == "Structure"
+    assert str(lazy_class) == f"LazyImport of {import_str}"
+
+    structure_str = """Si2
+1.0
+   3.3335729972004917    0.0000000000000000    1.9246389981090721
+   1.1111909992801432    3.1429239987499362    1.9246389992542632
+   0.0000000000000000    0.0000000000000000    3.8492780000000000
+Si
+2
+direct
+   0.8750000000000000    0.8750000000000000    0.8750000000000000 Si
+   0.1250000000000000    0.1250000000000000    0.1250000000000000 Si"""
+
+    # test construction from classmethod
+    struct_from_str = lazy_class.from_str(structure_str, fmt="poscar")
+    # test re-init
+    struct_from_init = lazy_class(
+        struct_from_str.lattice, struct_from_str.species, struct_from_str.frac_coords
+    )
+    assert struct_from_str == struct_from_init
+
+    from pymatgen.core.structure import Structure
+
+    assert Structure.from_str(structure_str, fmt="poscar") == struct_from_str
+
+    # ensure copy yields an independent object
+    lazy_copy = lazy_class.copy()
+    lazy_class(
+        struct_from_str.lattice, struct_from_str.species, struct_from_str.frac_coords
+    )
+    assert lazy_copy._obj is None
+    assert lazy_class._obj == struct_from_str
 
 
 def test_emmet_core_version_checks(monkeypatch: pytest.MonkeyPatch):
@@ -30,9 +110,9 @@ def test_id_validation():
     from emmet.core.mpid import MPID, AlphaID
 
     from mp_api.client.core.utils import validate_ids
-    from mp_api.client.core.settings import MAPIClientSettings
+    from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
-    max_num_idxs = MAPIClientSettings().MAX_LIST_LENGTH
+    max_num_idxs = MAPI_CLIENT_SETTINGS.MAX_LIST_LENGTH
 
     with pytest.raises(MPRestError, match="too long"):
         _ = validate_ids([f"mp-{x}" for x in range(max_num_idxs + 1)])

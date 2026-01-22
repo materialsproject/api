@@ -21,14 +21,14 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "piezoelectric_modulus": "e_ij_max",
     "material_ids": "material_id",
-}  # type: dict
+}
 
-custom_field_tests = {"material_ids": ["mp-9900"]}  # type: dict
+custom_field_tests: dict = {"material_ids": ["mp-9900"]}
 
 
 @requires_api_key

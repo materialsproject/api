@@ -46,7 +46,7 @@ class SubstratesRester(BaseRester):
         Returns:
             ([SubstratesDoc], [dict]) List of substrate documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if film_id:
             query_params.update({"film_id": film_id})

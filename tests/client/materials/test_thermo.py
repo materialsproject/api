@@ -24,9 +24,9 @@ excluded_params = [
     "equilibrium_reaction_energy",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "formula": "formula_pretty",
     "material_ids": "material_id",
     "thermo_ids": "thermo_id",
@@ -37,15 +37,15 @@ alt_name_dict = {
     "equilibrium_reaction_energy": "equilibrium_reaction_energy_per_atom",
     "num_elements": "nelements",
     "num_sites": "nsites",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "material_ids": ["mp-149"],
     "thermo_ids": ["mp-149_GGA_GGA+U"],
     "thermo_types": [ThermoType.GGA_GGA_U],
     "formula": "SiO2",
     "chemsys": "Si-O",
-}  # type: dict
+}
 
 
 @requires_api_key

@@ -1,7 +1,7 @@
-import os
 from ..conftest import client_search_testing, requires_api_key
 
 import pytest
+from typing import Any
 
 from emmet.core.types.enums import XasEdge, XasType
 from pymatgen.core.periodic_table import Element
@@ -25,16 +25,16 @@ excluded_params = [
     "material_ids",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list[str] = []
 
-alt_name_dict = {
+alt_name_dict: dict[str, str] = {
     "required_elements": "elements",
     "formula": "formula_pretty",
     "exclude_elements": "material_id",
     "spectrum_ids": "spectrum_id",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict[str, Any] = {
     "edge": XasEdge.L2,
     "spectrum_type": XasType.EXAFS,
     "absorbing_element": Element("Ce"),
@@ -43,7 +43,7 @@ custom_field_tests = {
     "chemsys": "Ce-O-W",
     "elements": ["Ce"],
     "spectrum_ids": ["mp-1194531-XANES-Fe-L2", "mp-1194531-XANES-Fe-K"],
-}  # type: dict
+}
 
 
 @requires_api_key

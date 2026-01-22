@@ -1,5 +1,12 @@
 from __future__ import annotations
 
-from ._general_store import GeneralStoreRester
-from ._messages import MessagesRester
-from ._user_settings import UserSettingsRester
+from mp_api.client.core.utils import LazyImport
+
+GENERIC_RESTERS = {
+    k: LazyImport(f"mp_api.client.routes.{k}.{v}")
+    for k, v in {
+        "_general_store": "GeneralStoreRester",
+        "_messages": "MessagesRester",
+        "_user_settings": "UserSettingsRester",
+    }.items()
+}

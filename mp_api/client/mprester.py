@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import BSPathType
 from emmet.core.mpid import MPID, AlphaID
-from emmet.core.settings import EmmetSettings
-from emmet.core.tasks import TaskDoc
 from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
@@ -24,99 +22,44 @@ from requests import Session, get
 
 from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
-from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import load_json, validate_api_key, validate_ids
-from mp_api.client.routes import GeneralStoreRester, MessagesRester, UserSettingsRester
-from mp_api.client.routes.materials import (
-    AbsorptionRester,
-    AlloysRester,
-    BandStructureRester,
-    BondsRester,
-    ChemenvRester,
-    ConversionElectrodeRester,
-    DielectricRester,
-    DOIRester,
-    DosRester,
-    ElasticityRester,
-    ElectrodeRester,
-    ElectronicStructureRester,
-    EOSRester,
-    GrainBoundaryRester,
-    MagnetismRester,
-    OxidationStatesRester,
-    PhononRester,
-    PiezoRester,
-    ProvenanceRester,
-    RobocrysRester,
-    SimilarityRester,
-    SubstratesRester,
-    SummaryRester,
-    SurfacePropertiesRester,
-    SynthesisRester,
-    TaskRester,
-    ThermoRester,
-    XASRester,
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
+from mp_api.client.core.utils import (
+    LazyImport,
+    load_json,
+    validate_api_key,
+    validate_endpoint,
+    validate_ids,
 )
-from mp_api.client.routes.materials.materials import MaterialsRester
-from mp_api.client.routes.molecules import MoleculeRester
+from mp_api.client.routes import GENERIC_RESTERS
+from mp_api.client.routes.materials import MATERIALS_RESTERS
+from mp_api.client.routes.molecules import MOLECULES_RESTERS
 
 if TYPE_CHECKING:
     from typing import Any, Literal
 
+    from emmet.core.tasks import CoreTaskDoc
     from pymatgen.analysis.phase_diagram import PDEntry
     from pymatgen.entries.computed_entries import ComputedEntry
 
-_EMMET_SETTINGS = EmmetSettings()
-_MAPI_SETTINGS = MAPIClientSettings()
+
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
+
+RESTER_LAYOUT = {
+    "molecules/core": LazyImport(
+        "mp_api.client.routes.molecules.molecules.MoleculeRester"
+    ),
+    "materials/core": LazyImport(
+        "mp_api.client.routes.materials.materials.MaterialsRester"
+    ),
+    **{f"materials/{k}": v for k, v in MATERIALS_RESTERS.items() if k not in {"doi"}},
+    "doi": MATERIALS_RESTERS["doi"],
+    **{f"molecules/{k}": v for k, v in MOLECULES_RESTERS.items()},
+    **GENERIC_RESTERS,
+}
 
 
 class MPRester:
     """Access the new Materials Project API."""
-
-    # Type hints for all routes
-    # To re-generate this list, use:
-    # for rester in MPRester()._all_resters:
-    #     print(f"{rester.suffix.replace('/', '_')}: {rester.__class__.__name__}")
-
-    # Materials
-    eos: EOSRester
-    materials: MaterialsRester
-    similarity: SimilarityRester
-    tasks: TaskRester
-    xas: XASRester
-    grain_boundaries: GrainBoundaryRester
-    substrates: SubstratesRester
-    surface_properties: SurfacePropertiesRester
-    phonon: PhononRester
-    elasticity: ElasticityRester
-    thermo: ThermoRester
-    dielectric: DielectricRester
-    piezoelectric: PiezoRester
-    magnetism: MagnetismRester
-    summary: SummaryRester
-    robocrys: RobocrysRester
-    synthesis: SynthesisRester
-    insertion_electrodes: ElectrodeRester
-    conversion_electrodes: ConversionElectrodeRester
-    electronic_structure: ElectronicStructureRester
-    electronic_structure_bandstructure: BandStructureRester
-    electronic_structure_dos: DosRester
-    oxidation_states: OxidationStatesRester
-    provenance: ProvenanceRester
-    bonds: BondsRester
-    alloys: AlloysRester
-    absorption: AbsorptionRester
-    chemenv: ChemenvRester
-
-    # Molecules
-    molecules: MoleculeRester
-
-    # Generic
-    doi: DOIRester
-    _user_settings: UserSettingsRester
-    _general_store: GeneralStoreRester
-    _messages: MessagesRester
 
     def __init__(
         self,
@@ -127,7 +70,7 @@ class MPRester:
         use_document_model: bool = True,
         session: Session | None = None,
         headers: dict | None = None,
-        mute_progress_bars: bool = _MAPI_SETTINGS.MUTE_PROGRESS_BARS,
+        mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
         **kwargs,
     ):
         """Initialize the MPRester.
@@ -166,9 +109,7 @@ class MPRester:
         """
         self.api_key = validate_api_key(api_key)
 
-        self.endpoint = endpoint or _MAPI_SETTINGS.ENDPOINT
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
+        self.endpoint = validate_endpoint(endpoint)
 
         self.headers = headers or {}
         self.session = session or BaseRester._create_session(
@@ -176,6 +117,7 @@ class MPRester:
             include_user_agent=include_user_agent,
             headers=self.headers,
         )
+        self._include_user_agent = include_user_agent
         self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars
         self._contribs = None
@@ -222,7 +164,7 @@ class MPRester:
         emmet_version = MPRester.get_emmet_version(self.endpoint)
 
         if version.parse(emmet_version.base_version) < version.parse(
-            _MAPI_SETTINGS.MIN_EMMET_VERSION
+            MAPI_CLIENT_SETTINGS.MIN_EMMET_VERSION
         ):
             warnings.warn(
                 "The installed version of the mp-api client may not be compatible with the API server. "
@@ -235,108 +177,29 @@ class MPRester:
         # Dynamically set rester attributes.
         # First, materials and molecules top level resters are set.
         # Nested rested are then setup to be loaded dynamically with custom __getattr__ functions.
-        self._all_resters = []
-
-        # Get all rester classes
-        for _cls in BaseRester.__subclasses__():
-            sub_resters = _cls.__subclasses__()
-            if sub_resters:
-                self._all_resters.extend(sub_resters)
-            else:
-                self._all_resters.append(_cls)
+        self._all_resters = list(RESTER_LAYOUT.values())
 
         # Instantiate top level molecules and materials resters and set them as attributes
         core_suffix = ["molecules/core", "materials/core"]
 
         core_resters = {
-            cls.suffix.split("/")[0]: cls(
-                api_key=api_key,
+            rest_name.split("/")[0]: lazy_rester(
+                api_key=self.api_key,
                 endpoint=self.endpoint,
-                include_user_agent=include_user_agent,
+                include_user_agent=self._include_user_agent,
                 session=self.session,
                 use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
             )
-            for cls in self._all_resters
-            if cls.suffix in core_suffix
+            for rest_name, lazy_rester in RESTER_LAYOUT.items()
+            if rest_name in core_suffix
         }
 
         # Set remaining top level resters, or get an attribute-class name mapping
-        # for all sub-resters
-        _sub_rester_suffix_map = {"materials": {}, "molecules": {}}
-
-        for cls in self._all_resters:
-            if cls.suffix not in core_suffix:
-                suffix_split = cls.suffix.split("/")
-
-                if len(suffix_split) == 1:
-                    rester = cls(
-                        api_key=api_key,
-                        endpoint=self.endpoint,
-                        include_user_agent=include_user_agent,
-                        session=self.session,
-                        use_document_model=self.use_document_model,
-                        headers=self.headers,
-                        mute_progress_bars=self.mute_progress_bars,
-                    )  # type: BaseRester
-                    setattr(
-                        self,
-                        suffix_split[0],
-                        rester,
-                    )
-                else:
-                    attr = "_".join(suffix_split[1:])
-                    if "materials" in suffix_split:
-                        _sub_rester_suffix_map["materials"][attr] = cls
-                    elif "molecules" in suffix_split:
-                        _sub_rester_suffix_map["molecules"][attr] = cls
-
-        # Allow lazy loading of nested resters under materials and molecules using custom __getattr__ methods
-        def __core_custom_getattr(_self, _attr, _rester_map):
-            if _attr in _rester_map:
-                cls = _rester_map[_attr]
-                rester = cls(
-                    api_key=api_key,
-                    endpoint=self.endpoint,
-                    include_user_agent=include_user_agent,
-                    session=self.session,
-                    use_document_model=self.use_document_model,
-                    headers=self.headers,
-                    mute_progress_bars=self.mute_progress_bars,
-                )  # type: BaseRester
-
-                setattr(
-                    _self,
-                    _attr,
-                    rester,
-                )
-
-                return rester
-            else:
-                raise AttributeError(
-                    f"{_self.__class__.__name__!r} object has no attribute {_attr!r}"
-                )
-
-        def __materials_getattr__(_self, attr):
-            _rester_map = _sub_rester_suffix_map["materials"]
-            rester = __core_custom_getattr(_self, attr, _rester_map)
-            return rester
-
-        def __molecules_getattr__(_self, attr):
-            _rester_map = _sub_rester_suffix_map["molecules"]
-            rester = __core_custom_getattr(_self, attr, _rester_map)
-            return rester
-
-        MaterialsRester.__getattr__ = __materials_getattr__  # type: ignore
-        MoleculeRester.__getattr__ = __molecules_getattr__  # type: ignore
 
         for attr, rester in core_resters.items():
-            setattr(
-                self,
-                attr,
-                rester,
-            )
+            setattr(self, attr, rester)
 
     @property
     def contribs(self):
@@ -589,9 +452,9 @@ class MPRester:
     def find_structure(
         self,
         filename_or_structure: str | Structure,
-        ltol: float = _EMMET_SETTINGS.LTOL,
-        stol: float = _EMMET_SETTINGS.STOL,
-        angle_tol: float = _EMMET_SETTINGS.ANGLE_TOL,
+        ltol: float = MAPI_CLIENT_SETTINGS.LTOL,
+        stol: float = MAPI_CLIENT_SETTINGS.STOL,
+        angle_tol: float = MAPI_CLIENT_SETTINGS.ANGLE_TOL,
         allow_multiple_results: bool = False,
     ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.
@@ -626,13 +489,14 @@ class MPRester:
         self,
         chemsys_formula_mpids: str | list[str],
         compatible_only: bool = True,
-        inc_structure: bool | None = None,
         property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
         additional_criteria: dict | None = None,
+        **kwargs,
     ) -> list[ComputedStructureEntry]:
-        """Get a list of ComputedEntries or ComputedStructureEntries corresponding
-        to a chemical system or formula. This returns entries for all thermo types
+        """Get a list of ComputedStructureEntry from a chemical system, or formula, or MPID.
+
+        This returns ComputedStructureEntries with final structures for all thermo types
         represented in the database. Each type corresponds to a different mixing scheme
         (i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN). By default the thermo_type of the
         entry is also returned.
@@ -648,12 +512,6 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
-                returned were ComputedEntries. If inc_structure="initial",
-                ComputedStructureEntries with initial structures were returned.
-                Otherwise, ComputedStructureEntries with final structures
-                were returned. This is no longer needed as all entries will contain the
-                final structure data by default.
             property_data (list): Specify additional properties to include in
                 entry.data. If None, only default data is included. Should be a subset of
                 input parameters in the 'MPRester.thermo.available_fields' list.
@@ -663,14 +521,15 @@ class MPRester:
                 correspond to proper function inputs to `MPRester.thermo.search`. For instance,
                 if you are only interested in entries on the convex hull, you could pass
                 {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}.
+            kwargs: Used here only to gracefully handle deprecated arguments. All kwargs are ignored.
 
         Returns:
             List ComputedStructureEntry objects.
         """
-        if inc_structure is not None:
+        if kwargs.pop("inc_structure", None) is not None:
             warnings.warn(
-                "The 'inc_structure' argument is deprecated as structure "
-                "data is now always included in all returned entry objects."
+                "The `inc_structure` argument is deprecated as final structures "
+                "are always included in all returned ComputedStructureEntry objects."
             )
 
         if isinstance(chemsys_formula_mpids, str):
@@ -1060,9 +919,9 @@ class MPRester:
         self,
         material_id: str,
         compatible_only: bool = True,
-        inc_structure: bool | None = None,
         property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
+        **kwargs,
     ):
         """Get all ComputedEntry objects corresponding to a material_id.
 
@@ -1075,26 +934,21 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
-                returned were ComputedEntries. If inc_structure="initial",
-                ComputedStructureEntries with initial structures were returned.
-                Otherwise, ComputedStructureEntries with final structures
-                were returned. This is no longer needed as all entries will contain
-                structure data by default.
             property_data (list): Specify additional properties to include in
                 entry.data. If None, only default data is included. Should be a subset of
                 input parameters in the 'MPRester.thermo.available_fields' list.
             conventional_unit_cell (bool): Whether to get the standard
                 conventional unit cell
+            kwargs : Other kwargs to pass to `get_entries`
         Returns:
             List of ComputedEntry or ComputedStructureEntry object.
         """
         return self.get_entries(
             material_id,
             compatible_only=compatible_only,
-            inc_structure=inc_structure,
             property_data=property_data,
             conventional_unit_cell=conventional_unit_cell,
+            **kwargs,
         )
 
     def get_entries_in_chemsys(
@@ -1102,10 +956,10 @@ class MPRester:
         elements: str | list[str],
         use_gibbs: int | None = None,
         compatible_only: bool = True,
-        inc_structure: bool | None = None,
         property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
         additional_criteria: dict = DEFAULT_THERMOTYPE_CRITERIA,
+        **kwargs,
     ):
         """Helper method to get a list of ComputedEntries in a chemical system.
         For example, elements = ["Li", "Fe", "O"] will return a list of all
@@ -1131,12 +985,6 @@ class MPRester:
                 which performs adjustments to allow mixing of GGA and GGA+U
                 calculations for more accurate phase diagrams and reaction
                 energies. This data is obtained from the core "thermo" API endpoint.
-            inc_structure (str): *This is a deprecated argument*. Previously, if None, entries
-                returned were ComputedEntries. If inc_structure="initial",
-                ComputedStructureEntries with initial structures were returned.
-                Otherwise, ComputedStructureEntries with final structures
-                were returned. This is no longer needed as all entries will contain
-                structure data by default.
             property_data (list): Specify additional properties to include in
                 entry.data. If None, only default data is included. Should be a subset of
                 input parameters in the 'MPRester.thermo.available_fields' list.
@@ -1147,6 +995,7 @@ class MPRester:
                 if you are only interested in entries on the convex hull, you could pass
                 {"energy_above_hull": (0.0, 0.0)} or {"is_stable": True}, or if you are only interested
                 in entry data
+            kwargs : Other kwargs to pass to `get_entries`
         Returns:
             List of ComputedStructureEntries.
         """
@@ -1167,10 +1016,10 @@ class MPRester:
             self.get_entries(
                 all_chemsyses,
                 compatible_only=compatible_only,
-                inc_structure=inc_structure,
                 property_data=property_data,
                 conventional_unit_cell=conventional_unit_cell,
                 additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
+                **kwargs,
             )
         )
 
@@ -1277,7 +1126,7 @@ class MPRester:
 
     def get_charge_density_from_task_id(
         self, task_id: str, inc_task_doc: bool = False
-    ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
+    ) -> Chgcar | tuple[Chgcar, CoreTaskDoc | dict] | None:
         """Get charge density data for a given task_id.
 
         Arguments:
@@ -1285,18 +1134,13 @@ class MPRester:
             inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
+            (Chgcar, (Chgcar, CoreTaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and CoreTaskDoc
         """
-        kwargs = dict(
+        chgcar = self.materials.tasks._query_open_data(
             bucket="materialsproject-parsed",
             key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
             decoder=lambda x: load_json(x, deser=True),
-        )
-        chgcar = self.materials.tasks._query_open_data(**kwargs)[0]
-        if not chgcar:
-            raise MPRestError(f"No charge density fetched for task_id {task_id}.")
-
-        chgcar = chgcar[0]["data"]  # type: ignore
+        )[0][0]["data"]
 
         if inc_task_doc:
             task_doc = self.materials.tasks.search(task_ids=task_id)[0]
@@ -1306,7 +1150,7 @@ class MPRester:
 
     def get_charge_density_from_material_id(
         self, material_id: str, inc_task_doc: bool = False
-    ) -> Chgcar | tuple[Chgcar, TaskDoc | dict] | None:
+    ) -> Chgcar | tuple[Chgcar, CoreTaskDoc | dict] | None:
         """Get charge density data for a given Materials Project ID.
 
         Arguments:
@@ -1314,7 +1158,8 @@ class MPRester:
             inc_task_doc (bool): Whether to include the task document in the returned data.
 
         Returns:
-            (Chgcar, (Chgcar, TaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and TaskDoc
+            (Chgcar, (Chgcar, CoreTaskDoc | dict), None): Pymatgen Chgcar object,
+            or tuple with object and CoreTaskDoc
         """
         # TODO: really we want a recommended task_id for charge densities here
         # this could potentially introduce an ambiguity
@@ -1324,7 +1169,7 @@ class MPRester:
         if not task_ids:
             return None
 
-        results: list[TaskDoc] = self.materials.tasks.search(
+        results: list[CoreTaskDoc] = self.materials.tasks.search(
             task_ids=task_ids, fields=["last_updated", "task_id"]
         )  # type: ignore
 
@@ -1466,7 +1311,6 @@ class MPRester:
         entries = self.get_entries(
             material_ids,
             compatible_only=False,
-            inc_structure=True,
             property_data=None,
             conventional_unit_cell=False,
         )
@@ -1606,7 +1450,7 @@ class MPRester:
             pd = self.materials.thermo.get_phase_diagram_from_chemsys(
                 chemsys_str, thermo_type=thermo_type
             )
-        except OSError:
+        except MPRestError:
             pd = None
 
         if not pd:

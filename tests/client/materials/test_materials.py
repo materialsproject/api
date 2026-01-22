@@ -5,6 +5,7 @@ import pytest
 from emmet.core.symmetry import CrystalSystem
 
 from mp_api.client.routes.materials.materials import MaterialsRester
+from mp_api.client.routes.materials import MATERIALS_RESTERS
 
 
 @pytest.fixture
@@ -26,9 +27,9 @@ excluded_params = [
     "density",  # temp until server timeout increase
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "material_ids": "material_id",
     "formula": "material_id",
     "crystal_system": "symmetry",
@@ -37,9 +38,9 @@ alt_name_dict = {
     "exclude_elements": "material_id",
     "num_elements": "nelements",
     "num_sites": "nsites",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "material_ids": ["mp-149"],
     "formula": "Si",
     "chemsys": "Si-P",
@@ -48,12 +49,16 @@ custom_field_tests = {
     "crystal_system": CrystalSystem.cubic,
     "spacegroup_number": 38,
     "spacegroup_symbol": "Amm2",
-}  # type: dict
+}
 
 
 @requires_api_key
 def test_client(rester):
     search_method = rester.search
+
+    assert sorted(dir(rester)) == sorted(
+        dir(rester.__class__) + list(MATERIALS_RESTERS)
+    )
 
     client_search_testing(
         search_method=search_method,

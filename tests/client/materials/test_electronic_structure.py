@@ -1,8 +1,8 @@
-import os
 from ..conftest import client_search_testing, requires_api_key
 
 import pytest
 from pymatgen.analysis.magnetism import Ordering
+from typing import Any
 
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.routes.materials.electronic_structure import (
@@ -27,24 +27,24 @@ es_excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list[str] = []
 
-es_alt_name_dict = {
+es_alt_name_dict: dict[str, str] = {
     "material_ids": "material_id",
     "exclude_elements": "material_id",
     "formula": "material_id",
     "num_elements": "nelements",
     "num_sites": "nsites",
-}  # type: dict
+}
 
-es_custom_field_tests = {
+es_custom_field_tests: dict[str, Any] = {
     "material_ids": ["mp-149"],
     "magnetic_ordering": Ordering.FM,
     "formula": "CoO2",
     "chemsys": "Co-O",
     "elements": ["Co", "O"],
     "exclude_elements": ["Co"],
-}  # type: dict
+}
 
 
 @requires_api_key
@@ -71,7 +71,7 @@ bs_custom_field_tests = {
 
 bs_sub_doc_fields = ["bandstructure"]
 
-bs_alt_name_dict = {}  # type: dict
+bs_alt_name_dict: dict[str, str] = {}
 
 
 @requires_api_key
@@ -122,7 +122,7 @@ dos_excluded_params = ["orbital", "element"]
 
 dos_sub_doc_fields = ["dos"]
 
-dos_alt_name_dict = {}  # type: dict
+dos_alt_name_dict: dict[str, str] = {}
 
 
 @requires_api_key

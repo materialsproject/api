@@ -32,24 +32,24 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "battery_ids": "battery_id",
     "formula": "battery_id",
     "exclude_elements": "battery_id",
     "num_elements": "nelements",
     "num_sites": "nsites",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "battery_ids": ["mp-16722_Al"],
     "working_ion": Element("Li"),
     "formula": "CoO2",
     "chemsys": "Co-O",
     "elements": ["Co", "O"],
     "exclude_elements": ["Co"],
-}  # type: dict
+}
 
 
 @requires_api_key

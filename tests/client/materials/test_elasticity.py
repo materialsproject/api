@@ -21,9 +21,9 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "material_ids": "material_id",
     "elastic_anisotropy": "universal_anisotropy",
     "poisson_ratio": "homogeneous_poisson",
@@ -33,9 +33,9 @@ alt_name_dict = {
     "k_voigt": "shear_modulus",
     "k_reuss": "shear_modulus",
     "k_vrh": "shear_modulus",
-}  # type: dict
+}
 
-custom_field_tests = {"material_ids": ["mp-149"]}  # type: dict
+custom_field_tests: dict = {"material_ids": ["mp-149"]}
 
 
 @requires_api_key
