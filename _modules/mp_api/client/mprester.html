@@ -85,8 +85,10 @@
         <span class="s2">&quot;mp_api.client.routes.materials.materials.MaterialsRester&quot;</span>
     <span class="p">),</span>
     <span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;materials/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">MATERIALS_RESTERS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;doi&quot;</span><span class="p">}},</span>
-    <span class="s2">&quot;doi&quot;</span><span class="p">:</span> <span class="n">MATERIALS_RESTERS</span><span class="p">[</span><span class="s2">&quot;doi&quot;</span><span class="p">],</span>
     <span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;molecules/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">MOLECULES_RESTERS</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+<span class="p">}</span>
+<span class="n">GENERIC_RESTERS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;doi&quot;</span><span class="p">:</span> <span class="n">MATERIALS_RESTERS</span><span class="p">[</span><span class="s2">&quot;doi&quot;</span><span class="p">],</span>
     <span class="o">**</span><span class="n">GENERIC_RESTERS</span><span class="p">,</span>
 <span class="p">}</span>
 
@@ -236,6 +238,9 @@
         <span class="c1"># Set remaining top level resters, or get an attribute-class name mapping</span>
 
         <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span> <span class="ow">in</span> <span class="n">core_resters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span> <span class="ow">in</span> <span class="n">GENERIC_RESTERS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span><span class="p">)</span></div>
 
 
