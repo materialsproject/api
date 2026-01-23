@@ -47,6 +47,10 @@ custom_field_tests: dict[str, Any] = {
 
 
 @requires_api_key
+@pytest.mark.xfail(
+    reason="XAS endpoint often too slow to respond.",
+    strict=False,
+)
 def test_client(rester):
     client_search_testing(
         search_method=rester.search,
