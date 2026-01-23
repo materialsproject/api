@@ -37,8 +37,7 @@ all = [
   "custodian",
   "mpcontribs-client>=5.10",
   "fastmcp",
-  "matminer>=0.9.3",
-  "scipy<1.17.0", # pending fixes in matminer
+  "matminer>=0.10.0",
 ]
 test = [
   "pre-commit",
