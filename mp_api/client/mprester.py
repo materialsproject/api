@@ -52,8 +52,10 @@ RESTER_LAYOUT = {
         "mp_api.client.routes.materials.materials.MaterialsRester"
     ),
     **{f"materials/{k}": v for k, v in MATERIALS_RESTERS.items() if k not in {"doi"}},
-    "doi": MATERIALS_RESTERS["doi"],
     **{f"molecules/{k}": v for k, v in MOLECULES_RESTERS.items()},
+}
+GENERIC_RESTERS = {
+    "doi": MATERIALS_RESTERS["doi"],
     **GENERIC_RESTERS,
 }
 
@@ -199,6 +201,9 @@ class MPRester:
         # Set remaining top level resters, or get an attribute-class name mapping
 
         for attr, rester in core_resters.items():
+            setattr(self, attr, rester)
+
+        for attr, rester in GENERIC_RESTERS.items():
             setattr(self, attr, rester)
 
     @property
