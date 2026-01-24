@@ -240,7 +240,21 @@
         <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span> <span class="ow">in</span> <span class="n">core_resters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span> <span class="ow">in</span> <span class="n">GENERIC_RESTERS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># set generics TODO!: refactor</span>
+        <span class="n">generic_resters</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">rest_name</span><span class="p">:</span> <span class="n">lazy_rester</span><span class="p">(</span>
+                <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
+                <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">,</span>
+                <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_include_user_agent</span><span class="p">,</span>
+                <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+                <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+                <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">rest_name</span><span class="p">,</span> <span class="n">lazy_rester</span> <span class="ow">in</span> <span class="n">GENERIC_RESTERS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span> <span class="ow">in</span> <span class="n">generic_resters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">rester</span><span class="p">)</span></div>
 
 
