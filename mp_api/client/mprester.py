@@ -203,7 +203,21 @@ class MPRester:
         for attr, rester in core_resters.items():
             setattr(self, attr, rester)
 
-        for attr, rester in GENERIC_RESTERS.items():
+        # set generics TODO!: refactor
+        generic_resters = {
+            rest_name: lazy_rester(
+                api_key=self.api_key,
+                endpoint=self.endpoint,
+                include_user_agent=self._include_user_agent,
+                session=self.session,
+                use_document_model=self.use_document_model,
+                headers=self.headers,
+                mute_progress_bars=self.mute_progress_bars,
+            )
+            for rest_name, lazy_rester in GENERIC_RESTERS.items()
+        }
+
+        for attr, rester in generic_resters.items():
             setattr(self, attr, rester)
 
     @property
