@@ -65,6 +65,9 @@ def validate_api_key(api_key: str | None = None) -> str | None:
         api_key = PMG_SETTINGS.get("PMG_MAPI_KEY")
 
     if not api_key:
+        # The web server requires the client to initialize without an API key.
+        # Only warn the user if the API key cannot be identified to permit
+        # the web server to run.
         warnings.warn(
             "No API key found, please set explicitly or in "
             "the `MP_API_KEY` environment variable.",
