@@ -85,9 +85,7 @@ class MAPIClientSettings(BaseSettings):
         _MAX_LIST_LENGTH, description="Maximum length of query parameter list"
     )
 
-    ENDPOINT: str = Field(
-        _DEFAULT_ENDPOINT, description="The default API endpoint to use."
-    )
+    ENDPOINT: str = Field("", description="The default API endpoint to use.")
 
     LTOL: float = Field(
         _EMMET_SETTINGS.LTOL,

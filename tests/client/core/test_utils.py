@@ -1,9 +1,8 @@
 """Test client core utilities."""
 
-from packaging.version import parse as parse_version
 import pytest
 
-from mp_api.client.core.exceptions import MPRestError
+from mp_api.client.core.exceptions import MPRestError, MPRestWarning
 from mp_api.client.core.utils import LazyImport
 
 
@@ -145,7 +144,7 @@ def test_api_key_validation(monkeypatch: pytest.MonkeyPatch):
     with pytest.raises(MPRestError, match="32 characters"):
         validate_api_key("invalid_key")
 
-    with pytest.raises(MPRestError, match="Please obtain a valid"):
+    with pytest.warns(MPRestWarning, match="No API key found"):
         validate_api_key()
 
     junk_api_key = "a" * 32

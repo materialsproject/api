@@ -72,7 +72,8 @@ class MPCoreMCP(_NeedsMPClient):
 
         Args:
             query (str) : A natural language query of either:
-                - comma-delimited keywords, example: "polyhedra, orthorhombic, superconductor"
+                - comma-delimited keywords, example: "polyhedra,orthorhombic,superconductor".
+                    This should contain no whitespace; all whitespace will be removed.
                 - chemical formula, example: "TiO2"
                 - dash-delimited elements for more general chemical system, example: "Li-P-S"
             To query by formula or chemical system, no commas should be present in the query.
@@ -94,11 +95,16 @@ class MPCoreMCP(_NeedsMPClient):
                 material_ids=material_ids, fields=["description", "material_id"]
             )
         else:
-            robo_docs += self.client.materials.robocrys.search(query)
+            robo_docs += self.client.materials.robocrys.search(
+                query.replace(" ", "").split(",")
+            )
 
         return SearchOutput(
             results=[
-                FetchResult(id=doc["material_id"], text=doc["description"])
+                FetchResult(
+                    id=doc["material_id"],
+                    text=doc["description"],
+                )
                 for doc in robo_docs
             ]
         )
