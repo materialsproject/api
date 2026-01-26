@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import warnings
 from importlib import import_module
 from typing import TYPE_CHECKING, Literal
 from urllib.parse import urljoin
@@ -11,7 +12,7 @@ from emmet.core.mpid_ext import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
-from mp_api.client.core.exceptions import MPRestError
+from mp_api.client.core.exceptions import MPRestError, MPRestWarning
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
 if TYPE_CHECKING:
@@ -54,7 +55,7 @@ def load_json(
     return MontyDecoder().process_decoded(data) if deser else data
 
 
-def validate_api_key(api_key: str | None = None) -> str:
+def validate_api_key(api_key: str | None = None) -> str | None:
     """Find and validate an API key."""
     # SETTINGS tries to read API key from ~/.config/.pmgrc.yaml
     api_key = api_key or os.getenv("MP_API_KEY")
@@ -63,11 +64,19 @@ def validate_api_key(api_key: str | None = None) -> str:
 
         api_key = PMG_SETTINGS.get("PMG_MAPI_KEY")
 
-    if not api_key or len(api_key) != 32:
-        addendum = " Valid API keys are 32 characters." if api_key else ""
+    if not api_key:
+        warnings.warn(
+            "No API key found, please set explicitly or in "
+            "the `MP_API_KEY` environment variable.",
+            category=MPRestWarning,
+            stacklevel=2,
+        )
+
+    elif isinstance(api_key, str) and len(api_key) != 32:
         raise MPRestError(
             "Please obtain a valid API key from https://materialsproject.org/api "
-            f"and export it as an environment variable `MP_API_KEY`.{addendum}"
+            "and export it as an environment variable `MP_API_KEY`. "
+            "Valid API keys are 32 characters."
         )
 
     return api_key
