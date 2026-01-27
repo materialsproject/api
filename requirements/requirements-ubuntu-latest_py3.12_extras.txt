@@ -511,7 +511,7 @@ python-dotenv==1.2.1
     #   pydantic-settings
 python-json-logger==4.0.0
     # via pydocket
-python-multipart==0.0.21
+python-multipart==0.0.22
     # via mcp
 pytz==2025.2
     # via
