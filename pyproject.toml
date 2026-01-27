@@ -57,6 +57,9 @@ test = [
 ]
 docs = ["sphinx"]
 
+[project.scripts]
+mpmcp = "mp_api.mcp.server:_run_mp_mcp_server"
+
 [tool.setuptools.packages.find]
 include = ["mp_api*"]
 namespaces = true
