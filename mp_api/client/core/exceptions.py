@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import warnings
 
+
 class MPRestError(Exception):
     """Raised when the query has problems, e.g., bad query format."""
 
 
 class MPRestWarning(Warning):
     """Raised when a query is malformed but interpretable."""
+
 
 def _emit_status_warning() -> None:
     """Emit a warning if client can't hear a heartbeat."""

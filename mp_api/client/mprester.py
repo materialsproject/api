@@ -21,8 +21,12 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.exceptions import MPRestError, MPRestWarning, _emit_status_warning
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
+from mp_api.client.core.exceptions import (
+    MPRestError,
+    MPRestWarning,
+    _emit_status_warning,
+)
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     LazyImport,
