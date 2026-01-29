@@ -2,7 +2,9 @@ import itertools
 import os
 import random
 import importlib
+import requests
 from tempfile import NamedTemporaryFile
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -50,6 +52,15 @@ def mpr():
     yield rester
     rester.session.close()
 
+@pytest.fixture()
+def mock_heartbeat_403():
+    with patch("requests.get") as mock_get:
+        mock_response = Mock()
+        mock_response.status_code = 403
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("403")
+        mock_get.return_value = mock_response
+        yield mock_get
+    
 
 @requires_api_key
 class TestMPRester:
@@ -69,6 +80,12 @@ class TestMPRester:
     def test_get_database_version(self, mpr):
         db_version = mpr.get_database_version()
         assert db_version is not None
+    
+    def test_heartbeat_403(self, mock_heartbeat_403):
+        with pytest.warns(MPRestWarning,match = "heartbeat, check Materials Project status"):
+            with MPRester() as mpr:
+                # Ensure that client can still work if heartbeat is unreachable
+                assert mpr.get_structure_by_material_id("mp-149") is not None
 
     def test_get_material_id_from_task_id(self, mpr):
         assert mpr.get_material_id_from_task_id("mp-540081") == "mp-19017"

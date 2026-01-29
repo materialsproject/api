@@ -35,7 +35,7 @@ from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
-from mp_api.client.core.exceptions import MPRestError
+from mp_api.client.core.exceptions import MPRestError, _emit_status_warning
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     load_json,
@@ -222,7 +222,10 @@ class BaseRester:
 
         Returns: database version as a string
         """
-        return requests.get(url=endpoint + "heartbeat").json()["db_version"]
+        if (get_resp := requests.get(url=endpoint + "heartbeat")).status_code == 403:
+            _emit_status_warning()
+            return
+        return get_resp.json()["db_version"]
 
     def _post_resource(
         self,
