@@ -166,14 +166,15 @@ class MPRester:
             )
 
         # Check if emmet version of server is compatible
-        emmet_version = MPRester.get_emmet_version(self.endpoint)
-
-        if version.parse(emmet_version.base_version) < version.parse(
-            MAPI_CLIENT_SETTINGS.MIN_EMMET_VERSION
+        if (emmet_version := MPRester.get_emmet_version(self.endpoint)) and (
+            version.parse(emmet_version.base_version)
+            < version.parse(MAPI_CLIENT_SETTINGS.MIN_EMMET_VERSION)
         ):
             warnings.warn(
                 "The installed version of the mp-api client may not be compatible with the API server. "
-                "Please install a previous version if any problems occur."
+                "Please install a previous version if any problems occur.",
+                category=MPRestWarning,
+                stacklevel=2,
             )
 
         if notify_db_version:
