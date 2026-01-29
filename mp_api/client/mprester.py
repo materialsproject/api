@@ -20,8 +20,13 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
+from mp_api.client.core import BaseRester
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
+from mp_api.client.core.exceptions import (
+    MPRestError,
+    MPRestWarning,
+    _emit_status_warning,
+)
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     LazyImport,
@@ -161,14 +166,15 @@ class MPRester:
             )
 
         # Check if emmet version of server is compatible
-        emmet_version = MPRester.get_emmet_version(self.endpoint)
-
-        if version.parse(emmet_version.base_version) < version.parse(
-            MAPI_CLIENT_SETTINGS.MIN_EMMET_VERSION
+        if (emmet_version := MPRester.get_emmet_version(self.endpoint)) and (
+            version.parse(emmet_version.base_version)
+            < version.parse(MAPI_CLIENT_SETTINGS.MIN_EMMET_VERSION)
         ):
             warnings.warn(
                 "The installed version of the mp-api client may not be compatible with the API server. "
-                "Please install a previous version if any problems occur."
+                "Please install a previous version if any problems occur.",
+                category=MPRestWarning,
+                stacklevel=2,
             )
 
         if notify_db_version:
@@ -311,7 +317,7 @@ class MPRester:
 
         return structure_data
 
-    def get_database_version(self):
+    def get_database_version(self) -> str | None:
         """The Materials Project database is periodically updated and has a
         database version associated with it. When the database is updated,
         consolidated data (information about "a material") may and does
@@ -324,20 +330,27 @@ class MPRester:
 
         Returns: database version as a string
         """
-        return get(url=self.endpoint + "heartbeat").json()["db_version"]
+        if (get_resp := get(url=self.endpoint + "heartbeat")).status_code == 403:
+            _emit_status_warning()
+            return
+        return get_resp.json()["db_version"]
 
     @staticmethod
     @cache
-    def get_emmet_version(endpoint):
+    def get_emmet_version(endpoint) -> str | None:
         """Get the latest version emmet-core and emmet-api used in the
         current API service.
 
         Returns: version as a string
         """
-        response = get(url=endpoint + "heartbeat").json()
+        get_resp = get(url=endpoint + "heartbeat")
 
-        error = response.get("error", None)
-        if error:
+        if get_resp.status_code == 403:
+            _emit_status_warning()
+            return
+
+        response = get_resp.json()
+        if error := response.get("error", None):
             raise MPRestError(error)
 
         return version.parse(response["version"])

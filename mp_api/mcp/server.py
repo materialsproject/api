@@ -71,5 +71,10 @@ def parse_server_args(args: Sequence[str] | None = None) -> dict[str, Any]:
 
 mcp = get_core_mcp()
 
-if __name__ == "__main__":
+
+def _run_mp_mcp_server() -> None:
     mcp.run(**parse_server_args())
+
+
+if __name__ == "__main__":
+    _run_mp_mcp_server()

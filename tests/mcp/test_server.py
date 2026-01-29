@@ -1,6 +1,14 @@
 import asyncio
 import pytest
 
+try:
+    import fastmcp
+except ImportError:
+    pytest.skip(
+        "Please `pip install fastmcp` to test the MCP server directly.",
+        allow_module_level=True,
+    )
+
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.mcp.server import get_core_mcp, parse_server_args
 
