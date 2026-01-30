@@ -430,8 +430,8 @@ loop_
         monkeypatch.delenv("MP_API_KEY", raising=False)
         monkeypatch.delenv("PMG_MAPI_KEY", raising=False)
         monkeypatch.setitem(SETTINGS, "PMG_MAPI_KEY", None)
-        with pytest.raises(MPRestError, match="Please obtain a valid API key"):
-            MPRester().get_structure_by_material_id("mp-149")
+        with pytest.warns(MPRestWarning, match="No API key found"):
+            MPRester()
 
     def test_invalid_api_key(self, monkeypatch):
         monkeypatch.setenv("MP_API_KEY", "INVALID")
