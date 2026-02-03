@@ -40,18 +40,20 @@ from mp_api.client.routes.materials import MATERIALS_RESTERS
 from mp_api.client.routes.molecules import MOLECULES_RESTERS
 
 if TYPE_CHECKING:
-    
     from collections.abc import Sequence
-    from packaging.version import Version
     from typing import Any, Literal
 
-    from emmet.core.tasks import CoreTaskDoc
     import numpy as np
+    from emmet.core.tasks import CoreTaskDoc
+    from packaging.version import Version
     from pymatgen.analysis.phase_diagram import PDEntry
     from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
     from pymatgen.entries.compatibility import Compatibility
-    from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
-    from pymatgen.util.typing import EntryLike, SpeciesLike
+    from pymatgen.entries.computed_entries import (
+        ComputedEntry,
+        GibbsComputedStructureEntry,
+    )
+    from pymatgen.util.typing import SpeciesLike
 
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
@@ -645,7 +647,7 @@ class MPRester:
                 cases. Default: None. Note that temperatures other than 300K are not
                 permitted here, because MaterialsProjectAqueousCompatibility corrections,
                 used in Pourbaix diagram construction, are calculated based on 300 K data.
-        
+
         Returns:
             list of PourbaixEntry
         """
@@ -664,11 +666,11 @@ class MPRester:
         if isinstance(chemsys, list) and all(
             isinstance(v, ComputedEntry | ComputedStructureEntry) for v in chemsys
         ):
-            user_entries = [ce.copy() for ce in chemsys] # type: ignore[union-attr]
+            user_entries = [ce.copy() for ce in chemsys]  # type: ignore[union-attr]
 
             chemsys = sorted(
                 {
-                    ele.name # type: ignore[misc]
+                    ele.name  # type: ignore[misc]
                     for entry in user_entries
                     for ele in entry.elements
                 }
@@ -696,7 +698,7 @@ class MPRester:
         if isinstance(chemsys, str):
             chemsys = chemsys.split("-")
         # capitalize and sort the elements
-        sorted_chemsys : list[str] = sorted(e.capitalize() for e in chemsys) # type: ignore[union-attr]
+        sorted_chemsys: list[str] = sorted(e.capitalize() for e in chemsys)  # type: ignore[union-attr]
 
         # Get ion entries first, because certain ions have reference
         # solids that aren't necessarily in the chemsys (Na2SO4)
@@ -714,7 +716,9 @@ class MPRester:
         # TODO - would be great if the commented line below would work
         # However for some reason you cannot process GibbsComputedStructureEntry with
         # MaterialsProjectAqueousCompatibility
-        ion_ref_entries : Sequence[ComputedEntry | ComputedStructureEntry | GibbsComputedStructureEntry] = (
+        ion_ref_entries: Sequence[
+            ComputedEntry | ComputedStructureEntry | GibbsComputedStructureEntry
+        ] = (
             self.get_entries_in_chemsys(
                 list([str(e) for e in ion_ref_elts] + ["O", "H"]),
                 additional_criteria={"thermo_types": thermo_types},
@@ -750,7 +754,7 @@ class MPRester:
 
         ion_entries = self.get_ion_entries(ion_ref_pd, ion_ref_data=ion_data)
         pbx_entries = [
-            PourbaixEntry(e, f"ion-{n}") # type: ignore[arg-type]
+            PourbaixEntry(e, f"ion-{n}")  # type: ignore[arg-type]
             for n, e in enumerate(ion_entries)
         ]
 
@@ -888,7 +892,7 @@ class MPRester:
                 f" diagram chemical system is {chemsys}."
             )
 
-        ion_data = ion_ref_data or self.get_ion_reference_data_for_chemsys(chemsys)            
+        ion_data = ion_ref_data or self.get_ion_reference_data_for_chemsys(chemsys)
 
         # position the ion energies relative to most stable reference state
         ion_entries = []
@@ -1126,11 +1130,12 @@ class MPRester:
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
         if isinstance(
-            _structure := self.get_structure_by_material_id(material_id, final = True),
-        list):
-            structure : Structure = _structure[0]
+            _structure := self.get_structure_by_material_id(material_id, final=True),
+            list,
+        ):
+            structure: Structure = _structure[0]
         else:
-            structure = _structure 
+            structure = _structure
 
         doc = self.materials.surface_properties.search(material_ids=material_id)
 
@@ -1334,7 +1339,9 @@ class MPRester:
         }
         run_type_to_dfa = {"GGA": "PBE", "GGA_U": "PBE", "R2SCAN": "r2SCAN"}
 
-        energies : dict[MPID | str, dict[str, dict[str,Any]]] = {mp_id: {} for mp_id in material_ids}
+        energies: dict[MPID | str, dict[str, dict[str, Any]]] = {
+            mp_id: {} for mp_id in material_ids
+        }
         entries = self.get_entries(
             material_ids,
             compatible_only=False,
@@ -1342,7 +1349,7 @@ class MPRester:
             conventional_unit_cell=False,
         )
         for cse in entries:
-            entry : dict[str, Any] = {
+            entry: dict[str, Any] = {
                 "data": cse.data,
                 "uncorrected_energy_per_atom": cse.uncorrected_energy_per_atom,
                 "composition": cse.composition,
@@ -1367,13 +1374,15 @@ class MPRester:
 
         atomic_energies = self.get_atom_reference_data()
 
-        e_coh_per_atom : dict[str, float | None] = {}
+        e_coh_per_atom: dict[str, float | None] = {}
         for mp_id, energy_entries in energies.items():
             if not energy_entries:
                 e_coh_per_atom[str(mp_id)] = None
                 continue
             # take entry from most reliable and available functional
-            prefered_func = sorted(list(energy_entries), key=lambda k: entry_preference[k])[-1]
+            prefered_func = sorted(
+                list(energy_entries), key=lambda k: entry_preference[k]
+            )[-1]
             e_coh_per_atom[str(mp_id)] = self._get_cohesive_energy(
                 energy_entries[prefered_func]["composition"],
                 energy_entries[prefered_func]["total_energy_per_atom"],
@@ -1385,7 +1394,7 @@ class MPRester:
     @lru_cache
     def get_atom_reference_data(
         self,
-        funcs: tuple[str,...] = (
+        funcs: tuple[str, ...] = (
             "PBE",
             "SCAN",
             "r2SCAN",
@@ -1453,10 +1462,8 @@ class MPRester:
         entries: list[ComputedEntry | ComputedStructureEntry | PDEntry],
         thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
     ) -> list[dict[str, Any]] | None:
-        chemsys : set[SpeciesLike] = {
-            ele
-            for entry in entries
-            for ele in entry.composition.elements
+        chemsys: set[SpeciesLike] = {
+            ele for entry in entries for ele in entry.composition.elements
         }
         chemsys_str = "-".join(sorted(str(ele) for ele in chemsys))
 
@@ -1464,7 +1471,7 @@ class MPRester:
             ThermoType(thermo_type) if isinstance(thermo_type, str) else thermo_type
         )
 
-        corrector : Compatibility | None = None
+        corrector: Compatibility | None = None
         if thermo_type == ThermoType.GGA_GGA_U:
             from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
 
@@ -1491,13 +1498,13 @@ class MPRester:
 
         new_pd = PhaseDiagram(
             corrector.process_entries([*entries, *pd.all_entries])
-            if corrector 
-            else [*entries, *pd.all_entries] # type: ignore[list-item]
+            if corrector
+            else [*entries, *pd.all_entries]  # type: ignore[list-item]
         )
 
         return [
             {
-                "e_above_hull": new_pd.get_e_above_hull(entry), # type: ignore[arg-type]
+                "e_above_hull": new_pd.get_e_above_hull(entry),  # type: ignore[arg-type]
                 "composition": entry.composition.as_dict(),
                 "energy": entry.energy,
                 "entry_id": getattr(entry, "entry_id", f"user-entry-{idx}"),
@@ -1511,7 +1518,9 @@ class MPRester:
         working_ion: str | Element,
         thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
     ) -> dict[str, np.ndarray]:
-        working_ion = Element[working_ion] if isinstance(working_ion,str) else working_ion
+        working_ion = (
+            Element[working_ion] if isinstance(working_ion, str) else working_ion
+        )
         formatted_mpid = AlphaID(material_id).string
         electrode_docs = self.materials.insertion_electrodes.search(
             battery_ids=[f"{formatted_mpid}_{working_ion.value}"],

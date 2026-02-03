@@ -98,7 +98,7 @@ class MPCoreMCP(_NeedsMPClient):
 
         return SearchOutput(
             results=[
-                FetchResult(id=doc["material_id"], text=doc["description"]) # type: ignore[call-arg]
+                FetchResult(id=doc["material_id"], text=doc["description"])  # type: ignore[call-arg]
                 for doc in robo_docs
             ]
         )
@@ -140,14 +140,16 @@ class MPCoreMCP(_NeedsMPClient):
 
         # Assume this is a chemical formula or chemical system
         if "mp-" not in idx:
-            summ_kwargs : dict[str, list[str] | str] = {"fields": ["energy_above_hull", "material_id"]}
+            summ_kwargs: dict[str, list[str] | str] = {
+                "fields": ["energy_above_hull", "material_id"]
+            }
             if "-" in idx:
                 summ_kwargs["chemsys"] = "-".join(sorted(idx.split("-")))
             else:
                 summ_kwargs["formula"] = idx
 
             if not (summ_docs := self.client.materials.summary.search(**summ_kwargs)):
-                return FetchResult(id=idx) # type: ignore[call-arg]
+                return FetchResult(id=idx)  # type: ignore[call-arg]
 
             idx = min(summ_docs, key=lambda doc: doc["energy_above_hull"])[
                 "material_id"
@@ -165,7 +167,7 @@ class MPCoreMCP(_NeedsMPClient):
             robo_desc = robo_docs[0]["description"]
 
         if not robo_desc:
-            return FetchResult(id=idx) # type: ignore[call-arg]
+            return FetchResult(id=idx)  # type: ignore[call-arg]
 
         metadata: dict[str, str] = {}
 
@@ -195,7 +197,7 @@ class MPCoreMCP(_NeedsMPClient):
             # simple str or numeric type
             summary_doc = summary_docs[0]
 
-        return FetchResult( # type: ignore[call-arg]
+        return FetchResult(  # type: ignore[call-arg]
             id=idx,
             text=robo_desc,
             metadata=MaterialMetadata.from_summary_data(summary_doc, **metadata),
@@ -204,7 +206,7 @@ class MPCoreMCP(_NeedsMPClient):
     def get_phase_diagram_from_elements(
         self,
         elements: list[str],
-        thermo_type: Literal[ # type: ignore[valid-type]
+        thermo_type: Literal[  # type: ignore[valid-type]
             *[x.value for x in ThermoType.__members__.values() if x.value != "UNKNOWN"]
         ]
         | str = "GGA_GGA+U_R2SCAN",

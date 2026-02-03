@@ -152,8 +152,8 @@ class LazyImport:
             A dot-separated, import-like string.
         """
         if len(split_import_str := import_str.rsplit(".", 1)) == 1:
-            self._module_name : str = split_import_str[0]
-            self._class_name : str | None = None
+            self._module_name: str = split_import_str[0]
+            self._class_name: str | None = None
         else:
             self._module_name, self._class_name = split_import_str
 
@@ -204,9 +204,9 @@ class LazyImport:
         if isinstance(self._imported, type):
             self._obj = self._imported(*args, **kwargs)
             return self._obj
-        elif hasattr(self._imported,"__call__"):
+        elif callable(self._imported):
             self._obj = self._imported
-            return self._obj(*args, **kwargs) # type: ignore[misc]
+            return self._obj(*args, **kwargs)  # type: ignore[misc]
 
     def __getattr__(self, v: str) -> Any:
         """Get an attribute on a super lazy object."""

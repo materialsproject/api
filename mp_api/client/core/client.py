@@ -46,6 +46,7 @@ from mp_api.client.core.utils import (
 
 try:
     import flask
+
     _flask_is_installed = True
 except ImportError:
     _flask_is_installed = False
@@ -60,7 +61,7 @@ if TYPE_CHECKING:
 try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
-    __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION","")
+    __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION", "")
 
 
 class _DictLikeAccess(BaseModel):
@@ -411,7 +412,7 @@ class BaseRester:
         num_chunks: int | None = None,
         chunk_size: int | None = None,
         timeout: int | None = None,
-    ) -> dict[str,Any]:
+    ) -> dict[str, Any]:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
 
@@ -543,15 +544,13 @@ class BaseRester:
                 for docs, _, _ in byte_data:
                     unzipped_data.extend(docs)
 
-                data : dict[str,Any] = {
+                data: dict[str, Any] = {
                     "data": (
-                        self._convert_to_model(unzipped_data) # type: ignore[arg-type]
+                        self._convert_to_model(unzipped_data)  # type: ignore[arg-type]
                         if self.use_document_model
                         else unzipped_data
                     ),
-                    "meta": {
-                        "total_doc": len(unzipped_data)
-                    }
+                    "meta": {"total_doc": len(unzipped_data)},
                 }
 
             else:
@@ -1024,7 +1023,9 @@ class BaseRester:
                 f"on URL {response.url} with message:\n{message}"
             )
 
-    def _convert_to_model(self, data: list[dict[str,Any]]) -> list[BaseModel] | list[dict[str,Any]]:
+    def _convert_to_model(
+        self, data: list[dict[str, Any]]
+    ) -> list[BaseModel] | list[dict[str, Any]]:
         """Converts dictionary documents to instantiated MPDataDoc objects.
 
         Args:
@@ -1074,7 +1075,7 @@ class BaseRester:
             if not field_copy.default_factory:
                 # Fields with a default_factory cannot also have a default in pydantic>=2.12.3
                 field_copy.default = None
-            include_fields[name] = ( # type: ignore[assignment]
+            include_fields[name] = (  # type: ignore[assignment]
                 Optional[model_fields[name].annotation],
                 field_copy,
             )
@@ -1211,7 +1212,7 @@ class BaseRester:
         self,
         document_id: str,
         fields: list[str] | None = None,
-    ) -> BaseModel | dict[str,Any] | None:
+    ) -> BaseModel | dict[str, Any] | None:
         warnings.warn(
             "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
             DeprecationWarning,

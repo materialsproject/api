@@ -264,7 +264,7 @@ class BandStructureRester(BaseESPropertyRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        return self._query_open_data( # type: ignore[call-overload]
+        return self._query_open_data(  # type: ignore[call-overload]
             bucket="materialsproject-parsed",
             key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
             decoder=lambda x: load_json(x, deser=True),
@@ -321,9 +321,7 @@ class BandStructureRester(BaseESPropertyRester):
                     f"No uniform band structure data found for {material_id}"
                 )
 
-            bs_data = (
-                _bs_data.model_dump() if self.use_document_model else _bs_data
-            )
+            bs_data = _bs_data.model_dump() if self.use_document_model else _bs_data
 
             if bs_data.get("total", None) is None:
                 raise MPRestError(
@@ -462,7 +460,7 @@ class DosRester(BaseESPropertyRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-        return self._query_open_data( # type: ignore[call-overload]
+        return self._query_open_data(  # type: ignore[call-overload]
             bucket="materialsproject-parsed",
             key=f"dos/{validate_ids([task_id])[0]}.json.gz",
             decoder=lambda x: load_json(x, deser=True),

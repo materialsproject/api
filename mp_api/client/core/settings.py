@@ -111,4 +111,4 @@ class MAPIClientSettings(BaseSettings):
         return v or os.environ.get("MP_API_ENDPOINT") or _DEFAULT_ENDPOINT
 
 
-MAPI_CLIENT_SETTINGS : MAPIClientSettings = MAPIClientSettings() # type: ignore[call-arg]
+MAPI_CLIENT_SETTINGS: MAPIClientSettings = MAPIClientSettings()  # type: ignore[call-arg]

@@ -206,7 +206,9 @@ class SummaryRester(BaseRester):
 
         # Check to see if user specified _search fields using **kwargs,
         # or if any of the **kwargs are unparsable
-        db_keys : dict[str,list[str]] = {k: [] for k in ("duplicate", "warn", "unknown")}
+        db_keys: dict[str, list[str]] = {
+            k: [] for k in ("duplicate", "warn", "unknown")
+        }
         for k, v in kwargs.items():
             category = "unknown"
             if non_db_k := mmnd_inv.get(k):

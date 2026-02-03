@@ -15,8 +15,6 @@ from mp_api.client.routes.materials import MATERIALS_RESTERS
 if TYPE_CHECKING:
     from typing import Any
 
-    from pymatgen.entries.computed_entries import ComputedStructureEntry
-
 
 class MaterialsRester(CoreRester):
     suffix = "materials/core"
@@ -46,12 +44,8 @@ class MaterialsRester(CoreRester):
             # Ensure that return type is a Structure regardless of `model_dump`
             if isinstance(r, dict):
                 return Structure.from_dict(r)
-            elif isinstance(r, list) and any(
-                isinstance(struct, dict) for struct in r
-            ):
-                return [
-                    Structure.from_dict(struct) for struct in r
-                ]
+            elif isinstance(r, list) and any(isinstance(struct, dict) for struct in r):
+                return [Structure.from_dict(struct) for struct in r]
 
         return None
 
