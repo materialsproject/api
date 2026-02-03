@@ -65,10 +65,21 @@ RESTER_LAYOUT = {
         "mp_api.client.routes.materials.materials.MaterialsRester"
     ),
     **{f"materials/{k}": v for k, v in MATERIALS_RESTERS.items() if k not in {"doi"}},
-    "doi": MATERIALS_RESTERS["doi"],
     **{f"molecules/{k}": v for k, v in MOLECULES_RESTERS.items()},
+}
+GENERIC_RESTERS = {
+    "doi": MATERIALS_RESTERS["doi"],
     **GENERIC_RESTERS,
 }
+
+TOP_LEVEL_RESTERS = [
+    "molecules/core",
+    "materials/core",
+    "_general_store",
+    "_messages",
+    "_user_settings",
+    "doi",
+]
 
 
 class MPRester:
@@ -193,27 +204,23 @@ class MPRester:
         # Nested rested are then setup to be loaded dynamically with custom __getattr__ functions.
         self._all_resters = list(RESTER_LAYOUT.values())
 
-        # Instantiate top level molecules and materials resters and set them as attributes
-        core_suffix = ["molecules/core", "materials/core"]
-
-        core_resters = {
-            rest_name.split("/")[0]: lazy_rester(
-                api_key=self.api_key,
-                endpoint=self.endpoint,
-                include_user_agent=self._include_user_agent,
-                session=self.session,
-                use_document_model=self.use_document_model,
-                headers=self.headers,
-                mute_progress_bars=self.mute_progress_bars,
-            )
-            for rest_name, lazy_rester in RESTER_LAYOUT.items()
-            if rest_name in core_suffix
-        }
-
-        # Set remaining top level resters, or get an attribute-class name mapping
-
-        for attr, rester in core_resters.items():
-            setattr(self, attr, rester)
+        # Instantiate top level core molecules, materials, and DOI resters, as well
+        # as the sunder resters to allow the web server to work.
+        for rest_name, lazy_rester in (RESTER_LAYOUT | GENERIC_RESTERS).items():
+            if rest_name in TOP_LEVEL_RESTERS:
+                setattr(
+                    self,
+                    rest_name.split("/")[0],
+                    lazy_rester(
+                        api_key=self.api_key,
+                        endpoint=self.endpoint,
+                        include_user_agent=self._include_user_agent,
+                        session=self.session,
+                        use_document_model=self.use_document_model,
+                        headers=self.headers,
+                        mute_progress_bars=self.mute_progress_bars,
+                    ),
+                )
 
     @property
     def contribs(self):
@@ -263,7 +270,11 @@ class MPRester:
             )
 
     def __dir__(self):
-        return dir(MPRester) + self._deprecated_attributes + ["materials", "molecules"]
+        return (
+            dir(MPRester)
+            + self._deprecated_attributes
+            + [r.split("/", 1)[0] for r in TOP_LEVEL_RESTERS if not r.startswith("_")]
+        )
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
