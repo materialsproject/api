@@ -15,7 +15,6 @@ from mp_api.client.core.utils import load_json, validate_ids
 class ThermoRester(BaseRester):
     suffix = "materials/thermo"
     document_model = ThermoDoc  # type: ignore
-    supports_versions = True
     primary_key = "thermo_id"
 
     def search(
@@ -69,7 +68,7 @@ class ThermoRester(BaseRester):
         Returns:
             ([ThermoDoc], [dict]) List of thermo documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if formula:
             if isinstance(formula, str):

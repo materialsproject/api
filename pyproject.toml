@@ -20,13 +20,11 @@ classifiers = [
   "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-  "msgpack",
   "pymatgen>=2022.3.7,!=2024.2.20",
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
-  "emmet-core>=0.86.3rc0",
-  "smart_open",
+  "emmet-core>=0.86.3",
   "boto3",
   "orjson >= 3.10,<4",
 ]
@@ -35,11 +33,11 @@ dynamic = ["version"]
 [project.optional-dependencies]
 mcp = ["fastmcp"]
 all = [
-  "emmet-core[all]>=0.86.2",
+  "emmet-core[all]>=0.86.3",
   "custodian",
   "mpcontribs-client>=5.10",
-  "mp_api[mcp]",
-  "scipy<1.17.0", # pending fixes in matminer
+  "fastmcp",
+  "matminer>=0.10.0",
 ]
 test = [
   "pre-commit",

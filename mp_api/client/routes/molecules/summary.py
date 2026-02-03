@@ -68,7 +68,7 @@ class MoleculesSummaryRester(BaseRester):
         Returns:
             ([MoleculeSummaryDoc]) List of molecules summary documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         min_max = [
             "nelements",

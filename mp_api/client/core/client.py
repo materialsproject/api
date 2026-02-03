@@ -5,6 +5,7 @@ Materials Project data.
 
 from __future__ import annotations
 
+import gzip
 import inspect
 import os
 import platform
@@ -14,30 +15,31 @@ from copy import copy
 from functools import cache
 from importlib import import_module
 from importlib.metadata import PackageNotFoundError, version
+from io import BytesIO
 from json import JSONDecodeError
 from math import ceil
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
-from urllib.parse import urljoin
 
+import boto3
 import requests
+from botocore import UNSIGNED
+from botocore.config import Config
+from botocore.exceptions import ClientError
 from emmet.core.utils import jsanitize
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
-from smart_open import open
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
 from mp_api.client.core.exceptions import MPRestError
-from mp_api.client.core.settings import MAPIClientSettings
-from mp_api.client.core.utils import load_json, validate_ids
-
-try:
-    import boto3
-    from botocore import UNSIGNED
-    from botocore.config import Config
-except ImportError:
-    boto3 = None
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
+from mp_api.client.core.utils import (
+    load_json,
+    validate_api_key,
+    validate_endpoint,
+    validate_ids,
+)
 
 try:
     import flask
@@ -49,13 +51,12 @@ if TYPE_CHECKING:
 
     from pydantic.fields import FieldInfo
 
+    from mp_api.client.core.utils import LazyImport
+
 try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
-
-
-SETTINGS = MAPIClientSettings()  # type: ignore
 
 
 class _DictLikeAccess(BaseModel):
@@ -80,7 +81,6 @@ class BaseRester:
 
     suffix: str = ""
     document_model: type[BaseModel] | None = None
-    supports_versions: bool = False
     primary_key: str = "material_id"
 
     def __init__(
@@ -94,7 +94,7 @@ class BaseRester:
         use_document_model: bool = True,
         timeout: int = 20,
         headers: dict | None = None,
-        mute_progress_bars: bool = SETTINGS.MUTE_PROGRESS_BARS,
+        mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
         **kwargs,
     ):
         """Initialize the REST API helper class.
@@ -128,23 +128,17 @@ class BaseRester:
             mute_progress_bars: Whether to disable progress bars.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        # TODO: think about how to migrate from PMG_MAPI_KEY
-        self.api_key = api_key or os.getenv("MP_API_KEY")
-        self.base_endpoint = self.endpoint = endpoint or os.getenv(
-            "MP_API_ENDPOINT", "https://api.materialsproject.org/"
-        )
+        self.api_key = validate_api_key(api_key)
+        self.base_endpoint = validate_endpoint(endpoint)
+        self.endpoint = validate_endpoint(endpoint, suffix=self.suffix)
+
         self.debug = debug
         self.include_user_agent = include_user_agent
         self.use_document_model = use_document_model
         self.timeout = timeout
         self.headers = headers or {}
         self.mute_progress_bars = mute_progress_bars
-        self.db_version = BaseRester._get_database_version(self.endpoint)
-
-        if self.suffix:
-            self.endpoint = urljoin(self.endpoint, self.suffix)
-        if not self.endpoint.endswith("/"):
-            self.endpoint += "/"
+        self.db_version = BaseRester._get_database_version(self.base_endpoint)
 
         self._session = session
         self._s3_client = s3_client
@@ -165,13 +159,6 @@ class BaseRester:
 
     @property
     def s3_client(self):
-        if boto3 is None:
-            raise MPRestError(
-                "boto3 not installed. To query charge density, "
-                "band structure, or density of states data first "
-                "install with: 'pip install boto3'"
-            )
-
         if not self._s3_client:
             self._s3_client = boto3.client(
                 "s3",
@@ -192,15 +179,14 @@ class BaseRester:
             user_agent = f"{mp_api_info} ({python_info} {platform_info})"
             session.headers["user-agent"] = user_agent
 
-        settings = MAPIClientSettings()  # type: ignore
-        max_retry_num = settings.MAX_RETRIES
+        max_retry_num = MAPI_CLIENT_SETTINGS.MAX_RETRIES
         retry = Retry(
             total=max_retry_num,
             read=max_retry_num,
             connect=max_retry_num,
             respect_retry_after_header=True,
             status_forcelist=[429, 504, 502],  # rate limiting
-            backoff_factor=settings.BACKOFF_FACTOR,
+            backoff_factor=MAPI_CLIENT_SETTINGS.BACKOFF_FACTOR,
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("http://", adapter)
@@ -261,11 +247,7 @@ class BaseRester:
         payload = jsanitize(body)
 
         try:
-            url = self.endpoint
-            if suburl:
-                url = urljoin(self.endpoint, suburl)
-                if not url.endswith("/"):
-                    url += "/"
+            url = validate_endpoint(self.endpoint, suffix=suburl)
             response = self.session.post(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
@@ -329,11 +311,7 @@ class BaseRester:
         payload = jsanitize(body)
 
         try:
-            url = self.endpoint
-            if suburl:
-                url = urljoin(self.endpoint, suburl)
-                if not url.endswith("/"):
-                    url += "/"
+            url = validate_endpoint(self.endpoint, suffix=suburl)
             response = self.session.patch(url, json=payload, verify=True, params=params)
 
             if response.status_code == 200:
@@ -388,20 +366,31 @@ class BaseRester:
         Returns:
             dict: MontyDecoded data
         """
-        decoder = decoder or load_json
+        try:
+            byio = BytesIO()
+            self.s3_client.download_fileobj(bucket, key, byio)
+            byio.seek(0)
+            if (file_data := byio.read()).startswith(b"\x1f\x8b"):
+                file_data = gzip.decompress(file_data)
+            byio.close()
 
-        file = open(
-            f"s3://{bucket}/{key}",
-            encoding="utf-8",
-            transport_params={"client": self.s3_client},
-        )
+            decoder = decoder or load_json
 
-        if "jsonl" in key:
-            decoded_data = [decoder(jline) for jline in file.read().splitlines()]
-        else:
-            decoded_data = decoder(file.read())
-            if not isinstance(decoded_data, list):
-                decoded_data = [decoded_data]
+            if "jsonl" in key:
+                decoded_data = [decoder(jline) for jline in file_data.splitlines()]
+            else:
+                decoded_data = decoder(file_data)
+                if not isinstance(decoded_data, list):
+                    decoded_data = [decoded_data]
+
+            raise_error = not decoded_data or len(decoded_data) == 0
+
+        except ClientError:
+            # No such object exists
+            raise_error = True
+
+        if raise_error:
+            raise MPRestError(f"No object found: s3://{bucket}/{key}")
 
         return decoded_data, len(decoded_data)  # type: ignore
 
@@ -463,14 +452,9 @@ class BaseRester:
             criteria["_fields"] = ",".join(fields)
 
         try:
-            url = self.endpoint
-            if suburl:
-                url = urljoin(self.endpoint, suburl)
-                if not url.endswith("/"):
-                    url += "/"
+            url = validate_endpoint(self.endpoint, suffix=suburl)
 
             if query_s3:
-                db_version = self.db_version.replace(".", "-")
                 if "/" not in self.suffix:
                     suffix = self.suffix
                 elif self.suffix == "molecules/summary":
@@ -486,7 +470,7 @@ class BaseRester:
                     bucket_suffix, prefix = "parsed", "tasks_atomate2"
                 else:
                     bucket_suffix = "build"
-                    prefix = f"collections/{db_version}/{suffix}"
+                    prefix = f"collections/{self.db_version.replace('.', '-')}/{suffix}"
 
                 bucket = f"materialsproject-{bucket_suffix}"
                 paginator = self.s3_client.get_paginator("list_objects_v2")
@@ -634,7 +618,7 @@ class BaseRester:
                 break
 
         # If we found a parameter to split, try the request first and only split on error
-        if split_param and split_values and len(split_values) > 1:
+        if split_param and len(split_values or []) > 1:
             try:
                 # First, try the request with all values as-is
                 initial_criteria = copy(criteria)
@@ -1202,3 +1186,37 @@ class BaseRester:
             f"{self.__class__.__name__} connected to {self.endpoint}\n\n"
             f"Available fields: {', '.join(self.available_fields)}\n\n"
         )
+
+
+class CoreRester(BaseRester):
+    """Define a BaseRester with extra features for core resters.
+
+    Enables lazy importing / initialization of sub resters
+    provided in `_sub_resters`, which should be a map
+    of endpoints names to LazyImport objects.
+
+    """
+
+    _sub_resters: dict[str, LazyImport] = {}
+
+    def __init__(self, **kwargs):
+        """Ensure that sub resters are unset on re-init."""
+        super().__init__(**kwargs)
+        self.sub_resters = {k: v.copy() for k, v in self._sub_resters.items()}
+
+    def __getattr__(self, v: str):
+        if v in self.sub_resters:
+            if self.sub_resters[v]._obj is None:
+                self.sub_resters[v](
+                    api_key=self.api_key,
+                    endpoint=self.base_endpoint,
+                    include_user_agent=self._include_user_agent,
+                    session=self.session,
+                    use_document_model=self.use_document_model,
+                    headers=self.headers,
+                    mute_progress_bars=self.mute_progress_bars,
+                )
+            return self.sub_resters[v]
+
+    def __dir__(self):
+        return dir(self.__class__) + list(self._sub_resters)

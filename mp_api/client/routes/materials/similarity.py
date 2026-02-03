@@ -57,7 +57,7 @@ class SimilarityRester(BaseRester):
         Returns:
             ([SimilarityDoc], [dict]) List of similarity documents or dictionaries.
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         if material_ids:
             if isinstance(material_ids, str):

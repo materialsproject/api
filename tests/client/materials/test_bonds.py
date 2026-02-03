@@ -19,20 +19,20 @@ excluded_params = [
     "fields",
 ]
 
-sub_doc_fields = []  # type: list
+sub_doc_fields: list = []
 
-alt_name_dict = {
+alt_name_dict: dict = {
     "material_ids": "material_id",
     "max_bond_length": "bond_length_stats",
     "min_bond_length": "bond_length_stats",
     "mean_bond_length": "bond_length_stats",
-}  # type: dict
+}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "material_ids": ["mp-149"],
     "coordination_envs": ["Mo-S(6)"],
     "coordination_envs_anonymous": ["A-B(6)"],
-}  # type: dict
+}
 
 
 @requires_api_key

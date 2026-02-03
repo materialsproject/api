@@ -75,7 +75,7 @@ class MoleculesVibrationRester(BaseRester):
         Returns:
             ([VibrationDoc]) List of molecule vibration documents
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         if molecule_ids:
             if isinstance(molecule_ids, str):

@@ -154,7 +154,7 @@ class SummaryRester(BaseRester):
         Returns:
             ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         not_aliased_kwargs = [
             "energy_above_hull",

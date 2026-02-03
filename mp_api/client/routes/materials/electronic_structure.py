@@ -81,7 +81,7 @@ class ElectronicStructureRester(BaseRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -210,7 +210,7 @@ class BandStructureRester(BaseESPropertyRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         query_params["path_type"] = (
             BSPathType[path_type] if isinstance(path_type, str) else path_type
@@ -264,18 +264,11 @@ class BandStructureRester(BaseESPropertyRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        try:
-            result = self._query_open_data(
-                bucket="materialsproject-parsed",
-                key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
-                decoder=lambda x: load_json(x, deser=True),
-            )[0]
-        except OSError:
-            result = None
-
-        if result:
-            return result[0]["data"]
-        raise MPRestError("No object found")
+        return self._query_open_data(
+            bucket="materialsproject-parsed",
+            key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
+            decoder=lambda x: load_json(x, deser=True),
+        )[0][0]["data"]
 
     def get_bandstructure_from_material_id(
         self,
@@ -392,7 +385,7 @@ class DosRester(BaseESPropertyRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         query_params["projection_type"] = (
             DOSProjectionType[projection_type]
@@ -469,18 +462,11 @@ class DosRester(BaseESPropertyRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-        try:
-            result = self._query_open_data(
-                bucket="materialsproject-parsed",
-                key=f"dos/{validate_ids([task_id])[0]}.json.gz",
-                decoder=lambda x: load_json(x, deser=True),
-            )[0]
-        except OSError:
-            result = None
-
-        if result:
-            return result[0]["data"]  # type: ignore
-        raise MPRestError("No object found")
+        return self._query_open_data(
+            bucket="materialsproject-parsed",
+            key=f"dos/{validate_ids([task_id])[0]}.json.gz",
+            decoder=lambda x: load_json(x, deser=True),
+        )[0][0]["data"]
 
     def get_dos_from_material_id(self, material_id: str):
         """Get the complete density of states pymatgen object associated with a Materials Project ID.

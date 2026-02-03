@@ -20,7 +20,7 @@ excluded_params = [
 
 alt_name_dict = {"formula": "formula_alphabetical", "molecule_ids": "molecule_id"}
 
-custom_field_tests = {
+custom_field_tests: dict = {
     "molecule_ids": ["351ef090ebd90b661a4e1205756f6957-C1Mg1N2O1S1-m2-1"],
     "formula": "C2 H4",
     "chemsys": "C-H",
@@ -32,7 +32,7 @@ custom_field_tests = {
     "charge": 1,
     "spin_multiplicity": 1,
     "has_props": [HasProps.orbitals],
-}  # type: dict
+}
 
 
 @pytest.mark.skip(reason="Temporary until data adjustments")

@@ -64,7 +64,7 @@ class RobocrysRester(BaseRester):
         Returns:
             ([RobocrystallogapherDoc], [dict]) List of robocrystallographer documents or dictionaries.
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         if material_ids:
             if isinstance(material_ids, str):

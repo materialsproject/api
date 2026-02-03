@@ -1,4 +1,4 @@
-from mp_api.client.routes.materials import DOIRester
+from mp_api.client.routes.materials.doi import DOIRester
 
 from ..conftest import client_search_testing, requires_api_key
 

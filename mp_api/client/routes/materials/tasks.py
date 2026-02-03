@@ -75,7 +75,7 @@ class TaskRester(BaseRester):
         Returns:
             ([CoreTaskDoc], [dict]) List of task documents or dictionaries.
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         if task_ids:
             if isinstance(task_ids, str):
