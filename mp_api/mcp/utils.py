@@ -52,7 +52,7 @@ class _NeedsMPClient:
         )
         self.client.session.headers["user-agent"] = self.client.session.headers[
             "user-agent"
-        ].replace("mp-api", "mp-mcp")
+        ].replace("mp-api", "mp-mcp") # type: ignore[arg-type]
 
     def update_user_api_key(self, api_key: str) -> None:
         """Change the API key used in the client.

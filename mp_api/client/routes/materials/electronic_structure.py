@@ -264,7 +264,7 @@ class BandStructureRester(BaseESPropertyRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        return self._query_open_data(
+        return self._query_open_data( # type: ignore[call-overload]
             bucket="materialsproject-parsed",
             key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
             decoder=lambda x: load_json(x, deser=True),
@@ -293,13 +293,13 @@ class BandStructureRester(BaseESPropertyRester):
             if not bs_doc:
                 raise MPRestError("No electronic structure data found.")
 
-            if (bs_data := bs_doc[0]["bandstructure"]) is None:
+            if (_bs_data := bs_doc[0]["bandstructure"]) is None:
                 raise MPRestError(
                     f"No {path_type.value} band structure data found for {material_id}"
                 )
 
-            bs_data: dict = (
-                bs_data.model_dump() if self.use_document_model else bs_data  # type: ignore
+            bs_data = (
+                _bs_data.model_dump() if self.use_document_model else _bs_data  # type: ignore
             )
 
             if bs_data.get(path_type.value, None) is None:
@@ -316,13 +316,13 @@ class BandStructureRester(BaseESPropertyRester):
             ):
                 raise MPRestError("No electronic structure data found.")
 
-            if (bs_data := bs_doc[0]["dos"]) is None:
+            if (_bs_data := bs_doc[0]["dos"]) is None:
                 raise MPRestError(
                     f"No uniform band structure data found for {material_id}"
                 )
 
-            bs_data: dict = (
-                bs_data.model_dump() if self.use_document_model else bs_data  # type: ignore
+            bs_data = (
+                _bs_data.model_dump() if self.use_document_model else _bs_data
             )
 
             if bs_data.get("total", None) is None:
@@ -462,7 +462,7 @@ class DosRester(BaseESPropertyRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-        return self._query_open_data(
+        return self._query_open_data( # type: ignore[call-overload]
             bucket="materialsproject-parsed",
             key=f"dos/{validate_ids([task_id])[0]}.json.gz",
             decoder=lambda x: load_json(x, deser=True),

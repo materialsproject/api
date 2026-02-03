@@ -124,7 +124,7 @@ class PhononRester(BaseRester):
         Returns:
             force constants (list[list[Matrix3D]]): PhononDOS object
         """
-        return self._query_open_data(
+        return self._query_open_data( # type: ignore[return-value]
             bucket="materialsproject-parsed",
             key=f"ph-force-constants/{material_id}.json.gz",
         )[0][0]

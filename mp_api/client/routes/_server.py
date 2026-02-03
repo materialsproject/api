@@ -62,7 +62,7 @@ class MessagesRester(BaseRester):  # pragma: no cover
         title: str,
         body: str,
         type: MessageType = MessageType.generic,
-        authors: list[str] = None,
+        authors: list[str] | None = None,
     ):  # pragma: no cover
         """Set user settings.
 
