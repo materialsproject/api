@@ -46,6 +46,7 @@ class MaterialsRester(CoreRester):
                 return Structure.from_dict(r)
             elif isinstance(r, list) and any(isinstance(struct, dict) for struct in r):
                 return [Structure.from_dict(struct) for struct in r]
+            return r
 
         return None
 
