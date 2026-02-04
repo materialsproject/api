@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-import numpy as np
 from emmet.core.phonon import PhononBS, PhononBSDOSDoc, PhononDOS
 
 from mp_api.client.core import BaseRester, MPRestError
@@ -61,7 +60,7 @@ class PhononRester(BaseRester):
             if query_params[entry] is not None
         }
 
-        return super()._search(
+        return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,
@@ -86,10 +85,11 @@ class PhononRester(BaseRester):
             key=f"ph-bandstructures/{phonon_method}/{material_id}.json.gz",
         )[0][0]
 
-        if self.use_document_model:
-            return PhononBS(**result)
-
-        return result
+        return (
+            PhononBS(**result)  # type: ignore[arg-type]
+            if self.use_document_model
+            else result  # type: ignore[return-value]
+        )
 
     def get_dos_from_material_id(
         self, material_id: str, phonon_method: str
@@ -108,10 +108,11 @@ class PhononRester(BaseRester):
             key=f"ph-dos/{phonon_method}/{material_id}.json.gz",
         )[0][0]
 
-        if self.use_document_model:
-            return PhononDOS(**result)
-
-        return result
+        return (
+            PhononDOS(**result)  # type: ignore[type-arg]
+            if self.use_document_model
+            else result  # type: ignore[return-value]
+        )
 
     def get_forceconstants_from_material_id(
         self, material_id: str
@@ -146,9 +147,10 @@ class PhononRester(BaseRester):
             raise MPRestError("No phonon document found")
 
         self.use_document_model = True
-        docs[0]["phonon_dos"] = self.get_dos_from_material_id(
+        docs[0]["phonon_dos"] = self.get_dos_from_material_id(  # type: ignore[index]
             material_id, phonon_method
         )
-        doc = PhononBSDOSDoc(**docs[0])
+        doc = PhononBSDOSDoc(**docs[0])  # type: ignore[arg-type]
         self.use_document_model = use_document_model
-        return doc.compute_thermo_quantities(np.linspace(0, 800, 100))
+        # below: same as numpy.linspace(0,800,100) but written out for mypy
+        return doc.compute_thermo_quantities([i * 800 / 99 for i in range(100)])

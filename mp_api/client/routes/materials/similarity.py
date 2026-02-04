@@ -70,7 +70,7 @@ class SimilarityRester(BaseRester):
             for entry in query_params
             if query_params[entry] is not None
         }
-        return super()._search(
+        return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,
@@ -111,7 +111,7 @@ class SimilarityRester(BaseRester):
             docs = self.search(material_ids=[fmt_idx], fields=["feature_vector"])
             if not docs:
                 raise MPRestError(f"No similarity data available for {fmt_idx}")
-            feature_vector = docs[0]["feature_vector"]
+            feature_vector = docs[0]["feature_vector"]  # type: ignore[index]
 
         elif isinstance(structure_or_mpid, Structure):
             feature_vector = self.fingerprint_structure(structure_or_mpid)

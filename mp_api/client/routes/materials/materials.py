@@ -40,7 +40,7 @@ class MaterialsRester(CoreRester):
 
         response = self.search(material_ids=material_id, fields=[field])
 
-        if response and (r := response[0][field]):
+        if response and (r := response[0][field]):  # type: ignore[index]
             # Ensure that return type is a Structure regardless of `model_dump`
             if isinstance(r, dict):
                 return Structure.from_dict(r)
@@ -161,7 +161,7 @@ class MaterialsRester(CoreRester):
             if query_params[entry] is not None
         }
 
-        return super()._search(
+        return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

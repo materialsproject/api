@@ -55,6 +55,8 @@ if TYPE_CHECKING:
     )
     from pymatgen.util.typing import SpeciesLike
 
+    from mp_api.client.core.client import _DictLikeAccess
+
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
 
 RESTER_LAYOUT = {
@@ -1212,7 +1214,7 @@ class MPRester:
         if not task_ids:
             return None
 
-        results: list[CoreTaskDoc] = self.materials.tasks.search(
+        results: list[_DictLikeAccess] = self.materials.tasks.search(
             task_ids=task_ids, fields=["last_updated", "task_id"]
         )  # type: ignore
 
@@ -1507,10 +1509,15 @@ class MPRester:
             )
             return None
 
-        new_pd = PhaseDiagram(
-            corrector.process_entries([*entries, *pd.all_entries])
+        joint_entries: Sequence[ComputedEntry | ComputedStructureEntry | PDEntry] = [
+            *entries,
+            *pd.all_entries,
+        ]
+
+        new_pd = PhaseDiagram(  # type: ignore[arg-type]
+            corrector.process_entries(joint_entries)
             if corrector
-            else [*entries, *pd.all_entries]  # type: ignore[list-item]
+            else joint_entries  # type: ignore[list-item]
         )
 
         return [
