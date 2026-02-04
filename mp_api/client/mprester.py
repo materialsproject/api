@@ -1514,8 +1514,8 @@ class MPRester:
             *pd.all_entries,
         ]
 
-        new_pd = PhaseDiagram(  # type: ignore[arg-type]
-            corrector.process_entries(joint_entries)
+        new_pd = PhaseDiagram(
+            corrector.process_entries(joint_entries)  # type: ignore[arg-type]
             if corrector
             else joint_entries  # type: ignore[list-item]
         )

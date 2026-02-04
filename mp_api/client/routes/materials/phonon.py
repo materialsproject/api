@@ -109,7 +109,7 @@ class PhononRester(BaseRester):
         )[0][0]
 
         return (
-            PhononDOS(**result)  # type: ignore[type-arg]
+            PhononDOS(**result)  # type: ignore[arg-type]
             if self.use_document_model
             else result  # type: ignore[return-value]
         )
