@@ -18,12 +18,11 @@ def test_chem_sys_parsing():
 
 
 def test_core_search_tools():
-
     with MPCoreMCP() as mcp_tools:
         search_results = mcp_tools.search("Ga-W")
         robo_desc_docs = mcp_tools.client.materials.robocrys.search_docs(
             material_ids=[doc.id for doc in search_results.results],
-            fields=["material_id","description"]
+            fields=["material_id", "description"],
         )
     robo_descs = {doc["material_id"]: doc["description"] for doc in robo_desc_docs}
 
@@ -38,18 +37,18 @@ def test_core_search_tools():
         for doc in search_results.results
     )
 
-def test_core_fetch_tools():
 
+def test_core_fetch_tools():
     with MPCoreMCP() as mcp_tools:
         fetch_results = mcp_tools.fetch("Ir2 Br6")
         fetch_many_results = mcp_tools.fetch_many("Ir2 Br6")
         ref_struct = mcp_tools.client.get_structure_by_material_id(fetch_results.id)
 
         robo_desc_docs = mcp_tools.client.materials.robocrys.search_docs(
-            material_ids = [fetch_results.id], fields=["material_id","description"]
+            material_ids=[fetch_results.id], fields=["material_id", "description"]
         )
         assert all(
-            isinstance(doc,FetchResult) for doc in mcp_tools.fetch_many("mp-13, LiF")
+            isinstance(doc, FetchResult) for doc in mcp_tools.fetch_many("mp-13, LiF")
         )
 
     assert fetch_many_results[0] == fetch_results
@@ -57,11 +56,12 @@ def test_core_fetch_tools():
     assert isinstance(fetch_results, FetchResult)
     assert isinstance(fetch_results.metadata, MaterialMetadata)
     assert isinstance(fetch_results.metadata.structurally_similar_materials, str)
-    assert fetch_results.text == next(
-        doc
-        for doc in robo_desc_docs
-        if doc["material_id"] == fetch_results.id
-    )["description"]
+    assert (
+        fetch_results.text
+        == next(
+            doc for doc in robo_desc_docs if doc["material_id"] == fetch_results.id
+        )["description"]
+    )
 
     assert np.allclose(
         ref_struct.lattice.matrix,
@@ -79,12 +79,9 @@ def test_core_fetch_tools():
     else:
         assert fetch_results.metadata.magnetic_moments is None
 
-def test_core_phase_diagram_tool():
 
+def test_core_phase_diagram_tool():
     from plotly.graph_objects import Figure
 
     with MPCoreMCP() as mcp_tools:
-        assert isinstance(
-            mcp_tools.get_phase_diagram_from_elements("Li, F"), Figure
-        )
-
+        assert isinstance(mcp_tools.get_phase_diagram_from_elements("Li, F"), Figure)

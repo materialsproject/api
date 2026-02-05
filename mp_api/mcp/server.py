@@ -30,7 +30,13 @@ def get_core_mcp() -> FastMCP:
         instructions=MCP_SERVER_INSTRUCTIONS,
     )
     core_tools = MPCoreMCP()
-    for k in {"search", "fetch", "fetch_many", "fetch_all", "get_phase_diagram_from_elements"}:
+    for k in {
+        "search",
+        "fetch",
+        "fetch_many",
+        "fetch_all",
+        "get_phase_diagram_from_elements",
+    }:
         mp_mcp.tool(getattr(core_tools, k), name=k)
     return mp_mcp
 
