@@ -10,7 +10,7 @@ authors = [
 description = "API Client for the Materials Project"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "modified BSD" }
+license = "BSD-3-Clause-LBNL"
 classifiers = [
   "Programming Language :: Python :: 3",
   "Development Status :: 4 - Beta",
@@ -55,6 +55,9 @@ test = [
   "types-requests",
 ]
 docs = ["sphinx"]
+
+[project.scripts]
+mpmcp = "mp_api.mcp.server:_run_mp_mcp_server"
 
 [tool.setuptools.packages.find]
 include = ["mp_api*"]
@@ -111,3 +114,7 @@ isort.required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.per-file-ignores]
 "*/__init__.py" = ["F401"] # F401: imported but unused
+
+[tool.mypy]
+namespace_packages = true
+ignore_missing_imports = true

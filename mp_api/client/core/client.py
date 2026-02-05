@@ -35,7 +35,7 @@ from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
-from mp_api.client.core.exceptions import MPRestError
+from mp_api.client.core.exceptions import MPRestError, _emit_status_warning
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     load_json,
@@ -46,8 +46,10 @@ from mp_api.client.core.utils import (
 
 try:
     import flask
+
+    _flask_is_installed = True
 except ImportError:
-    flask = None
+    _flask_is_installed = False
 
 if TYPE_CHECKING:
     from typing import Any, Callable
@@ -59,7 +61,7 @@ if TYPE_CHECKING:
 try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
-    __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
+    __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION", "")
 
 
 class _DictLikeAccess(BaseModel):
@@ -83,7 +85,7 @@ class BaseRester:
     """Base client class with core stubs."""
 
     suffix: str = ""
-    document_model: type[BaseModel] | None = None
+    document_model: type[BaseModel] = _DictLikeAccess
     primary_key: str = "material_id"
 
     def __init__(
@@ -222,7 +224,10 @@ class BaseRester:
 
         Returns: database version as a string
         """
-        return requests.get(url=endpoint + "heartbeat").json()["db_version"]
+        if (get_resp := requests.get(url=endpoint + "heartbeat")).status_code == 403:
+            _emit_status_warning()
+            return
+        return get_resp.json()["db_version"]
 
     def _post_resource(
         self,
@@ -407,7 +412,7 @@ class BaseRester:
         num_chunks: int | None = None,
         chunk_size: int | None = None,
         timeout: int | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
 
@@ -539,12 +544,15 @@ class BaseRester:
                 for docs, _, _ in byte_data:
                     unzipped_data.extend(docs)
 
-                data = {"data": unzipped_data, "meta": {}}
+                data: dict[str, Any] = {
+                    "data": (
+                        self._convert_to_model(unzipped_data)  # type: ignore[arg-type]
+                        if self.use_document_model
+                        else unzipped_data
+                    ),
+                    "meta": {"total_doc": len(unzipped_data)},
+                }
 
-                if self.use_document_model:
-                    data["data"] = self._convert_to_model(data["data"])
-
-                data["meta"]["total_doc"] = len(data["data"])
             else:
                 data = self._submit_requests(
                     url=url,
@@ -672,7 +680,7 @@ class BaseRester:
             new_limits = [chunk_size]
 
         total_num_docs = 0
-        total_data: dict[str, list[Any]] = {"data": []}
+        total_data: dict[str, Any] = {"data": []}
 
         # Obtain first page of results and get pagination information.
         # Individual total document limits (subtotal) will potentially
@@ -871,7 +879,7 @@ class BaseRester:
         func: Callable,
         params_list: list[dict],
         progress_bar: tqdm | None = None,
-    ):
+    ) -> list[tuple[Any, int, int]]:
         """Handles setting up a threadpool and sending parallel requests.
 
         Arguments:
@@ -962,7 +970,7 @@ class BaseRester:
             Tuple with data and total number of docs in matching the query in the database.
         """
         headers = None
-        if flask is not None and flask.has_request_context():
+        if _flask_is_installed and flask.has_request_context():
             headers = flask.request.headers
 
         try:
@@ -1015,7 +1023,9 @@ class BaseRester:
                 f"on URL {response.url} with message:\n{message}"
             )
 
-    def _convert_to_model(self, data: list[dict]):
+    def _convert_to_model(
+        self, data: list[dict[str, Any]]
+    ) -> list[BaseModel] | list[dict[str, Any]]:
         """Converts dictionary documents to instantiated MPDataDoc objects.
 
         Args:
@@ -1028,7 +1038,7 @@ class BaseRester:
         if len(data) > 0:
             data_model, set_fields, _ = self._generate_returned_model(data[0])
 
-            data = [
+            return [
                 data_model(
                     **{
                         field: value
@@ -1043,7 +1053,7 @@ class BaseRester:
 
     def _generate_returned_model(
         self, doc: dict[str, Any]
-    ) -> tuple[BaseModel, list[str], list[str]]:
+    ) -> tuple[type[BaseModel], list[str], list[str]]:
         model_fields = self.document_model.model_fields
         set_fields = [k for k in doc if k in model_fields]
         unset_fields = [field for field in model_fields if field not in set_fields]
@@ -1059,13 +1069,13 @@ class BaseRester:
         ):
             vars(import_module(self.document_model.__module__))
 
-        include_fields: dict[str, tuple[type, FieldInfo]] = {}
+        include_fields: dict[str, tuple[Any, FieldInfo]] = {}
         for name in set_fields:
             field_copy = model_fields[name]._copy()
             if not field_copy.default_factory:
                 # Fields with a default_factory cannot also have a default in pydantic>=2.12.3
                 field_copy.default = None
-            include_fields[name] = (
+            include_fields[name] = (  # type: ignore[assignment]
                 Optional[model_fields[name].annotation],
                 field_copy,
             )
@@ -1202,7 +1212,7 @@ class BaseRester:
         self,
         document_id: str,
         fields: list[str] | None = None,
-    ) -> BaseModel | dict:
+    ) -> BaseModel | dict[str, Any] | None:
         warnings.warn(
             "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
             DeprecationWarning,
@@ -1221,7 +1231,7 @@ class BaseRester:
         if isinstance(fields, str):  # pragma: no cover
             fields = (fields,)  # type: ignore
 
-        docs = self._search(  # type: ignorech(  # type: ignorech(  # type: ignore
+        docs = self._search(
             **{self.primary_key + "s": document_id},
             num_chunks=1,
             chunk_size=1,

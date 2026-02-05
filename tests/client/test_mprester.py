@@ -2,6 +2,7 @@ import itertools
 import os
 import random
 import importlib
+import requests
 from tempfile import NamedTemporaryFile
 
 import numpy as np

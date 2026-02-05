@@ -31,7 +31,7 @@ class TaskRester(BaseRester):
         Returns:
             list of dict representing emmet.core.trajectory.Trajectory
         """
-        traj_data = self._query_resource_data(
+        traj_data = self._query_resource_data(  # type: ignore[union-attr]
             {"task_ids": [AlphaID(task_id).string]},
             suburl="trajectory/",
             use_document_model=False,
@@ -100,7 +100,7 @@ class TaskRester(BaseRester):
                 }
             )
 
-        return super()._search(
+        return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

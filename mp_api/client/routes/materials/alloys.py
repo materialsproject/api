@@ -54,7 +54,7 @@ class AlloysRester(BaseRester):
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
-        return super()._search(
+        return super()._search(  # type: ignore[return-value]
             formulae=formulae,
             num_chunks=num_chunks,
             chunk_size=chunk_size,

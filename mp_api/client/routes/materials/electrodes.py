@@ -151,7 +151,7 @@ class BaseElectrodeRester(BaseRester):
             if query_params[entry] is not None
         }
 
-        return super()._search(**query_params)
+        return super()._search(**query_params)  # type: ignore[return-value]
 
 
 class ElectrodeRester(BaseElectrodeRester):
