@@ -22,7 +22,7 @@ async def get_mcp_tool(tool_name):
 
 
 def test_mcp_server():
-    assert asyncio.run(get_mcp_tools()) == {"fetch", "search"}
+    assert asyncio.run(get_mcp_tools()) == {"fetch","fetch_many","fetch_all","search","get_phase_diagram_from_elements"}
 
     search_tool = asyncio.run(get_mcp_tool("search"))
     assert search_tool.parameters["properties"] == {"query": {"type": "string"}}
