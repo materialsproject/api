@@ -660,7 +660,9 @@ class BaseRester:
 
             except MPRestError as e:
                 # If we get 422 or 414 error, or 0 results for comma-separated params, split into batches
-                if "422" in str(e) or "414" in str(e) or "Got 0 results" in str(e):
+                if any(
+                    trace in str(e) for trace in ("422", "414", "Got 0 results")
+                ):
                     total_data = {"data": []}  # type: dict
                     total_num_docs = 0
                     data_chunks = []
