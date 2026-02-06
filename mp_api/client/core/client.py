@@ -16,7 +16,7 @@ from functools import cache
 from importlib import import_module
 from importlib.metadata import PackageNotFoundError, version
 from io import BytesIO
-from itertools import chain
+from itertools import chain, islice
 from json import JSONDecodeError
 from math import ceil
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
@@ -58,6 +58,14 @@ try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
+
+
+def _batched(iterable, n):
+    if n < 1:
+        raise ValueError("n must be at least one")
+    iterator = iter(iterable)
+    while batch := tuple(islice(iterator, n)):
+        yield batch
 
 
 class _DictLikeAccess(BaseModel):
@@ -673,8 +681,7 @@ class BaseRester:
                         else None
                     )
 
-                    for i in range(0, len(split_values), batch_size):
-                        batch = split_values[i : i + batch_size]
+                    for batch in _batched(split_values, batch_size):
                         split_criteria = copy(criteria)
                         split_criteria[split_param] = ",".join(batch)
 
