@@ -16,6 +16,7 @@ from functools import cache
 from importlib import import_module
 from importlib.metadata import PackageNotFoundError, version
 from io import BytesIO
+from itertools import chain
 from json import JSONDecodeError
 from math import ceil
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
@@ -639,8 +640,10 @@ class BaseRester:
                     )
 
                 # If successful, continue with normal pagination
-                total_data = {"data": []}  # type: dict
-                total_data["data"].extend(data["data"])
+                data_chunks = [data["data"]]
+                total_data = {
+                    "data": list(chain.from_iterable(data_chunks))
+                }  # type: dict
 
                 if "meta" in data:
                     total_data["meta"] = data["meta"]
@@ -652,6 +655,7 @@ class BaseRester:
                 if "422" in str(e) or "414" in str(e) or "Got 0 results" in str(e):
                     total_data = {"data": []}  # type: dict
                     total_num_docs = 0
+                    data_chunks = []
 
                     # Batch the split values to reduce number of requests
                     # Use batches of up to 100 values to balance URL length and request count
@@ -685,7 +689,7 @@ class BaseRester:
                             timeout=timeout,
                         )
 
-                        total_data["data"].extend(result["data"])
+                        data_chunks.append(result["data"])
                         if "meta" in result:
                             total_data["meta"] = result["meta"]
                             total_num_docs += result["meta"].get("total_doc", 0)
@@ -695,6 +699,8 @@ class BaseRester:
 
                     if pbar is not None:
                         pbar.close()
+
+                    total_data["data"] = list(chain.from_iterable(data_chunks))
 
                     # Update total_doc if we have meta
                     if "meta" in total_data:
