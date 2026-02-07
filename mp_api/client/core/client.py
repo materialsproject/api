@@ -538,11 +538,14 @@ class BaseRester:
                     pbar,  # type: ignore
                 )
 
-                unzipped_data = []
+                unzipped_chunks = []
                 for docs, _, _ in byte_data:
-                    unzipped_data.extend(docs)
+                    unzipped_chunks.append(docs)
 
-                data = {"data": unzipped_data, "meta": {}}
+                data = {
+                    "data": list(chain.from_iterable(unzipped_chunks)),
+                    "meta": {},
+                }
 
                 if self.use_document_model:
                     data["data"] = self._convert_to_model(data["data"])
@@ -614,6 +617,8 @@ class BaseRester:
         split_param = None
         split_values = None
         total_num_docs = 0  # Initialize before try/else blocks
+        data_chunks = []
+        total_data_len = 0
 
         for key, value in criteria.items():
             if (
@@ -649,9 +654,8 @@ class BaseRester:
 
                 # If successful, continue with normal pagination
                 data_chunks = [data["data"]]
-                total_data = {
-                    "data": list(chain.from_iterable(data_chunks))
-                }  # type: dict
+                total_data = {"data": []}  # type: dict
+                total_data_len = len(data["data"])
 
                 if "meta" in data:
                     total_data["meta"] = data["meta"]
@@ -729,7 +733,8 @@ class BaseRester:
                 timeout=timeout,
             )
 
-            total_data["data"].extend(data["data"])
+            data_chunks = [data["data"]]
+            total_data_len = len(data["data"])
 
             if "meta" in data:
                 total_data["meta"] = data["meta"]
@@ -757,7 +762,7 @@ class BaseRester:
             else None
         )
 
-        initial_data_length = len(total_data["data"])
+        initial_data_length = total_data_len
 
         if pbar is not None:
             pbar.update(initial_data_length)
@@ -765,7 +770,9 @@ class BaseRester:
         # If we have all the results in a single page, return directly
         if initial_data_length >= num_docs_needed or num_chunks == 1:
             new_total_data = copy(total_data)
-            new_total_data["data"] = total_data["data"][:num_docs_needed]
+            new_total_data["data"] = list(chain.from_iterable(data_chunks))[
+                :num_docs_needed
+            ]
 
             if pbar is not None:
                 pbar.close()
@@ -787,12 +794,12 @@ class BaseRester:
         skip = chunk_size if "_limit" not in criteria else criteria["_limit"]
         remaining_docs = total_num_docs - initial_data_length
 
-        while len(total_data["data"]) < num_docs_needed and remaining_docs > 0:
+        while total_data_len < num_docs_needed and remaining_docs > 0:
             page_criteria = copy(criteria)
             page_criteria["_skip"] = skip
 
             # Determine limit for this request
-            docs_still_needed = num_docs_needed - len(total_data["data"])
+            docs_still_needed = num_docs_needed - total_data_len
             page_criteria["_limit"] = min(chunk_size, docs_still_needed, remaining_docs)
 
             data, _ = self._submit_request_and_process(
@@ -803,20 +810,24 @@ class BaseRester:
                 timeout=timeout,
             )
 
-            total_data["data"].extend(data["data"])
+            data_chunks.append(data["data"])
+            chunk_len = len(data["data"])
+            total_data_len += chunk_len
 
             if pbar is not None:
-                pbar.update(len(data["data"]))
+                pbar.update(chunk_len)
 
             skip += page_criteria["_limit"]
-            remaining_docs -= len(data["data"])
+            remaining_docs -= chunk_len
 
             # Break if we didn't get any data (shouldn't happen, but safety check)
-            if len(data["data"]) == 0:
+            if chunk_len == 0:
                 break
 
         if pbar is not None:
             pbar.close()
+
+        total_data["data"] = list(chain.from_iterable(data_chunks))
 
         return total_data
 
