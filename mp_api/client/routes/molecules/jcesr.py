@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections import defaultdict
 
 from emmet.core.molecules_jcesr import MoleculesDoc
@@ -13,6 +14,14 @@ class JcesrMoleculesRester(BaseRester):
     suffix = "molecules/jcesr"
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
+
+    def __init__(self, **kwargs):
+        """Throw deprecation warning when JCESR client is initialized."""
+        warnings.warn(
+            "NOTE: You are accessing the unmaintained legacy molecules data, "
+            "please use MPRester.molecules.summary."
+        )
+        super().__init__(**kwargs)
 
     def search(
         self,
@@ -51,7 +60,7 @@ class JcesrMoleculesRester(BaseRester):
         Returns:
             ([MoleculesDoc]) List of molecule documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if task_ids:
             if isinstance(task_ids, str):

@@ -1,112 +1,28 @@
 from __future__ import annotations
 
-from emmet.core.settings import EmmetSettings
+from typing import TYPE_CHECKING
+
 from emmet.core.symmetry import CrystalSystem
-from emmet.core.vasp.material import MaterialsDoc
+from emmet.core.vasp.calc_types import RunType
+from emmet.core.vasp.material import BlessedCalcs, MaterialsDoc
 from pymatgen.core.structure import Structure
 
-from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core.client import CoreRester, MPRestError
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import validate_ids
-from mp_api.client.routes.materials import (
-    AbsorptionRester,
-    AlloysRester,
-    BandStructureRester,
-    BondsRester,
-    ChemenvRester,
-    ConversionElectrodeRester,
-    DielectricRester,
-    DosRester,
-    ElasticityRester,
-    ElectrodeRester,
-    ElectronicStructureRester,
-    EOSRester,
-    GrainBoundaryRester,
-    MagnetismRester,
-    OxidationStatesRester,
-    PhononRester,
-    PiezoRester,
-    ProvenanceRester,
-    RobocrysRester,
-    SimilarityRester,
-    SubstratesRester,
-    SummaryRester,
-    SurfacePropertiesRester,
-    SynthesisRester,
-    TaskRester,
-    ThermoRester,
-    XASRester,
-)
+from mp_api.client.routes.materials import MATERIALS_RESTERS
 
-_EMMET_SETTINGS = EmmetSettings()  # type: ignore
+if TYPE_CHECKING:
+    from typing import Any
+
+    from pymatgen.entries.computed_entries import ComputedStructureEntry
 
 
-class MaterialsRester(BaseRester):
+class MaterialsRester(CoreRester):
     suffix = "materials/core"
     document_model = MaterialsDoc  # type: ignore
-    supports_versions = True
     primary_key = "material_id"
-    _sub_resters = [
-        "eos",
-        "similarity",
-        "tasks",
-        "xas",
-        "grain_boundaries",
-        "substrates",
-        "surface_properties",
-        "phonon",
-        "elasticity",
-        "thermo",
-        "dielectric",
-        "piezoelectric",
-        "magnetism",
-        "summary",
-        "robocrys",
-        "synthesis",
-        "insertion_electrodes",
-        "conversion_electrodes",
-        "electronic_structure",
-        "electronic_structure_bandstructure",
-        "electronic_structure_dos",
-        "oxidation_states",
-        "provenance",
-        "bonds",
-        "alloys",
-        "absorption",
-        "chemenv",
-    ]
-
-    # Materials subresters
-    eos: EOSRester
-    materials: MaterialsRester
-    similarity: SimilarityRester
-    tasks: TaskRester
-    xas: XASRester
-    grain_boundary: GrainBoundaryRester
-    substrates: SubstratesRester
-    surface_properties: SurfacePropertiesRester
-    phonon: PhononRester
-    elasticity: ElasticityRester
-    thermo: ThermoRester
-    dielectric: DielectricRester
-    piezoelectric: PiezoRester
-    magnetism: MagnetismRester
-    summary: SummaryRester
-    robocrys: RobocrysRester
-    synthesis: SynthesisRester
-    insertion_electrodes: ElectrodeRester
-    conversion_electrodes: ConversionElectrodeRester
-    electronic_structure: ElectronicStructureRester
-    electronic_structure_bandstructure: BandStructureRester
-    electronic_structure_dos: DosRester
-    oxidation_states: OxidationStatesRester
-    provenance: ProvenanceRester
-    bonds: BondsRester
-    alloys: AlloysRester
-    absorption: AbsorptionRester
-    chemenv: ChemenvRester
-
-    def __dir__(self):
-        return dir(MaterialsRester) + self._sub_resters
+    _sub_resters = MATERIALS_RESTERS
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True
@@ -128,7 +44,7 @@ class MaterialsRester(BaseRester):
 
         if response and response[0]:
             response = response[0]
-            # Ensure that return type is a Structure regardless of `monty_decode` or `model_dump` output
+            # Ensure that return type is a Structure regardless of `model_dump`
             if isinstance(response[field], dict):
                 response[field] = Structure.from_dict(response[field])
             elif isinstance(response[field], list) and any(
@@ -191,7 +107,7 @@ class MaterialsRester(BaseRester):
         Returns:
             ([MaterialsDoc], [dict]) List of material documents or dictionaries.
         """
-        query_params = {"deprecated": deprecated}  # type: dict
+        query_params: dict = {"deprecated": deprecated}
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -263,9 +179,9 @@ class MaterialsRester(BaseRester):
     def find_structure(
         self,
         filename_or_structure,
-        ltol=_EMMET_SETTINGS.LTOL,
-        stol=_EMMET_SETTINGS.STOL,
-        angle_tol=_EMMET_SETTINGS.ANGLE_TOL,
+        ltol=MAPI_CLIENT_SETTINGS.LTOL,
+        stol=MAPI_CLIENT_SETTINGS.STOL,
+        angle_tol=MAPI_CLIENT_SETTINGS.ANGLE_TOL,
         allow_multiple_results=False,
     ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.
@@ -318,3 +234,75 @@ class MaterialsRester(BaseRester):
             return material_ids  # type: ignore
 
         return material_ids[0]
+
+    def get_blessed_entries(
+        self,
+        run_type: str | RunType = RunType.r2SCAN,
+        material_ids: list[str] | None = None,
+        uncorrected_energy: tuple[float | None, float | None] | float | None = None,
+        num_chunks: int | None = None,
+        chunk_size: int = 1000,
+    ) -> list[dict[str, str | dict | ComputedStructureEntry]]:
+        """Get blessed calculation entries for a given material and run type.
+
+        Args:
+            run_type (str or RunType): Calculation run type (e.g. GGA, GGA+U, r2SCAN, PBESol)
+            material_ids (list[str]): List of material ID values
+            uncorrected_energy (tuple[Optional[float], Optional[float]] | float): Tuple of minimum and maximum uncorrected DFT energy in eV/atom.
+                Note that if a single value is passed, it will be used as the minimum and maximum.
+            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int): Number of data entries per chunk.
+
+        Returns:
+            list of dict, of the form:
+                {
+                    "material_id": MPID,
+                    "blessed_entry": ComputedStructureEntry
+                }
+        """
+        query_params: dict[str, Any] = {"run_type": str(run_type)}
+        if material_ids:
+            if isinstance(material_ids, str):
+                material_ids = [material_ids]
+
+            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
+
+        if uncorrected_energy:
+            if isinstance(uncorrected_energy, float):
+                uncorrected_energy = (uncorrected_energy, uncorrected_energy)
+
+            query_params.update(
+                {
+                    "energy_min": uncorrected_energy[0],
+                    "energy_max": uncorrected_energy[1],
+                }
+            )
+
+        results = self._query_resource(
+            query_params,
+            fields=["material_id", "entries"],
+            suburl="blessed_tasks",
+            parallel_param="material_ids" if material_ids else None,
+            chunk_size=chunk_size,
+            num_chunks=num_chunks,
+        )
+
+        return [
+            {
+                "material_id": doc["material_id"],
+                "blessed_entry": (
+                    next(
+                        getattr(doc["entries"], k, None)
+                        for k in BlessedCalcs.model_fields
+                        if getattr(doc["entries"], k, None)
+                    )
+                    if self.use_document_model
+                    else next(
+                        doc["entries"][k]
+                        for k in BlessedCalcs.model_fields
+                        if doc["entries"].get(k)
+                    )
+                ),
+            }
+            for doc in (results.get("data") or [])
+        ]

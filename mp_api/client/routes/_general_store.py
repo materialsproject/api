@@ -9,7 +9,6 @@ class GeneralStoreRester(BaseRester):  # pragma: no cover
     suffix = "_general_store"
     document_model = GeneralStoreDoc  # type: ignore
     primary_key = "submission_id"
-    monty_decode = False
     use_document_model = False
 
     def add_item(self, kind: str, markdown: str, meta: dict):  # pragma: no cover

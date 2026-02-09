@@ -80,7 +80,7 @@ class BaseElectrodeRester(BaseRester):
         Returns:
             ([InsertionElectrodeDoc or ConversionElectrodeDoc], [dict]) List of insertion/conversion electrode documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if battery_ids:
             if isinstance(battery_ids, str):
@@ -173,4 +173,5 @@ class ConversionElectrodeRester(BaseElectrodeRester):
         "elements",
         "stability_charge",
         "stability_discharge",
+        "exclude_elements",
     ]

@@ -75,7 +75,7 @@ class ChemenvRester(BaseRester):
         Returns:
             ([ChemEnvDoc], [dict]) List of chemenv documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if csm:
             query_params.update({"csm_min": csm[0], "csm_max": csm[1]})

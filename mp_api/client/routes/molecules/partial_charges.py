@@ -60,7 +60,7 @@ class MoleculesPartialChargesRester(BaseRester):
         Returns:
             ([PartialChargesDoc]) List of partial charges documents
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         if molecule_ids:
             if isinstance(molecule_ids, str):

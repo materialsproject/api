@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 from emmet.core.electronic_structure import (
     BSPathType,
@@ -13,7 +14,10 @@ from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType, Spin
 
 from mp_api.client.core import BaseRester, MPRestError
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.utils import load_json, validate_ids
+
+if TYPE_CHECKING:
+    from pymatgen.electronic_structure.dos import CompleteDos
 
 
 class ElectronicStructureRester(BaseRester):
@@ -71,13 +75,13 @@ class ElectronicStructureRester(BaseRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -142,9 +146,27 @@ class ElectronicStructureRester(BaseRester):
         )
 
 
-class BandStructureRester(BaseRester):
+class BaseESPropertyRester(BaseRester):
+    _es_rester: ElectronicStructureRester | None = None
+    document_model = ElectronicStructureDoc
+
+    @property
+    def es_rester(self) -> ElectronicStructureRester:
+        if not self._es_rester:
+            self._es_rester = ElectronicStructureRester(
+                api_key=self.api_key,
+                endpoint=self.base_endpoint,
+                include_user_agent=self.include_user_agent,
+                session=self.session,
+                use_document_model=self.use_document_model,
+                headers=self.headers,
+                mute_progress_bars=self.mute_progress_bars,
+            )
+        return self._es_rester
+
+
+class BandStructureRester(BaseESPropertyRester):
     suffix = "materials/electronic_structure/bandstructure"
-    document_model = ElectronicStructureDoc  # type: ignore
 
     def search_bandstructure_summary(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
@@ -163,8 +185,8 @@ class BandStructureRester(BaseRester):
         efermi: tuple[float, float] | None = None,
         is_gap_direct: bool | None = None,
         is_metal: bool | None = None,
-        magnetic_ordering: Ordering | None = None,
-        path_type: BSPathType = BSPathType.setyawan_curtarolo,
+        magnetic_ordering: Ordering | str | None = None,
+        path_type: BSPathType | str = BSPathType.setyawan_curtarolo,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -177,8 +199,8 @@ class BandStructureRester(BaseRester):
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
-            magnetic_ordering (Ordering): Magnetic ordering of the material.
-            path_type (BSPathType): k-path selection convention for the band structure.
+            magnetic_ordering (Ordering or str): Magnetic ordering of the material.
+            path_type (BSPathType or str): k-path selection convention for the band structure.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -188,9 +210,11 @@ class BandStructureRester(BaseRester):
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
-        query_params["path_type"] = path_type.value
+        query_params["path_type"] = (
+            BSPathType[path_type] if isinstance(path_type, str) else path_type
+        ).value
 
         if band_gap:
             query_params.update(
@@ -201,7 +225,15 @@ class BandStructureRester(BaseRester):
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
 
         if magnetic_ordering:
-            query_params.update({"magnetic_ordering": magnetic_ordering.value})
+            query_params.update(
+                {
+                    "magnetic_ordering": (
+                        Ordering(magnetic_ordering)
+                        if isinstance(magnetic_ordering, str)
+                        else magnetic_ordering
+                    ).value
+                }
+            )
 
         if is_gap_direct is not None:
             query_params.update({"is_gap_direct": is_gap_direct})
@@ -232,15 +264,11 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        result = self._query_open_data(
+        return self._query_open_data(
             bucket="materialsproject-parsed",
             key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
-        )[0]
-
-        if result:
-            return result[0]["data"]
-        else:
-            raise MPRestError("No object found")
+            decoder=lambda x: load_json(x, deser=True),
+        )[0][0]["data"]
 
     def get_bandstructure_from_material_id(
         self,
@@ -258,19 +286,8 @@ class BandStructureRester(BaseRester):
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
-        es_rester = ElectronicStructureRester(
-            api_key=self.api_key,
-            endpoint=self.base_endpoint,
-            include_user_agent=self.include_user_agent,
-            session=self.session,
-            monty_decode=self.monty_decode,
-            use_document_model=self.use_document_model,
-            headers=self.headers,
-            mute_progress_bars=self.mute_progress_bars,
-        )
-
         if line_mode:
-            bs_doc = es_rester.search(
+            bs_doc = self.es_rester.search(
                 material_ids=material_id, fields=["bandstructure"]
             )
             if not bs_doc:
@@ -293,7 +310,9 @@ class BandStructureRester(BaseRester):
 
         else:
             if not (
-                bs_doc := es_rester.search(material_ids=material_id, fields=["dos"])
+                bs_doc := self.es_rester.search(
+                    material_ids=material_id, fields=["dos"]
+                )
             ):
                 raise MPRestError("No electronic structure data found.")
 
@@ -319,9 +338,8 @@ class BandStructureRester(BaseRester):
         raise MPRestError("No band structure object found.")
 
 
-class DosRester(BaseRester):
+class DosRester(BaseESPropertyRester):
     suffix = "materials/electronic_structure/dos"
-    document_model = ElectronicStructureDoc  # type: ignore
 
     def search_dos_summary(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
@@ -338,11 +356,11 @@ class DosRester(BaseRester):
         self,
         band_gap: tuple[float, float] | None = None,
         efermi: tuple[float, float] | None = None,
-        element: Element | None = None,
-        magnetic_ordering: Ordering | None = None,
-        orbital: OrbitalType | None = None,
-        projection_type: DOSProjectionType = DOSProjectionType.total,
-        spin: Spin = Spin.up,
+        element: Element | str | None = None,
+        magnetic_ordering: Ordering | str | None = None,
+        orbital: OrbitalType | str | None = None,
+        projection_type: DOSProjectionType | str = DOSProjectionType.total,
+        spin: Spin | str = Spin.up,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -353,30 +371,54 @@ class DosRester(BaseRester):
         Arguments:
             band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
             efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
-            element (Element): Element for element-projected dos data.
-            magnetic_ordering (Ordering): Magnetic ordering of the material.
-            orbital (OrbitalType): Orbital for orbital-projected dos data.
-            projection_type (DOSProjectionType): Projection type of dos data. Default is the total dos.
-            spin (Spin): Spin channel of dos data. If non spin-polarized data is stored in Spin.up
+            element (Element or str): Element for element-projected dos data.
+            magnetic_ordering (Ordering or str): Magnetic ordering of the material.
+            orbital (OrbitalType or str): Orbital for orbital-projected dos data.
+            projection_type (DOSProjectionType or str): Projection type of dos data. Default is the total dos.
+            spin (Spin or str): Spin channel of dos data. If non spin-polarized data is stored in Spin.up
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
-        query_params["projection_type"] = projection_type.value
-        query_params["spin"] = spin.value
+        query_params["projection_type"] = (
+            DOSProjectionType[projection_type]
+            if isinstance(projection_type, str)
+            else projection_type
+        ).value
+        query_params["spin"] = (Spin[spin] if isinstance(spin, str) else spin).value
+
+        if (
+            query_params["projection_type"] == DOSProjectionType.elemental.value
+            and element is None
+        ):
+            raise MPRestError(
+                "To query element-projected DOS, you must also specify the `element` onto which the DOS is projected."
+            )
+
+        if (
+            query_params["projection_type"] == DOSProjectionType.orbital.value
+            and orbital is None
+        ):
+            raise MPRestError(
+                "To query orbital-projected DOS, you must also specify the `orbital` character onto which the DOS is projected."
+            )
 
         if element:
-            query_params["element"] = element.value
+            query_params["element"] = (
+                Element[element] if isinstance(element, str) else element
+            ).value
 
         if orbital:
-            query_params["orbital"] = orbital.value
+            query_params["orbital"] = (
+                OrbitalType[orbital] if isinstance(orbital, str) else orbital
+            ).value
 
         if band_gap:
             query_params.update(
@@ -387,7 +429,15 @@ class DosRester(BaseRester):
             query_params.update({"efermi_min": efermi[0], "efermi_max": efermi[1]})
 
         if magnetic_ordering:
-            query_params.update({"magnetic_ordering": magnetic_ordering.value})
+            query_params.update(
+                {
+                    "magnetic_ordering": (
+                        Ordering[magnetic_ordering]
+                        if isinstance(magnetic_ordering, str)
+                        else magnetic_ordering
+                    ).value
+                }
+            )
 
         query_params = {
             entry: query_params[entry]
@@ -403,7 +453,7 @@ class DosRester(BaseRester):
             **query_params,
         )
 
-    def get_dos_from_task_id(self, task_id: str):
+    def get_dos_from_task_id(self, task_id: str) -> CompleteDos:
         """Get the density of states pymatgen object associated with a given calculation ID.
 
         Arguments:
@@ -412,15 +462,11 @@ class DosRester(BaseRester):
         Returns:
             bandstructure (CompleteDos): CompleteDos object
         """
-        result = self._query_open_data(
+        return self._query_open_data(
             bucket="materialsproject-parsed",
             key=f"dos/{validate_ids([task_id])[0]}.json.gz",
-        )[0]
-
-        if result:
-            return result[0]["data"]  # type: ignore
-        else:
-            raise MPRestError("No object found")
+            decoder=lambda x: load_json(x, deser=True),
+        )[0][0]["data"]
 
     def get_dos_from_material_id(self, material_id: str):
         """Get the complete density of states pymatgen object associated with a Materials Project ID.
@@ -431,18 +477,9 @@ class DosRester(BaseRester):
         Returns:
             dos (CompleteDos): CompleteDos object
         """
-        es_rester = ElectronicStructureRester(
-            api_key=self.api_key,
-            endpoint=self.base_endpoint,
-            include_user_agent=self.include_user_agent,
-            session=self.session,
-            monty_decode=self.monty_decode,
-            use_document_model=self.use_document_model,
-            headers=self.headers,
-            mute_progress_bars=self.mute_progress_bars,
-        )
-
-        if not (dos_doc := es_rester.search(material_ids=material_id, fields=["dos"])):
+        if not (
+            dos_doc := self.es_rester.search(material_ids=material_id, fields=["dos"])
+        ):
             return None
 
         if not (dos_data := dos_doc[0].get("dos")):

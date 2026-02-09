@@ -48,8 +48,8 @@ class SummaryRester(BaseRester):
         magnetic_ordering: Ordering | None = None,
         material_ids: str | list[str] | None = None,
         n: tuple[float, float] | None = None,
-        num_elements: tuple[int, int] | None = None,
-        num_sites: tuple[int, int] | None = None,
+        num_elements: int | tuple[int, int] | None = None,
+        num_sites: int | tuple[int, int] | None = None,
         num_magnetic_sites: tuple[int, int] | None = None,
         num_unique_magnetic_sites: tuple[int, int] | None = None,
         piezoelectric_modulus: tuple[float, float] | None = None,
@@ -154,7 +154,7 @@ class SummaryRester(BaseRester):
         Returns:
             ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         not_aliased_kwargs = [
             "energy_above_hull",

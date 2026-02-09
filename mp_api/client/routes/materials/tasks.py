@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import pyarrow as pa
 from deltalake import DeltaTable, QueryBuilder
-from emmet.core.mpid import AlphaID
+from emmet.core.mpid import MPID, AlphaID
 from emmet.core.tasks import CoreTaskDoc
 from emmet.core.trajectory import RelaxTrajectory
 
@@ -13,6 +13,8 @@ from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
+    from typing import Any
+
     from pydantic import BaseModel
 
 
@@ -22,17 +24,18 @@ class TaskRester(BaseRester):
     primary_key: str = "task_id"
     delta_backed = True
 
-    def get_trajectory(self, task_id):
+    def get_trajectory(self, task_id: MPID | AlphaID | str) -> list[dict[str, Any]]:
         """Returns a Trajectory object containing the geometry of the
         material throughout a calculation. This is most useful for
         observing how a material relaxes during a geometry optimization.
 
         Args:
-            task_id (str): Task ID
+            task_id (str, MPID, AlphaID): Task ID
 
+        Returns:
+            list of dict representing emmet.core.trajectory.Trajectory
         """
         as_alpha = str(AlphaID(task_id, padlen=8)).split("-")[-1]
-
         traj_tbl = DeltaTable(
             "s3a://materialsproject-parsed/core/trajectories/",
             storage_options={"AWS_SKIP_SIGNATURE": "true", "AWS_REGION": "us-east-1"},
@@ -87,7 +90,7 @@ class TaskRester(BaseRester):
         Returns:
             ([CoreTaskDoc], [dict]) List of task documents or dictionaries.
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         if task_ids:
             if isinstance(task_ids, str):

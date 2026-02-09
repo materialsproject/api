@@ -80,7 +80,7 @@ class MoleculesRedoxRester(BaseRester):
         Returns:
             ([RedoxDoc]) List of molecule redox documents
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         min_max = [
             "electron_affinity",

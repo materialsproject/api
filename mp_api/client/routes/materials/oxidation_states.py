@@ -44,7 +44,7 @@ class OxidationStatesRester(BaseRester):
         Returns:
             ([OxidationStateDoc], [dict]) List of oxidation state documents or dictionaries.
         """
-        query_params = defaultdict(dict)  # type: dict
+        query_params: dict = defaultdict(dict)
 
         if material_ids:
             if isinstance(material_ids, str):

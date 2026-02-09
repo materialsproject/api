@@ -43,7 +43,7 @@ class MoleculesTaskRester(BaseRester):
         Returns:
             ([TaskDocument]) List of task documents
         """
-        query_params = {}  # type: dict
+        query_params: dict = {}
 
         if task_ids:
             query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
