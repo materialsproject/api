@@ -33,6 +33,7 @@ from botocore import UNSIGNED
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from deltalake import DeltaTable, QueryBuilder, convert_to_deltalake
+from emmet.core.arrow import arrowize
 from emmet.core.utils import jsanitize
 from pydantic import BaseModel, create_model
 from requests.adapters import HTTPAdapter
@@ -624,9 +625,20 @@ class BaseRester:
                         compression="zstd"
                     )
 
-                    def _flush(accumulator, group):
+                    def _flush(
+                        accumulator: list[pa.RecordBatch], group: int, schema: pa.Schema
+                    ):
+                        # somewhere post datafusion 51.0.0 and arrow-rs 57.0.0
+                        # casts to *View types began, need to cast back to base schema
+                        # -> pyarrow is behind on implementation support for *View types
+                        tbl = (
+                            pa.Table.from_batches(accumulator)
+                            .select(schema.names)
+                            .cast(target_schema=schema)
+                        )
+
                         ds.write_dataset(
-                            accumulator,
+                            tbl,
                             base_dir=target_path,
                             format="parquet",
                             basename_template=f"group-{group}-"
@@ -639,6 +651,7 @@ class BaseRester:
                     group = 1
                     size = 0
                     accumulator = []
+                    schema = pa.schema(arrowize(self.document_model))
                     for page in iterator:
                         # arro3 rb to pyarrow rb for compat w/ pyarrow ds writer
                         rg = pa.record_batch(page)
@@ -650,13 +663,13 @@ class BaseRester:
                             pbar.update(page_size)
 
                         if size >= MAPI_CLIENT_SETTINGS.DATASET_FLUSH_THRESHOLD:
-                            _flush(accumulator, group)
+                            _flush(accumulator, group, schema)
                             group += 1
                             size = 0
                             accumulator.clear()
 
                     if accumulator:
-                        _flush(accumulator, group + 1)
+                        _flush(accumulator, group + 1, schema)
 
                     if pbar is not None:
                         pbar.close()
@@ -668,7 +681,7 @@ class BaseRester:
 
                     logger.info(
                         "Consult the delta-rs and pyarrow documentation for advanced usage: "
-                        "delta-io.github.io/delta-rs/, arrow.apache.org/docs/python/"
+                        "delta-io.github.io/delta-rs, arrow.apache.org/docs/python"
                     )
 
                     return {
