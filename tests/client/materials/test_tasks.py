@@ -1,12 +1,13 @@
 import os
-from ..conftest import client_search_testing, requires_api_key
-import pytest
 
+import pytest
 from emmet.core.mpid import MPID, AlphaID
-from emmet.core.trajectory import Trajectory
+from emmet.core.trajectory import RelaxTrajectory
 from emmet.core.utils import utcnow
 
 from mp_api.client.routes.materials.tasks import TaskRester
+
+from ..conftest import client_search_testing, requires_api_key
 
 
 @pytest.fixture
@@ -57,11 +58,11 @@ def test_client(rester):
 
 @pytest.mark.parametrize("mpid", ["mp-149", MPID("mp-149"), AlphaID("mp-149")])
 def test_get_trajectories(rester, mpid):
-    trajectories = [traj for traj in rester.get_trajectory(mpid)]
+    trajectory = rester.get_trajectory(mpid)
 
     expected_model_fields = {
         field_name
-        for field_name, field in Trajectory.model_fields.items()
+        for field_name, field in RelaxTrajectory.model_fields.items()
         if not field.exclude
     }
-    assert all(set(traj) == expected_model_fields for traj in trajectories)
+    assert set(trajectory) == expected_model_fields

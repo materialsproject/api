@@ -24,7 +24,7 @@ class TaskRester(BaseRester):
     primary_key: str = "task_id"
     delta_backed = True
 
-    def get_trajectory(self, task_id: MPID | AlphaID | str) -> list[dict[str, Any]]:
+    def get_trajectory(self, task_id: MPID | AlphaID | str) -> dict[str, Any]:
         """Returns a Trajectory object containing the geometry of the
         material throughout a calculation. This is most useful for
         observing how a material relaxes during a geometry optimization.
@@ -33,7 +33,7 @@ class TaskRester(BaseRester):
             task_id (str, MPID, AlphaID): Task ID
 
         Returns:
-            list of dict representing emmet.core.trajectory.Trajectory
+            dict representing emmet.core.trajectory.RelaxTrajectory
         """
         as_alpha = str(AlphaID(task_id, padlen=8)).split("-")[-1]
         traj_tbl = DeltaTable(
@@ -57,7 +57,7 @@ class TaskRester(BaseRester):
         if not traj_data:
             raise MPRestError(f"No trajectory data for {task_id} found")
 
-        return RelaxTrajectory(**traj_data[0]).to_pmg().as_dict()
+        return RelaxTrajectory(**traj_data[0]).model_dump()
 
     def search(
         self,
