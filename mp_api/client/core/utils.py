@@ -15,13 +15,21 @@ from emmet.core import __version__ as _EMMET_CORE_VER
 from emmet.core.mpid_ext import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
-from pydantic._internal._model_construction import ModelMetaclass
 
-from mp_api.client.core.exceptions import MPRestError, MPRestWarning
+from mp_api.client.core.exceptions import (
+    MPDatasetIndexingWarning,
+    MPDatasetIterationWarning,
+    MPDatasetSlicingWarning,
+    MPRestError,
+    MPRestWarning,
+)
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
 if TYPE_CHECKING:
+    from pathlib import Path
     from typing import Any
+
+    from pydantic._internal._model_construction import ModelMetaclass
 
 
 def _compare_emmet_ver(
@@ -237,8 +245,23 @@ class LazyImport:
 
 
 class MPDataset:
-    def __init__(self, path, document_model, use_document_model):
-        """Convenience wrapper for pyarrow datasets stored on disk."""
+    """Convenience wrapper for pyarrow datasets stored on disk."""
+
+    def __init__(
+        self,
+        path: Path,
+        document_model: ModelMetaclass,
+        use_document_model: bool,
+    ):
+        """Initialize a MPDataset.
+
+        Parameters
+        -----------
+        path: Path | str
+            A path-like string.
+        document_model: ModelMetaclass
+
+        """
         self._start = 0
         self._path = path
         self._document_model = document_model
@@ -279,6 +302,15 @@ class MPDataset:
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
+            warnings.warn(
+                """
+                Pythonic slicing of arrow-based MPDatasets is sub-optimal, consider using
+                idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
+                docs.materialsproject.org/downloading-data/arrow-datasets
+                """,
+                MPDatasetSlicingWarning,
+                stacklevel=2,
+            )
             start, stop, step = idx.indices(len(self))
             _take = list(range(start, stop, step))
             ds_slice = self._dataset.take(_take).to_pylist(maps_as_pydicts="strict")
@@ -288,6 +320,15 @@ class MPDataset:
                 else ds_slice
             )
 
+        warnings.warn(
+            """
+            Pythonic indexing into arrow-based MPDatasets is sub-optimal, consider using
+            idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
+            docs.materialsproject.org/downloading-data/arrow-datasets
+            """,
+            MPDatasetIndexingWarning,
+            stacklevel=2,
+        )
         _row = self._dataset.take([idx]).to_pylist(maps_as_pydicts="strict")[0]
         return self._document_model(**_row) if self._use_document_model else _row
 
@@ -295,7 +336,19 @@ class MPDataset:
         return self._dataset.count_rows()
 
     def __iter__(self):
-        current = self._start
-        while current < len(self):
-            yield self[current]
-            current += 1
+        with warnings.catch_warnings(
+            action="ignore", category=MPDatasetIndexingWarning
+        ):
+            warnings.warn(
+                """
+                Iterating through arrow-based MPDatasets is sub-optimal, consider using
+                idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
+                docs.materialsproject.org/downloading-data/arrow-datasets
+                """,
+                MPDatasetIterationWarning,
+                stacklevel=2,
+            )
+            current = self._start
+            while current < len(self):
+                yield self[current]
+                current += 1
