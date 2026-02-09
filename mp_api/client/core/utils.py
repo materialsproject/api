@@ -260,7 +260,9 @@ class MPDataset:
         path: Path | str
             A path-like string.
         document_model: ModelMetaclass
-
+            Pydantic document model for use during de-serialization of arrow data
+        use_document_model: bool
+            Use 'document_model' during de-serialization of arrow data.
         """
         self._start = 0
         self._path = path
