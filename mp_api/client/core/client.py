@@ -168,7 +168,7 @@ class BaseRester:
         (
             self.db_version,
             self.access_controlled_batch_ids,
-        ) = BaseRester._get_heartbeat_info(self.endpoint)
+        ) = BaseRester._get_heartbeat_info(self.base_endpoint)
 
         self.local_dataset_cache = local_dataset_cache
         self.force_renew = force_renew
