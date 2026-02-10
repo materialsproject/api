@@ -601,9 +601,7 @@ class BaseRester:
                     builder = QueryBuilder().register("tbl", tbl)
 
                     # Setup progress bar
-                    num_docs_needed = pa.table(
-                        builder.execute("SELECT COUNT(*) FROM tbl").read_all()
-                    )[0][0].as_py()
+                    num_docs_needed = tbl.count()
 
                     if not has_gnome_access:
                         num_docs_needed = self.count(
