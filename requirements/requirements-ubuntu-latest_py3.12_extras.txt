@@ -14,6 +14,8 @@ anyio==4.12.1
     #   mcp
     #   sse-starlette
     #   starlette
+arro3-core==0.6.5
+    # via deltalake
 arrow==1.4.0
     # via isoduration
 ase==3.27.0
@@ -25,9 +27,9 @@ attrs==25.4.0
     #   cyclopts
     #   jsonschema
     #   referencing
-authlib==1.6.6
+authlib==1.6.7
     # via fastmcp
-babel==2.17.0
+babel==2.18.0
     # via sphinx
 beartype==0.22.9
     # via
@@ -39,9 +41,9 @@ blake3==1.0.8
     # via emmet-core
 boltons==25.0.0
     # via mpcontribs-client
-boto3==1.42.38
+boto3==1.42.45
     # via mp-api (pyproject.toml)
-botocore==1.42.38
+botocore==1.42.45
     # via
     #   boto3
     #   s3transfer
@@ -49,7 +51,7 @@ bravado==12.0.1
     # via mpcontribs-client
 bravado-core==6.1.1
     # via bravado
-cachetools==6.2.6
+cachetools==7.0.0
     # via
     #   mpcontribs-client
     #   py-key-value-aio
@@ -72,8 +74,10 @@ cloudpickle==3.1.2
     # via pydocket
 contourpy==1.3.3
     # via matplotlib
-coverage[toml]==7.13.2
+coverage[toml]==7.13.4
     # via pytest-cov
+croniter==6.0.0
+    # via pydocket
 cryptography==46.0.4
     # via
     #   authlib
@@ -87,6 +91,10 @@ cyclopts==4.5.1
     # via fastmcp
 decorator==5.2.1
     # via ipython
+deltalake==1.4.2
+    # via mp-api (pyproject.toml)
+deprecated==1.3.1
+    # via deltalake
 diskcache==5.6.3
     # via py-key-value-aio
 distlib==0.4.0
@@ -114,7 +122,7 @@ executing==2.2.1
     # via stack-data
 fakeredis[lua]==2.33.0
     # via pydocket
-fastmcp==2.14.4
+fastmcp==2.14.5
     # via mp-api (pyproject.toml)
 filelock==3.20.3
     # via virtualenv
@@ -165,7 +173,7 @@ inflect==7.5.0
     # via robocrys
 iniconfig==2.3.0
     # via pytest
-ipython==9.9.0
+ipython==9.10.0
     # via mpcontribs-client
 ipython-pygments-lexers==1.1.1
     # via ipython
@@ -264,7 +272,7 @@ more-itertools==10.8.0
     #   jaraco-functools
 mp-pyrho==0.5.1
     # via pymatgen-analysis-defects
-mpcontribs-client==5.10.4
+mpcontribs-client==5.10.5
     # via mp-api (pyproject.toml)
 mpmath==1.3.0
     # via sympy
@@ -278,7 +286,7 @@ mypy-extensions==1.1.0
     # via
     #   mp-api (pyproject.toml)
     #   mypy
-narwhals==2.15.0
+narwhals==2.16.0
     # via plotly
 networkx==3.6.1
     # via
@@ -287,7 +295,7 @@ networkx==3.6.1
     #   scikit-image
 nodeenv==1.10.0
     # via pre-commit
-numpy==2.4.1
+numpy==2.4.2
     # via
     #   ase
     #   contourpy
@@ -313,23 +321,8 @@ numpy==2.4.1
 openapi-pydantic==0.5.1
     # via fastmcp
 opentelemetry-api==1.39.1
-    # via
-    #   opentelemetry-exporter-prometheus
-    #   opentelemetry-instrumentation
-    #   opentelemetry-sdk
-    #   opentelemetry-semantic-conventions
-    #   pydocket
-opentelemetry-exporter-prometheus==0.60b1
     # via pydocket
-opentelemetry-instrumentation==0.60b1
-    # via pydocket
-opentelemetry-sdk==1.39.1
-    # via opentelemetry-exporter-prometheus
-opentelemetry-semantic-conventions==0.60b1
-    # via
-    #   opentelemetry-instrumentation
-    #   opentelemetry-sdk
-orjson==3.11.6
+orjson==3.11.7
     # via
     #   mp-api (pyproject.toml)
     #   pymatgen
@@ -338,7 +331,6 @@ packaging==26.0
     #   fastmcp
     #   lazy-loader
     #   matplotlib
-    #   opentelemetry-instrumentation
     #   plotly
     #   pytest
     #   scikit-image
@@ -351,7 +343,7 @@ pandas==2.3.3
     #   mpcontribs-client
     #   pymatgen
     #   seaborn
-parso==0.8.5
+parso==0.8.6
     # via jedi
 pathable==0.4.4
     # via jsonschema-path
@@ -384,9 +376,7 @@ pluggy==1.6.0
 pre-commit==4.5.1
     # via mp-api (pyproject.toml)
 prometheus-client==0.24.1
-    # via
-    #   opentelemetry-exporter-prometheus
-    #   pydocket
+    # via pydocket
 prompt-toolkit==3.0.52
     # via ipython
 psutil==7.2.2
@@ -404,7 +394,9 @@ py-key-value-aio[disk,keyring,memory,redis]==0.3.0
 py-key-value-shared==0.3.0
     # via py-key-value-aio
 pyarrow==23.0.0
-    # via emmet-core
+    # via
+    #   emmet-core
+    #   mp-api (pyproject.toml)
 pybtex==0.25.1
     # via
     #   emmet-core
@@ -430,7 +422,7 @@ pydantic-settings==2.12.0
     #   emmet-core
     #   mcp
     #   pymatgen-io-validation
-pydocket==0.16.6
+pydocket==0.17.5
     # via fastmcp
 pyflakes==3.4.0
     # via flake8
@@ -443,7 +435,7 @@ pygments==2.19.2
     #   sphinx
 pyisemail==2.0.1
     # via mpcontribs-client
-pyjwt[crypto]==2.10.1
+pyjwt[crypto]==2.11.0
     # via mcp
 pymatgen==2025.10.7
     # via
@@ -496,6 +488,7 @@ python-dateutil==2.9.0.post0
     #   botocore
     #   bravado
     #   bravado-core
+    #   croniter
     #   matplotlib
     #   pandas
 python-dotenv==1.2.1
@@ -509,6 +502,7 @@ python-multipart==0.0.22
 pytz==2025.2
     # via
     #   bravado-core
+    #   croniter
     #   pandas
 pyyaml==6.0.3
     # via
@@ -518,7 +512,7 @@ pyyaml==6.0.3
     #   pre-commit
     #   pybtex
     #   swagger-spec-validator
-redis==7.1.0
+redis==7.1.1
     # via
     #   fakeredis
     #   py-key-value-aio
@@ -547,7 +541,7 @@ rfc3986-validator==0.1.1
     # via jsonschema
 rfc3987-syntax==1.1.0
     # via jsonschema
-rich==14.3.1
+rich==14.3.2
     # via
     #   cyclopts
     #   fastmcp
@@ -587,10 +581,8 @@ seaborn==0.13.2
     # via pymatgen-analysis-diffusion
 secretstorage==3.5.0
     # via keyring
-seekpath==2.2.0
+seekpath==2.2.1
     # via emmet-core
-semantic-version==2.10.0
-    # via mpcontribs-client
 shapely==2.1.2
     # via pymatgen-analysis-alloys
 shellingham==1.5.4
@@ -651,7 +643,7 @@ threadpoolctl==3.6.0
     # via scikit-learn
 tifffile==2026.1.28
     # via scikit-image
-tqdm==4.67.1
+tqdm==4.67.3
     # via
     #   matminer
     #   mpcontribs-client
@@ -666,7 +658,7 @@ typer==0.21.1
     # via pydocket
 types-requests==2.32.4.20260107
     # via mp-api (pyproject.toml)
-types-setuptools==80.10.0.20260124
+types-setuptools==81.0.0.20260209
     # via mp-api (pyproject.toml)
 typing-extensions==4.15.0
     # via
@@ -680,8 +672,6 @@ typing-extensions==4.15.0
     #   mp-api (pyproject.toml)
     #   mypy
     #   opentelemetry-api
-    #   opentelemetry-sdk
-    #   opentelemetry-semantic-conventions
     #   pint
     #   py-key-value-shared
     #   pydantic
@@ -721,13 +711,13 @@ uvicorn==0.40.0
     #   mcp
 virtualenv==20.36.1
     # via pre-commit
-wcwidth==0.5.2
+wcwidth==0.6.0
     # via prompt-toolkit
 webcolors==25.10.0
     # via jsonschema
 websockets==16.0
     # via fastmcp
-wrapt==1.17.3
-    # via opentelemetry-instrumentation
+wrapt==2.1.1
+    # via deprecated
 zipp==3.23.0
     # via importlib-metadata

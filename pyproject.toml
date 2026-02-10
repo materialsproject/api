@@ -27,6 +27,8 @@ dependencies = [
   "emmet-core>=0.86.3",
   "boto3",
   "orjson >= 3.10,<4",
+  "pyarrow >= 20.0.0",
+  "deltalake >= 1.4.0",
 ]
 dynamic = ["version"]
 

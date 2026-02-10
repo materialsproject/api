@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from emmet.core.settings import EmmetSettings
 from pydantic import Field, field_validator
@@ -47,6 +48,7 @@ class MAPIClientSettings(BaseSettings):
             "condition_mixing_media",
             "condition_heating_atmosphere",
             "operations",
+            "batch_id_neq_any",
             "_fields",
         ],
         description="List API query parameters that do not support parallel requests.",
@@ -99,6 +101,16 @@ class MAPIClientSettings(BaseSettings):
     ANGLE_TOL: float = Field(
         _EMMET_SETTINGS.ANGLE_TOL,
         description="Angle tolerance for structure matching in degrees.",
+    )
+
+    LOCAL_DATASET_CACHE: Path = Field(
+        Path("~/mp_datasets").expanduser(),
+        description="Target directory for downloading full datasets",
+    )
+
+    DATASET_FLUSH_THRESHOLD: int = Field(
+        int(2.75 * 1024**3),
+        description="Threshold bytes to accumulate in memory before flushing dataset to disk",
     )
 
     model_config = SettingsConfigDict(env_prefix="MPRESTER_")
