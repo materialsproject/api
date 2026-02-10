@@ -534,15 +534,14 @@ class BaseRester:
                     else None
                 )
 
-                byte_data = self._multi_thread(
-                    self._query_open_data,
-                    list(s3_params_list.values()),
-                    pbar,  # type: ignore
-                )
-
-                unzipped_chunks = []
-                for docs, _, _ in byte_data:
-                    unzipped_chunks.append(docs)
+                unzipped_chunks = [
+                    docs
+                    for docs, _, _ in self._multi_thread(
+                        self._query_open_data,
+                        list(s3_params_list.values()),
+                        pbar,  # type: ignore
+                    )
+                ]
 
                 data = {
                     "data": list(chain.from_iterable(unzipped_chunks)),

@@ -8,6 +8,7 @@ from pymatgen.core import _load_pmg_settings
 from mp_api.client import __file__ as root_dir
 
 PMG_SETTINGS = _load_pmg_settings()
+_NUM_PARALLEL_REQUESTS = min(PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 4), 4)
 _MAX_RETRIES = min(PMG_SETTINGS.get("MPRESTER_MAX_RETRIES", 3), 3)
 _MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BARS", False)
 _MAX_LIST_LENGTH = min(PMG_SETTINGS.get("MPRESTER_MAX_LIST_LENGTH", 10000), 10000)
@@ -24,6 +25,11 @@ class MAPIClientSettings(BaseSettings):
     TEST_FILES: str = Field(
         os.path.join(os.path.dirname(os.path.abspath(root_dir)), "../../test_files"),
         description="Directory with test files",
+    )
+
+    NUM_PARALLEL_REQUESTS: int = Field(
+        _NUM_PARALLEL_REQUESTS,
+        description="Number of parallel requests to send.",
     )
 
     MAX_RETRIES: int = Field(
