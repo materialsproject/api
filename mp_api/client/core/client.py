@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import gzip
 import inspect
+import itertools
 import os
 import platform
 import sys
 import warnings
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from copy import copy
 from functools import cache
 from importlib import import_module
@@ -830,6 +832,83 @@ class BaseRester:
         total_data["data"] = list(chain.from_iterable(data_chunks))
 
         return total_data
+
+    # this is here as a separate function to allow for multithreading when querying s3 buckets
+    # which is necessary to speed up retrieval of large data dumps
+    def _multi_thread(
+        self,
+        func: Callable,
+        params_list: list[dict],
+        progress_bar: tqdm | None = None,
+    ):
+        """Handles setting up a threadpool and sending parallel requests.
+
+        Arguments:
+            func (Callable): Callable function to multi
+            params_list (list): list of dictionaries containing url and params for each request
+            progress_bar (tqdm): progress bar to update with progress
+
+        Returns:
+            Tuples with data, total number of docs in matching the query in the database,
+            and the index of the criteria dictionary in the provided parameter list
+        """
+        return_data = []
+
+        params_gen = iter(
+            params_list
+        )  # Iter necessary for islice to keep track of what has been accessed
+
+        params_ind = 0
+
+        with ThreadPoolExecutor(
+            max_workers=MAPI_CLIENT_SETTINGS.NUM_PARALLEL_REQUESTS  # type: ignore
+        ) as executor:
+            # Get list of initial futures defined by max number of parallel requests
+            futures = set()
+
+            for params in itertools.islice(
+                params_gen,
+                MAPI_CLIENT_SETTINGS.NUM_PARALLEL_REQUESTS,  # type: ignore
+            ):
+                future = executor.submit(
+                    func,
+                    **params,
+                )
+
+                future.crit_ind = params_ind  # type: ignore
+                futures.add(future)
+                params_ind += 1
+
+            while futures:
+                # Wait for at least one future to complete and process finished
+                finished, futures = wait(futures, return_when=FIRST_COMPLETED)
+
+                for future in finished:
+                    data, subtotal = future.result()
+
+                    if progress_bar is not None:
+                        if isinstance(data, dict):
+                            size = len(data["data"])
+                        elif isinstance(data, list):
+                            size = len(data)
+                        else:
+                            size = 1
+                        progress_bar.update(size)
+
+                    return_data.append((data, subtotal, future.crit_ind))  # type: ignore
+
+                # Populate more futures to replace finished
+                for params in itertools.islice(params_gen, len(finished)):
+                    new_future = executor.submit(
+                        func,
+                        **params,
+                    )
+
+                    new_future.crit_ind = params_ind  # type: ignore
+                    futures.add(new_future)
+                    params_ind += 1
+
+        return return_data
 
     def _submit_request_and_process(
         self,
