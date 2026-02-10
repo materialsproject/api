@@ -18,10 +18,10 @@ from functools import cache
 from importlib import import_module
 from importlib.metadata import PackageNotFoundError, version
 from io import BytesIO
+from itertools import chain, islice
 from json import JSONDecodeError
 from math import ceil
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
-from urllib.parse import quote
 
 import boto3
 import requests
@@ -60,6 +60,14 @@ try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
+
+
+def _batched(iterable, n):
+    if n < 1:
+        raise ValueError("n must be at least one")
+    iterator = iter(iterable)
+    while batch := tuple(islice(iterator, n)):
+        yield batch
 
 
 class _DictLikeAccess(BaseModel):
@@ -403,7 +411,6 @@ class BaseRester:
         fields: list[str] | None = None,
         suburl: str | None = None,
         use_document_model: bool | None = None,
-        parallel_param: str | None = None,
         num_chunks: int | None = None,
         chunk_size: int | None = None,
         timeout: int | None = None,
@@ -419,7 +426,6 @@ class BaseRester:
             fields: list of fields to return
             suburl: make a request to a specified sub-url
             use_document_model: if None, will defer to the self.use_document_model attribute
-            parallel_param: parameter used to make parallel requests
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout : Time in seconds to wait until a request timeout error is thrown
@@ -493,7 +499,6 @@ class BaseRester:
                         url=url,
                         criteria=criteria,
                         use_document_model=use_document_model,
-                        parallel_param=parallel_param,
                         num_chunks=num_chunks,
                         chunk_size=chunk_size,
                         timeout=timeout,
@@ -529,17 +534,19 @@ class BaseRester:
                     else None
                 )
 
-                byte_data = self._multi_thread(
-                    self._query_open_data,
-                    list(s3_params_list.values()),
-                    pbar,  # type: ignore
-                )
+                unzipped_chunks = [
+                    docs
+                    for docs, _, _ in self._multi_thread(
+                        self._query_open_data,
+                        list(s3_params_list.values()),
+                        pbar,  # type: ignore
+                    )
+                ]
 
-                unzipped_data = []
-                for docs, _, _ in byte_data:
-                    unzipped_data.extend(docs)
-
-                data = {"data": unzipped_data, "meta": {}}
+                data = {
+                    "data": list(chain.from_iterable(unzipped_chunks)),
+                    "meta": {},
+                }
 
                 if self.use_document_model:
                     data["data"] = self._convert_to_model(data["data"])
@@ -550,7 +557,6 @@ class BaseRester:
                     url=url,
                     criteria=criteria,
                     use_document_model=not query_s3 and use_document_model,
-                    parallel_param=parallel_param,
                     num_chunks=num_chunks,
                     chunk_size=chunk_size,
                     timeout=timeout,
@@ -566,21 +572,18 @@ class BaseRester:
         criteria,
         use_document_model,
         chunk_size,
-        parallel_param=None,
         num_chunks=None,
         timeout=None,
     ) -> dict:
-        """Handle submitting requests. Parallel requests supported if possible.
-        Parallelization will occur either over the largest list of supported
-        query parameters used and/or over pagination.
+        """Handle submitting requests sequentially with pagination.
 
-        The number of threads is chosen by NUM_PARALLEL_REQUESTS in settings.
+        If criteria contains comma-separated parameters (except those that are naturally comma-separated),
+        split them into multiple sequential requests and combine results.
 
         Arguments:
             criteria: dictionary of criteria to filter down
             url: url used to make request
             use_document_model: if None, will defer to the self.use_document_model attribute
-            parallel_param: parameter to parallelize requests with
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout: Time in seconds to wait until a request timeout error is thrown
@@ -588,183 +591,154 @@ class BaseRester:
         Returns:
             Dictionary containing data and metadata
         """
-        # Generate new sets of criteria dicts to be run in parallel
-        # with new appropriate limit values. New limits obtained from
-        # trying to evenly divide num_chunks by the total number of new
-        # criteria dicts.
-        if parallel_param is not None:
-            # Determine slice size accounting for character maximum in HTTP URL
-            # First get URl length without parallel param
-            url_string = ""
-            for key, value in criteria.items():
-                if key != parallel_param:
-                    parsed_val = quote(str(value))
-                    url_string += f"{key}={parsed_val}&"
+        # Parameters that naturally support comma-separated values and should NOT be split
+        no_split_params = {
+            "elements",
+            "exclude_elements",
+            "possible_species",
+            "coordination_envs",
+            "coordination_envs_anonymous",
+            "has_props",
+            "gb_plane",
+            "rotation_axis",
+            "keywords",
+            "substrate_orientation",
+            "film_orientation",
+            "synthesis_type",
+            "operations",
+            "condition_mixing_device",
+            "condition_mixing_media",
+            "condition_heating_atmosphere",
+            "_fields",
+            "formula",
+            "chemsys",
+        }
 
-            bare_url_len = len(url_string)
-            max_param_str_length = (
-                MAPI_CLIENT_SETTINGS.MAX_HTTP_URL_LENGTH - bare_url_len  # type: ignore
-            )
+        # Check if we need to split any comma-separated parameters
+        split_param = None
+        split_values = None
+        total_num_docs = 0  # Initialize before try/else blocks
+        data_chunks = []
+        total_data_len = 0
 
-            # Next, check if default number of parallel requests works.
-            # If not, make slice size the minimum number of param entries
-            # contained in any substring of length max_param_str_length.
-            param_length = len(criteria[parallel_param].split(","))
-            slice_size = (
-                int(param_length / MAPI_CLIENT_SETTINGS.NUM_PARALLEL_REQUESTS) or 1  # type: ignore
-            )
+        for key, value in criteria.items():
+            if (
+                isinstance(value, str)
+                and "," in value
+                and key not in no_split_params
+                and not key.startswith("_")
+            ):
+                split_param = key
+                split_values = value.split(",")
+                break
 
-            url_param_string = quote(criteria[parallel_param])
-
-            parallel_param_str_chunks = [
-                url_param_string[i : i + max_param_str_length]
-                for i in range(0, len(url_param_string), max_param_str_length)
-                if (i + max_param_str_length) <= len(url_param_string)
-            ]
-
-            if len(parallel_param_str_chunks) > 0:
-                params_min_chunk = min(
-                    parallel_param_str_chunks, key=lambda x: len(x.split("%2C"))
+        # If we found a parameter to split, try the request first and only split on error
+        if split_param and len(split_values or []) > 1:
+            try:
+                # First, try the request with all values as-is
+                initial_criteria = copy(criteria)
+                data, total_num_docs = self._submit_request_and_process(
+                    url=url,
+                    verify=True,
+                    params=initial_criteria,
+                    use_document_model=use_document_model,
+                    timeout=timeout,
                 )
 
-                num_params_min_chunk = len(params_min_chunk.split("%2C"))
-
-                if num_params_min_chunk < slice_size:
-                    slice_size = num_params_min_chunk or 1
-
-            new_param_values = [
-                entry
-                for entry in (
-                    criteria[parallel_param].split(",")[i : (i + slice_size)]
-                    for i in range(0, param_length, slice_size)
-                )
-                if entry != []
-            ]
-
-            # Get new limit values that sum to chunk_size
-            num_new_params = len(new_param_values)
-            q = int(chunk_size / num_new_params)  # quotient
-            r = chunk_size % num_new_params  # remainder
-            new_limits = []
-
-            for _ in range(num_new_params):
-                val = q + 1 if r > 0 else q if q > 0 else 1
-                new_limits.append(val)
-                r -= 1
-
-            # Split list and generate multiple criteria
-            new_criteria = [
-                {
-                    **{
-                        key: criteria[key]
-                        for key in criteria
-                        if key not in [parallel_param, "_limit"]
-                    },
-                    parallel_param: ",".join(list_chunk),
-                    "_limit": new_limits[list_num],
-                }
-                for list_num, list_chunk in enumerate(new_param_values)
-            ]
-
-        else:
-            # Only parallelize over pagination parameters
-            new_criteria = [criteria]
-            new_limits = [chunk_size]
-
-        total_num_docs = 0
-        total_data: dict[str, list[Any]] = {"data": []}
-
-        # Obtain first page of results and get pagination information.
-        # Individual total document limits (subtotal) will potentially
-        # be used for rebalancing should one new of the criteria
-        # queries result in a smaller amount of docs compared to the
-        # new limit value we assigned.
-        subtotals = []
-        remaining_docs_avail = {}
-
-        initial_params_list = [
-            {
-                "url": url,
-                "verify": True,
-                "params": copy(crit),
-                "use_document_model": use_document_model,
-                "timeout": timeout,
-            }
-            for crit in new_criteria
-        ]
-
-        initial_data_tuples = self._multi_thread(
-            self._submit_request_and_process, initial_params_list
-        )
-
-        for data, subtotal, crit_ind in initial_data_tuples:
-            subtotals.append(subtotal)
-            sub_diff = subtotal - new_limits[crit_ind]
-            remaining_docs_avail[crit_ind] = sub_diff
-            total_data["data"].extend(data["data"])
-
-        last_data_entry = initial_data_tuples[-1][0]
-
-        # Rebalance if some parallel queries produced too few results
-        if len(remaining_docs_avail) > 1 and len(total_data["data"]) < chunk_size:
-            remaining_docs_avail = dict(
-                sorted(remaining_docs_avail.items(), key=lambda item: item[1])
-            )
-
-            # Redistribute missing docs from initial chunk among queries
-            # which have head room with respect to remaining document number.
-            fill_docs = 0
-            rebalance_params = []
-            for crit_ind, amount_avail in remaining_docs_avail.items():
-                if amount_avail <= 0:
-                    fill_docs += abs(amount_avail)
-                    new_limits[crit_ind] = 0
-                else:
-                    crit = new_criteria[crit_ind]
-                    crit["_skip"] = crit["_limit"]
-
-                    if fill_docs == 0:
-                        continue
-
-                    if fill_docs >= amount_avail:
-                        crit["_limit"] = amount_avail
-                        new_limits[crit_ind] += amount_avail
-                        fill_docs -= amount_avail
-
-                    else:
-                        crit["_limit"] = fill_docs
-                        new_limits[crit_ind] += fill_docs
-                        fill_docs = 0
-
-                    rebalance_params.append(
-                        {
-                            "url": url,
-                            "verify": True,
-                            "params": copy(crit),
-                            "use_document_model": use_document_model,
-                            "timeout": timeout,
-                        }
+                # Check if we got 0 results - some parameters are silently ignored by the API
+                # when passed as comma-separated values, so we need to split them anyway
+                if total_num_docs == 0 and len(split_values) > 1:
+                    # Treat this the same as a 422 error - split into batches
+                    raise MPRestError(
+                        "Got 0 results for comma-separated parameter, will try splitting"
                     )
 
-                    new_criteria[crit_ind]["_skip"] += crit["_limit"]
-                    new_criteria[crit_ind]["_limit"] = chunk_size
+                # If successful, continue with normal pagination
+                data_chunks = [data["data"]]
+                total_data = {"data": []}  # type: dict
+                total_data_len = len(data["data"])
 
-            # Obtain missing initial data after rebalancing
-            if len(rebalance_params) > 0:
-                rebalance_data_tuples = self._multi_thread(
-                    self._submit_request_and_process, rebalance_params
-                )
+                if "meta" in data:
+                    total_data["meta"] = data["meta"]
 
-                for data, _, _ in rebalance_data_tuples:
-                    total_data["data"].extend(data["data"])
+                # Continue with pagination if needed (handled below)
 
-                last_data_entry = rebalance_data_tuples[-1][0]
+            except MPRestError as e:
+                # If we get 422 or 414 error, or 0 results for comma-separated params, split into batches
+                if any(trace in str(e) for trace in ("422", "414", "Got 0 results")):
+                    total_data = {"data": []}  # type: dict
+                    total_num_docs = 0
+                    data_chunks = []
 
-        total_num_docs = sum(subtotals)
+                    # Batch the split values to reduce number of requests
+                    # Use batches of up to 100 values to balance URL length and request count
+                    batch_size = min(100, max(1, len(split_values) // 10))
 
-        if "meta" in last_data_entry:
-            last_data_entry["meta"]["total_doc"] = total_num_docs
-            total_data["meta"] = last_data_entry["meta"]
+                    # Setup progress bar for split parameter requests
+                    num_batches = ceil(len(split_values) / batch_size)
+                    pbar_message = f"Retrieving {len(split_values)} {split_param} values in {num_batches} batches"
+                    pbar = (
+                        tqdm(
+                            desc=pbar_message,
+                            total=num_batches,
+                        )
+                        if not self.mute_progress_bars
+                        else None
+                    )
+
+                    for batch in _batched(split_values, batch_size):
+                        split_criteria = copy(criteria)
+                        split_criteria[split_param] = ",".join(batch)
+
+                        # Recursively call _submit_requests with the batch
+                        # This will trigger another split if the batch is still too large
+                        result = self._submit_requests(
+                            url=url,
+                            criteria=split_criteria,
+                            use_document_model=use_document_model,
+                            chunk_size=chunk_size,
+                            num_chunks=num_chunks,
+                            timeout=timeout,
+                        )
+
+                        data_chunks.append(result["data"])
+                        if "meta" in result:
+                            total_data["meta"] = result["meta"]
+                            total_num_docs += result["meta"].get("total_doc", 0)
+
+                        if pbar is not None:
+                            pbar.update(1)
+
+                    if pbar is not None:
+                        pbar.close()
+
+                    total_data["data"] = list(chain.from_iterable(data_chunks))
+
+                    # Update total_doc if we have meta
+                    if "meta" in total_data:
+                        total_data["meta"]["total_doc"] = total_num_docs
+
+                    return total_data
+                else:
+                    # Re-raise other errors
+                    raise
+        else:
+            # No splitting needed - get first page
+            total_data = {"data": []}  # type: dict
+            initial_criteria = copy(criteria)
+            data, total_num_docs = self._submit_request_and_process(
+                url=url,
+                verify=True,
+                params=initial_criteria,
+                use_document_model=use_document_model,
+                timeout=timeout,
+            )
+
+            data_chunks = [data["data"]]
+            total_data_len = len(data["data"])
+
+            if "meta" in data:
+                total_data["meta"] = data["meta"]
 
         # Get max number of response pages
         max_pages = (
@@ -789,24 +763,25 @@ class BaseRester:
             else None
         )
 
-        initial_data_length = len(total_data["data"])
+        initial_data_length = total_data_len
+
+        if pbar is not None:
+            pbar.update(initial_data_length)
 
         # If we have all the results in a single page, return directly
         if initial_data_length >= num_docs_needed or num_chunks == 1:
             new_total_data = copy(total_data)
-            new_total_data["data"] = total_data["data"][:num_docs_needed]
+            new_total_data["data"] = list(chain.from_iterable(data_chunks))[
+                :num_docs_needed
+            ]
 
             if pbar is not None:
-                pbar.update(num_docs_needed)
                 pbar.close()
             return new_total_data
 
-        # otherwise, prepare to paginate in parallel
+        # otherwise, paginate sequentially
         if chunk_size is None:
             raise ValueError("A chunk size must be provided to enable pagination")
-
-        if pbar is not None:
-            pbar.update(initial_data_length)
 
         # Warning to select specific fields only for many results
         if criteria.get("_all_fields", False) and (total_num_docs / chunk_size > 10):
@@ -816,56 +791,49 @@ class BaseRester:
                 f"Choose from: {self.available_fields}"
             )
 
-        # Get all pagination input params for parallel requests
-        params_list = []
-        doc_counter = 0
+        # Paginate through remaining results
+        skip = chunk_size if "_limit" not in criteria else criteria["_limit"]
+        remaining_docs = total_num_docs - initial_data_length
 
-        for crit_num, crit in enumerate(new_criteria):
-            remaining = remaining_docs_avail[crit_num]
-            if "_skip" not in crit:
-                crit["_skip"] = chunk_size if "_limit" not in crit else crit["_limit"]
+        while total_data_len < num_docs_needed and remaining_docs > 0:
+            page_criteria = copy(criteria)
+            page_criteria["_skip"] = skip
 
-            while remaining > 0:
-                if doc_counter == (num_docs_needed - initial_data_length):
-                    break
+            # Determine limit for this request
+            docs_still_needed = num_docs_needed - total_data_len
+            page_criteria["_limit"] = min(chunk_size, docs_still_needed, remaining_docs)
 
-                if remaining < chunk_size:
-                    crit["_limit"] = remaining
-                    doc_counter += remaining
-                else:
-                    n = chunk_size - (doc_counter % chunk_size)
-                    crit["_limit"] = n
-                    doc_counter += n
+            data, _ = self._submit_request_and_process(
+                url=url,
+                verify=True,
+                params=page_criteria,
+                use_document_model=use_document_model,
+                timeout=timeout,
+            )
 
-                params_list.append(
-                    {
-                        "url": url,
-                        "verify": True,
-                        "params": {**crit, "_skip": crit["_skip"]},
-                        "use_document_model": use_document_model,
-                        "timeout": timeout,
-                    }
-                )
+            data_chunks.append(data["data"])
+            chunk_len = len(data["data"])
+            total_data_len += chunk_len
 
-                crit["_skip"] += crit["_limit"]
-                remaining -= crit["_limit"]
+            if pbar is not None:
+                pbar.update(chunk_len)
 
-        # Submit requests and process data
-        data_tuples = self._multi_thread(
-            self._submit_request_and_process, params_list, pbar
-        )
+            skip += page_criteria["_limit"]
+            remaining_docs -= chunk_len
 
-        for data, _, _ in data_tuples:
-            total_data["data"].extend(data["data"])
-
-        if data_tuples and "meta" in data_tuples[0][0]:
-            total_data["meta"]["time_stamp"] = data_tuples[0][0]["meta"]["time_stamp"]
+            # Break if we didn't get any data (shouldn't happen, but safety check)
+            if chunk_len == 0:
+                break
 
         if pbar is not None:
             pbar.close()
 
+        total_data["data"] = list(chain.from_iterable(data_chunks))
+
         return total_data
 
+    # this is here as a separate function to allow for multithreading when querying s3 buckets
+    # which is necessary to speed up retrieval of large data dumps
     def _multi_thread(
         self,
         func: Callable,
@@ -1254,25 +1222,9 @@ class BaseRester:
 
         query_params["_limit"] = chunk_size
 
-        # Check if specific parameters are present that can be parallelized over
-        list_entries = sorted(
-            (
-                (key, len(entry.split(",")))
-                for key, entry in query_params.items()
-                if isinstance(entry, str)
-                and len(entry.split(",")) > 0
-                and key not in MAPI_CLIENT_SETTINGS.QUERY_NO_PARALLEL  # type: ignore
-            ),
-            key=lambda item: item[1],
-            reverse=True,
-        )
-
-        chosen_param = list_entries[0][0] if len(list_entries) > 0 else None
-
         results = self._query_resource(
             query_params,
             fields=fields,
-            parallel_param=chosen_param,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
         )

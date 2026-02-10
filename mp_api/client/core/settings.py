@@ -11,7 +11,6 @@ PMG_SETTINGS = _load_pmg_settings()
 _NUM_PARALLEL_REQUESTS = min(PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 4), 4)
 _MAX_RETRIES = min(PMG_SETTINGS.get("MPRESTER_MAX_RETRIES", 3), 3)
 _MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BARS", False)
-_MAX_HTTP_URL_LENGTH = PMG_SETTINGS.get("MPRESTER_MAX_HTTP_URL_LENGTH", 2000)
 _MAX_LIST_LENGTH = min(PMG_SETTINGS.get("MPRESTER_MAX_LIST_LENGTH", 10000), 10000)
 
 _EMMET_SETTINGS = EmmetSettings()
@@ -26,30 +25,6 @@ class MAPIClientSettings(BaseSettings):
     TEST_FILES: str = Field(
         os.path.join(os.path.dirname(os.path.abspath(root_dir)), "../../test_files"),
         description="Directory with test files",
-    )
-
-    QUERY_NO_PARALLEL: list[str] = Field(
-        [
-            "elements",
-            "exclude_elements",
-            "possible_species",
-            "coordination_envs",
-            "coordination_envs_anonymous",
-            "has_props",
-            "gb_plane",
-            "rotation_axis",
-            "keywords",
-            "substrate_orientation",
-            "film_orientation",
-            "synthesis_type",
-            "operations",
-            "condition_mixing_device",
-            "condition_mixing_media",
-            "condition_heating_atmosphere",
-            "operations",
-            "_fields",
-        ],
-        description="List API query parameters that do not support parallel requests.",
     )
 
     NUM_PARALLEL_REQUESTS: int = Field(
@@ -69,11 +44,6 @@ class MAPIClientSettings(BaseSettings):
     MUTE_PROGRESS_BARS: bool = Field(
         _MUTE_PROGRESS_BAR,
         description="Whether to mute progress bars when data is retrieved.",
-    )
-
-    MAX_HTTP_URL_LENGTH: int = Field(
-        _MAX_HTTP_URL_LENGTH,
-        description="Number of characters to use to define the maximum length of a given HTTP URL.",
     )
 
     MIN_EMMET_VERSION: str = Field(
