@@ -278,7 +278,9 @@ class SummaryRester(BaseRester):
                 raise MPRestError("\n".join([*warning_strs, *exc_strs, *warn_ref_strs]))
             if warn_ref_strs:
                 warnings.warn(
-                    "\n".join([*warning_strs, *warn_ref_strs]), category=MPRestWarning
+                    "\n".join([*warning_strs, *warn_ref_strs]),
+                    category=MPRestWarning,
+                    stacklevel=2,
                 )
 
         for param, value in user_settings.items():

@@ -35,7 +35,11 @@ from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
-from mp_api.client.core.exceptions import MPRestError, _emit_status_warning
+from mp_api.client.core.exceptions import (
+    MPRestError,
+    MPRestWarning,
+    _emit_status_warning,
+)
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     load_json,
@@ -151,7 +155,9 @@ class BaseRester:
         if "monty_decode" in kwargs:
             warnings.warn(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
-                "The client by default returns results consistent with `monty_decode=True`."
+                "The client by default returns results consistent with `monty_decode=True`.",
+                category=DeprecationWarning,
+                stacklevel=2,
             )
 
     @property
@@ -506,7 +512,9 @@ class BaseRester:
 
                 if fields:
                     warnings.warn(
-                        "Ignoring `fields` argument: All fields are always included when no query is provided."
+                        "Ignoring `fields` argument: All fields are always included when no query is provided.",
+                        category=MPRestWarning,
+                        stacklevel=2,
                     )
 
                 # Multithreaded function inputs
@@ -821,7 +829,9 @@ class BaseRester:
             warnings.warn(
                 f"Use the 'fields' argument to select only fields of interest to speed "
                 f"up data retrieval for large queries. "
-                f"Choose from: {self.available_fields}"
+                f"Choose from: {self.available_fields}",
+                category=MPRestWarning,
+                stacklevel=2,
             )
 
         # Get all pagination input params for parallel requests
@@ -1321,7 +1331,9 @@ class BaseRester:
                 cnt += results["meta"]["total_doc"]
                 warnings.warn(
                     "Omitting a query also includes deprecated documents in the results. "
-                    "Make sure to post-filter them out."
+                    "Make sure to post-filter them out.",
+                    category=MPRestWarning,
+                    stacklevel=2,
                 )
 
         (

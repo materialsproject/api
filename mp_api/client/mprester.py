@@ -241,11 +241,17 @@ class MPRester:
                 warnings.warn(
                     "mpcontribs-client not installed. "
                     "Install the package to query MPContribs data, construct pourbaix diagrams, "
-                    "or to compute cohesive energies: 'pip install mpcontribs-client'"
+                    "or to compute cohesive energies: 'pip install mpcontribs-client'",
+                    category=MPRestWarning,
+                    stacklevel=2,
                 )
             except Exception as error:
                 self._contribs = None
-                warnings.warn(f"Problem loading MPContribs client: {error}")
+                warnings.warn(
+                    f"Problem loading MPContribs client: {error}",
+                    category=MPRestWarning,
+                    stacklevel=2,
+                )
 
         return self._contribs
 
@@ -396,11 +402,13 @@ class MPRester:
             raise ValueError(
                 f"Multiple documents return for {task_id}, this should not happen, please report it!"
             )
-        else:  # pragma: no cover
-            warnings.warn(
-                f"No material found containing task {task_id}. Please report it if you suspect a task has gone missing."
-            )
-            return None
+        warnings.warn(
+            f"No material found containing task {task_id}. "
+            "Please report it if you suspect a task has gone missing.",
+            category=MPRestWarning,
+            stacklevel=2,
+        )
+        return None
 
     def get_material_id_references(self, material_id: str) -> list[str]:
         """Returns all references for a material id.
@@ -563,7 +571,9 @@ class MPRester:
         if kwargs.pop("inc_structure", None) is not None:
             warnings.warn(
                 "The `inc_structure` argument is deprecated as final structures "
-                "are always included in all returned ComputedStructureEntry objects."
+                "are always included in all returned ComputedStructureEntry objects.",
+                category=DeprecationWarning,
+                stacklevel=2,
             )
 
         if isinstance(chemsys_formula_mpids, str):
@@ -1313,7 +1323,9 @@ class MPRester:
         warnings.warn(
             f"For file patterns [{file_patterns}] and calc_types [{calc_types}], \n"
             f"the following ids are not found on NOMAD [{list(non_exist_ids)}]. \n"
-            f"If you need to upload them, please contact Patrick Huck at phuck@lbl.gov"
+            f"If you need to upload them, please contact Patrick Huck at phuck@lbl.gov",
+            category=MPRestWarning,
+            stacklevel=2,
         )
 
     def query(*args, **kwargs):
@@ -1505,7 +1517,9 @@ class MPRester:
         if not pd:
             warnings.warn(
                 f"No phase diagram data available for chemical system {chemsys_str} "
-                f"and thermo type {thermo_type}."
+                f"and thermo type {thermo_type}.",
+                category=MPRestWarning,
+                stacklevel=2,
             )
             return None
 
