@@ -591,9 +591,7 @@ class BaseRester:
                     )
 
                     predicate = (
-                        " WHERE batch_id NOT IN ("  # don't delete leading space
-                        + controlled_batch_str
-                        + ")"
+                        f"WHERE batch_id NOT IN ({controlled_batch_str})"
                         if not has_gnome_access
                         else ""
                     )
@@ -617,7 +615,7 @@ class BaseRester:
                         else None
                     )
 
-                    iterator = builder.execute("SELECT * FROM tbl" + predicate)
+                    iterator = builder.execute(f"SELECT * FROM tbl {predicate}")
 
                     file_options = ds.ParquetFileFormat().make_write_options(
                         compression="zstd"
