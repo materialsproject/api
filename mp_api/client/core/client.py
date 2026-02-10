@@ -1576,6 +1576,8 @@ class CoreRester(BaseRester):
                     use_document_model=self.use_document_model,
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
+                    local_dataset_cache=self.local_dataset_cache,
+                    force_renew=self.force_renew,
                 )
             return self.sub_resters[v]
 

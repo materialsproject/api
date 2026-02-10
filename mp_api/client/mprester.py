@@ -184,9 +184,6 @@ class MPRester:
         # Check if emmet version of server is compatible
         emmet_version = MPRester.get_emmet_version(self.endpoint)
 
-        # local_dataset_cache=self.local_dataset_cache,
-        # force_renew=self.force_renew,
-
         if version.parse(emmet_version.base_version) < version.parse(
             MAPI_CLIENT_SETTINGS.MIN_EMMET_VERSION
         ):
