@@ -165,7 +165,7 @@ loop_
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
         with pytest.warns(
-            UserWarning, match="The `inc_structure` argument is deprecated"
+            DeprecationWarning, match="The `inc_structure` argument is deprecated"
         ):
             entries = mpr.get_entries(chemsys, inc_structure=False)
 
@@ -558,7 +558,9 @@ loop_
                 ]
 
             if no_compound_entries:
-                with pytest.warns(UserWarning, match="No phase diagram data available"):
+                with pytest.warns(
+                    MPRestWarning, match="No phase diagram data available"
+                ):
                     mpr.get_stability(modified_entries, thermo_type=thermo_type)
                 return
 

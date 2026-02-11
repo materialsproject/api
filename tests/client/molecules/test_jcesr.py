@@ -4,6 +4,7 @@ from .core_function import client_search_testing
 import pytest
 from pymatgen.core.periodic_table import Element
 
+from mp_api.client.core.exceptions import MPRestWarning
 from mp_api.client.routes.molecules.jcesr import JcesrMoleculesRester
 
 from ..conftest import requires_api_key
@@ -51,5 +52,5 @@ def test_client(rester):
 
 
 def test_warning():
-    with pytest.warns(UserWarning, match="unmaintained legacy molecules"):
+    with pytest.warns(MPRestWarning, match="unmaintained legacy molecules"):
         JcesrMoleculesRester()
