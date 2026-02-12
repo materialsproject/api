@@ -512,6 +512,10 @@ loop_
             v == pytest.approx(e_coh["noserial"][k]) for k, v in e_coh["serial"].items()
         )
 
+        with pytest.raises(MPRestError, match="Input material IDs"):
+            with MPRester() as mpr:
+                mpr.get_cohesive_energy("mp-1")
+
     @pytest.mark.parametrize(
         "chemsys, thermo_type",
         [

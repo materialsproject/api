@@ -1359,6 +1359,13 @@ class MPRester:
             (dict[str,float]) : The cohesive energies (in eV/atom or eV/formula unit) for
             each material, indexed by MPID.
         """
+        # Prevent user error
+        if isinstance(material_ids, str | MPID):
+            raise MPRestError(
+                "Input material IDs (even a single ID) as a list: "
+                f"`[{material_ids}]`"
+            )
+
         entry_preference = {
             k: i for i, k in enumerate(["GGA", "GGA_U", "SCAN", "R2SCAN"])
         }
