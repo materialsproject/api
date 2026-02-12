@@ -106,13 +106,13 @@ def test_list_like_input():
     } == set(crys_sys)
 
     # should fail - we don't support querying by so many list values
-    with pytest.raises(ValueError, match="retrieve all data first and then filter"):
+    with pytest.raises(MPRestError, match="retrieve all data first and then filter"):
         _ = search_method(spacegroup_number=list(range(1, 231)))
 
-    with pytest.raises(ValueError, match="retrieve all data first and then filter"):
+    with pytest.raises(MPRestError, match="retrieve all data first and then filter"):
         _ = search_method(spacegroup_number=["null" for _ in range(230)])
 
-    with pytest.raises(ValueError, match="retrieve all data first and then filter"):
+    with pytest.raises(MPRestError, match="retrieve all data first and then filter"):
         _ = search_method(crystal_system=list(CrystalSystem))
 
 

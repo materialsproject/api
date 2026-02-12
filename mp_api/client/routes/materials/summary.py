@@ -206,7 +206,9 @@ class SummaryRester(BaseRester):
 
         # Check to see if user specified _search fields using **kwargs,
         # or if any of the **kwargs are unparsable
-        db_keys = {k: [] for k in ("duplicate", "warn", "unknown")}
+        db_keys: dict[str, list[str]] = {
+            k: [] for k in ("duplicate", "warn", "unknown")
+        }
         for k, v in kwargs.items():
             category = "unknown"
             if non_db_k := mmnd_inv.get(k):
@@ -276,7 +278,9 @@ class SummaryRester(BaseRester):
                 raise MPRestError("\n".join([*warning_strs, *exc_strs, *warn_ref_strs]))
             if warn_ref_strs:
                 warnings.warn(
-                    "\n".join([*warning_strs, *warn_ref_strs]), category=MPRestWarning
+                    "\n".join([*warning_strs, *warn_ref_strs]),
+                    category=MPRestWarning,
+                    stacklevel=2,
                 )
 
         for param, value in user_settings.items():
@@ -325,13 +329,11 @@ class SummaryRester(BaseRester):
             "spacegroup_symbol": 230,
         }
         for k, cardinality in symm_cardinality.items():
-            if hasattr(symm_vals := locals().get(k), "__len__") and not isinstance(
-                symm_vals, str
-            ):
+            if isinstance(symm_vals := locals().get(k), list | tuple | set):
                 if len(symm_vals) < cardinality // 2:
                     query_params.update({k: ",".join(str(v) for v in symm_vals)})
                 else:
-                    raise ValueError(
+                    raise MPRestError(
                         f"Querying `{k}` by a list of values is only "
                         f"supported for up to {cardinality//2 - 1} values. "
                         f"For your query, retrieve all data first and then filter on `{k}`."
@@ -376,7 +378,7 @@ class SummaryRester(BaseRester):
             if query_params[entry] is not None
         }
 
-        return super()._search(
+        return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

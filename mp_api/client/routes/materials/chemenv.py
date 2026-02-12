@@ -120,7 +120,7 @@ class ChemenvRester(BaseRester):
         for chemenv_var_name, (chemenv_var, literals) in chemenv_literals.items():
             if chemenv_var:
                 t_types = {t if isinstance(t, str) else t.value for t in chemenv_var}
-                valid_types = {*map(str, literals.__args__)}
+                valid_types = {*map(str, literals.__args__)}  # type: ignore[attr-defined]
                 if invalid_types := t_types - valid_types:
                     raise ValueError(
                         f"Invalid type(s) passed for {chemenv_var_name}: {invalid_types}, valid types are: {valid_types}"
@@ -140,7 +140,7 @@ class ChemenvRester(BaseRester):
             if query_params[entry] is not None
         }
 
-        return super()._search(
+        return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,

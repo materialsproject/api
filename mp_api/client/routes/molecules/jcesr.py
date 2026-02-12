@@ -7,6 +7,7 @@ from emmet.core.molecules_jcesr import MoleculesDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.exceptions import MPRestWarning
 from mp_api.client.core.utils import validate_ids
 
 
@@ -19,7 +20,9 @@ class JcesrMoleculesRester(BaseRester):
         """Throw deprecation warning when JCESR client is initialized."""
         warnings.warn(
             "NOTE: You are accessing the unmaintained legacy molecules data, "
-            "please use MPRester.molecules.summary."
+            "please use MPRester.molecules.summary.",
+            category=MPRestWarning,
+            stacklevel=2,
         )
         super().__init__(**kwargs)
 

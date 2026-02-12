@@ -9,6 +9,7 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Composition
 from pymatgen.entries.computed_entries import ComputedEntry
 
+from mp_api.client.core.exceptions import MPRestWarning
 from mp_api.client.core._oxygen_evolution import (
     DEFAULT_CACHE_FILE,
     NIST_JANAF_O2_MU_T,
@@ -39,7 +40,7 @@ def test_interp():
 
     # ensure user is warned when data is outside fit range
     for badval in (1.0, -50.0):
-        with pytest.warns(UserWarning, match="outside the fitting range"):
+        with pytest.warns(MPRestWarning, match="outside the fitting range"):
             oxyevo.mu_to_temp_spline(badval)
 
 
