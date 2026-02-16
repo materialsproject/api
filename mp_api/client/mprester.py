@@ -673,12 +673,12 @@ class MPRester:
             solid_compat = MaterialsProjectCompatibility()
         elif solid_compat == "MaterialsProject2020Compatibility":
             solid_compat = MaterialsProject2020Compatibility()
-        elif isinstance(solid_compat, Compatibility):
+        elif isinstance(solid_compat, Compatibility) or solid_compat is None:
             pass
         else:
             raise ValueError(
                 "Solid compatibility can only be 'MaterialsProjectCompatibility', "
-                "'MaterialsProject2020Compatibility', or an instance of a Compatibility class"
+                "'MaterialsProject2020Compatibility', None, or an instance of a Compatibility class"
             )
 
         pbx_entries = []
