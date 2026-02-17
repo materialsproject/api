@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
     from emmet.core.tasks import CoreTaskDoc
     from pymatgen.analysis.phase_diagram import PDEntry
+    from pymatgen.entries.compatibility import Compatibility
     from pymatgen.entries.computed_entries import ComputedEntry
 
 
@@ -611,7 +612,11 @@ class MPRester:
     def get_pourbaix_entries(
         self,
         chemsys: str | list[str] | list[ComputedEntry | ComputedStructureEntry],
-        solid_compat="MaterialsProject2020Compatibility",
+        solid_compat: Literal[
+            "MaterialsProjectCompatibility", "MaterialsProject2020Compatibility"
+        ]
+        | Compatibility
+        | None = "MaterialsProject2020Compatibility",
         use_gibbs: Literal[300] | None = None,
     ):
         """A helper function to get all entries necessary to generate
@@ -627,10 +632,12 @@ class MPRester:
                 for adding extra calculation data to the Pourbaix Diagram.
                 If this is set, the chemsys will be inferred from the entries.
             solid_compat: Compatibility scheme used to pre-process solid DFT energies prior
-                to applying aqueous energy adjustments. May be passed as a class (e.g.
-                MaterialsProject2020Compatibility) or an instance
-                (e.g., MaterialsProject2020Compatibility()). If None, solid DFT energies
-                are used as-is. Default: MaterialsProject2020Compatibility
+                to applying aqueous energy adjustments.
+                May be passed as a string (either "MaterialsProjectCompatibility"
+                or "MaterialsProject2020Compatibility"), or as a class instance
+                (e.g., MaterialsProject2020Compatibility()).
+                If None, solid DFT energies are used as-is.
+                Default: MaterialsProject2020Compatibility
             use_gibbs: Set to 300 (for 300 Kelvin) to use a machine learning model to
                 estimate solid free energy from DFT energy (see GibbsComputedStructureEntry).
                 This can slightly improve the accuracy of the Pourbaix diagram in some
