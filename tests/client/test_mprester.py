@@ -271,7 +271,7 @@ loop_
 
         # test solid_compat kwarg
         with pytest.raises(ValueError, match="Solid compatibility can only be"):
-            mpr.get_pourbaix_entries("Ti-O", solid_compat=None)
+            mpr.get_pourbaix_entries("Ti-O", solid_compat="None")
 
         # test removal of extra elements from reference solids
         # Li-Zn-S has Na in reference solids
