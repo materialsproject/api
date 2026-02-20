@@ -319,14 +319,14 @@ class MPCoreMCP(_NeedsMPClient):
         Examples:
         Given elements Na and Cl:
         ```
-        phase_diagram = MPMcpTools().get_phase_diagram_from_elements(
+        phase_diagram = MPCoreMCP().get_phase_diagram_from_elements(
             elements = "Na, Cl",
         )
         ```
 
         Given a chemical system, "K-P-O":
         ```
-        phase_diagram =  MPMcpTools().get_phase_diagram_from_elements(
+        phase_diagram =  MPCoreMCP().get_phase_diagram_from_elements(
             elements = ",".join("K-P-O".split("-")),
         )
         ```
