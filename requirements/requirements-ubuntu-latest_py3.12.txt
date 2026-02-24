@@ -30,7 +30,7 @@ deltalake==1.4.2
     # via mp-api (pyproject.toml)
 deprecated==1.3.1
     # via deltalake
-emmet-core==0.86.3
+emmet-core==0.86.4rc0
     # via mp-api (pyproject.toml)
 fonttools==4.61.1
     # via matplotlib

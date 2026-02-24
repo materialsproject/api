@@ -24,7 +24,7 @@ dependencies = [
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
-  "emmet-core>=0.86.3",
+  "emmet-core>=0.86.4rc0,<0.86.5",
   "boto3",
   "orjson >= 3.10,<4",
   "pyarrow >= 20.0.0",
