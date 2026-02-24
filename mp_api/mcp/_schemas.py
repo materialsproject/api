@@ -5,6 +5,7 @@ from typing import Any
 
 from emmet.core.summary import SummaryDoc
 from pydantic import BaseModel, Field, model_validator
+from pymatgen.core import Structure
 from typing_extensions import Self
 
 from mp_api.client.core.utils import validate_ids
@@ -266,6 +267,13 @@ class MaterialMetadata(BaseModel):
         ),
     )
 
+    poscar: str | None = Field(
+        None,
+        description=(
+            "The structure in VASP's POSCAR format: " "https://vasp.at/wiki/POSCAR"
+        ),
+    )
+
     cell_vectors: list[list[float]] | None = Field(
         None,
         description=(
@@ -368,6 +376,7 @@ class MaterialMetadata(BaseModel):
                 site["properties"].get("magmom") for site in struct_dict["sites"]
             ]
             metadata.update(
+                poscar=Structure.from_dict(struct_dict).to(fmt="poscar"),
                 cell_vectors=struct_dict["lattice"]["matrix"],
                 atoms=[site["species"][0]["element"] for site in struct_dict["sites"]],
                 cartesian_coordinates=[site["xyz"] for site in struct_dict["sites"]],

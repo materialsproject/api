@@ -234,7 +234,9 @@ class MPCoreMCP(_NeedsMPClient):
 
         return list(valid_mpids.union(new_mpids))
 
-    def fetch_many(self, str_idxs: str) -> list[FetchResult]:
+    def fetch_many(
+        self, str_idxs: str, limit_one_per_chemsys: bool = False
+    ) -> list[FetchResult]:
         """Retrieve complete material information for a list of materials.
 
         Should only be used to retrieve at most 100 materials.
@@ -248,6 +250,8 @@ class MPCoreMCP(_NeedsMPClient):
             str_idxs (str) : A list of Materials Project IDs,
                 chemical formulas, or chemical systems, separated by
                 commas, e.g., "mp-13, LiCl, Fe-O"
+            limit_one_per_chemsys (bool) : Whether to limit to one
+                entry per chemical system.
 
         Returns:
             list of FetchResult with detailed material metadata.
@@ -263,7 +267,10 @@ class MPCoreMCP(_NeedsMPClient):
                 "most 100 identifiers or use `fetch_all` to retrieve all "
                 "data and filter down."
             )
-        idxs = self._validate_identifiers(idxs, limit_one_per_chemsys=True)
+        idxs = self._validate_identifiers(
+            idxs,
+            limit_one_per_chemsys=limit_one_per_chemsys,
+        )
         return self._aggregate_fetch_results_from_mpids(idxs)
 
     def fetch(self, idx: str) -> FetchResult:
@@ -294,7 +301,7 @@ class MPCoreMCP(_NeedsMPClient):
         Raises:
             MPRestError: If no identifier is specified
         """
-        return self.fetch_many(idx)[0]
+        return self.fetch_many(idx, limit_one_per_chemsys=True)[0]
 
     def get_phase_diagram_from_elements(
         self,
