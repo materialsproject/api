@@ -276,7 +276,6 @@ class MaterialsRester(CoreRester):
             query_params,
             fields=["material_id", "entries"],
             suburl="blessed_tasks",
-            parallel_param="material_ids" if material_ids else None,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
         )
