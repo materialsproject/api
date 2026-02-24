@@ -97,7 +97,7 @@ def get_rester(**kwargs) -> MPRester:
     """
     if is_localhost():
         dev_api_key = get_user_api_key()
-        SESSION.headers["x-api-key"] = dev_api_key
+        SESSION.headers["x-api-key"] = dev_api_key or ""
         return MPRester(api_key=dev_api_key, session=SESSION, **kwargs)
 
     return MPRester(headers=get_consumer(), session=SESSION, **kwargs)
