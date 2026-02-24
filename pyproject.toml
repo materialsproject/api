@@ -34,12 +34,14 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 mcp = ["fastmcp"]
+server = ["flask"]
 all = [
-  "emmet-core[all]>=0.86.3",
   "custodian",
-  "mpcontribs-client>=5.10",
+  "emmet-core[all]>=0.86.3",
   "fastmcp",
+  "flask",
   "matminer>=0.10.0",
+  "mpcontribs-client>=5.10",
 ]
 test = [
   "pre-commit",
