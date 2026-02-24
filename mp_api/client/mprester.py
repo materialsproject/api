@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+import os
 import warnings
 from collections import defaultdict
 from functools import cache, lru_cache
@@ -83,6 +84,10 @@ class MPRester:
         session: Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
+        local_dataset_cache: (
+            str | os.PathLike
+        ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
+        force_renew: bool = False,
         **kwargs,
     ):
         """Initialize the MPRester.
@@ -117,6 +122,9 @@ class MPRester:
             session: Session object to use. By default (None), the client will create one.
             headers: Custom headers for localhost connections.
             mute_progress_bars:  Whether to mute progress bars.
+            local_dataset_cache: Target directory for downloading full datasets. Defaults
+                to "mp_datasets" in the user's home directory
+            force_renew: Option to overwrite existing local dataset
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
         self.api_key = validate_api_key(api_key)
@@ -132,6 +140,8 @@ class MPRester:
         self._include_user_agent = include_user_agent
         self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars
+        self.local_dataset_cache = local_dataset_cache
+        self.force_renew = force_renew
         self._contribs = None
 
         self._deprecated_attributes = [
@@ -206,6 +216,8 @@ class MPRester:
                         use_document_model=self.use_document_model,
                         headers=self.headers,
                         mute_progress_bars=self.mute_progress_bars,
+                        local_dataset_cache=self.local_dataset_cache,
+                        force_renew=self.force_renew,
                     ),
                 )
 

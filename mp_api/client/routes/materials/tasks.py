@@ -3,8 +3,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+import pyarrow as pa
+from deltalake import DeltaTable, QueryBuilder
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.tasks import CoreTaskDoc
+from emmet.core.trajectory import RelaxTrajectory
 
 from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
@@ -19,8 +22,9 @@ class TaskRester(BaseRester):
     suffix: str = "materials/tasks"
     document_model: type[BaseModel] = CoreTaskDoc  # type: ignore
     primary_key: str = "task_id"
+    delta_backed = True
 
-    def get_trajectory(self, task_id: MPID | AlphaID | str) -> list[dict[str, Any]]:
+    def get_trajectory(self, task_id: MPID | AlphaID | str) -> dict[str, Any]:
         """Returns a Trajectory object containing the geometry of the
         material throughout a calculation. This is most useful for
         observing how a material relaxes during a geometry optimization.
@@ -29,20 +33,31 @@ class TaskRester(BaseRester):
             task_id (str, MPID, AlphaID): Task ID
 
         Returns:
-            list of dict representing emmet.core.trajectory.Trajectory
+            dict representing emmet.core.trajectory.RelaxTrajectory
         """
-        traj_data = self._query_resource_data(
-            {"task_ids": [AlphaID(task_id).string]},
-            suburl="trajectory/",
-            use_document_model=False,
-        )[0].get(
-            "trajectories", None
-        )  # type: ignore
+        as_alpha = str(AlphaID(task_id, padlen=8)).split("-")[-1]
+        traj_tbl = DeltaTable(
+            "s3a://materialsproject-parsed/core/trajectories/",
+            storage_options={"AWS_SKIP_SIGNATURE": "true", "AWS_REGION": "us-east-1"},
+        )
 
-        if traj_data is None:
+        traj_data = pa.table(
+            QueryBuilder()
+            .register("traj", traj_tbl)
+            .execute(
+                f"""
+                SELECT *
+                FROM   traj
+                WHERE  identifier='{as_alpha}'
+                """
+            )
+            .read_all()
+        ).to_pylist(maps_as_pydicts="strict")
+
+        if not traj_data:
             raise MPRestError(f"No trajectory data for {task_id} found")
 
-        return traj_data
+        return RelaxTrajectory(**traj_data[0]).model_dump()
 
     def search(
         self,
