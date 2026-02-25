@@ -69,7 +69,6 @@ def test_client(rester):
     )
 
 
-@pytest.mark.xfail(condition=True, reason="Needs new deployment.", strict=False)
 @pytest.mark.parametrize(
     "run_type, uncorrected_energy, use_document_model",
     [("PBE", None, True), ("r2SCAN", 1.0, False), ("GGA_U", (-50e4, 0.0), True)],
