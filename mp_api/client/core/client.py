@@ -1232,20 +1232,26 @@ class BaseRester:
             )
 
     def _convert_to_model(
-        self, data: list[dict[str, Any]]
+        self,
+        data: list[dict[str, Any]] | Iterator,
     ) -> list[BaseModel] | list[dict[str, Any]]:
         """Converts dictionary documents to instantiated MPDataDoc objects.
 
         Args:
-            data (list[dict]): Raw dictionary data objects
+            data (list[dict] or Iterator): Raw dictionary data objects
 
         Returns:
             (list[MPDataDoc]): List of MPDataDoc objects
 
         """
-        if (hasattr(data, "__len__") and len(data) > 0) or (hasattr(data, "__next__")):
+        if (hasattr(data, "__len__") and len(data) > 0) or (hasattr(data, "__next__")):  # type: ignore[arg-type]
             is_list = hasattr(data, "__len__")
-            first_doc = data[0] if is_list else next(data)
+            try:
+                # Handle both list-like and iterator input
+                first_doc = data[0] if is_list else next(data)  # type: ignore[index,arg-type]
+            except StopIteration:
+                # Return empty list if no data in iterator
+                return []
             data_model, set_fields, _ = self._generate_returned_model(first_doc)
 
             return [
