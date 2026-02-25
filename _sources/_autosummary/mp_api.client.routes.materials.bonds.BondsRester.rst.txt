@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.bonds.BondsRester
    .. autosummary::
    
       ~BondsRester.available_fields
+      ~BondsRester.delta_backed
       ~BondsRester.primary_key
       ~BondsRester.s3_client
       ~BondsRester.session

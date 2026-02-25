@@ -33,6 +33,7 @@ mp\_api.client.routes.materials.electronic\_structure.DosRester
    .. autosummary::
    
       ~DosRester.available_fields
+      ~DosRester.delta_backed
       ~DosRester.es_rester
       ~DosRester.primary_key
       ~DosRester.s3_client

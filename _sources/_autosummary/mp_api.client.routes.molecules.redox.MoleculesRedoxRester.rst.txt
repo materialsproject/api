@@ -30,6 +30,7 @@ mp\_api.client.routes.molecules.redox.MoleculesRedoxRester
    .. autosummary::
    
       ~MoleculesRedoxRester.available_fields
+      ~MoleculesRedoxRester.delta_backed
       ~MoleculesRedoxRester.primary_key
       ~MoleculesRedoxRester.s3_client
       ~MoleculesRedoxRester.session

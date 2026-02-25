@@ -33,6 +33,7 @@ mp\_api.client.routes.materials.electronic\_structure.BandStructureRester
    .. autosummary::
    
       ~BandStructureRester.available_fields
+      ~BandStructureRester.delta_backed
       ~BandStructureRester.es_rester
       ~BandStructureRester.primary_key
       ~BandStructureRester.s3_client

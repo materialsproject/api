@@ -32,6 +32,7 @@ mp\_api.client.routes.molecules.molecules.MoleculeRester
    .. autosummary::
    
       ~MoleculeRester.available_fields
+      ~MoleculeRester.delta_backed
       ~MoleculeRester.primary_key
       ~MoleculeRester.s3_client
       ~MoleculeRester.session

@@ -33,6 +33,7 @@ mp\_api.client.routes.materials.materials.MaterialsRester
    .. autosummary::
    
       ~MaterialsRester.available_fields
+      ~MaterialsRester.delta_backed
       ~MaterialsRester.primary_key
       ~MaterialsRester.s3_client
       ~MaterialsRester.session

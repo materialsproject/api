@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.piezo.PiezoRester
    .. autosummary::
    
       ~PiezoRester.available_fields
+      ~PiezoRester.delta_backed
       ~PiezoRester.primary_key
       ~PiezoRester.s3_client
       ~PiezoRester.session

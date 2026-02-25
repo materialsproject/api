@@ -29,6 +29,7 @@ mp\_api.client.routes.materials.electronic\_structure.BaseESPropertyRester
    .. autosummary::
    
       ~BaseESPropertyRester.available_fields
+      ~BaseESPropertyRester.delta_backed
       ~BaseESPropertyRester.es_rester
       ~BaseESPropertyRester.primary_key
       ~BaseESPropertyRester.s3_client

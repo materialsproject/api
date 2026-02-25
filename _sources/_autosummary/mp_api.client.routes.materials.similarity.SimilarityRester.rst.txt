@@ -32,6 +32,7 @@ mp\_api.client.routes.materials.similarity.SimilarityRester
    .. autosummary::
    
       ~SimilarityRester.available_fields
+      ~SimilarityRester.delta_backed
       ~SimilarityRester.primary_key
       ~SimilarityRester.s3_client
       ~SimilarityRester.session

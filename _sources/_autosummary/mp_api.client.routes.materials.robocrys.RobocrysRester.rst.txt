@@ -31,6 +31,7 @@ mp\_api.client.routes.materials.robocrys.RobocrysRester
    .. autosummary::
    
       ~RobocrysRester.available_fields
+      ~RobocrysRester.delta_backed
       ~RobocrysRester.primary_key
       ~RobocrysRester.s3_client
       ~RobocrysRester.session

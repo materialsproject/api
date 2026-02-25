@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.doi.DOIRester
    .. autosummary::
    
       ~DOIRester.available_fields
+      ~DOIRester.delta_backed
       ~DOIRester.primary_key
       ~DOIRester.s3_client
       ~DOIRester.session

@@ -30,6 +30,7 @@ mp\_api.client.routes.molecules.vibrations.MoleculesVibrationRester
    .. autosummary::
    
       ~MoleculesVibrationRester.available_fields
+      ~MoleculesVibrationRester.delta_backed
       ~MoleculesVibrationRester.primary_key
       ~MoleculesVibrationRester.s3_client
       ~MoleculesVibrationRester.session

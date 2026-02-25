@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.electrodes.ConversionElectrodeRester
    .. autosummary::
    
       ~ConversionElectrodeRester.available_fields
+      ~ConversionElectrodeRester.delta_backed
       ~ConversionElectrodeRester.primary_key
       ~ConversionElectrodeRester.s3_client
       ~ConversionElectrodeRester.session

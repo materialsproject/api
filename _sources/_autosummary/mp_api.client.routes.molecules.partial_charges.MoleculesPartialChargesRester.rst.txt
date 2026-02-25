@@ -30,6 +30,7 @@ mp\_api.client.routes.molecules.partial\_charges.MoleculesPartialChargesRester
    .. autosummary::
    
       ~MoleculesPartialChargesRester.available_fields
+      ~MoleculesPartialChargesRester.delta_backed
       ~MoleculesPartialChargesRester.primary_key
       ~MoleculesPartialChargesRester.s3_client
       ~MoleculesPartialChargesRester.session

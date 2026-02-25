@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.oxidation\_states.OxidationStatesRester
    .. autosummary::
    
       ~OxidationStatesRester.available_fields
+      ~OxidationStatesRester.delta_backed
       ~OxidationStatesRester.primary_key
       ~OxidationStatesRester.s3_client
       ~OxidationStatesRester.session

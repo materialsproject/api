@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.elasticity.ElasticityRester
    .. autosummary::
    
       ~ElasticityRester.available_fields
+      ~ElasticityRester.delta_backed
       ~ElasticityRester.primary_key
       ~ElasticityRester.s3_client
       ~ElasticityRester.session

@@ -30,6 +30,7 @@ mp\_api.client.routes.molecules.partial\_spins.MoleculesPartialSpinsRester
    .. autosummary::
    
       ~MoleculesPartialSpinsRester.available_fields
+      ~MoleculesPartialSpinsRester.delta_backed
       ~MoleculesPartialSpinsRester.primary_key
       ~MoleculesPartialSpinsRester.s3_client
       ~MoleculesPartialSpinsRester.session

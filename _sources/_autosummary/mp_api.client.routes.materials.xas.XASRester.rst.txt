@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.xas.XASRester
    .. autosummary::
    
       ~XASRester.available_fields
+      ~XASRester.delta_backed
       ~XASRester.primary_key
       ~XASRester.s3_client
       ~XASRester.session

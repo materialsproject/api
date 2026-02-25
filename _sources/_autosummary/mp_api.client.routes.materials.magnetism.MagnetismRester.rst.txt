@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.magnetism.MagnetismRester
    .. autosummary::
    
       ~MagnetismRester.available_fields
+      ~MagnetismRester.delta_backed
       ~MagnetismRester.primary_key
       ~MagnetismRester.s3_client
       ~MagnetismRester.session

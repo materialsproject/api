@@ -31,6 +31,7 @@ mp\_api.client.routes.materials.electronic\_structure.ElectronicStructureRester
    .. autosummary::
    
       ~ElectronicStructureRester.available_fields
+      ~ElectronicStructureRester.delta_backed
       ~ElectronicStructureRester.primary_key
       ~ElectronicStructureRester.s3_client
       ~ElectronicStructureRester.session

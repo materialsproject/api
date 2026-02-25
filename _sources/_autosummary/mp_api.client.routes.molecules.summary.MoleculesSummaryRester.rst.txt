@@ -30,6 +30,7 @@ mp\_api.client.routes.molecules.summary.MoleculesSummaryRester
    .. autosummary::
    
       ~MoleculesSummaryRester.available_fields
+      ~MoleculesSummaryRester.delta_backed
       ~MoleculesSummaryRester.primary_key
       ~MoleculesSummaryRester.s3_client
       ~MoleculesSummaryRester.session

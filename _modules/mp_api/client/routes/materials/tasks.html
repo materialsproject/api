@@ -36,8 +36,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pa</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">deltalake</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeltaTable</span><span class="p">,</span> <span class="n">QueryBuilder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPID</span><span class="p">,</span> <span class="n">AlphaID</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreTaskDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelaxTrajectory</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
@@ -54,10 +57,11 @@
     <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;materials/tasks&quot;</span>
     <span class="n">document_model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]</span> <span class="o">=</span> <span class="n">CoreTaskDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;task_id&quot;</span>
+    <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">True</span>
 
 <div class="viewcode-block" id="TaskRester.get_trajectory">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.get_trajectory">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="n">MPID</span> <span class="o">|</span> <span class="n">AlphaID</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="n">MPID</span> <span class="o">|</span> <span class="n">AlphaID</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a Trajectory object containing the geometry of the</span>
 <span class="sd">        material throughout a calculation. This is most useful for</span>
 <span class="sd">        observing how a material relaxes during a geometry optimization.</span>
@@ -66,20 +70,31 @@
 <span class="sd">            task_id (str, MPID, AlphaID): Task ID</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            list of dict representing emmet.core.trajectory.Trajectory</span>
+<span class="sd">            dict representing emmet.core.trajectory.RelaxTrajectory</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">traj_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_resource_data</span><span class="p">(</span>
-            <span class="p">{</span><span class="s2">&quot;task_ids&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span><span class="o">.</span><span class="n">string</span><span class="p">]},</span>
-            <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;trajectory/&quot;</span><span class="p">,</span>
-            <span class="n">use_document_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="s2">&quot;trajectories&quot;</span><span class="p">,</span> <span class="kc">None</span>
-        <span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">as_alpha</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">traj_tbl</span> <span class="o">=</span> <span class="n">DeltaTable</span><span class="p">(</span>
+            <span class="s2">&quot;s3a://materialsproject-parsed/core/trajectories/&quot;</span><span class="p">,</span>
+            <span class="n">storage_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;AWS_SKIP_SIGNATURE&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;AWS_REGION&quot;</span><span class="p">:</span> <span class="s2">&quot;us-east-1&quot;</span><span class="p">},</span>
+        <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">traj_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">traj_data</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">table</span><span class="p">(</span>
+            <span class="n">QueryBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;traj&quot;</span><span class="p">,</span> <span class="n">traj_tbl</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                SELECT *</span>
+<span class="s2">                FROM   traj</span>
+<span class="s2">                WHERE  identifier=&#39;</span><span class="si">{</span><span class="n">as_alpha</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">traj_data</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No trajectory data for </span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2"> found&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">traj_data</span></div>
+        <span class="k">return</span> <span class="n">RelaxTrajectory</span><span class="p">(</span><span class="o">**</span><span class="n">traj_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="TaskRester.search">
@@ -140,7 +155,7 @@
                 <span class="p">}</span>
             <span class="p">)</span>
 
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span>  <span class="c1"># type: ignore[return-value]</span>
             <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
             <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>

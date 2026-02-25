@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.substrates.SubstratesRester
    .. autosummary::
    
       ~SubstratesRester.available_fields
+      ~SubstratesRester.delta_backed
       ~SubstratesRester.primary_key
       ~SubstratesRester.s3_client
       ~SubstratesRester.session

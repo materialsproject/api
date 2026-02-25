@@ -34,6 +34,7 @@ mp\_api.client.routes.materials.phonon.PhononRester
    .. autosummary::
    
       ~PhononRester.available_fields
+      ~PhononRester.delta_backed
       ~PhononRester.primary_key
       ~PhononRester.s3_client
       ~PhononRester.session

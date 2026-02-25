@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.dielectric.DielectricRester
    .. autosummary::
    
       ~DielectricRester.available_fields
+      ~DielectricRester.delta_backed
       ~DielectricRester.primary_key
       ~DielectricRester.s3_client
       ~DielectricRester.session

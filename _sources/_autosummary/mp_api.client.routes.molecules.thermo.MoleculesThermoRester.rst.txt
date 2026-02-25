@@ -30,6 +30,7 @@ mp\_api.client.routes.molecules.thermo.MoleculesThermoRester
    .. autosummary::
    
       ~MoleculesThermoRester.available_fields
+      ~MoleculesThermoRester.delta_backed
       ~MoleculesThermoRester.primary_key
       ~MoleculesThermoRester.s3_client
       ~MoleculesThermoRester.session

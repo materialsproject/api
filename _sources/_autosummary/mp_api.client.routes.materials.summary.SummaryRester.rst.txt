@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.summary.SummaryRester
    .. autosummary::
    
       ~SummaryRester.available_fields
+      ~SummaryRester.delta_backed
       ~SummaryRester.primary_key
       ~SummaryRester.s3_client
       ~SummaryRester.session

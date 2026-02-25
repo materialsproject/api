@@ -30,6 +30,7 @@ mp\_api.client.routes.molecules.bonds.MoleculesBondRester
    .. autosummary::
    
       ~MoleculesBondRester.available_fields
+      ~MoleculesBondRester.delta_backed
       ~MoleculesBondRester.primary_key
       ~MoleculesBondRester.s3_client
       ~MoleculesBondRester.session

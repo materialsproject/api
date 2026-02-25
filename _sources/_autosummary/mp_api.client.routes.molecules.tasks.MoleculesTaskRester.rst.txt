@@ -30,6 +30,7 @@ mp\_api.client.routes.molecules.tasks.MoleculesTaskRester
    .. autosummary::
    
       ~MoleculesTaskRester.available_fields
+      ~MoleculesTaskRester.delta_backed
       ~MoleculesTaskRester.primary_key
       ~MoleculesTaskRester.s3_client
       ~MoleculesTaskRester.session

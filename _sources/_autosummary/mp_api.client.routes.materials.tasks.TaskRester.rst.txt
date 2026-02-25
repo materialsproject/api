@@ -31,6 +31,7 @@ mp\_api.client.routes.materials.tasks.TaskRester
    .. autosummary::
    
       ~TaskRester.available_fields
+      ~TaskRester.delta_backed
       ~TaskRester.primary_key
       ~TaskRester.s3_client
       ~TaskRester.session

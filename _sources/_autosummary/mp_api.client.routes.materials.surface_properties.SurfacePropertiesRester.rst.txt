@@ -30,6 +30,7 @@ mp\_api.client.routes.materials.surface\_properties.SurfacePropertiesRester
    .. autosummary::
    
       ~SurfacePropertiesRester.available_fields
+      ~SurfacePropertiesRester.delta_backed
       ~SurfacePropertiesRester.primary_key
       ~SurfacePropertiesRester.s3_client
       ~SurfacePropertiesRester.session
