@@ -37,7 +37,7 @@ mcp = ["fastmcp"]
 server = ["flask"]
 all = [
   "custodian",
-  "emmet-core[all]>=0.86.3",
+  "emmet-core[all]>=0.86.4rc0,<0.86.5",
   "fastmcp",
   "flask",
   "matminer>=0.10.0",
