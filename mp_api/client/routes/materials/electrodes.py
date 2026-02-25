@@ -7,6 +7,7 @@ from emmet.core.electrode import ConversionElectrodeDoc, InsertionElectrodeDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.exceptions import MPRestWarning
 from mp_api.client.core.utils import validate_ids
 
 
@@ -142,7 +143,9 @@ class BaseElectrodeRester(BaseRester):
         }
         if ignored_fields:
             warnings.warn(
-                f"Ignoring fields {', '.join(ignored_fields)} which are not valid options for {self.__class__.__name__}"
+                f"Ignoring fields {', '.join(ignored_fields)} which are not valid options for {self.__class__.__name__}",
+                category=MPRestWarning,
+                stacklevel=2,
             )
 
         query_params = {
@@ -151,7 +154,7 @@ class BaseElectrodeRester(BaseRester):
             if query_params[entry] is not None
         }
 
-        return super()._search(**query_params)
+        return super()._search(**query_params)  # type: ignore[return-value]
 
 
 class ElectrodeRester(BaseElectrodeRester):

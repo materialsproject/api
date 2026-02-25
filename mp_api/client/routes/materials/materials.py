@@ -15,8 +15,6 @@ from mp_api.client.routes.materials import MATERIALS_RESTERS
 if TYPE_CHECKING:
     from typing import Any
 
-    from pymatgen.entries.computed_entries import ComputedStructureEntry
-
 
 class MaterialsRester(CoreRester):
     suffix = "materials/core"
@@ -26,7 +24,7 @@ class MaterialsRester(CoreRester):
 
     def get_structure_by_material_id(
         self, material_id: str, final: bool = True
-    ) -> Structure | list[Structure]:
+    ) -> Structure | list[Structure] | None:
         """Get a structure for a given Materials Project ID.
 
         Arguments:
@@ -42,19 +40,15 @@ class MaterialsRester(CoreRester):
 
         response = self.search(material_ids=material_id, fields=[field])
 
-        if response and response[0]:
-            response = response[0]
+        if response and (r := response[0][field]):  # type: ignore[index]
             # Ensure that return type is a Structure regardless of `model_dump`
-            if isinstance(response[field], dict):
-                response[field] = Structure.from_dict(response[field])
-            elif isinstance(response[field], list) and any(
-                isinstance(struct, dict) for struct in response[field]
-            ):
-                response[field] = [
-                    Structure.from_dict(struct) for struct in response[field]
-                ]
+            if isinstance(r, dict):
+                return Structure.from_dict(r)
+            elif isinstance(r, list) and any(isinstance(struct, dict) for struct in r):
+                return [Structure.from_dict(struct) for struct in r]
+            return r
 
-        return response[field] if response else response  # type: ignore
+        return None
 
     def search(
         self,
@@ -168,7 +162,7 @@ class MaterialsRester(CoreRester):
             if query_params[entry] is not None
         }
 
-        return super()._search(
+        return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,
             chunk_size=chunk_size,
             all_fields=all_fields,
@@ -242,7 +236,7 @@ class MaterialsRester(CoreRester):
         uncorrected_energy: tuple[float | None, float | None] | float | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
-    ) -> list[dict[str, str | dict | ComputedStructureEntry]]:
+    ) -> list[dict[str, Any]]:
         """Get blessed calculation entries for a given material and run type.
 
         Args:
@@ -282,7 +276,6 @@ class MaterialsRester(CoreRester):
             query_params,
             fields=["material_id", "entries"],
             suburl="blessed_tasks",
-            parallel_param="material_ids" if material_ids else None,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
         )

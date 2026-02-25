@@ -5,7 +5,8 @@ import warnings
 from functools import cached_property
 from importlib import import_module
 from itertools import chain
-from typing import TYPE_CHECKING, Literal
+from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
 import orjson
@@ -26,8 +27,7 @@ from mp_api.client.core.exceptions import (
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
 if TYPE_CHECKING:
-    from pathlib import Path
-    from typing import Any
+    from typing import Any, Literal
 
     from pydantic._internal._model_construction import ModelMetaclass
 
@@ -176,11 +176,11 @@ class LazyImport:
         import_str : str
             A dot-separated, import-like string.
         """
-        if len(split_import_str := import_str.rsplit(".", 1)) > 1:
-            self._module_name, self._class_name = split_import_str
+        if len(split_import_str := import_str.rsplit(".", 1)) == 1:
+            self._module_name: str = split_import_str[0]
+            self._class_name: str | None = None
         else:
-            self._module_name = split_import_str[0]
-            self._class_name = None
+            self._module_name, self._class_name = split_import_str
 
         self._imported: Any | None = None
         self._obj: Any | None = None
@@ -229,9 +229,9 @@ class LazyImport:
         if isinstance(self._imported, type):
             self._obj = self._imported(*args, **kwargs)
             return self._obj
-        else:
+        elif callable(self._imported):
             self._obj = self._imported
-            return self._obj(*args, **kwargs)
+            return self._obj(*args, **kwargs)  # type: ignore[misc]
 
     def __getattr__(self, v: str) -> Any:
         """Get an attribute on a super lazy object."""
@@ -249,7 +249,7 @@ class MPDataset:
 
     def __init__(
         self,
-        path: Path,
+        path: str | Path,
         document_model: ModelMetaclass,
         use_document_model: bool,
     ):
@@ -257,18 +257,18 @@ class MPDataset:
 
         Parameters
         -----------
-        path: Path | str
+        path: str | Path
             A path-like string.
         document_model: ModelMetaclass
             Pydantic document model for use during de-serialization of arrow data
         use_document_model: bool
             Use 'document_model' during de-serialization of arrow data.
         """
-        self._start = 0
-        self._path = path
-        self._document_model = document_model
+        self._start: int = 0
+        self._path = Path(path)
+        self._document_model: ModelMetaclass = document_model
         self._dataset = ds.dataset(path)
-        self._row_groups = list(
+        self._row_groups: list[Any] = list(
             chain.from_iterable(
                 [
                     fragment.split_by_row_group()

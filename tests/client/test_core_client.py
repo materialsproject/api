@@ -44,4 +44,4 @@ def test_count(mpr):
 
 def test_available_fields(rester, mpr):
     assert len(mpr.materials.available_fields) > 0
-    assert rester.available_fields == ["Unknown fields."]
+    assert rester.available_fields == []

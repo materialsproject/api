@@ -3,7 +3,7 @@
 # Tool to run the MCP inspector:
 # https://modelcontextprotocol.io/docs/tools/inspector
 
-server_path=$(python -c 'from importlib_resources import files ; print(str((files("mp_api.client") / ".."/ "..").resolve()))')
+server_path=$(python -c 'from importlib.resources import files ; print(str((files("mp_api.client") / ".."/ "..").resolve()))')
 
 fastmcp dev \
     --python 3.12 \

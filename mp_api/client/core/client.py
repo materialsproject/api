@@ -23,6 +23,7 @@ from io import BytesIO
 from itertools import chain, islice
 from json import JSONDecodeError
 from math import ceil
+from pathlib import Path
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
 from urllib.parse import urljoin
 
@@ -42,7 +43,11 @@ from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
-from mp_api.client.core.exceptions import MPRestError
+from mp_api.client.core.exceptions import (
+    MPRestError,
+    MPRestWarning,
+    _emit_status_warning,
+)
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     MPDataset,
@@ -54,8 +59,10 @@ from mp_api.client.core.utils import (
 
 try:
     import flask
+
+    _flask_is_installed = True
 except ImportError:
-    flask = None
+    _flask_is_installed = False
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
@@ -68,7 +75,7 @@ if TYPE_CHECKING:
 try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
-    __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION")
+    __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION", "")
 
 
 hdlr = logging.StreamHandler()
@@ -109,7 +116,7 @@ class BaseRester:
     """Base client class with core stubs."""
 
     suffix: str = ""
-    document_model: type[BaseModel] | None = None
+    document_model: type[BaseModel] = _DictLikeAccess
     primary_key: str = "material_id"
     delta_backed: bool = False
 
@@ -181,7 +188,7 @@ class BaseRester:
             self.access_controlled_batch_ids,
         ) = BaseRester._get_heartbeat_info(self.base_endpoint)
 
-        self.local_dataset_cache = local_dataset_cache
+        self.local_dataset_cache: Path = Path(local_dataset_cache)
         self.force_renew = force_renew
 
         self._session = session
@@ -190,7 +197,9 @@ class BaseRester:
         if "monty_decode" in kwargs:
             warnings.warn(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
-                "The client by default returns results consistent with `monty_decode=True`."
+                "The client by default returns results consistent with `monty_decode=True`.",
+                category=DeprecationWarning,
+                stacklevel=2,
             )
 
     @property
@@ -250,7 +259,7 @@ class BaseRester:
 
     @staticmethod
     @cache
-    def _get_heartbeat_info(endpoint) -> tuple[str, str]:
+    def _get_heartbeat_info(endpoint) -> tuple[str, list[str]]:
         """DB version:
         The Materials Project database is periodically updated and has a
         database version associated with it. When the database is updated,
@@ -278,7 +287,13 @@ class BaseRester:
             string with all calculation batch identifiers that have access
             restrictions
         """
-        response = requests.get(url=endpoint + "heartbeat").json()
+        if (get_resp := requests.get(url=endpoint + "heartbeat")).status_code == 403:
+            _emit_status_warning()
+            return (
+                "",
+                [],
+            )  # Catiously do not allow access to any access controlled `batch_id`s
+        response = get_resp.json()
         return response["db_version"], response["access_controlled_batch_ids"]
 
     def _post_resource(
@@ -460,7 +475,7 @@ class BaseRester:
         num_chunks: int | None = None,
         chunk_size: int | None = None,
         timeout: int | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
 
@@ -607,7 +622,7 @@ class BaseRester:
                     builder = QueryBuilder().register("tbl", tbl)
 
                     # Setup progress bar
-                    num_docs_needed = tbl.count()
+                    num_docs_needed: int = tbl.count()
 
                     if not has_gnome_access:
                         num_docs_needed = self.count(
@@ -720,7 +735,9 @@ class BaseRester:
 
                 if fields:
                     warnings.warn(
-                        "Ignoring `fields` argument: All fields are always included when no query is provided."
+                        "Ignoring `fields` argument: All fields are always included when no query is provided.",
+                        category=MPRestWarning,
+                        stacklevel=2,
                     )
 
                 # Multithreaded function inputs
@@ -752,15 +769,11 @@ class BaseRester:
                     )
                 ]
 
-                data = {
+                data: dict[str, Any] = {
                     "data": list(chain.from_iterable(unzipped_chunks)),
                     "meta": {},
                 }
 
-                if self.use_document_model:
-                    data["data"] = self._convert_to_model(data["data"])
-
-                data["meta"]["total_doc"] = len(data["data"])
             else:
                 data = self._submit_requests(
                     url=url,
@@ -825,7 +838,7 @@ class BaseRester:
 
         # Check if we need to split any comma-separated parameters
         split_param = None
-        split_values = None
+        split_values = []
         total_num_docs = 0  # Initialize before try/else blocks
         data_chunks = []
         total_data_len = 0
@@ -864,7 +877,7 @@ class BaseRester:
 
                 # If successful, continue with normal pagination
                 data_chunks = [data["data"]]
-                total_data = {"data": []}  # type: dict
+                total_data: dict[str, Any] = {"data": []}
                 total_data_len = len(data["data"])
 
                 if "meta" in data:
@@ -875,7 +888,7 @@ class BaseRester:
             except MPRestError as e:
                 # If we get 422 or 414 error, or 0 results for comma-separated params, split into batches
                 if any(trace in str(e) for trace in ("422", "414", "Got 0 results")):
-                    total_data = {"data": []}  # type: dict
+                    total_data = {"data": []}
                     total_num_docs = 0
                     data_chunks = []
 
@@ -933,7 +946,7 @@ class BaseRester:
                     raise
         else:
             # No splitting needed - get first page
-            total_data = {"data": []}  # type: dict
+            total_data = {"data": []}
             initial_criteria = copy(criteria)
             data, total_num_docs = self._submit_request_and_process(
                 url=url,
@@ -997,7 +1010,9 @@ class BaseRester:
             warnings.warn(
                 f"Use the 'fields' argument to select only fields of interest to speed "
                 f"up data retrieval for large queries. "
-                f"Choose from: {self.available_fields}"
+                f"Choose from: {self.available_fields}",
+                category=MPRestWarning,
+                stacklevel=2,
             )
 
         # Paginate through remaining results
@@ -1048,7 +1063,7 @@ class BaseRester:
         func: Callable,
         params_list: list[dict],
         progress_bar: tqdm | None = None,
-    ):
+    ) -> list[tuple[Any, int, int]]:
         """Handles setting up a threadpool and sending parallel requests.
 
         Arguments:
@@ -1139,7 +1154,7 @@ class BaseRester:
             Tuple with data and total number of docs in matching the query in the database.
         """
         headers = None
-        if flask is not None and flask.has_request_context():
+        if _flask_is_installed and flask.has_request_context():
             headers = flask.request.headers
 
         try:
@@ -1192,7 +1207,9 @@ class BaseRester:
                 f"on URL {response.url} with message:\n{message}"
             )
 
-    def _convert_to_model(self, data: list[dict]):
+    def _convert_to_model(
+        self, data: list[dict[str, Any]]
+    ) -> list[BaseModel] | list[dict[str, Any]]:
         """Converts dictionary documents to instantiated MPDataDoc objects.
 
         Args:
@@ -1205,7 +1222,7 @@ class BaseRester:
         if len(data) > 0:
             data_model, set_fields, _ = self._generate_returned_model(data[0])
 
-            data = [
+            return [
                 data_model(
                     **{
                         field: value
@@ -1220,7 +1237,7 @@ class BaseRester:
 
     def _generate_returned_model(
         self, doc: dict[str, Any]
-    ) -> tuple[BaseModel, list[str], list[str]]:
+    ) -> tuple[type[BaseModel], list[str], list[str]]:
         model_fields = self.document_model.model_fields
         set_fields = [k for k in doc if k in model_fields]
         unset_fields = [field for field in model_fields if field not in set_fields]
@@ -1236,13 +1253,13 @@ class BaseRester:
         ):
             vars(import_module(self.document_model.__module__))
 
-        include_fields: dict[str, tuple[type, FieldInfo]] = {}
+        include_fields: dict[str, tuple[Any, FieldInfo]] = {}
         for name in set_fields:
             field_copy = model_fields[name]._copy()
             if not field_copy.default_factory:
                 # Fields with a default_factory cannot also have a default in pydantic>=2.12.3
                 field_copy.default = None
-            include_fields[name] = (
+            include_fields[name] = (  # type: ignore[assignment]
                 Optional[model_fields[name].annotation],
                 field_copy,
             )
@@ -1379,7 +1396,7 @@ class BaseRester:
         self,
         document_id: str,
         fields: list[str] | None = None,
-    ) -> BaseModel | dict:
+    ) -> BaseModel | dict[str, Any] | None:
         warnings.warn(
             "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
             DeprecationWarning,
@@ -1398,7 +1415,7 @@ class BaseRester:
         if isinstance(fields, str):  # pragma: no cover
             fields = (fields,)  # type: ignore
 
-        docs = self._search(  # type: ignorech(  # type: ignorech(  # type: ignore
+        docs = self._search(
             **{self.primary_key + "s": document_id},
             num_chunks=1,
             chunk_size=1,
@@ -1440,14 +1457,14 @@ class BaseRester:
 
         return results["data"]
 
-    def count(self, criteria: dict | None = None) -> int | str:
+    def count(self, criteria: dict | None = None) -> int:
         """Return a count of total documents.
 
         Args:
             criteria (dict | None): As in .search(). Defaults to None
 
         Returns:
-            (int | str): Count of total results, or string indicating error
+            int : Count of total results
         """
         criteria = criteria or {}
         user_preferences = (
@@ -1472,13 +1489,18 @@ class BaseRester:
                 cnt += results["meta"]["total_doc"]
                 warnings.warn(
                     "Omitting a query also includes deprecated documents in the results. "
-                    "Make sure to post-filter them out."
+                    "Make sure to post-filter them out.",
+                    category=MPRestWarning,
+                    stacklevel=2,
                 )
 
         (
             self.use_document_model,
             self.mute_progress_bars,
         ) = user_preferences
+
+        if isinstance(cnt, str):
+            raise MPRestError(f"Error counting documents: {cnt}")
         return cnt
 
     @property

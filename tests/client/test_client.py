@@ -3,10 +3,13 @@ import warnings
 import pytest
 
 from mp_api.client import MPRester
-from mp_api.client.routes.materials.tasks import TaskRester
-from mp_api.client.routes.materials.provenance import ProvenanceRester
 
 from .conftest import requires_api_key
+
+try:
+    import pymatgen.analysis.alloys as pmg_alloys
+except ImportError:
+    pmg_alloys = None
 
 # -- Rester name data for generic tests
 
@@ -45,14 +48,16 @@ ignore_generic = [
     # "summary",
 ]  # temp
 
-
 mpr = MPRester()
 
 # Temporarily ignore molecules resters while molecules query operators are changed
 resters_to_test = [
     rester
     for rester in mpr._all_resters
-    if "molecule" not in rester._class_name.lower()
+    if (
+        "molecule" not in rester._class_name.lower()
+        and not (pmg_alloys is None and "alloys" in str(rester).lower())
+    )
 ]
 
 

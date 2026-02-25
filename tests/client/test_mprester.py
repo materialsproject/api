@@ -2,6 +2,7 @@ import itertools
 import os
 import random
 import importlib
+import requests
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -164,7 +165,7 @@ loop_
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
         with pytest.warns(
-            UserWarning, match="The `inc_structure` argument is deprecated"
+            DeprecationWarning, match="The `inc_structure` argument is deprecated"
         ):
             entries = mpr.get_entries(chemsys, inc_structure=False)
 
@@ -511,6 +512,10 @@ loop_
             v == pytest.approx(e_coh["noserial"][k]) for k, v in e_coh["serial"].items()
         )
 
+        with pytest.raises(MPRestError, match="Input material IDs"):
+            with MPRester() as mpr:
+                mpr.get_cohesive_energy("mp-1")
+
     @pytest.mark.parametrize(
         "chemsys, thermo_type",
         [
@@ -557,7 +562,9 @@ loop_
                 ]
 
             if no_compound_entries:
-                with pytest.warns(UserWarning, match="No phase diagram data available"):
+                with pytest.warns(
+                    MPRestWarning, match="No phase diagram data available"
+                ):
                     mpr.get_stability(modified_entries, thermo_type=thermo_type)
                 return
 

@@ -53,6 +53,10 @@ jobs:
         run: |
           echo "API_KEY_NAME=$(echo ${{ format('MP_API_KEY_{0}_{1}', matrix.os, matrix.python-version) }} | awk '{gsub(/-|\./, "_"); print}' | tr '[:lower:]' '[:upper:]')" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name: Lint with mypy
+        shell: bash -l {0}
+        run: python -m mypy mp_api/
+
       - name: Test with pytest
         env:
           MP_API_KEY: ${{ secrets[env.API_KEY_NAME] }}
