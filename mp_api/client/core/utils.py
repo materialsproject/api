@@ -308,7 +308,7 @@ class MPDataset:
                 """
                 Pythonic slicing of arrow-based MPDatasets is sub-optimal, consider using
                 idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-                docs.materialsproject.org/downloading-data/arrow-datasets
+                docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
                 """,
                 MPDatasetSlicingWarning,
                 stacklevel=2,
@@ -326,7 +326,7 @@ class MPDataset:
             """
             Pythonic indexing into arrow-based MPDatasets is sub-optimal, consider using
             idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-            docs.materialsproject.org/downloading-data/arrow-datasets
+            docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
             """,
             MPDatasetIndexingWarning,
             stacklevel=2,
@@ -345,7 +345,7 @@ class MPDataset:
                 """
                 Iterating through arrow-based MPDatasets is sub-optimal, consider using
                 idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-                docs.materialsproject.org/downloading-data/arrow-datasets
+                docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
                 """,
                 MPDatasetIterationWarning,
                 stacklevel=2,
