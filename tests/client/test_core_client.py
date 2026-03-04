@@ -47,15 +47,27 @@ def test_available_fields(rester, mpr):
     assert rester.available_fields == []
 
 
-def test_fields_not_requested_excludes_requested_fields(rester: BaseRester):
-    from emmet.core.tasks import TaskDoc
+def test_fields_not_requested_excludes_requested_fields(mpr):
+    task_rester = mpr.materials.tasks
+    doc = {"task_id": "fakeid-1234", "state": "successful"}
+    requested_fields = list(task_rester.document_model.model_fields)
 
-    rester.document_model = TaskDoc
-    doc = {"task_id": "fakeid-1234"}
-    requested_fields = list(TaskDoc.model_fields.keys())
-
-    _, _, fields_not_requested = rester._generate_returned_model(
+    doc_model, _, fields_not_requested = task_rester._generate_returned_model(
         doc, requested_fields=requested_fields
     )
+    deser_doc = doc_model(**doc)
 
-    assert fields_not_requested == []
+    assert "dir_name" not in fields_not_requested
+    assert "tags" in deser_doc.unavailable_fields
+    with pytest.raises(AttributeError, match="is unavailable in the returned data"):
+        deser_doc.tags
+
+    requested_fields.remove("tags")
+    doc_model, _, _ = task_rester._generate_returned_model(
+        doc, requested_fields=requested_fields
+    )
+    deser_doc = doc_model(**doc)
+    with pytest.raises(
+        AttributeError, match="data is available but has not been requested in"
+    ):
+        deser_doc.tags
