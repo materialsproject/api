@@ -51,12 +51,11 @@ def test_fields_not_requested_excludes_requested_fields(rester: BaseRester):
     from emmet.core.tasks import TaskDoc
 
     rester.document_model = TaskDoc
-    doc = {"task_id": "fakeid-1234", "state": "successful"}
+    doc = {"task_id": "fakeid-1234"}
     requested_fields = list(TaskDoc.model_fields.keys())
 
     _, _, fields_not_requested = rester._generate_returned_model(
         doc, requested_fields=requested_fields
     )
 
-    assert "dir_name" not in fields_not_requested
-    assert "tags" not in fields_not_requested
+    assert fields_not_requested == []
