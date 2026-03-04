@@ -2,19 +2,37 @@
 from __future__ import annotations
 
 try:
-    import flask
+    from flask import (
+        has_request_context as _has_request_context,
+        request
+    )
 except ImportError:
-    from mp_api.client.core.exceptions import MPRestError
-
-    raise MPRestError("`flask` must be installed to use server utilities.")
-
-import requests
+    _has_request_context = None
+    request = None
 
 from mp_api.client import MPRester
 from mp_api.client.core.utils import validate_api_key
 
-SESSION = requests.Session()
+def has_request_context() -> bool:
+    """Determine if the current context is a request.
 
+    Returns
+    --------
+    bool : True if in a request context
+        False if flask is not installed or not in a request context.
+    """
+    return _has_request_context is not None and _has_request_context()
+
+def get_request_headers() -> dict[str,Any]:
+    """Get the headers if operating in a request context.
+
+    Returns
+    --------
+    dict of str to Any
+        Empty dict if flask is not installed, or not in a request context.
+        Request headers otherwise.
+    """
+    return request.headers if has_request_context() else {}
 
 def is_localhost() -> bool:
     """Determine if current env is local or production.
@@ -24,8 +42,8 @@ def is_localhost() -> bool:
     """
     return (
         True
-        if not flask.has_request_context()
-        else flask.request.headers.get("Host", "").startswith(
+        if not has_request_context()
+        else get_request_headers().get("Host", "").startswith(
             ("localhost:", "127.0.0.1:", "0.0.0.0:")
         )
     )
@@ -37,7 +55,7 @@ def get_consumer() -> dict[str, str]:
     Returns:
         dict of str to str, the headers associated with the consumer
     """
-    if not flask.has_request_context():
+    if not has_request_context():
         return {}
 
     names = [
@@ -48,7 +66,7 @@ def get_consumer() -> dict[str, str]:
         "X-Authenticated-Groups",  # groups this user belongs to
         "X-Consumer-Groups",  # same as X-Authenticated-Groups
     ]
-    headers = flask.request.headers
+    headers = get_request_headers()
     return {name: headers[name] for name in names if headers.get(name) is not None}
 
 
