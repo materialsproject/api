@@ -1,4 +1,5 @@
-"""Define utilities needed by the MP web server."""
+"""Define flask-dependent utilities for the web server."""
+
 from __future__ import annotations
 
 try:
@@ -10,7 +11,6 @@ except ImportError:
     _has_request_context = None
     request = None
 
-from mp_api.client import MPRester
 from mp_api.client.core.utils import validate_api_key
 
 def has_request_context() -> bool:
@@ -34,8 +34,8 @@ def get_request_headers() -> dict[str,Any]:
     """
     return request.headers if has_request_context() else {}
 
-def is_localhost() -> bool:
-    """Determine if current env is local or production.
+def is_dev_env() -> bool:
+    """Determine if current env is local/developmental or production.
 
     Returns:
         bool: True if the environment is locally hosted.
@@ -83,39 +83,24 @@ def is_logged_in_user(consumer: dict[str, str] | None = None) -> bool:
     return bool(not c.get("X-Anonymous-Consumer") and c.get("X-Consumer-Id"))
 
 
-def get_user_api_key(consumer: dict[str, str] | None = None) -> str | None:
+def get_user_api_key(
+    api_key : str | None = None,
+    consumer: dict[str, str] | None = None
+) -> str | None:
     """Get the api key that belongs to the current user.
 
     If running on localhost, api key is obtained from
     the environment variable MP_API_KEY.
 
     Args:
+        api_key (str or None) : User API key
         consumer (dict of str to str, or None): Headers associated with the consumer
 
     Returns:
         str, the API key, or None if no API key could be identified.
     """
-    c = consumer or get_consumer()
-
-    if is_localhost():
-        return validate_api_key()
-    elif is_logged_in_user(c):
+    if is_dev_env():
+        return validate_api_key(api_key=api_key)
+    elif is_logged_in_user(c := consumer or get_consumer()):
         return c.get("X-Consumer-Custom-Id")
     return None
-
-
-def get_rester(**kwargs) -> MPRester:
-    """Create MPRester with headers set for localhost and production compatibility.
-
-    Args:
-        **kwargs : kwargs to pass to MPRester
-
-    Returns:
-        MPRester
-    """
-    if is_localhost():
-        dev_api_key = get_user_api_key()
-        SESSION.headers["x-api-key"] = dev_api_key or ""
-        return MPRester(api_key=dev_api_key, session=SESSION, **kwargs)
-
-    return MPRester(headers=get_consumer(), session=SESSION, **kwargs)
