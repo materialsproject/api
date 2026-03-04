@@ -1205,7 +1205,14 @@ class BaseRester:
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-                data["data"] = self._convert_to_model(data["data"])
+                data["data"] = self._convert_to_model(
+                    data["data"],
+                    requested_fields=(
+                        params["_fields"].split(",")
+                        if isinstance(params.get("_fields"), str)
+                        else None
+                    ),
+                )
 
             meta_total_doc_num = data.get("meta", {}).get("total_doc", 1)
 
@@ -1234,11 +1241,13 @@ class BaseRester:
     def _convert_to_model(
         self,
         data: list[dict[str, Any]] | Iterator,
+        requested_fields: list[str] | None = None,
     ) -> list[BaseModel] | list[dict[str, Any]]:
         """Converts dictionary documents to instantiated MPDataDoc objects.
 
         Args:
             data (list[dict] or Iterator): Raw dictionary data objects
+            requested_fields (list[str] or None): Optional list of fields to be returned
 
         Returns:
             (list[MPDataDoc]): List of MPDataDoc objects
@@ -1252,14 +1261,15 @@ class BaseRester:
             except StopIteration:
                 # Return empty list if no data in iterator
                 return []
-            data_model, set_fields, _ = self._generate_returned_model(first_doc)
+            data_model, set_fields, _ = self._generate_returned_model(
+                first_doc, requested_fields=requested_fields
+            )
 
             return [
                 data_model(
                     **{
-                        field: value
-                        for field, value in dict(raw_doc).items()
-                        if field in set_fields
+                        field: raw_doc[field]
+                        for field in set_fields.intersection(raw_doc)
                     }
                 )
                 for raw_doc in (data if is_list else chain([first_doc], data))
@@ -1268,11 +1278,26 @@ class BaseRester:
         return data
 
     def _generate_returned_model(
-        self, doc: dict[str, Any]
-    ) -> tuple[type[BaseModel], list[str], list[str]]:
+        self,
+        doc: dict[str, Any],
+        requested_fields: list[str] | None = None,
+    ) -> tuple[type[BaseModel], set[str], set[str]]:
+        """Dynamically generates an MPDataDoc Pydantic model from API response content.
+
+        Args:
+            doc (dict): A single document returned from the API
+            requested_fields (list of str, or None): Optional list of fields to be returned
+
+        Returns:
+            BaseModel: the pydantic model representing the data
+            set of str: fields set in the document model
+            set of str: set_fields, fields_not_requested)
+        """
         model_fields = self.document_model.model_fields
-        set_fields = [k for k in doc if k in model_fields]
-        unset_fields = [field for field in model_fields if field not in set_fields]
+        set_fields = set(doc).intersection(model_fields)
+        unset_fields = set(model_fields).difference(set_fields)
+        user_requested_fields: list[str] = requested_fields or []
+        fields_not_requested = unset_fields.difference(user_requested_fields)
 
         # Update with locals() from external module if needed
         if any(
@@ -1299,9 +1324,11 @@ class BaseRester:
         data_model = create_model(  # type: ignore
             "MPDataDoc",
             **include_fields,
-            # TODO fields_not_requested is not the same as unset_fields
-            # i.e. field could be requested but not available in the raw doc
-            fields_not_requested=(list[str], unset_fields),
+            fields_not_requested=(list[str], list(fields_not_requested)),
+            unavailable_fields=(
+                list[str],
+                list(unset_fields.intersection(user_requested_fields)),
+            ),
             __base__=_DictLikeAccess,
             __doc__=".".join(
                 [
@@ -1331,13 +1358,19 @@ class BaseRester:
                 if n in set_fields
             )
 
-            s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m\n{extra}\n\n\033[1mFields not requested:\033[0;0m\n{unset_fields}"  # noqa: E501
-            return s
+            return (
+                f"\033[4m\033[1m{self.__class__.__name__}"
+                f"<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m"
+                f"\n{extra}\n\n"
+                f"\033[1mFields not requested:\033[0;0m\n{fields_not_requested}"
+            )
 
         def new_getattr(self, attr) -> str:
+            if attr in self.unavailable_fields:
+                raise AttributeError(f"`{attr}` is unavailable in the returned data.")
             if attr in self.fields_not_requested:
                 raise AttributeError(
-                    f"'{attr}' data is available but has not been requested in 'fields'."
+                    f"`{attr}` data is available but has not been requested in `fields`."
                     " A full list of unrequested fields can be found in `fields_not_requested`."
                 )
             else:
@@ -1354,7 +1387,7 @@ class BaseRester:
         data_model.__getattr__ = new_getattr
         data_model.dict = new_dict
 
-        return data_model, set_fields, unset_fields
+        return data_model, set_fields, fields_not_requested
 
     def _query_resource_data(
         self,
