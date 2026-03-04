@@ -43,6 +43,7 @@ from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
+from mp_api.client._server_utils import get_request_headers
 from mp_api.client.core.exceptions import (
     MPRestError,
     MPRestWarning,
@@ -56,7 +57,6 @@ from mp_api.client.core.utils import (
     validate_endpoint,
     validate_ids,
 )
-from mp_api.client._server_utils import get_request_headers
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator

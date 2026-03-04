@@ -152,7 +152,7 @@ class MPRester:
             headers=self.headers,
         )
         if is_dev_env():
-            self.session.headers["x-api-key"] = self.api_key
+            self.session.headers["x-api-key"] = self.api_key or ""
         self._include_user_agent = include_user_agent
         self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars
