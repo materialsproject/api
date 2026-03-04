@@ -1205,7 +1205,12 @@ class BaseRester:
             # other sub-urls may use different document models
             # the client does not handle this in a particularly smart way currently
             if self.document_model and use_document_model:
-                data["data"] = self._convert_to_model(data["data"])
+                requested_fields = (
+                    params.get("_fields", "").split(",")
+                    if params.get("_fields")
+                    else None
+                )
+                data["data"] = self._convert_to_model(data["data"], requested_fields)
 
             meta_total_doc_num = data.get("meta", {}).get("total_doc", 1)
 
@@ -1234,11 +1239,13 @@ class BaseRester:
     def _convert_to_model(
         self,
         data: list[dict[str, Any]] | Iterator,
+        requested_fields: list[str] | None = None,
     ) -> list[BaseModel] | list[dict[str, Any]]:
         """Converts dictionary documents to instantiated MPDataDoc objects.
 
         Args:
             data (list[dict] or Iterator): Raw dictionary data objects
+            requested_fields (list[str] or None): Optional list of fields to be returned
 
         Returns:
             (list[MPDataDoc]): List of MPDataDoc objects
@@ -1252,7 +1259,9 @@ class BaseRester:
             except StopIteration:
                 # Return empty list if no data in iterator
                 return []
-            data_model, set_fields, _ = self._generate_returned_model(first_doc)
+            data_model, set_fields, _ = self._generate_returned_model(
+                first_doc, requested_fields
+            )
 
             return [
                 data_model(
@@ -1268,11 +1277,27 @@ class BaseRester:
         return data
 
     def _generate_returned_model(
-        self, doc: dict[str, Any]
+        self,
+        doc: dict[str, Any],
+        requested_fields: list[str] | None = None,
     ) -> tuple[type[BaseModel], list[str], list[str]]:
+        """Dynamically generates an MPDataDoc Pydantic model from API response content.
+
+        Args:
+            doc (dict): A single document returned from the API
+            requested_fields (list[str] or None): Optional list of fields to be returned
+
+        Returns:
+            (tuple): Tuple containing (data_model, set_fields, fields_not_requested)
+        """
         model_fields = self.document_model.model_fields
         set_fields = [k for k in doc if k in model_fields]
         unset_fields = [field for field in model_fields if field not in set_fields]
+        fields_not_requested = (
+            [field for field in unset_fields if field not in requested_fields]
+            if requested_fields
+            else unset_fields
+        )
 
         # Update with locals() from external module if needed
         if any(
@@ -1299,9 +1324,7 @@ class BaseRester:
         data_model = create_model(  # type: ignore
             "MPDataDoc",
             **include_fields,
-            # TODO fields_not_requested is not the same as unset_fields
-            # i.e. field could be requested but not available in the raw doc
-            fields_not_requested=(list[str], unset_fields),
+            fields_not_requested=(list[str], fields_not_requested),
             __base__=_DictLikeAccess,
             __doc__=".".join(
                 [
@@ -1331,7 +1354,7 @@ class BaseRester:
                 if n in set_fields
             )
 
-            s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m\n{extra}\n\n\033[1mFields not requested:\033[0;0m\n{unset_fields}"  # noqa: E501
+            s = f"\033[4m\033[1m{self.__class__.__name__}<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m\n{extra}\n\n\033[1mFields not requested:\033[0;0m\n{fields_not_requested}"  # noqa: E501
             return s
 
         def new_getattr(self, attr) -> str:
@@ -1354,7 +1377,7 @@ class BaseRester:
         data_model.__getattr__ = new_getattr
         data_model.dict = new_dict
 
-        return data_model, set_fields, unset_fields
+        return data_model, set_fields, fields_not_requested
 
     def _query_resource_data(
         self,
