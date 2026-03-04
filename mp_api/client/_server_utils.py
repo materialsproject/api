@@ -2,37 +2,43 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 try:
-    from flask import (
-        has_request_context as _has_request_context,
-        request
-    )
+    from flask import has_request_context as _has_request_context
+    from flask import request
 except ImportError:
-    _has_request_context = None
-    request = None
+    _has_request_context = None  # type: ignore[assignment]
+    request = None  # type: ignore[assignment]
 
 from mp_api.client.core.utils import validate_api_key
+
+if TYPE_CHECKING:
+    from typing import Any
+
 
 def has_request_context() -> bool:
     """Determine if the current context is a request.
 
-    Returns
+    Returns:
     --------
     bool : True if in a request context
         False if flask is not installed or not in a request context.
     """
     return _has_request_context is not None and _has_request_context()
 
-def get_request_headers() -> dict[str,Any]:
+
+def get_request_headers() -> dict[str, Any]:
     """Get the headers if operating in a request context.
 
-    Returns
+    Returns:
     --------
     dict of str to Any
         Empty dict if flask is not installed, or not in a request context.
         Request headers otherwise.
     """
     return request.headers if has_request_context() else {}
+
 
 def is_dev_env() -> bool:
     """Determine if current env is local/developmental or production.
@@ -43,9 +49,9 @@ def is_dev_env() -> bool:
     return (
         True
         if not has_request_context()
-        else get_request_headers().get("Host", "").startswith(
-            ("localhost:", "127.0.0.1:", "0.0.0.0:")
-        )
+        else get_request_headers()
+        .get("Host", "")
+        .startswith(("localhost:", "127.0.0.1:", "0.0.0.0:"))
     )
 
 
@@ -84,8 +90,7 @@ def is_logged_in_user(consumer: dict[str, str] | None = None) -> bool:
 
 
 def get_user_api_key(
-    api_key : str | None = None,
-    consumer: dict[str, str] | None = None
+    api_key: str | None = None, consumer: dict[str, str] | None = None
 ) -> str | None:
     """Get the api key that belongs to the current user.
 
