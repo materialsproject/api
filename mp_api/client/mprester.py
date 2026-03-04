@@ -21,6 +21,7 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
+from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
 from mp_api.client.core import BaseRester
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.exceptions import (
@@ -32,7 +33,6 @@ from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     LazyImport,
     load_json,
-    validate_api_key,
     validate_endpoint,
     validate_ids,
 )
@@ -141,16 +141,18 @@ class MPRester:
             force_renew: Option to overwrite existing local dataset
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        self.api_key = validate_api_key(api_key)
+        self.api_key = get_user_api_key(api_key=api_key)
 
         self.endpoint = validate_endpoint(endpoint)
 
-        self.headers = headers or {}
+        self.headers = headers or get_consumer()
         self.session = session or BaseRester._create_session(
             api_key=self.api_key,
             include_user_agent=include_user_agent,
             headers=self.headers,
         )
+        if is_dev_env():
+            self.session.headers["x-api-key"] = self.api_key
         self._include_user_agent = include_user_agent
         self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars

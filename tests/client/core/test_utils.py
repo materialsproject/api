@@ -142,7 +142,7 @@ def test_api_key_validation(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(pymatgen.core, "SETTINGS", non_api_key_settings)
 
     with pytest.raises(MPRestError, match="32 characters"):
-        validate_api_key("invalid_key")
+        validate_api_key(api_key="invalid_key")
 
     with pytest.warns(MPRestWarning, match="No API key found"):
         validate_api_key()
@@ -150,7 +150,7 @@ def test_api_key_validation(monkeypatch: pytest.MonkeyPatch):
     junk_api_key = "a" * 32
     monkeypatch.setenv("MP_API_KEY", junk_api_key)
     assert validate_api_key() == junk_api_key
-    assert validate_api_key(junk_api_key) == junk_api_key
+    assert validate_api_key(api_key=junk_api_key) == junk_api_key
 
     other_junk_api_key = "b" * 32
     monkeypatch.setattr(
