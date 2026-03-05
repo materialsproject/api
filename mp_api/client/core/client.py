@@ -494,7 +494,6 @@ class BaseRester:
             .get("meta", {})
             .get("total_doc", 0)
         )
-        print(has_gnome_access)
         self.mute_progress_bars = not re_enable
 
         suffix = prefix.rsplit("/")[1]
