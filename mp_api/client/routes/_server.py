@@ -6,12 +6,13 @@ from typing import TYPE_CHECKING
 
 from emmet.core._general_store import GeneralStoreDoc
 from emmet.core._messages import MessagesDoc, MessageType
-from emmet.core._user_settings import UserSettingsDoc
+from emmet.core._user_settings import UserSettings, UserSettingsDoc
 
 from mp_api.client.core import BaseRester
 
 if TYPE_CHECKING:
     from datetime import datetime
+    from typing import Any
 
 
 class GeneralStoreRester(BaseRester):  # pragma: no cover
@@ -133,7 +134,9 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
     primary_key = "consumer_id"
     use_document_model = False
 
-    def create_user_settings(self, consumer_id, settings):
+    def create_user_settings(
+        self, consumer_id: str, settings: dict[str, Any]
+    ) -> dict[str, Any]:
         """Create user settings.
 
         Args:
@@ -147,48 +150,49 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
             body=settings, params={"consumer_id": consumer_id}
         ).get("data")
 
-    def patch_user_settings(self, consumer_id, settings):  # pragma: no cover
+    def patch_user_settings(
+        self, consumer_id: str, settings: dict[str, Any]
+    ) -> UserSettingsDoc:
         """Patch user settings.
 
         Args:
-            consumer_id: Consumer ID for the user
+            consumer_id (str): Consumer ID for the user
             settings: Dictionary with user settings
         Returns:
-            Dictionary with consumer_id and write status.
+            UserSettingsDoc with consumer_id and write status.
 
 
         Raises:
             MPRestError.
         """
-        body = dict()
-        valid_fields = [
-            "institution",
-            "sector",
-            "job_role",
-            "is_email_subscribed",
-            "agreed_terms",
-            "message_last_read",
-        ]
-        for key in settings:
-            if key not in valid_fields:
-                raise ValueError(
-                    f"Invalid setting key {key}. Must be one of {valid_fields}"
-                )
-            body[f"settings.{key}"] = settings[key]
+        if (
+            len(
+                invalid_keys := [
+                    key for key in settings if key not in UserSettings.model_fields
+                ]
+            )
+            > 0
+        ):
+            raise ValueError(
+                f"Invalid setting key(s): {', '.join(invalid_keys)}. "
+                f"Valid keys: {', '.join(UserSettings.model_fields)}"
+            )
 
-        return self._patch_resource(body=body, params={"consumer_id": consumer_id}).get(
-            "data"
-        )
+        return self._patch_resource(
+            body={f"settings.{key}": v for key, v in settings.items()},
+            params={"consumer_id": consumer_id},
+        ).get("data")
 
-    def patch_user_time_settings(self, consumer_id, time):  # pragma: no cover
+    def patch_user_time_settings(
+        self, consumer_id: str, time: datetime
+    ) -> UserSettingsDoc:
         """Set user settings last_read_message field.
 
         Args:
-            consumer_id: Consumer ID for the user
-            time: utc datetime object for when the user last see messages
+            consumer_id (str): Consumer ID for the user
+            time (datetime): UTC datetime object for when the user last see messages
         Returns:
-            Dictionary with consumer_id and write status.
-
+            UserSettingsDoc
 
         Raises:
             MPRestError.
@@ -198,15 +202,16 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
             params={"consumer_id": consumer_id},
         ).get("data")
 
-    def get_user_settings(self, consumer_id, fields):  # pragma: no cover
+    def get_user_settings(
+        self, consumer_id: str, fields: list[str]
+    ) -> list[UserSettingsDoc]:
         """Get user settings.
 
         Args:
-            consumer_id: Consumer ID for the user
-            fields: List of fields to project
+            consumer_id (str): Consumer ID for the user
+            fields (list of str): List of fields to project
         Returns:
-            Dictionary with consumer_id and settings.
-
+            list of UserSettingsDoc, with consumer_id and settings.
 
         Raises:
             MPRestError.
