@@ -178,7 +178,7 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
                 f"Valid keys: {', '.join(UserSettings.model_fields)}"
             )
 
-        return self._patch_resource(
+        return self._patch_resource(  # type: ignore[return-value]
             body={f"settings.{key}": v for key, v in settings.items()},
             params={"consumer_id": consumer_id},
         ).get("data")
@@ -197,7 +197,7 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
         Raises:
             MPRestError.
         """
-        return self._patch_resource(
+        return self._patch_resource(  # type: ignore[return-value]
             body={"settings.message_last_read": time.isoformat()},
             params={"consumer_id": consumer_id},
         ).get("data")
