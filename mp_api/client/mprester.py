@@ -211,7 +211,7 @@ class MPRester:
             )
 
         if notify_db_version:
-            raise NotImplementedError("This has not yet been implemented.")
+            self._db_version_check()
 
         # Dynamically set rester attributes.
         # First, materials and molecules top level resters are set.
@@ -298,6 +298,10 @@ class MPRester:
             + [r.split("/", 1)[0] for r in TOP_LEVEL_RESTERS if not r.startswith("_")]
         )
 
+    def __repr__(self) -> str:
+        db_version = self.get_database_version()
+        return f"MPRester({'v' + db_version if db_version else "unknown version"})"
+
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
     ) -> list[str]:
@@ -369,7 +373,7 @@ class MPRester:
         where "_DD" may be optional. An additional numerical suffix
         might be added if multiple releases happen on the same day.
 
-        Returns: database version as a string
+        Returns: database version as a string if accessible, None otherwise
         """
         if (get_resp := get(url=self.endpoint + "heartbeat")).status_code == 403:
             _emit_status_warning()
@@ -1615,3 +1619,33 @@ class MPRester:
             phase_diagram,
             unique_composition,
         )
+
+    def _db_version_check(self) -> None:
+        """Check if the database version has drifted."""
+
+        import yaml
+        db_version = self.get_database_version()
+        old_db_version = None
+        if MAPI_CLIENT_SETTINGS.LOG_FILE.exists():
+            old_db_version = (
+                yaml.safe_load(
+                    MAPI_CLIENT_SETTINGS.LOG_FILE.read_text()
+                ) or {}
+            ).get("MAPI_DB_VERSION",None)
+
+            # Handle legacy pymatgen behavior
+            if not isinstance(old_db_version,str):
+                old_db_version = None
+        
+        if old_db_version != db_version:
+            MAPI_CLIENT_SETTINGS.LOG_FILE.write_text(
+                yaml.safe_dump({"MAPI_DB_VERSION": db_version})
+            )
+
+            if old_db_version:
+                warnings.warn(
+                    "Materials Project database version has changed "
+                    f"from v{old_db_version} to v{db_version}.",
+                    category=MPRestWarning,
+                    stacklevel=2,
+                ) 
