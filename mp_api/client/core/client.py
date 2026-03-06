@@ -1176,6 +1176,7 @@ class BaseRester:
                 verify=verify,
                 params=params,
                 timeout=timeout,
+                headers=self.headers,
             )
         except requests.exceptions.ConnectTimeout:
             raise MPRestError(
