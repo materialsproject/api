@@ -300,7 +300,7 @@ class MPRester:
 
     def __repr__(self) -> str:
         db_version = self.get_database_version()
-        return f"MPRester({'v' + db_version if db_version else "unknown version"})"
+        return f"MPRester({'v' + db_version if db_version else 'unknown version'})"
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
@@ -1622,21 +1622,19 @@ class MPRester:
 
     def _db_version_check(self) -> None:
         """Check if the database version has drifted."""
+        import yaml  # type: ignore[import-untyped]
 
-        import yaml
         db_version = self.get_database_version()
         old_db_version = None
         if MAPI_CLIENT_SETTINGS.LOG_FILE.exists():
             old_db_version = (
-                yaml.safe_load(
-                    MAPI_CLIENT_SETTINGS.LOG_FILE.read_text()
-                ) or {}
-            ).get("MAPI_DB_VERSION",None)
+                yaml.safe_load(MAPI_CLIENT_SETTINGS.LOG_FILE.read_text()) or {}
+            ).get("MAPI_DB_VERSION", None)
 
             # Handle legacy pymatgen behavior
-            if not isinstance(old_db_version,str):
+            if not isinstance(old_db_version, str):
                 old_db_version = None
-        
+
         if old_db_version != db_version:
             MAPI_CLIENT_SETTINGS.LOG_FILE.write_text(
                 yaml.safe_dump({"MAPI_DB_VERSION": db_version})
@@ -1648,4 +1646,4 @@ class MPRester:
                     f"from v{old_db_version} to v{db_version}.",
                     category=MPRestWarning,
                     stacklevel=2,
-                ) 
+                )

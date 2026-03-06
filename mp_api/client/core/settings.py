@@ -72,9 +72,9 @@ class MAPIClientSettings(BaseSettings):
         description="Angle tolerance for structure matching in degrees.",
     )
 
-    LOG_FILE : Path = Field(
+    LOG_FILE: Path = Field(
         Path("~/.mprester.log.yaml").expanduser(),
-        description = "Path for storing last accessed database version."
+        description="Path for storing last accessed database version.",
     )
 
     LOCAL_DATASET_CACHE: Path = Field(

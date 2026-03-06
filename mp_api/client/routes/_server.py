@@ -146,7 +146,7 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
         Returns:
             Dictionary with consumer_id and write status.
         """
-        return self._post_resource(
+        return self._post_resource(  # type: ignore[return-value]
             body=settings, params={"consumer_id": consumer_id}
         ).get("data")
 
@@ -216,6 +216,6 @@ class UserSettingsRester(BaseRester):  # pragma: no cover
         Raises:
             MPRestError.
         """
-        return self._query_resource(
+        return self._query_resource(  # type: ignore[return-value]
             suburl=f"{consumer_id}", fields=fields, num_chunks=1, chunk_size=1
         ).get("data")
