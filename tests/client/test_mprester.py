@@ -625,3 +625,20 @@ loop_
     def test_monty_decode_warning(self):
         with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
             MPRester(monty_decode=False)
+
+    def test_db_warning(self, monkeypatch: pytest.MonkeyPatch):
+        from pathlib import Path
+        import yaml
+        from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
+
+        with NamedTemporaryFile(suffix=".yaml") as tmp_log:
+            monkeypatch.setattr(MAPI_CLIENT_SETTINGS, "LOG_FILE", Path(tmp_log.name))
+
+            with MPRester(notify_db_version=True) as mpr:
+                db_version = mpr.get_database_version()
+
+            parsed_db_ver = yaml.safe_load(Path(tmp_log.name).read_text()).get(
+                "MAPI_DB_VERSION"
+            )
+            assert parsed_db_ver == db_version
+            assert isinstance(parsed_db_ver, str)

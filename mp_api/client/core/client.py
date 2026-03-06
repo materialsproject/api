@@ -57,13 +57,6 @@ from mp_api.client.core.utils import (
     validate_ids,
 )
 
-try:
-    import flask
-
-    _flask_is_installed = True
-except ImportError:
-    _flask_is_installed = False
-
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
     from typing import Any
@@ -1177,17 +1170,13 @@ class BaseRester:
         Returns:
             Tuple with data and total number of docs in matching the query in the database.
         """
-        headers = None
-        if _flask_is_installed and flask.has_request_context():
-            headers = flask.request.headers
-
         try:
             response = self.session.get(
                 url=url,
                 verify=verify,
                 params=params,
                 timeout=timeout,
-                headers=headers if headers else self.headers,
+                headers=self.headers,
             )
         except requests.exceptions.ConnectTimeout:
             raise MPRestError(
