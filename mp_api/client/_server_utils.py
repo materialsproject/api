@@ -14,6 +14,7 @@ except ImportError:
 from mp_api.client.core.utils import validate_api_key
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from typing import Any
 
 
@@ -40,8 +41,14 @@ def get_request_headers() -> dict[str, Any]:
     return request.headers if has_request_context() else {}
 
 
-def is_dev_env() -> bool:
+def is_dev_env(
+    localhosts : Sequence[str] = ("localhost:", "127.0.0.1:", "0.0.0.0:")
+) -> bool:
     """Determine if current env is local/developmental or production.
+
+    Args:
+        localhosts (Sequence of str) : A set of host prefixes for checking
+            if the current environment is locally deployed.
 
     Returns:
         bool: True if the environment is locally hosted.
@@ -51,7 +58,7 @@ def is_dev_env() -> bool:
         if not has_request_context()
         else get_request_headers()
         .get("Host", "")
-        .startswith(("localhost:", "127.0.0.1:", "0.0.0.0:"))
+        .startswith(localhosts)
     )
 
 
