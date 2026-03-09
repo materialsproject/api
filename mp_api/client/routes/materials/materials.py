@@ -246,9 +246,9 @@ class MaterialsRester(CoreRester):
         for doc in mat_docs:
             if matcher.fit(
                 s,
-                doc.structure if self.use_document_model else Structure.from_dict(doc["structure"]),  # type: ignore[union-attr]
+                doc.structure if self.use_document_model else Structure.from_dict(doc["structure"]),  # type: ignore
             ):
-                matches.append(doc.material_id.string if self.use_document_model else doc["material_id"])  # type: ignore[union-attr]
+                matches.append(doc.material_id.string if self.use_document_model else doc["material_id"])  # type: ignore
                 if len(matches) >= max_matches:
                     break
 
