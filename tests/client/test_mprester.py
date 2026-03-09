@@ -253,6 +253,11 @@ loop_
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
+        with pytest.raises(
+            MPRestError, match="Please specify fewer elements to query by"
+        ):
+            mpr.get_entries_in_chemsys([Element.from_Z(1 + i).name for i in range(10)])
+
     @pytest.mark.skipif(
         contribs_client is None,
         reason="`pip install mpcontribs-client` to use pourbaix functionality.",

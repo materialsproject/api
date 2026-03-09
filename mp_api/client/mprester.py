@@ -1070,7 +1070,14 @@ class MPRester:
         if isinstance(elements, str):
             elements = elements.split("-")
 
-        elements_set = set(elements)  # remove duplicate elements
+        # 9 elements would be sum_{i=1}^{9} (9 choose i) = 511
+        # From testing, this is the highest number of chemsys
+        # we can query before URI lengths are exceeded
+        if len(elements_set := set(elements)) > 9:  # remove duplicate elements
+            raise MPRestError(
+                "Please specify fewer elements to query by, "
+                "or identify a subset of relevant chemical systems to query first."
+            )
 
         all_chemsyses = [
             "-".join(sorted(els))
@@ -1078,17 +1085,13 @@ class MPRester:
             for els in itertools.combinations(elements_set, i + 1)
         ]
 
-        entries = []
-
-        entries.extend(
-            self.get_entries(
-                all_chemsyses,
-                compatible_only=compatible_only,
-                property_data=property_data,
-                conventional_unit_cell=conventional_unit_cell,
-                additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
-                **kwargs,
-            )
+        entries = self.get_entries(
+            all_chemsyses,
+            compatible_only=compatible_only,
+            property_data=property_data,
+            conventional_unit_cell=conventional_unit_cell,
+            additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
+            **kwargs,
         )
 
         if use_gibbs:
