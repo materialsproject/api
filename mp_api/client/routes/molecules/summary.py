@@ -24,7 +24,7 @@ class MoleculesSummaryRester(BaseRester):
         exclude_elements: list[str] | None = None,
         formula: str | list[str] | None = None,
         has_props: list[HasProps] | None = None,
-        molecule_ids: list[MPculeID] | None = None,
+        molecule_ids: str | list[str | MPculeID] | None = None,
         # has_solvent: Optional[Union[str, List[str]]] = None,
         # has_level_of_theory: Optional[Union[str, List[str]]] = None,
         # has_lot_solvent: Optional[Union[str, List[str]]] = None,
@@ -58,7 +58,8 @@ class MoleculesSummaryRester(BaseRester):
             formula (str, List[str]): An alphabetical formula or list of formulas
                 (e.g. "C2 Li2 O4", ["C2 H4", "C2 H6"]).
             has_props: (List[HasProps]): The calculated properties available for the material.
-            molecule_ids (List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data for.
+            molecule_ids (str or MPculeID, or list[str | MPculeID]): 
+                (List of) Materials Project Molecule IDs (MPculeIDs) to return data for.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -90,6 +91,8 @@ class MoleculesSummaryRester(BaseRester):
                 )
 
         if molecule_ids:
+            if isinstance(molecule_ids,str):
+                molecule_ids = [molecule_ids]
             query_params.update({"molecule_ids": ",".join(molecule_ids)})
 
         if charge:
