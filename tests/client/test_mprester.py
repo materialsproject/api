@@ -102,7 +102,9 @@ class TestMPRester:
         structs = mpr.get_structures("Mn-O", final=False)
         assert len(structs) > 0
 
-    def test_find_structure(self, mpr):
+    def test_find_structure(
+        self,
+    ):
         cif_str = """# mp-111
 data_Ne
 _symmetry_space_group_name_H-M   'P 1'
@@ -139,11 +141,12 @@ loop_
             f.write(cif_str)
             f.seek(0)
 
-        for struct_or_path in (
-            temp_file.name,
-            struct_from_cif,
-        ):
-            data = mpr.find_structure(struct_or_path)
+        for struct_or_path, use_document_model in [
+            (temp_file.name, True),
+            (struct_from_cif, False),
+        ]:
+            with MPRester(use_document_model=use_document_model) as mpr:
+                data = mpr.find_structure(struct_or_path)
             assert isinstance(data, str) and data == "mp-111"
 
         f.close()

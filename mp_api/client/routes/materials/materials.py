@@ -242,10 +242,13 @@ class MaterialsRester(CoreRester):
             comparator=ElementComparator(),
         )
 
-        matches = []
+        matches: list[str] = []
         for doc in mat_docs:
-            if matcher.fit(s, doc.structure):
-                matches.append(doc.material_id)
+            if matcher.fit(
+                s,
+                doc.structure if self.use_document_model else Structure.from_dict(doc["structure"]),  # type: ignore[union-attr]
+            ):
+                matches.append(doc.material_id.string if self.use_document_model else doc["material_id"])  # type: ignore[union-attr]
                 if len(matches) >= max_matches:
                     break
 
