@@ -43,7 +43,7 @@ class MoleculesSummaryRester(BaseRester):
             formula (str, List[str]): An alphabetical formula or list of formulas
                 (e.g. "C2 Li2 O4", ["C2 H4", "C2 H6"]).
             has_props: (List[HasProps]): The calculated properties available for the material.
-            molecule_ids (str or MPculeID, or list[str | MPculeID]): 
+            molecule_ids (str or MPculeID, or list[str | MPculeID]):
                 (List of) Materials Project Molecule IDs (MPculeIDs) to return data for.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
@@ -76,7 +76,7 @@ class MoleculesSummaryRester(BaseRester):
                 )
 
         if molecule_ids:
-            if isinstance(molecule_ids,str):
+            if isinstance(molecule_ids, str):
                 molecule_ids = [molecule_ids]
             query_params.update({"molecule_ids": ",".join(molecule_ids)})
 

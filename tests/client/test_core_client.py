@@ -21,12 +21,6 @@ def mpr():
 
 
 @requires_api_key
-@pytest.mark.xfail
-def test_post_fail(rester):
-    rester._post_resource({}, suburl="materials/find_structure")
-
-
-@requires_api_key
 def test_pagination(mpr):
     mpids = mpr.materials.search(
         all_fields=False, fields=["material_id"], num_chunks=2, chunk_size=1000

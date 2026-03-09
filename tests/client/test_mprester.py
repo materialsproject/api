@@ -131,6 +131,9 @@ loop_
  _atom_site_occupancy
   Ne  Ne0  1  0.00000000  0.00000000  -0.00000000  1
 """
+        struct_from_cif = CifParser.from_str(cif_str).parse_structures(primitive=True)[
+            0
+        ]
         temp_file = NamedTemporaryFile(suffix=".cif")
         with open(temp_file.name, "wt") as f:
             f.write(cif_str)
@@ -138,12 +141,28 @@ loop_
 
         for struct_or_path in (
             temp_file.name,
-            CifParser.from_str(cif_str).parse_structures(primitive=True)[0],
+            struct_from_cif,
         ):
             data = mpr.find_structure(struct_or_path)
             assert isinstance(data, str) and data == "mp-111"
 
         f.close()
+
+        with pytest.raises(MPRestError, match="Provide filename or Structure object."):
+            mpr.find_structure(struct_from_cif.as_dict())
+
+        with pytest.raises(MPRestError, match="`allow_multiple_results` must be a"):
+            mpr.find_structure(struct_from_cif, allow_multiple_results=1.0)
+
+        assert (
+            len(
+                mpr.find_structure(
+                    struct_from_cif.copy().replace_species({"Ne": "K"}),
+                    allow_multiple_results=2,
+                )
+            )
+            <= 2
+        )
 
     def test_get_bandstructure_by_material_id(self, mpr):
         bs = mpr.get_bandstructure_by_material_id("mp-149")

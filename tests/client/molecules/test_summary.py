@@ -25,7 +25,7 @@ custom_field_tests: dict = {
     "molecule_ids": [
         "042b6da7a6eb790fd5038f3729ef715c-C5H8O3-m1-2",
         "6fef3b0ef7f484b8c2dd0a0012bf7c70-C2H2O3P1-0-2",
-        "a3572e662965c190b2a085c6a67a8a03-C9H12-1-2"
+        "a3572e662965c190b2a085c6a67a8a03-C9H12-1-2",
     ],
     "formula": "C2 H4",
     "chemsys": "C-H",

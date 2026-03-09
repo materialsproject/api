@@ -7,16 +7,15 @@ the JCESR and summary resters.
 
 from __future__ import annotations
 
-from emmet.core.mpid import MPculeID
 from emmet.core.qchem.molecule import MoleculeDoc
-from pymatgen.core.structure import Molecule
 
-from mp_api.client.core.client import CoreRester, MPRestError
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.client import CoreRester
 from mp_api.client.routes.molecules import MOLECULES_RESTERS
+
 
 class MoleculeRester(CoreRester):
     """Define molecules stub for accessing JCESR and summary data."""
+
     document_model = MoleculeDoc
     primary_key = "molecule_id"
     suffix = "molecules/core"

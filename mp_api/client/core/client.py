@@ -1617,9 +1617,7 @@ class CoreRester(BaseRester):
                     force_renew=self.force_renew,
                 )
             return self.sub_resters[v]
-        raise AttributeError(
-            f"{self.__class__} has no attribute {v}"
-        )
+        raise AttributeError(f"{self.__class__} has no attribute {v}")
 
     def __dir__(self):
         return dir(self.__class__) + list(self._sub_resters)
