@@ -649,6 +649,43 @@ loop_
         with pytest.raises(ValueError, match="No available insertion electrode data"):
             _ = mpr.get_oxygen_evolution("mp-2207", "Al")
 
+    def test_nomad_integration(self, mpr):
+        # No particular reason for this MPID other than that it exists in NOMAD.
+        target_mpid = "mp-10018"
+        with pytest.warns(
+            MPRestWarning, match="Full downloads of raw data are being transitioned"
+        ), pytest.warns(
+            MPRestWarning, match="the following ids are not found on NOMAD"
+        ):
+            calc_type_map, nomad_urls = mpr.get_download_info(
+                target_mpid, file_patterns=["some_pattern"]
+            )
+            assert all(
+                isinstance(entry["task_id"], MPID)
+                and isinstance(entry["calc_type"], CalcType)
+                for entry in calc_type_map[target_mpid]
+            )
+            assert all(
+                url.startswith("https://nomad-lab.eu/prod/rae/api/raw/query")
+                and "file_pattern=some_pattern" in url
+                for url in nomad_urls
+            )
+
+            calc_type_map, nomad_urls = mpr.get_download_info(
+                [MPID(target_mpid)], calc_types=["GGA Deformation"]
+            )
+            assert all(
+                isinstance(entry["task_id"], MPID)
+                and entry["calc_type"].value == "GGA Deformation"
+                for entry in calc_type_map[target_mpid]
+            )
+            assert all(
+                url.startswith(
+                    "https://nomad-lab.eu/prod/rae/api/raw/query?external_id="
+                )
+                for url in nomad_urls
+            )
+
     def test_warnings_exceptions(self, monkeypatch: pytest.MonkeyPatch):
         from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
