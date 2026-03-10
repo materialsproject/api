@@ -76,7 +76,7 @@ class MoleculesSummaryRester(BaseRester):
                 )
 
         if molecule_ids:
-            if isinstance(molecule_ids, str):
+            if isinstance(molecule_ids, str | MPculeID):
                 molecule_ids = [molecule_ids]
             query_params.update({"molecule_ids": ",".join(molecule_ids)})
 
