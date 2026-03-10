@@ -1,7 +1,11 @@
 import pytest
 
+import json
+
 from mp_api.client import MPRester
 from mp_api.client.core import BaseRester
+from mp_api.client.core.exceptions import MPRestError, MPRestWarning
+from mp_api.client.routes.materials.materials import MaterialsRester
 
 from .conftest import requires_api_key
 
@@ -65,3 +69,28 @@ def test_fields_not_requested_excludes_requested_fields(mpr):
         AttributeError, match="data is available but has not been requested in"
     ):
         deser_doc.tags
+
+    with pytest.raises(AttributeError, match="object has no attribute 'fake_field'"):
+        deser_doc.fake_field
+
+    assert all(
+        substr in str(deser_doc)
+        for substr in ("MPDataDoc", "CoreTaskDoc", "task_id", "Fields not requested")
+    )
+    assert all(
+        substr in deser_doc.__repr__()
+        for substr in ("MPDataDoc", "CoreTaskDoc", "task_id", "fields_not_requested")
+    )
+    assert deser_doc.dict() == deser_doc.model_dump()
+    assert isinstance(json.dumps(deser_doc.dict()), str)
+
+
+def test_warnings_exceptions():
+    with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
+        MaterialsRester(monty_decode=True)
+
+    with pytest.raises(MPRestError, match="Chunk size must be greater than zero"):
+        MaterialsRester()._get_all_documents({}, chunk_size=-1)
+
+    with pytest.raises(MPRestError, match="Number of chunks must be greater than zero"):
+        MaterialsRester()._get_all_documents({}, num_chunks=-1)

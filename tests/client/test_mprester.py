@@ -649,6 +649,35 @@ loop_
         with pytest.raises(ValueError, match="No available insertion electrode data"):
             _ = mpr.get_oxygen_evolution("mp-2207", "Al")
 
-    def test_monty_decode_warning(self):
+    def test_warnings_exceptions(self, monkeypatch: pytest.MonkeyPatch):
+        from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
+
         with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
             MPRester(monty_decode=False)
+
+        with MPRester() as mpr:
+            with pytest.raises(
+                NotImplementedError,
+                match="The MPRester\(\).query method has been replaced",
+            ):
+                mpr.query(some_field=1.0)
+
+            with pytest.warns(
+                MPRestWarning, match="No material found containing task mp-0"
+            ):
+                assert mpr.get_material_id_from_task_id("mp-0") is None
+
+            for attr in mpr._deprecated_attributes:
+                with pytest.warns(
+                    DeprecationWarning, match="Accessing.*data through MPRester\..*"
+                ):
+                    getattr(mpr, attr, None)
+
+            emmet_ver = mpr.get_emmet_version(mpr.endpoint)
+            monkeypatch.setattr(
+                MAPI_CLIENT_SETTINGS, "MIN_EMMET_VERSION", f"{emmet_ver.major + 1}.0.0"
+            )
+            with pytest.warns(
+                MPRestWarning, match="The installed version of the mp-api"
+            ):
+                MPRester()

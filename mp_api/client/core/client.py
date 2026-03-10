@@ -198,7 +198,7 @@ class BaseRester:
             warnings.warn(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
                 "The client by default returns results consistent with `monty_decode=True`.",
-                category=DeprecationWarning,
+                category=MPRestWarning,
                 stacklevel=2,
             )
 
@@ -1360,7 +1360,7 @@ class BaseRester:
 
             return (
                 f"\033[4m\033[1m{self.__class__.__name__}"
-                f"<{self.__class__.__base__.__name__}>\033[0;0m\033[0;0m"
+                f"<{orig_rester_name}>\033[0;0m\033[0;0m"
                 f"\n{extra}\n\n"
                 f"\033[1mFields not requested:\033[0;0m\n{fields_not_requested}"
             )
