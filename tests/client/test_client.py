@@ -48,17 +48,16 @@ ignore_generic = [
     # "summary",
 ]  # temp
 
-mpr = MPRester()
-
 # Temporarily ignore molecules resters while molecules query operators are changed
-resters_to_test = [
-    rester
-    for rester in mpr._all_resters
-    if (
-        "molecule" not in rester._class_name.lower()
-        and not (pmg_alloys is None and "alloys" in str(rester).lower())
-    )
-]
+with MPRester() as mpr:
+    resters_to_test = [
+        rester
+        for rester in mpr._all_resters
+        if (
+            "molecule" not in rester._class_name.lower()
+            and not (pmg_alloys is None and "alloys" in str(rester).lower())
+        )
+    ]
 
 
 @requires_api_key

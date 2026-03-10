@@ -3,6 +3,7 @@ from .core_function import client_search_testing
 
 import pytest
 from emmet.core.molecules.summary import HasProps
+from emmet.core.mpid import MPculeID
 
 from mp_api.client.routes.molecules.summary import MoleculesSummaryRester
 
@@ -15,13 +16,17 @@ excluded_params = [
     "all_fields",
     "fields",
     "exclude_elements",
-    "has_props",
 ]
 
 alt_name_dict = {"formula": "formula_alphabetical", "molecule_ids": "molecule_id"}
 
 custom_field_tests: dict = {
-    "molecule_ids": ["351ef090ebd90b661a4e1205756f6957-C1Mg1N2O1S1-m2-1"],
+    "molecule_ids": MPculeID("351ef090ebd90b661a4e1205756f6957-C1Mg1N2O1S1-m2-1"),
+    "molecule_ids": [
+        "042b6da7a6eb790fd5038f3729ef715c-C5H8O3-m1-2",
+        "6fef3b0ef7f484b8c2dd0a0012bf7c70-C2H2O3P1-0-2",
+        "a3572e662965c190b2a085c6a67a8a03-C9H12-1-2",
+    ],
     "formula": "C2 H4",
     "chemsys": "C-H",
     "elements": ["P"],
@@ -35,7 +40,6 @@ custom_field_tests: dict = {
 }
 
 
-@pytest.mark.skip(reason="Temporary until data adjustments")
 @requires_api_key
 def test_client():
     search_method = MoleculesSummaryRester().search

@@ -102,7 +102,9 @@ class TestMPRester:
         structs = mpr.get_structures("Mn-O", final=False)
         assert len(structs) > 0
 
-    def test_find_structure(self, mpr):
+    def test_find_structure(
+        self,
+    ):
         cif_str = """# mp-111
 data_Ne
 _symmetry_space_group_name_H-M   'P 1'
@@ -131,19 +133,39 @@ loop_
  _atom_site_occupancy
   Ne  Ne0  1  0.00000000  0.00000000  -0.00000000  1
 """
+        struct_from_cif = CifParser.from_str(cif_str).parse_structures(primitive=True)[
+            0
+        ]
         temp_file = NamedTemporaryFile(suffix=".cif")
         with open(temp_file.name, "wt") as f:
             f.write(cif_str)
             f.seek(0)
 
-        for struct_or_path in (
-            temp_file.name,
-            CifParser.from_str(cif_str).parse_structures(primitive=True)[0],
-        ):
-            data = mpr.find_structure(struct_or_path)
+        for struct_or_path, use_document_model in [
+            (temp_file.name, True),
+            (struct_from_cif, False),
+        ]:
+            with MPRester(use_document_model=use_document_model) as mpr:
+                data = mpr.find_structure(struct_or_path)
             assert isinstance(data, str) and data == "mp-111"
 
         f.close()
+
+        with pytest.raises(MPRestError, match="Provide filename or Structure object."):
+            mpr.find_structure(struct_from_cif.as_dict())
+
+        with pytest.raises(MPRestError, match="`allow_multiple_results` must be a"):
+            mpr.find_structure(struct_from_cif, allow_multiple_results=1.0)
+
+        assert (
+            len(
+                mpr.find_structure(
+                    struct_from_cif.copy().replace_species({"Ne": "K"}),
+                    allow_multiple_results=2,
+                )
+            )
+            <= 2
+        )
 
     def test_get_bandstructure_by_material_id(self, mpr):
         bs = mpr.get_bandstructure_by_material_id("mp-149")
@@ -252,6 +274,11 @@ loop_
         gibbs_entries = mpr.get_entries_in_chemsys(syms2, use_gibbs=500)
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
+
+        with pytest.raises(
+            MPRestError, match="Please specify fewer elements to query by"
+        ):
+            mpr.get_entries_in_chemsys([Element.from_Z(1 + i).name for i in range(10)])
 
     @pytest.mark.skipif(
         contribs_client is None,
@@ -622,6 +649,72 @@ loop_
         with pytest.raises(ValueError, match="No available insertion electrode data"):
             _ = mpr.get_oxygen_evolution("mp-2207", "Al")
 
-    def test_monty_decode_warning(self):
+    def test_nomad_integration(self, mpr):
+        # No particular reason for this MPID other than that it exists in NOMAD.
+        target_mpid = "mp-10018"
+        with pytest.warns(
+            MPRestWarning, match="Full downloads of raw data are being transitioned"
+        ), pytest.warns(
+            MPRestWarning, match="the following ids are not found on NOMAD"
+        ):
+            calc_type_map, nomad_urls = mpr.get_download_info(
+                target_mpid, file_patterns=["some_pattern"]
+            )
+            assert all(
+                isinstance(entry["task_id"], MPID)
+                and isinstance(entry["calc_type"], CalcType)
+                for entry in calc_type_map[target_mpid]
+            )
+            assert all(
+                url.startswith("https://nomad-lab.eu/prod/rae/api/raw/query")
+                and "file_pattern=some_pattern" in url
+                for url in nomad_urls
+            )
+
+            calc_type_map, nomad_urls = mpr.get_download_info(
+                [MPID(target_mpid)], calc_types=["GGA Deformation"]
+            )
+            assert all(
+                isinstance(entry["task_id"], MPID)
+                and entry["calc_type"].value == "GGA Deformation"
+                for entry in calc_type_map[target_mpid]
+            )
+            assert all(
+                url.startswith(
+                    "https://nomad-lab.eu/prod/rae/api/raw/query?external_id="
+                )
+                for url in nomad_urls
+            )
+
+    def test_warnings_exceptions(self, monkeypatch: pytest.MonkeyPatch):
+        from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
+
         with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
             MPRester(monty_decode=False)
+
+        with MPRester() as mpr:
+            with pytest.raises(
+                NotImplementedError,
+                match="The MPRester\(\).query method has been replaced",
+            ):
+                mpr.query(some_field=1.0)
+
+            with pytest.warns(
+                MPRestWarning, match="No material found containing task mp-0"
+            ):
+                assert mpr.get_material_id_from_task_id("mp-0") is None
+
+            for attr in mpr._deprecated_attributes:
+                with pytest.warns(
+                    DeprecationWarning, match="Accessing.*data through MPRester\..*"
+                ):
+                    getattr(mpr, attr, None)
+
+            emmet_ver = mpr.get_emmet_version(mpr.endpoint)
+            monkeypatch.setattr(
+                MAPI_CLIENT_SETTINGS, "MIN_EMMET_VERSION", f"{emmet_ver.major + 1}.0.0"
+            )
+            with pytest.warns(
+                MPRestWarning, match="The installed version of the mp-api"
+            ):
+                MPRester()

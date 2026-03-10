@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from emmet.core.symmetry import CrystalSystem
@@ -172,11 +173,11 @@ class MaterialsRester(CoreRester):
 
     def find_structure(
         self,
-        filename_or_structure,
+        filename_or_structure: str | Path | Structure,
         ltol=MAPI_CLIENT_SETTINGS.LTOL,
         stol=MAPI_CLIENT_SETTINGS.STOL,
         angle_tol=MAPI_CLIENT_SETTINGS.ANGLE_TOL,
-        allow_multiple_results=False,
+        allow_multiple_results: bool | int = False,
     ) -> list[str] | str:
         """Finds matching structures from the Materials Project database.
 
@@ -186,48 +187,75 @@ class MaterialsRester(CoreRester):
         default tolerances.
 
         Args:
-            filename_or_structure: filename or Structure object
+            filename_or_structure: filename as a str or Path, or a Structure object
             ltol: fractional length tolerance
             stol: site tolerance
             angle_tol: angle tolerance in degrees
-            allow_multiple_results: changes return type for either
-            a single material_id or list of material_ids
+            allow_multiple_results (bool or int): changes return type for either
+                a single material_id or list of material_ids.
+                If a bool, returns either all matches (True) or one match at most (False).
+                If an int, returns that many matches at most.
+
         Returns:
             A matching material_id if one is found or list of results if allow_multiple_results
             is True
         Raises:
             MPRestError
         """
-        params = {"ltol": ltol, "stol": stol, "angle_tol": angle_tol, "_limit": 1}
+        from pymatgen.analysis.structure_matcher import (
+            ElementComparator,
+            StructureMatcher,
+        )
 
-        if isinstance(filename_or_structure, str):
+        if (
+            isinstance(filename_or_structure, str | Path)
+            and Path(filename_or_structure).exists()
+        ):
             s = Structure.from_file(filename_or_structure)
         elif isinstance(filename_or_structure, Structure):
             s = filename_or_structure
         else:
             raise MPRestError("Provide filename or Structure object.")
 
-        results = self._post_resource(
-            body=s.as_dict(),
-            params=params,
-            suburl="find_structure",
-            use_document_model=False,
-        ).get("data")
-
-        if not results:
+        mat_docs = self.search(
+            formula=s.reduced_formula, fields=["material_id", "structure"]
+        )
+        if not mat_docs:
             return []
 
-        material_ids = validate_ids([doc["material_id"] for doc in results])
+        if isinstance(allow_multiple_results, bool):
+            max_matches: int = len(mat_docs) if allow_multiple_results else 1
+        elif isinstance(allow_multiple_results, int):
+            max_matches = allow_multiple_results
+        else:
+            raise MPRestError(
+                f"`allow_multiple_results` must be a bool or int, not {type(allow_multiple_results)}"
+            )
 
-        if len(material_ids) > 1:  # type: ignore
-            if not allow_multiple_results:
-                raise ValueError(
-                    "Multiple matches found for this combination of tolerances, but "
-                    "`allow_multiple_results` set to False."
-                )
-            return material_ids  # type: ignore
+        matcher = StructureMatcher(
+            ltol=ltol,
+            stol=stol,
+            angle_tol=angle_tol,
+            primitive_cell=True,
+            scale=True,
+            attempt_supercell=False,
+            comparator=ElementComparator(),
+        )
 
-        return material_ids[0]
+        matches: list[str] = []
+        for doc in mat_docs:
+            if matcher.fit(
+                s,
+                doc.structure if self.use_document_model else Structure.from_dict(doc["structure"]),  # type: ignore
+            ):
+                matches.append(doc.material_id.string if self.use_document_model else doc["material_id"])  # type: ignore
+                if len(matches) >= max_matches:
+                    break
+
+        if not matches:
+            return []
+        material_ids = validate_ids(matches)
+        return material_ids if allow_multiple_results else material_ids[0]
 
     def get_blessed_entries(
         self,

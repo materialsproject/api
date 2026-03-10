@@ -1070,7 +1070,14 @@ class MPRester:
         if isinstance(elements, str):
             elements = elements.split("-")
 
-        elements_set = set(elements)  # remove duplicate elements
+        # 9 elements would be sum_{i=1}^{9} (9 choose i) = 511
+        # From testing, this is the highest number of chemsys
+        # we can query before URI lengths are exceeded
+        if len(elements_set := set(elements)) > 9:  # remove duplicate elements
+            raise MPRestError(
+                "Please specify fewer elements to query by, "
+                "or identify a subset of relevant chemical systems to query first."
+            )
 
         all_chemsyses = [
             "-".join(sorted(els))
@@ -1078,17 +1085,13 @@ class MPRester:
             for els in itertools.combinations(elements_set, i + 1)
         ]
 
-        entries = []
-
-        entries.extend(
-            self.get_entries(
-                all_chemsyses,
-                compatible_only=compatible_only,
-                property_data=property_data,
-                conventional_unit_cell=conventional_unit_cell,
-                additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
-                **kwargs,
-            )
+        entries = self.get_entries(
+            all_chemsyses,
+            compatible_only=compatible_only,
+            property_data=property_data,
+            conventional_unit_cell=conventional_unit_cell,
+            additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
+            **kwargs,
         )
 
         if use_gibbs:
@@ -1255,11 +1258,16 @@ class MPRester:
         task_id = latest_doc["task_id"]
         return self.get_charge_density_from_task_id(task_id, inc_task_doc)
 
-    def get_download_info(self, material_ids, calc_types=None, file_patterns=None):
+    def get_download_info(
+        self,
+        material_ids: str | MPID | list[str | MPID],
+        calc_types: list[str | CalcType] | None = None,
+        file_patterns: list[str] | None = None,
+    ):
         """Get a list of URLs to retrieve raw VASP output files from the NoMaD repository
         Args:
-            material_ids (list): list of material identifiers (mp-id's)
-            task_types (list): list of task types to include in download (see CalcType Enum class)
+            material_ids (str or MPID, or list thereof): list of material identifiers (mp-id's)
+            calc_types (list of str or CalcType): list of calc types to include in download (see CalcType Enum class)
             file_patterns (list): list of wildcard file names to include for each task
         Returns:
             a tuple of 1) a dictionary mapping material_ids to task_ids and
@@ -1267,9 +1275,24 @@ class MPRester:
             NoMaD repository. Each zip archive will contain a manifest.json with
             metadata info, e.g. the task/external_ids that belong to a directory.
         """
+        warnings.warn(
+            "Full downloads of raw data are being transitioned to "
+            "Materials Project's AWS S3 OpenData buckets. "
+            "These features for accessing legacy raw data via NOMAD "
+            "are maintained but may not be supported in the future.",
+            category=MPRestWarning,
+            stacklevel=2,
+        )
+
         # task_id's correspond to NoMaD external_id's
+        if isinstance(material_ids, str | MPID):
+            material_ids = [material_ids]
+
         calc_types = (
-            [t.value for t in calc_types if isinstance(t, CalcType)]
+            [
+                t.value if isinstance(t, CalcType) else CalcType(t).value
+                for t in calc_types
+            ]
             if calc_types
             else []
         )
