@@ -19,17 +19,11 @@ class MoleculesSummaryRester(BaseRester):
         spin_multiplicity: int | None = None,
         nelements: tuple[int, int] | None = None,
         chemsys: str | list[str] | None = None,
-        # deprecated: bool | None = None,
         elements: list[str] | None = None,
         exclude_elements: list[str] | None = None,
         formula: str | list[str] | None = None,
         has_props: list[HasProps] | None = None,
-        molecule_ids: list[MPculeID] | None = None,
-        # has_solvent: Optional[Union[str, List[str]]] = None,
-        # has_level_of_theory: Optional[Union[str, List[str]]] = None,
-        # has_lot_solvent: Optional[Union[str, List[str]]] = None,
-        # with_solvent: Optional[str] = None,
-        # num_sites: Optional[Tuple[int, int]] = None,
+        molecule_ids: str | list[str | MPculeID] | None = None,
         num_chunks: int | None = None,
         chunk_size: int = 1000,
         all_fields: bool = True,
@@ -41,15 +35,6 @@ class MoleculesSummaryRester(BaseRester):
             charge (int): Minimum and maximum charge for the molecule.
             spin_multiplicity (int): Minimum and maximum spin for the molecule.
             nelements (Tuple[int, int]): Minimum and maximum number of elements
-            # has_solvent (str, List[str]): Whether the molecule has properties calculated in
-            #     solvents (e.g., "SOLVENT=THF", ["SOLVENT=WATER", "VACUUM"])
-            # has_level_of_theory (str, List[str]): Whether the molecule has properties calculated
-            #     using a particular level of theory (e.g. "wB97M-V/def2-SVPD/SMD",
-            #         ["wB97X-V/def2-TZVPPD/SMD", "wB97M-V/def2-QZVPPD/SMD"])
-            # has_lot_solvent (str, List[str]): Whether the molecule has properties calculated
-            #     using a particular combination of level of theory and solvent (e.g.
-            #         "wB97X-V/def2-SVPD/SMD(SOLVENT=THF)",
-            #         ["wB97X-V/def2-TZVPPD/SMD(VACUUM)", "wB97M-V/def2-QZVPPD/SMD(SOLVENT=WATER)"])
             chemsys (str, List[str]): A chemical system, list of chemical systems
                 (e.g., Li-C-O, [C-O-H-N, Li-N]).
             #deprecated (bool): Whether the material is tagged as deprecated.
@@ -58,7 +43,8 @@ class MoleculesSummaryRester(BaseRester):
             formula (str, List[str]): An alphabetical formula or list of formulas
                 (e.g. "C2 Li2 O4", ["C2 H4", "C2 H6"]).
             has_props: (List[HasProps]): The calculated properties available for the material.
-            molecule_ids (List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data for.
+            molecule_ids (str or MPculeID, or list[str | MPculeID]):
+                (List of) Materials Project Molecule IDs (MPculeIDs) to return data for.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
@@ -90,6 +76,8 @@ class MoleculesSummaryRester(BaseRester):
                 )
 
         if molecule_ids:
+            if isinstance(molecule_ids, str | MPculeID):
+                molecule_ids = [molecule_ids]
             query_params.update({"molecule_ids": ",".join(molecule_ids)})
 
         if charge:
@@ -97,9 +85,6 @@ class MoleculesSummaryRester(BaseRester):
 
         if spin_multiplicity:
             query_params.update({"spin_multiplicity": spin_multiplicity})
-
-        # if deprecated is not None:
-        #    query_params.update({"deprecated": deprecated})
 
         if formula:
             if isinstance(formula, str):
