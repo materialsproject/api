@@ -686,9 +686,25 @@ loop_
                 for url in nomad_urls
             )
 
-    def test_warnings_exceptions(self, monkeypatch: pytest.MonkeyPatch):
+    def test_db_warning(self, monkeypatch: pytest.MonkeyPatch):
+        from pathlib import Path
+        import yaml
         from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
+        with NamedTemporaryFile(suffix=".yaml") as tmp_log:
+            monkeypatch.setattr(MAPI_CLIENT_SETTINGS, "LOG_FILE", Path(tmp_log.name))
+
+            with MPRester(notify_db_version=True) as mpr:
+                db_version = mpr.get_database_version()
+
+            parsed_db_ver = yaml.safe_load(Path(tmp_log.name).read_text()).get(
+                "MAPI_DB_VERSION"
+            )
+            assert parsed_db_ver == db_version
+            assert isinstance(parsed_db_ver, str)
+
+    def test_warnings_exceptions(self):
+        # Generic warnings/exceptions tests, nothji
         with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
             MPRester(monty_decode=False)
 
@@ -710,6 +726,10 @@ loop_
                 ):
                     getattr(mpr, attr, None)
 
+    def test_min_emmet_warning(self, monkeypatch: pytest.MonkeyPatch):
+        from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
+
+        with MPRester() as mpr:
             emmet_ver = mpr.get_emmet_version(mpr.endpoint)
             monkeypatch.setattr(
                 MAPI_CLIENT_SETTINGS, "MIN_EMMET_VERSION", f"{emmet_ver.major + 1}.0.0"
