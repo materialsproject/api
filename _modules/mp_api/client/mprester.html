@@ -248,7 +248,7 @@
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">notify_db_version</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This has not yet been implemented.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_version_check</span><span class="p">()</span>
 
         <span class="c1"># Dynamically set rester attributes.</span>
         <span class="c1"># First, materials and molecules top level resters are set.</span>
@@ -336,6 +336,10 @@
             <span class="o">+</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">TOP_LEVEL_RESTERS</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)]</span>
         <span class="p">)</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">db_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database_version</span><span class="p">()</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;MPRester(</span><span class="si">{</span><span class="s1">&#39;v&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">db_version</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">db_version</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;unknown version&#39;</span><span class="si">}</span><span class="s2">)&quot;</span>
+
 <div class="viewcode-block" id="MPRester.get_task_ids_associated_with_material_id">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_task_ids_associated_with_material_id</span><span class="p">(</span>
@@ -415,7 +419,7 @@
 <span class="sd">        where &quot;_DD&quot; may be optional. An additional numerical suffix</span>
 <span class="sd">        might be added if multiple releases happen on the same day.</span>
 
-<span class="sd">        Returns: database version as a string</span>
+<span class="sd">        Returns: database version as a string if accessible, None otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">get_resp</span> <span class="o">:=</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+</span> <span class="s2">&quot;heartbeat&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span><span class="p">:</span>
             <span class="n">_emit_status_warning</span><span class="p">()</span>
@@ -1157,7 +1161,14 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">elements</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
 
-        <span class="n">elements_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>  <span class="c1"># remove duplicate elements</span>
+        <span class="c1"># 9 elements would be sum_{i=1}^{9} (9 choose i) = 511</span>
+        <span class="c1"># From testing, this is the highest number of chemsys</span>
+        <span class="c1"># we can query before URI lengths are exceeded</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements_set</span> <span class="o">:=</span> <span class="nb">set</span><span class="p">(</span><span class="n">elements</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">9</span><span class="p">:</span>  <span class="c1"># remove duplicate elements</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;Please specify fewer elements to query by, &quot;</span>
+                <span class="s2">&quot;or identify a subset of relevant chemical systems to query first.&quot;</span>
+            <span class="p">)</span>
 
         <span class="n">all_chemsyses</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">els</span><span class="p">))</span>
@@ -1165,17 +1176,13 @@
             <span class="k">for</span> <span class="n">els</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">elements_set</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="p">]</span>
 
-        <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_entries</span><span class="p">(</span>
-                <span class="n">all_chemsyses</span><span class="p">,</span>
-                <span class="n">compatible_only</span><span class="o">=</span><span class="n">compatible_only</span><span class="p">,</span>
-                <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
-                <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">,</span>
-                <span class="n">additional_criteria</span><span class="o">=</span><span class="n">additional_criteria</span> <span class="ow">or</span> <span class="n">DEFAULT_THERMOTYPE_CRITERIA</span><span class="p">,</span>
-                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entries</span><span class="p">(</span>
+            <span class="n">all_chemsyses</span><span class="p">,</span>
+            <span class="n">compatible_only</span><span class="o">=</span><span class="n">compatible_only</span><span class="p">,</span>
+            <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
+            <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">,</span>
+            <span class="n">additional_criteria</span><span class="o">=</span><span class="n">additional_criteria</span> <span class="ow">or</span> <span class="n">DEFAULT_THERMOTYPE_CRITERIA</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">use_gibbs</span><span class="p">:</span>
@@ -1366,11 +1373,16 @@
 
 <div class="viewcode-block" id="MPRester.get_download_info">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_download_info">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_download_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_ids</span><span class="p">,</span> <span class="n">calc_types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_patterns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_download_info</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MPID</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">MPID</span><span class="p">],</span>
+        <span class="n">calc_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">CalcType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">file_patterns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of URLs to retrieve raw VASP output files from the NoMaD repository</span>
 <span class="sd">        Args:</span>
-<span class="sd">            material_ids (list): list of material identifiers (mp-id&#39;s)</span>
-<span class="sd">            task_types (list): list of task types to include in download (see CalcType Enum class)</span>
+<span class="sd">            material_ids (str or MPID, or list thereof): list of material identifiers (mp-id&#39;s)</span>
+<span class="sd">            calc_types (list of str or CalcType): list of calc types to include in download (see CalcType Enum class)</span>
 <span class="sd">            file_patterns (list): list of wildcard file names to include for each task</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple of 1) a dictionary mapping material_ids to task_ids and</span>
@@ -1378,9 +1390,24 @@
 <span class="sd">            NoMaD repository. Each zip archive will contain a manifest.json with</span>
 <span class="sd">            metadata info, e.g. the task/external_ids that belong to a directory.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Full downloads of raw data are being transitioned to &quot;</span>
+            <span class="s2">&quot;Materials Project&#39;s AWS S3 OpenData buckets. &quot;</span>
+            <span class="s2">&quot;These features for accessing legacy raw data via NOMAD &quot;</span>
+            <span class="s2">&quot;are maintained but may not be supported in the future.&quot;</span><span class="p">,</span>
+            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="c1"># task_id&#39;s correspond to NoMaD external_id&#39;s</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MPID</span><span class="p">):</span>
+            <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
+
         <span class="n">calc_types</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">calc_types</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">CalcType</span><span class="p">)]</span>
+            <span class="p">[</span>
+                <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">CalcType</span><span class="p">)</span> <span class="k">else</span> <span class="n">CalcType</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">calc_types</span>
+            <span class="p">]</span>
             <span class="k">if</span> <span class="n">calc_types</span>
             <span class="k">else</span> <span class="p">[]</span>
         <span class="p">)</span>
@@ -1733,7 +1760,35 @@
         <span class="k">return</span> <span class="n">OxygenEvolution</span><span class="p">()</span><span class="o">.</span><span class="n">get_oxygen_evolution_from_phase_diagram</span><span class="p">(</span>
             <span class="n">phase_diagram</span><span class="p">,</span>
             <span class="n">unique_composition</span><span class="p">,</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_db_version_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the database version has drifted.&quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>  <span class="c1"># type: ignore[import-untyped]</span>
+
+        <span class="n">db_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database_version</span><span class="p">()</span>
+        <span class="n">old_db_version</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LOG_FILE</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">old_db_version</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LOG_FILE</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span> <span class="ow">or</span> <span class="p">{}</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MAPI_DB_VERSION&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># Handle legacy pymatgen behavior</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old_db_version</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">old_db_version</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">old_db_version</span> <span class="o">!=</span> <span class="n">db_version</span><span class="p">:</span>
+            <span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LOG_FILE</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">({</span><span class="s2">&quot;MAPI_DB_VERSION&quot;</span><span class="p">:</span> <span class="n">db_version</span><span class="p">})</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">old_db_version</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;Materials Project database version has changed &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;from v</span><span class="si">{</span><span class="n">old_db_version</span><span class="si">}</span><span class="s2"> to v</span><span class="si">{</span><span class="n">db_version</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                    <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="p">)</span></div>
 
 </pre></div>
 

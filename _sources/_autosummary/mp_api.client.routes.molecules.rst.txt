@@ -28,15 +28,7 @@ mp\_api.client.routes.molecules
    :template: custom-module-template.rst
    :recursive:
 
-   bonds
    jcesr
    molecules
-   orbitals
-   partial_charges
-   partial_spins
-   redox
    summary
-   tasks
-   thermo
-   vibrations
 

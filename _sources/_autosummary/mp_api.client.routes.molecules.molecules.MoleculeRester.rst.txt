@@ -18,10 +18,7 @@ mp\_api.client.routes.molecules.molecules.MoleculeRester
    
       ~MoleculeRester.__init__
       ~MoleculeRester.count
-      ~MoleculeRester.find_molecule
       ~MoleculeRester.get_data_by_id
-      ~MoleculeRester.get_molecule_by_mpculeid
-      ~MoleculeRester.search
    
    
 

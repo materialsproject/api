@@ -33,6 +33,7 @@
   <h1>Source code for mp_api.client.routes.materials.materials</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.symmetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrystalSystem</span>
@@ -215,11 +216,11 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.materials.MaterialsRester.html#mp_api.client.routes.materials.materials.MaterialsRester.find_structure">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">find_structure</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">filename_or_structure</span><span class="p">,</span>
+        <span class="n">filename_or_structure</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">Structure</span><span class="p">,</span>
         <span class="n">ltol</span><span class="o">=</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LTOL</span><span class="p">,</span>
         <span class="n">stol</span><span class="o">=</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">STOL</span><span class="p">,</span>
         <span class="n">angle_tol</span><span class="o">=</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">ANGLE_TOL</span><span class="p">,</span>
-        <span class="n">allow_multiple_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">allow_multiple_results</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds matching structures from the Materials Project database.</span>
 
@@ -229,48 +230,75 @@
 <span class="sd">        default tolerances.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            filename_or_structure: filename or Structure object</span>
+<span class="sd">            filename_or_structure: filename as a str or Path, or a Structure object</span>
 <span class="sd">            ltol: fractional length tolerance</span>
 <span class="sd">            stol: site tolerance</span>
 <span class="sd">            angle_tol: angle tolerance in degrees</span>
-<span class="sd">            allow_multiple_results: changes return type for either</span>
-<span class="sd">            a single material_id or list of material_ids</span>
+<span class="sd">            allow_multiple_results (bool or int): changes return type for either</span>
+<span class="sd">                a single material_id or list of material_ids.</span>
+<span class="sd">                If a bool, returns either all matches (True) or one match at most (False).</span>
+<span class="sd">                If an int, returns that many matches at most.</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            A matching material_id if one is found or list of results if allow_multiple_results</span>
 <span class="sd">            is True</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            MPRestError</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ltol&quot;</span><span class="p">:</span> <span class="n">ltol</span><span class="p">,</span> <span class="s2">&quot;stol&quot;</span><span class="p">:</span> <span class="n">stol</span><span class="p">,</span> <span class="s2">&quot;angle_tol&quot;</span><span class="p">:</span> <span class="n">angle_tol</span><span class="p">,</span> <span class="s2">&quot;_limit&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.structure_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">ElementComparator</span><span class="p">,</span>
+            <span class="n">StructureMatcher</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename_or_structure</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename_or_structure</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename_or_structure</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+        <span class="p">):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filename_or_structure</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename_or_structure</span><span class="p">,</span> <span class="n">Structure</span><span class="p">):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">filename_or_structure</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;Provide filename or Structure object.&quot;</span><span class="p">)</span>
 
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_resource</span><span class="p">(</span>
-            <span class="n">body</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
-            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
-            <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;find_structure&quot;</span><span class="p">,</span>
-            <span class="n">use_document_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">mat_docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+            <span class="n">formula</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mat_docs</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
 
-        <span class="n">material_ids</span> <span class="o">=</span> <span class="n">validate_ids</span><span class="p">([</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">allow_multiple_results</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">max_matches</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mat_docs</span><span class="p">)</span> <span class="k">if</span> <span class="n">allow_multiple_results</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">allow_multiple_results</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">max_matches</span> <span class="o">=</span> <span class="n">allow_multiple_results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;`allow_multiple_results` must be a bool or int, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">allow_multiple_results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">material_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_multiple_results</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Multiple matches found for this combination of tolerances, but &quot;</span>
-                    <span class="s2">&quot;`allow_multiple_results` set to False.&quot;</span>
-                <span class="p">)</span>
-            <span class="k">return</span> <span class="n">material_ids</span>  <span class="c1"># type: ignore</span>
+        <span class="n">matcher</span> <span class="o">=</span> <span class="n">StructureMatcher</span><span class="p">(</span>
+            <span class="n">ltol</span><span class="o">=</span><span class="n">ltol</span><span class="p">,</span>
+            <span class="n">stol</span><span class="o">=</span><span class="n">stol</span><span class="p">,</span>
+            <span class="n">angle_tol</span><span class="o">=</span><span class="n">angle_tol</span><span class="p">,</span>
+            <span class="n">primitive_cell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">attempt_supercell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">comparator</span><span class="o">=</span><span class="n">ElementComparator</span><span class="p">(),</span>
+        <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">material_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+        <span class="n">matches</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">mat_docs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">matcher</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+                <span class="n">s</span><span class="p">,</span>
+                <span class="n">doc</span><span class="o">.</span><span class="n">structure</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]),</span>  <span class="c1"># type: ignore</span>
+            <span class="p">):</span>
+                <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">material_id</span><span class="o">.</span><span class="n">string</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_matches</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">material_ids</span> <span class="o">=</span> <span class="n">validate_ids</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">material_ids</span> <span class="k">if</span> <span class="n">allow_multiple_results</span> <span class="k">else</span> <span class="n">material_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="MaterialsRester.get_blessed_entries">

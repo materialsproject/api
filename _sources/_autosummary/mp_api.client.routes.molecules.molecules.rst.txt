@@ -19,8 +19,6 @@ mp\_api.client.routes.molecules.molecules
       :toctree:
       :template: custom-class-template.rst
    
-      AssociatedMoleculeRester
-      BaseMoleculeRester
       MoleculeRester
    
    

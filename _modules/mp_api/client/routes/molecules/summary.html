@@ -56,17 +56,11 @@
         <span class="n">spin_multiplicity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nelements</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="c1"># deprecated: bool | None = None,</span>
         <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">exclude_elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">has_props</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">HasProps</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">molecule_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">MPculeID</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="c1"># has_solvent: Optional[Union[str, List[str]]] = None,</span>
-        <span class="c1"># has_level_of_theory: Optional[Union[str, List[str]]] = None,</span>
-        <span class="c1"># has_lot_solvent: Optional[Union[str, List[str]]] = None,</span>
-        <span class="c1"># with_solvent: Optional[str] = None,</span>
-        <span class="c1"># num_sites: Optional[Tuple[int, int]] = None,</span>
+        <span class="n">molecule_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">MPculeID</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -78,15 +72,6 @@
 <span class="sd">            charge (int): Minimum and maximum charge for the molecule.</span>
 <span class="sd">            spin_multiplicity (int): Minimum and maximum spin for the molecule.</span>
 <span class="sd">            nelements (Tuple[int, int]): Minimum and maximum number of elements</span>
-<span class="sd">            # has_solvent (str, List[str]): Whether the molecule has properties calculated in</span>
-<span class="sd">            #     solvents (e.g., &quot;SOLVENT=THF&quot;, [&quot;SOLVENT=WATER&quot;, &quot;VACUUM&quot;])</span>
-<span class="sd">            # has_level_of_theory (str, List[str]): Whether the molecule has properties calculated</span>
-<span class="sd">            #     using a particular level of theory (e.g. &quot;wB97M-V/def2-SVPD/SMD&quot;,</span>
-<span class="sd">            #         [&quot;wB97X-V/def2-TZVPPD/SMD&quot;, &quot;wB97M-V/def2-QZVPPD/SMD&quot;])</span>
-<span class="sd">            # has_lot_solvent (str, List[str]): Whether the molecule has properties calculated</span>
-<span class="sd">            #     using a particular combination of level of theory and solvent (e.g.</span>
-<span class="sd">            #         &quot;wB97X-V/def2-SVPD/SMD(SOLVENT=THF)&quot;,</span>
-<span class="sd">            #         [&quot;wB97X-V/def2-TZVPPD/SMD(VACUUM)&quot;, &quot;wB97M-V/def2-QZVPPD/SMD(SOLVENT=WATER)&quot;])</span>
 <span class="sd">            chemsys (str, List[str]): A chemical system, list of chemical systems</span>
 <span class="sd">                (e.g., Li-C-O, [C-O-H-N, Li-N]).</span>
 <span class="sd">            #deprecated (bool): Whether the material is tagged as deprecated.</span>
@@ -95,7 +80,8 @@
 <span class="sd">            formula (str, List[str]): An alphabetical formula or list of formulas</span>
 <span class="sd">                (e.g. &quot;C2 Li2 O4&quot;, [&quot;C2 H4&quot;, &quot;C2 H6&quot;]).</span>
 <span class="sd">            has_props: (List[HasProps]): The calculated properties available for the material.</span>
-<span class="sd">            molecule_ids (List[MPculeID]): List of Materials Project Molecule IDs (MPculeIDs) to return data for.</span>
+<span class="sd">            molecule_ids (str or MPculeID, or list[str | MPculeID]):</span>
+<span class="sd">                (List of) Materials Project Molecule IDs (MPculeIDs) to return data for.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
@@ -127,6 +113,8 @@
                 <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">molecule_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">molecule_ids</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MPculeID</span><span class="p">):</span>
+                <span class="n">molecule_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">molecule_ids</span><span class="p">]</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;molecule_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">molecule_ids</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">charge</span><span class="p">:</span>
@@ -134,9 +122,6 @@
 
         <span class="k">if</span> <span class="n">spin_multiplicity</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;spin_multiplicity&quot;</span><span class="p">:</span> <span class="n">spin_multiplicity</span><span class="p">})</span>
-
-        <span class="c1"># if deprecated is not None:</span>
-        <span class="c1">#    query_params.update({&quot;deprecated&quot;: deprecated})</span>
 
         <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
