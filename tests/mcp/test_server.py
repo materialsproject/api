@@ -10,7 +10,7 @@ except ImportError:
     )
 
 from mp_api.client.core.exceptions import MPRestError
-from mp_api.mcp.server import get_core_mcp, parse_server_args
+from mp_api.mcp.server import get_core_mcp, parse_server_args, MCP_SERVER_INSTRUCTIONS
 
 
 async def get_mcp_tools():
@@ -34,6 +34,10 @@ def test_mcp_server():
     assert search_tool.parameters["properties"] == {"query": {"type": "string"}}
     fetch_tool = asyncio.run(get_mcp_tool("fetch"))
     assert fetch_tool.parameters["properties"] == {"idx": {"type": "string"}}
+
+    mcp_server = get_core_mcp()
+    assert isinstance(mcp_server, fastmcp.FastMCP)
+    assert mcp_server.instructions == MCP_SERVER_INSTRUCTIONS
 
 
 def test_server_cli():
