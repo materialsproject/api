@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from emmet.core.synthesis import (
     OperationTypeEnum,
-    SynthesisSearchResultModel,
+    SynthesisRecipe,
     SynthesisTypeEnum,
 )
 
@@ -11,7 +11,7 @@ from mp_api.client.core import BaseRester, MPRestError
 
 class SynthesisRester(BaseRester):
     suffix = "materials/synthesis"
-    document_model = SynthesisSearchResultModel  # type: ignore
+    document_model = SynthesisRecipe  # type: ignore
 
     def search(
         self,
@@ -29,7 +29,7 @@ class SynthesisRester(BaseRester):
         condition_mixing_media: list[str] | None = None,
         num_chunks: int | None = None,
         chunk_size: int | None = 10,
-    ) -> list[SynthesisSearchResultModel] | list[dict]:
+    ) -> list[SynthesisRecipe] | list[dict]:
         """Search synthesis recipe text.
 
         Arguments:
@@ -50,7 +50,7 @@ class SynthesisRester(BaseRester):
 
 
         Returns:
-            ([SynthesisSearchResultModel], [dict]): List of synthesis documents or dictionaries.
+            ([SynthesisRecipe], [dict]): List of synthesis documents or dictionaries.
         """
         # Turn None and empty list into None
         keywords = keywords or None

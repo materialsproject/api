@@ -16,9 +16,8 @@ if TYPE_CHECKING:
 
 MCP_SERVER_INSTRUCTIONS = """
 This MCP server defines search and document retrieval capabilities
-for data in the Materials Project.
-Use the search tool to find relevant documents based on materials
-keywords.
+for data in the Materials Project (https://next-gen.materialsproject.org/).
+Use the search tool to find relevant documents based on materials keywords.
 Then use the fetch tool to retrieve complete materials summary information.
 """
 
@@ -82,5 +81,5 @@ def _run_mp_mcp_server() -> None:
     mcp.run(**parse_server_args())
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     _run_mp_mcp_server()
