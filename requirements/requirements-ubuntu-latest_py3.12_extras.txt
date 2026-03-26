@@ -27,7 +27,7 @@ attrs==25.4.0
     #   cyclopts
     #   jsonschema
     #   referencing
-authlib==1.6.7
+authlib==1.6.9
     # via fastmcp
 babel==2.18.0
     # via sphinx
@@ -78,7 +78,7 @@ coverage[toml]==7.13.4
     # via pytest-cov
 croniter==6.0.0
     # via pydocket
-cryptography==46.0.4
+cryptography==46.0.5
     # via
     #   authlib
     #   pyjwt
@@ -353,7 +353,7 @@ pathvalidate==3.3.1
     # via py-key-value-aio
 pexpect==4.9.0
     # via ipython
-pillow==12.1.0
+pillow==12.1.1
     # via
     #   imageio
     #   matplotlib
@@ -522,7 +522,7 @@ referencing==0.36.2
     #   jsonschema
     #   jsonschema-path
     #   jsonschema-specifications
-requests==2.32.5
+requests==2.33.0
     # via
     #   bravado
     #   bravado-core
@@ -694,7 +694,7 @@ tzdata==2025.3
     # via
     #   arrow
     #   pandas
-ujson==5.11.0
+ujson==5.12.0
     # via mpcontribs-client
 uncertainties==3.2.3
     # via pymatgen
