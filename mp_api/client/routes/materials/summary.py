@@ -73,6 +73,8 @@ class SummaryRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        _page: int | None = None,
+        _sort_fields: str | None = None,
         **kwargs,
     ) -> list[SummaryDoc] | list[dict]:
         """Query core data using a variety of search criteria.
@@ -150,6 +152,8 @@ class SummaryRester(BaseRester):
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in SummaryDoc to return data for.
                 Default is material_id if all_fields is False.
+            _page (int or None) : Page of the results to skip to.
+            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
 
         Returns:
             ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.
@@ -181,6 +185,8 @@ class SummaryRester(BaseRester):
             "weighted_surface_energy",
             "weighted_work_function",
             "shape_factor",
+            "_page",
+            "_sort_fields",
         ]
 
         min_max_name_dict = {
@@ -284,14 +290,17 @@ class SummaryRester(BaseRester):
                 )
 
         for param, value in user_settings.items():
-            if isinstance(value, (int, float)):
-                value = (value, value)
-            query_params.update(
-                {
-                    f"{min_max_name_dict[param]}_min": value[0],
-                    f"{min_max_name_dict[param]}_max": value[1],
-                }
-            )
+            if param.startswith("_"):
+                query_params[param] = value
+            else:
+                if isinstance(value, (int, float)):
+                    value = (value, value)
+                query_params.update(
+                    {
+                        f"{min_max_name_dict[param]}_min": value[0],
+                        f"{min_max_name_dict[param]}_max": value[1],
+                    }
+                )
 
         if material_ids:
             if isinstance(material_ids, str):
