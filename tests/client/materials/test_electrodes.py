@@ -30,6 +30,8 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
+    "_page",
+    "_sort_fields",
 ]
 
 sub_doc_fields: list = []
@@ -80,3 +82,31 @@ def test_conversion_client(conversion_rester):
         },
         sub_doc_fields=sub_doc_fields,
     )
+
+
+@pytest.mark.xfail(reason="sort requires API redeployment", strict=False)
+@requires_api_key
+def test_pagination_sort():
+    num_docs = 5
+    with ElectrodeRester() as rester:
+        results_page_1 = rester.search(_page=1, chunk_size=num_docs)
+        results_page_2 = rester.search(_page=2, chunk_size=num_docs)
+        assert all(
+            len(results) == num_docs for results in (results_page_1, results_page_2)
+        )
+        assert {doc.battery_id for doc in results_page_1}.intersection(
+            {doc.battery_id for doc in results_page_2}
+        ) == set()
+
+        ascending_e_hull = rester.search(_page=1, _sort_fields="average_voltage")
+        descending_e_hull = rester.search(_page=1, _sort_fields="-average_voltage")
+
+        assert sorted(
+            range(num_docs), key=lambda idx: ascending_e_hull[idx].average_voltage
+        ) == list(range(num_docs))
+
+        assert sorted(
+            range(num_docs),
+            key=lambda idx: descending_e_hull[idx].average_voltage,
+            reverse=True,
+        ) == list(range(num_docs))

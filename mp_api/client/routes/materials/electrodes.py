@@ -15,7 +15,7 @@ class BaseElectrodeRester(BaseRester):
     primary_key = "battery_id"
     _exclude_search_fields: list[str] | None = None
 
-    def search(  # pragma: ignore
+    def search(
         self,
         battery_ids: str | list[str] | None = None,
         average_voltage: tuple[float, float] | None = None,
@@ -39,6 +39,8 @@ class BaseElectrodeRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        _page: int | None = None,
+        _sort_fields: str | None = None,
     ) -> list[InsertionElectrodeDoc | ConversionElectrodeDoc] | list[dict]:
         """Query using a variety of search criteria.
 
@@ -77,6 +79,8 @@ class BaseElectrodeRester(BaseRester):
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in InsertionElectrodeDoc or ConversionElectrodeDoc to return data for.
                 Default is battery_id and last_updated if all_fields is False.
+            _page (int or None) : Page of the results to skip to.
+            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
 
         Returns:
             ([InsertionElectrodeDoc or ConversionElectrodeDoc], [dict]) List of insertion/conversion electrode documents or dictionaries.

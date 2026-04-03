@@ -1,10 +1,11 @@
 import os
 from ..conftest import client_search_testing, requires_api_key
 
-import pytest
 from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
+import numpy as np
 from pymatgen.analysis.magnetism import Ordering
+import pytest
 
 from mp_api.client.routes.materials.summary import SummaryRester
 from mp_api.client.core.exceptions import MPRestWarning, MPRestError
@@ -16,6 +17,8 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
+    "_page",
+    "_sort_fields",
 ]
 
 alt_name_dict: dict = {
@@ -134,3 +137,30 @@ def test_warning_messages():
 
     with pytest.raises(MPRestError, match="not a valid property"):
         _ = search_method(num_elements=10, has_props=["apples"])
+
+
+@requires_api_key
+def test_pagination_sort():
+    num_docs = 5
+    with SummaryRester() as rester:
+        results_page_1 = rester.search(_page=1, chunk_size=num_docs)
+        results_page_2 = rester.search(_page=2, chunk_size=num_docs)
+        assert all(
+            len(results) == num_docs for results in (results_page_1, results_page_2)
+        )
+        assert {doc.material_id for doc in results_page_1}.intersection(
+            {doc.material_id for doc in results_page_2}
+        ) == set()
+
+        ascending_e_hull = rester.search(_page=1, _sort_fields="energy_above_hull")
+        descending_e_hull = rester.search(_page=1, _sort_fields="-energy_above_hull")
+
+        assert sorted(
+            range(num_docs), key=lambda idx: ascending_e_hull[idx].energy_above_hull
+        ) == list(range(num_docs))
+
+        assert sorted(
+            range(num_docs),
+            key=lambda idx: descending_e_hull[idx].energy_above_hull,
+            reverse=True,
+        ) == list(range(num_docs))
