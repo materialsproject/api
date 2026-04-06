@@ -242,20 +242,19 @@ class MPRester:
     def contribs(self):
         if self._contribs is None:
             try:
-                from mpcontribs.client import Client
+                from mp_api.client.contribs.client import ContribsClient
 
-                self._contribs = Client(
-                    self.api_key,  # type: ignore
+                self._contribs = ContribsClient(
+                    api_key=self.api_key,
                     headers=self.headers,
                     session=self.session,
+                    use_document_model=self.use_document_model,
                 )
 
             except ImportError:
                 self._contribs = None
                 warnings.warn(
-                    "mpcontribs-client not installed. "
-                    "Install the package to query MPContribs data, construct pourbaix diagrams, "
-                    "or to compute cohesive energies: 'pip install mpcontribs-client'",
+                    "Run `pip install 'mp-api[contribs]'` to make use of the MPContribs client.",
                     category=MPRestWarning,
                     stacklevel=2,
                 )
@@ -1504,7 +1503,7 @@ class MPRester:
 
         return {
             dfa: {
-                entry["formula"]: entry["data"][dfa]["energy"]["value"]
+                entry["formula"]: entry["data"][f"{dfa}.energy"].value
                 for entry in _atomic_energies
             }
             for dfa in funcs
