@@ -269,10 +269,13 @@ class Attachment(dict):
             raise MPContribsClientError(f"use pathlib.Path or str (is: {typ}).")
 
         kind = guess(str(path))
-        supported = isinstance(kind, MPCC_SETTINGS.SUPPORTED_FILETYPES)
         content = path.read_bytes()
 
-        if not supported:  # try to gzip text file
+        if not (
+            supported := any(
+                isinstance(kind, ftyp) for ftyp in MPCC_SETTINGS.SUPPORTED_FILETYPES
+            )
+        ):  # try to gzip text file
             try:
                 content = gzip.compress(content)
             except Exception:

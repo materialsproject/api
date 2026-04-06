@@ -40,6 +40,19 @@ def _cast_pandas_dtype(dtype: type, assume_nullable: bool = True) -> type:
 
 
 def _get_unit(v: str) -> tuple[str, str | None]:
+    """Parse a physical variable name and its optional unit from a string value.
+
+    Ex:
+        _get_unit("Temperature [K]") or _get_unit("Temperature (K)")
+        will both return "Temperature", "K"
+
+    Args:
+        v (str) : input column name to parse
+
+    Returns:
+        str : the base name of the physical quantity
+        str or None: its optional unit
+    """
     if (matched := re.search(r"\(([^)]+)\)|\[([^\]]+)\]", v)) is not None:
         try:
             unit_group = next(
@@ -54,6 +67,14 @@ def _get_unit(v: str) -> tuple[str, str | None]:
 
 
 def _to_camel_case(v: str) -> str:
+    """Convert a generic string to CamelCase.
+
+    Args:
+        v (str) : input string
+
+    Returns:
+        str : CamelCase string
+    """
     split_strs = [y for x in v.lower().split() for y in x.split("_")]
     return "".join(s[0].upper() + s[1:] for s in split_strs)
 
@@ -61,6 +82,16 @@ def _to_camel_case(v: str) -> str:
 def _get_pydantic_from_dataframe(
     df: pd.DataFrame,
 ) -> tuple[type[BaseModel], dict[str, str]]:
+    """Dynamically create a pydantic BaseModel from a pandas DataFrame.
+
+    Args:
+        df : pandas DataFrame to parse
+
+    Returns:
+        BaseModel: the inferred schema of the pandas DataFrame
+        dict of str to str: the remapped column names in an
+            MP Contribs compatible format.
+    """
     columns_renamed = {}
     columns_to_unit = {}
     for col in df.columns:
@@ -85,21 +116,19 @@ def _get_pydantic_from_dataframe(
         if not all(pd.isna(df[col_name]))
     }
 
-    return (
-        create_model(
-            "InferredModel",
-            **model_fields,
-        ),
-        columns_renamed,
-    )
+    return create_model("InferredModel", **model_fields), columns_renamed
 
 
 class Reference(_DictLikeAccess):
+    """Define schema of URL reference."""
+
     label: str
     url: str
 
 
 class Column(_DictLikeAccess):
+    """Define schema of MP Contribs column statistics."""
+
     path: str
     min: float | None = float("nan")
     max: float | None = float("nan")
@@ -107,6 +136,8 @@ class Column(_DictLikeAccess):
 
 
 class Stats(_DictLikeAccess):
+    """Define aggregated project statistics schema."""
+
     columns: int = 0
     contributions: int = 0
     tables: int = 0
@@ -116,6 +147,8 @@ class Stats(_DictLikeAccess):
 
 
 class ContribsProject(_DictLikeAccess):
+    """Define schema for MP Contribs Project."""
+
     name: str | None = None
     title: str | None = None
     authors: str | None = None
@@ -134,12 +167,14 @@ class ContribsProject(_DictLikeAccess):
 
     @field_validator("other", mode="before")
     def flatten_other(cls, d: dict) -> dict[str, str | None]:
+        """Flatten column metadata."""
         if all(isinstance(v, str) for v in d.values()):
             return d
         return flatten_dict(d)
 
     @field_serializer("other", mode="plain")
     def unflatten_other(self, v: dict[str, str]) -> dict[str, Any]:
+        """Unflatten column metadata."""
         return unflatten_dict(v)
 
 

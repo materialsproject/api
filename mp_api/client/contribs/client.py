@@ -54,7 +54,6 @@ from mp_api.client.contribs.schemas import (
     CONTRIBS_DOC_NAME,
     ContribData,
     ContribsProject,
-    ContribSubmission,
     QueryResult,
 )
 from mp_api.client.contribs.settings import MPCC_SETTINGS
@@ -115,7 +114,7 @@ email_format = SwaggerFormat(
 
 
 def validate_url(
-    url_string: str, qualifying: Sequence[str, ...] = ("scheme", "netloc")
+    url_string: str, qualifying: Sequence[str] = ("scheme", "netloc")
 ) -> None:
     """Verify an endpoint URL.
 
@@ -722,7 +721,7 @@ class ContribsClient(SwaggerClient):
         proj = self.projects.getProjectByName(pk=name, _fields=fields).result()
 
         return (
-            _convert_to_model(
+            _convert_to_model(  # type: ignore[return-value]
                 [proj],
                 ContribsProject,
                 model_name=CONTRIBS_DOC_NAME,
@@ -759,17 +758,7 @@ class ContribsClient(SwaggerClient):
         query = query or {}
 
         if self.project or "name" in query:
-            proj = self.get_project(name=query.get("name"), fields=fields)
-            return (
-                _convert_to_model(
-                    [proj],
-                    ContribsProject,
-                    model_name=CONTRIBS_DOC_NAME,
-                    requested_fields=fields,
-                )[0]
-                if self.use_document_model
-                else proj
-            )
+            return self.get_project(name=query.get("name"), fields=fields)
 
         if term:
 
@@ -798,7 +787,7 @@ class ContribsClient(SwaggerClient):
 
         if total_pages < 2:
             return (
-                _convert_to_model(
+                _convert_to_model(  # type: ignore[return-value]
                     ret["data"],
                     ContribsProject,
                     model_name=CONTRIBS_DOC_NAME,
@@ -830,7 +819,7 @@ class ContribsClient(SwaggerClient):
         ret["data"].extend([resp["result"]["data"] for resp in responses.values()])
 
         return (
-            _convert_to_model(
+            _convert_to_model(  # type: ignore[return-value]
                 ret["data"],
                 ContribsProject,
                 model_name=CONTRIBS_DOC_NAME,
@@ -858,7 +847,7 @@ class ContribsClient(SwaggerClient):
                 raise MPContribsClientError(f"Project with {query} already exists!")
 
         project = ContribsProject(
-            **{
+            **{  # type: ignore[arg-type]
                 "name": name,
                 "title": title,
                 "authors": authors,
@@ -961,7 +950,7 @@ class ContribsClient(SwaggerClient):
 
     def get_contribution(
         self, cid: str, fields: list | None = None
-    ) -> MPCDict | ContribData:
+    ) -> ContribData | dict[str, Any]:  # type: ignore[return-value]
         """Retrieve a contribution.
 
         Args:
@@ -979,7 +968,7 @@ class ContribsClient(SwaggerClient):
             pk=cid, _fields=fields
         ).result()
         return (
-            _convert_to_model(
+            _convert_to_model(  # type: ignore[return-value]
                 [contrib],
                 ContribData,
                 model_name=CONTRIBS_DOC_NAME,
@@ -1718,7 +1707,9 @@ class ContribsClient(SwaggerClient):
             ret["data"] = [ContribData(**doc) for doc in ret["data"]]
 
         return (
-            _convert_to_model([ret], QueryResult, model_name=CONTRIBS_DOC_NAME)[0]
+            _convert_to_model(  # type: ignore[return-value]
+                [ret], QueryResult, model_name=CONTRIBS_DOC_NAME
+            )[0]
             if self.use_document_model
             else ret
         )
@@ -1884,7 +1875,7 @@ class ContribsClient(SwaggerClient):
 
     def submit_contributions(
         self,
-        contributions: list[dict | ContribSubmission],
+        contributions: list[dict],
         ignore_dupes: bool = False,
         timeout: int = -1,
         skip_dupe_check: bool = False,
