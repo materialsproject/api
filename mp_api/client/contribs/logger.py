@@ -72,12 +72,12 @@ MPCC_LOGGER = get_logger()
 
 
 class TqdmToLogger(StringIO):
-    logger: logging.Logger = MPCC_LOGGER
-    level: int = MPCC_SETTINGS.CLIENT_LOG_LEVEL
+    logger: logging.LoggerAdapter = MPCC_LOGGER
+    level: int | str = MPCC_SETTINGS.CLIENT_LOG_LEVEL
     buf: str = ""
 
     def __init__(
-        self, logger: logging.Logger = MPCC_LOGGER, level: int | None = None
+        self, logger: logging.LoggerAdapter = MPCC_LOGGER, level: int | None = None
     ) -> None:
         """Start an instance of a TQDM logger.
 

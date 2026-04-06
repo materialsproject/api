@@ -37,11 +37,12 @@ class _DictLikeAccess(BaseModel):
         populated_fields = sorted(
             k for k in self.__class__.model_fields if getattr(self, k, None) is not None
         )
-        annos = {k: self.__class__.model_fields[k].annotation for k in populated_fields}
-        for k, v in annos.items():
-            if hasattr(v, "__name__"):
-                annos[k] = v.__name__
-        # return f"{self.__class__.__name__}({len(populated_fields)} populated fields)"
+        _annos: dict[str, Any] = {
+            k: self.__class__.model_fields[k].annotation for k in populated_fields
+        }
+        annos: dict[str, str] = {
+            k: getattr(v, "__name__", str(v)) for k, v in _annos.items()
+        }
         return (
             f"{self.__class__.__name__}(\n"
             + "\n".join(

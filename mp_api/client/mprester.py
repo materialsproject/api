@@ -139,7 +139,7 @@ class MPRester:
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
-            **kwargs: access to legacy kwargs that may be in the process of being deprecated
+            **kwargs: access to ContribsClient kwargs or (possibly-deprecated) legacy kwargs
         """
         self.api_key = get_user_api_key(api_key=api_key)
 
@@ -159,6 +159,14 @@ class MPRester:
         self.local_dataset_cache = local_dataset_cache
         self.force_renew = force_renew
         self._contribs = None
+        self._contribs_kwargs = {
+            k: kwargs[k]
+            for k in (
+                "host",
+                "project",
+            )
+            if k in kwargs
+        }
 
         self._deprecated_attributes = [
             "eos",
@@ -239,7 +247,16 @@ class MPRester:
                 )
 
     @property
-    def contribs(self):
+    def contribs(self) -> None:
+        """Create an instance of the MP ContribsClient.
+
+        NB: The following args are taken from `MPRester`:
+            - api_key
+            - headers
+            - session
+            - use_document_model
+
+        """
         if self._contribs is None:
             try:
                 from mp_api.client.contribs.client import ContribsClient
@@ -249,6 +266,7 @@ class MPRester:
                     headers=self.headers,
                     session=self.session,
                     use_document_model=self.use_document_model,
+                    **self._contribs_kwargs,
                 )
 
             except ImportError:
@@ -265,7 +283,6 @@ class MPRester:
                     category=MPRestWarning,
                     stacklevel=2,
                 )
-
         return self._contribs
 
     def __enter__(self):
