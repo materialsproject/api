@@ -40,7 +40,7 @@ from mp_api.client.core import MPRestError, MPRestWarning
 from .conftest import requires_api_key
 
 try:
-    import mpcontribs.client as contribs_client
+    from mp_api.client.contribs import ContribsClient as contribs_client
 except ImportError:
     contribs_client = None
 
@@ -282,7 +282,7 @@ loop_
 
     @pytest.mark.skipif(
         contribs_client is None,
-        reason="`pip install mpcontribs-client` to use pourbaix functionality.",
+        reason="`pip install 'mp-api[contribs]'` to use pourbaix functionality.",
     )
     def test_get_pourbaix_entries(self, mpr):
         # test input chemsys as a list of elements, chemsys, wiith and without kwargs
@@ -322,7 +322,7 @@ loop_
 
     @pytest.mark.skipif(
         contribs_client is None,
-        reason="`pip install mpcontribs-client` to use pourbaix functionality.",
+        reason="`pip install 'mp-api[contribs]'` to use pourbaix functionality.",
     )
     def test_get_ion_entries(self, mpr):
         entries = mpr.get_entries_in_chemsys("Ti-O-H")
@@ -485,7 +485,7 @@ loop_
 
     @pytest.mark.skipif(
         contribs_client is None,
-        reason="`pip install mpcontribs-client` to use cohesive energy functionality.",
+        reason="`pip install 'mp-api[contribs]'` to use cohesive energy functionality.",
     )
     def test_get_atom_references(self, mpr):
         ae = mpr.get_atom_reference_data(funcs=("PBE",))
@@ -502,7 +502,7 @@ loop_
 
     @pytest.mark.skipif(
         contribs_client is None,
-        reason="`pip install mpcontribs-client` to use cohesive energy functionality.",
+        reason="`pip install 'mp-api[contribs]'` to use cohesive energy functionality.",
     )
     def test_get_cohesive_energy(self):
         ref_e_coh = {
