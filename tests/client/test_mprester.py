@@ -260,7 +260,10 @@ loop_
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
         syms2 = "Li-Fe-O"
-        entries = mpr.get_entries_in_chemsys(syms)
+        with pytest.warns(
+            MPRestWarning, match="The default thermo type when retrieving entries"
+        ):
+            entries = mpr.get_entries_in_chemsys(syms)
         entries2 = mpr.get_entries_in_chemsys(syms2)
         elements = {Element(sym) for sym in syms}
         for e in entries:
@@ -325,7 +328,9 @@ loop_
         reason="`pip install mpcontribs-client` to use pourbaix functionality.",
     )
     def test_get_ion_entries(self, mpr):
-        entries = mpr.get_entries_in_chemsys("Ti-O-H")
+        entries = mpr.get_entries_in_chemsys(
+            "Ti-O-H", additional_criteria={"thermo_types": ["GGA_GGA+U"]}
+        )
         pd = PhaseDiagram(entries)
         ion_entry_data = mpr.get_ion_reference_data_for_chemsys("Ti-O-H")
         ion_entries = mpr.get_ion_entries(pd, ion_entry_data)
@@ -337,7 +342,9 @@ loop_
         assert len(bi_v_entry_data) == len(bi_data + v_data)
 
         # test an incomplete phase diagram
-        entries = mpr.get_entries_in_chemsys("Ti-O")
+        entries = mpr.get_entries_in_chemsys(
+            "Ti-O", additional_criteria={"thermo_types": ["GGA_GGA+U"]}
+        )
         pd = PhaseDiagram(entries)
         with pytest.raises(ValueError, match="The phase diagram chemical system"):
             mpr.get_ion_entries(pd)
@@ -351,7 +358,8 @@ loop_
             itertools.chain.from_iterable(i.elements for i in ion_ref_comps)
         )
         ion_ref_entries = mpr.get_entries_in_chemsys(
-            [*map(str, ion_ref_elts), "O", "H"]
+            [*map(str, ion_ref_elts), "O", "H"],
+            additional_criteria={"thermo_types": ["GGA_GGA+U"]},
         )
         mpc = MaterialsProjectAqueousCompatibility()
         ion_ref_entries = mpc.process_entries(ion_ref_entries)

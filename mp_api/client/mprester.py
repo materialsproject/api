@@ -1093,7 +1093,7 @@ class MPRester:
 
         if additional_criteria is None:
             warnings.warn(
-                "The default thermo type in retrieving entries has been changed from "
+                "The default thermo type when retrieving entries has been changed from "
                 "the mixed/corrected PBE GGA and GGA+U hull (`thermo_type = GGA_GGA+U`) "
                 "to the joint PBE GGA / GGA+U / r2SCAN hull (`thermo_type = GGA_GGA+U_R2SCAN`). "
                 "To use the older behavior, call `get_entries_in_chemsys` with "
