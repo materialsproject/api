@@ -94,4 +94,4 @@ class TqdmToLogger(StringIO):
         return 1
 
     def flush(self) -> None:
-        self.logger.log(self.level, self.buf)
+        self.logger.log(self.level, self.buf)  # type: ignore[arg-type]

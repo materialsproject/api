@@ -131,4 +131,3 @@ isort.required-imports = ["from __future__ import annotations"]
 [tool.mypy]
 namespace_packages = true
 ignore_missing_imports = true
-follow_untyped_imports = true

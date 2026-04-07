@@ -247,7 +247,7 @@ class MPRester:
                 )
 
     @property
-    def contribs(self) -> None:
+    def contribs(self):
         """Create an instance of the MP ContribsClient.
 
         NB: The following args are taken from `MPRester`:

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timezone
-from typing import Any, Literal, Self, get_args
+from typing import TYPE_CHECKING, Any, Literal, Self, get_args
 
 import pandas as pd
 from pydantic import BaseModel, Field, create_model, field_serializer, field_validator
@@ -12,11 +12,14 @@ from pymatgen.core import Structure
 from mp_api.client.contribs.utils import flatten_dict, unflatten_dict
 from mp_api.client.core.schemas import _DictLikeAccess
 
+if TYPE_CHECKING:
+    from types import UnionType
+
 CONTRIBS_DOC_NAME = "ContribsDoc"
 """Parent name of the dynamically-created contribs docs, similar to `MPDataDoc`."""
 
 
-def _cast_pandas_dtype(dtype: type, assume_nullable: bool = True) -> type:
+def _cast_pandas_dtype(dtype: type, assume_nullable: bool = True) -> type | UnionType:
     """Convert pandas dtype to built-in types.
 
     Args:
@@ -116,7 +119,7 @@ def _get_pydantic_from_dataframe(
         if not all(pd.isna(df[col_name]))
     }
 
-    return create_model("InferredModel", **model_fields), columns_renamed
+    return create_model("InferredModel", **model_fields), columns_renamed  # type: ignore[call-overload]
 
 
 class Reference(_DictLikeAccess):
@@ -239,7 +242,7 @@ class BaseContrib(_DictLikeAccess):
         }
         return {
             k: (
-                Datum(
+                Datum(  # type: ignore[misc]
                     **{
                         sub_k: flattened_data_dct.get(f"{k}.{sub_k}", field.default)
                         for sub_k, field in Datum.model_fields.items()
