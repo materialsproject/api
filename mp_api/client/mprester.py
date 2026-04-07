@@ -1520,7 +1520,11 @@ class MPRester:
 
         return {
             dfa: {
-                entry["formula"]: entry["data"][f"{dfa}.energy"].value
+                entry["formula"]: (
+                    entry["data"][f"{dfa}.energy"].value
+                    if self.use_document_model
+                    else entry["data"][dfa]["energy"]["value"]
+                )
                 for entry in _atomic_energies
             }
             for dfa in funcs
