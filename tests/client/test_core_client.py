@@ -5,6 +5,7 @@ import json
 from mp_api.client import MPRester
 from mp_api.client.core import BaseRester
 from mp_api.client.core.exceptions import MPRestError, MPRestWarning
+from mp_api.client.core.schemas import _generate_returned_model
 from mp_api.client.routes.materials.materials import MaterialsRester
 
 from .conftest import requires_api_key
@@ -50,8 +51,8 @@ def test_fields_not_requested_excludes_requested_fields(mpr):
     doc = {"task_id": "fakeid-1234", "state": "successful"}
     requested_fields = list(task_rester.document_model.model_fields)
 
-    doc_model, _, fields_not_requested = task_rester._generate_returned_model(
-        doc, requested_fields=requested_fields
+    doc_model, _, fields_not_requested = _generate_returned_model(
+        doc, task_rester.document_model, requested_fields=requested_fields
     )
     deser_doc = doc_model(**doc)
 
@@ -61,8 +62,8 @@ def test_fields_not_requested_excludes_requested_fields(mpr):
         deser_doc.tags
 
     requested_fields.remove("tags")
-    doc_model, _, _ = task_rester._generate_returned_model(
-        doc, requested_fields=requested_fields
+    doc_model, _, _ = _generate_returned_model(
+        doc, task_rester.document_model, requested_fields=requested_fields
     )
     deser_doc = doc_model(**doc)
     with pytest.raises(

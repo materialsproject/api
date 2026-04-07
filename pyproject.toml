@@ -35,13 +35,22 @@ dynamic = ["version"]
 [project.optional-dependencies]
 mcp = ["fastmcp"]
 server = ["flask"]
+contribs = [
+  "boltons",
+  "bravado",
+  "filetype",
+  "ipython",
+  "json2html",
+  "pyIsEmail",
+  "requests-futures",
+  "swagger-spec-validator",
+  "cachetools",
+]
 all = [
   "custodian",
   "emmet-core[all]>=0.86.4rc0,<0.86.5",
-  "fastmcp",
-  "flask",
   "matminer>=0.10.0",
-  "mpcontribs-client>=5.10",
+  "mp-api[flask,mcp,contribs]",
 ]
 test = [
   "pre-commit",
