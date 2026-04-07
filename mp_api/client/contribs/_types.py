@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import gzip
+from abc import ABCMeta, abstractmethod
 from base64 import b64decode, b64encode
 from inspect import getfullargspec
 from pathlib import Path
@@ -30,6 +31,18 @@ if TYPE_CHECKING:
 j2h = Json2Html()
 
 
+class _Component(metaclass=ABCMeta):
+    """Define component which requires a from_dict method.
+
+    Mostly exists for mypy checking.
+    """
+
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, dct: dict):
+        """Instantiate from a dict."""
+
+
 class MPCDict(dict):
     """Custom dictionary to display itself as HTML table with Bulma CSS."""
 
@@ -49,7 +62,7 @@ class MPCDict(dict):
         return display(HTML(html)) if _in_ipython() else html
 
 
-class Table(pd.DataFrame):
+class Table(pd.DataFrame, _Component):
     """Wrapper class around pandas.DataFrame to provide display() and info()."""
 
     def display(self):
@@ -139,7 +152,7 @@ class Table(pd.DataFrame):
         return dct
 
 
-class MPCStructure(PmgStructure):
+class MPCStructure(PmgStructure, _Component):
     """Wrapper class around pymatgen.Structure to provide display() and info()."""
 
     def display(self):
@@ -178,7 +191,7 @@ class MPCStructure(PmgStructure):
         return super().from_dict(dct)
 
 
-class Attachment(dict):
+class Attachment(dict, _Component):
     """Wrapper class around dict to handle attachments."""
 
     def decode(self) -> bytes:
@@ -272,9 +285,7 @@ class Attachment(dict):
         content = path.read_bytes()
 
         if not (
-            supported := any(
-                isinstance(kind, ftyp) for ftyp in MPCC_SETTINGS.SUPPORTED_FILETYPES
-            )
+            supported := kind in MPCC_SETTINGS.SUPPORTED_FILETYPES
         ):  # try to gzip text file
             try:
                 content = gzip.compress(content)

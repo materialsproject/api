@@ -34,8 +34,8 @@ from bravado_core.resource import build_resources
 from bravado_core.spec import Spec, _identity, build_api_serving_url
 from bravado_core.validate import validate_object
 from bson.objectid import ObjectId
-from cachetools import LRUCache, cached
-from cachetools.keys import hashkey
+from cachetools import LRUCache, cached  # type: ignore[import-untyped]
+from cachetools.keys import hashkey  # type: ignore[import-untyped]
 from jsonschema.exceptions import ValidationError
 from pint.errors import DimensionalityError
 from pyisemail import is_email
@@ -47,7 +47,13 @@ from swagger_spec_validator.common import SwaggerValidationError
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
-from mp_api.client.contribs._types import Attachment, MPCDict, MPCStructure, Table
+from mp_api.client.contribs._types import (
+    Attachment,
+    MPCDict,
+    MPCStructure,
+    Table,
+    _Component,
+)
 from mp_api.client.contribs._units import ureg
 from mp_api.client.contribs.logger import MPCC_LOGGER, TqdmToLogger
 from mp_api.client.contribs.schemas import (
@@ -738,7 +744,7 @@ class ContribsClient(SwaggerClient):
         fields: list | None = None,
         sort: str | None = None,
         timeout: int = -1,
-    ) -> list[dict] | list[ContribsProject]:
+    ) -> list[MPCDict] | list[ContribsProject]:
         """Query projects by query and/or term (Atlas Search).
 
         See `client.available_query_params(resource="projects")` for keyword arguments used in
@@ -758,7 +764,7 @@ class ContribsClient(SwaggerClient):
         query = query or {}
 
         if self.project or "name" in query:
-            return self.get_project(name=query.get("name"), fields=fields)
+            return [self.get_project(name=query.get("name"), fields=fields)]  # type: ignore[return-value]
 
         if term:
 
@@ -1219,7 +1225,7 @@ class ContribsClient(SwaggerClient):
                                         f"Can't convert {existing_unit} to {new_unit} for {path}"
                                     )
                             try:
-                                factor = ureg.convert(1, *conv_args)
+                                factor = ureg.convert(1, *conv_args)  # type: ignore[arg-type]
                             except DimensionalityError:
                                 raise MPContribsClientError(
                                     f"Can't convert {existing_unit} to {new_unit} for {path}"
@@ -1704,7 +1710,7 @@ class ContribsClient(SwaggerClient):
             ).result()
 
         if len(ret["data"]) > 0 and self.use_document_model:  # type: ignore[arg-type]
-            ret["data"] = [ContribData(**doc) for doc in ret["data"]]
+            ret["data"] = [ContribData(**doc) for doc in ret["data"]]  # type: ignore[arg-type,misc,union-attr]
 
         return (
             _convert_to_model(  # type: ignore[return-value]
@@ -2327,7 +2333,7 @@ class ContribsClient(SwaggerClient):
 
                 match component:
                     case "structures":
-                        component_cls = MPCStructure
+                        component_cls: type[_Component] = MPCStructure
                     case "tables":
                         component_cls = Table
                     case "attachments":
