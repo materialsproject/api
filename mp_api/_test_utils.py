@@ -1,5 +1,7 @@
 """Define testing utils that need to imported."""
 
+# pragma: exclude file
+
 from __future__ import annotations
 
 try:
