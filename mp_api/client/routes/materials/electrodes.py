@@ -88,18 +88,17 @@ class BaseElectrodeRester(BaseRester):
         query_params: dict = defaultdict(dict)
 
         for param, value in locals().items():
-            if (
-                param not in {"__class__", "self", "query_params"}
-                and value is not None
-            ):       
-
-                if param == "num_elements": # this must come first
+            if param not in {"__class__", "self", "query_params"} and value is not None:
+                if param == "num_elements":  # this must come first
                     if isinstance(num_elements, int):
                         num_elements = (num_elements, num_elements)
                     query_params.update(
-                        {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
-                    ) 
-                                
+                        {
+                            "nelements_min": num_elements[0],  # type: ignore[index]
+                            "nelements_max": num_elements[1],  # type: ignore[index]
+                        }
+                    )
+
                 elif isinstance(value, tuple):
                     query_params.update(
                         {f"{param}_min": value[0], f"{param}_max": value[1]}
@@ -108,10 +107,15 @@ class BaseElectrodeRester(BaseRester):
                     query_params[param] = ",".join(validate_ids(value))
                 elif param == "working_ion":
                     query_params["working_ion"] = ",".join(
-                        str(ele) for ele in ([value] if isinstance(value, str | Element) else value)
+                        str(ele)
+                        for ele in (
+                            [value] if isinstance(value, str | Element) else value
+                        )
                     )
-                elif param in ("formula","elements","exclude_elements"):
-                    query_params[param] = ",".join([value] if isinstance(value,str) else value)
+                elif param in ("formula", "elements", "exclude_elements"):
+                    query_params[param] = ",".join(
+                        [value] if isinstance(value, str) else value
+                    )
                 else:
                     query_params[param] = value
 

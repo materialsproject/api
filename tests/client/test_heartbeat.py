@@ -7,7 +7,6 @@ from mp_api._test_utils import requires_api_key
 import mp_api.client.mprester
 
 
-
 @pytest.fixture
 def mock_403():
     with patch("mp_api.client.mprester.get") as mock_get:

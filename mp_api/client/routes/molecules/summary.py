@@ -85,13 +85,13 @@ class MoleculesSummaryRester(BaseRester):
             query_params.update({"molecule_ids": ",".join(molecule_ids)})
 
         _locals = locals()
-        for k in ("charge","spin_multiplicity","_page","_sort_fields"):
+        for k in ("charge", "spin_multiplicity", "_page", "_sort_fields"):
             if (v := _locals.get(k)) is not None:
                 query_params[k] = v
 
-        for k in ("formula","chemsys","elements","exclude_elements"):
+        for k in ("formula", "chemsys", "elements", "exclude_elements"):
             if (v := _locals.get(k)) is not None:
-                query_params[k] = ",".join([v] if isinstance(v,str) else v)
+                query_params[k] = ",".join([v] if isinstance(v, str) else v)
 
         if has_props:
             query_params.update({"has_props": ",".join([i.value for i in has_props])})

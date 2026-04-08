@@ -35,10 +35,12 @@ def test_filters_keywords(rester):
     search_method = rester.search
 
     if search_method is not None:
-        doc = search_method(keywords=["silicon"],chunk_size=100)[0]
+        doc = search_method(keywords=["silicon"], chunk_size=100)[0]
 
         assert isinstance(doc.search_score, float)
-        highlights = [x.model_dump() if isinstance(x,BaseModel) else x for x in doc.highlights]
+        highlights = [
+            x.model_dump() if isinstance(x, BaseModel) else x for x in doc.highlights
+        ]
         highlighted = sum((x["texts"] for x in highlights), [])
         assert "silicon" in " ".join([x["value"] for x in highlighted]).lower()
 

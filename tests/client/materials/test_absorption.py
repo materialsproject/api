@@ -10,7 +10,6 @@ from mp_api.client.core import MPRestError
 from mp_api.client.routes.materials.absorption import AbsorptionRester
 
 
-
 @requires_api_key
 def test_absorption_search():
     with AbsorptionRester() as rester:

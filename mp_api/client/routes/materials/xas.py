@@ -6,7 +6,6 @@ from emmet.core.xas import XASDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
     from typing import Any
@@ -62,10 +61,9 @@ class XASRester(BaseRester):
         Returns:
             ([MaterialsDoc]) List of material documents
         """
-
         _locals = locals()
         query_params: dict[str, Any] = {
-            k : _locals[k]
+            k: _locals[k]
             for k in ("edge", "spectrum_type", "formula", "_page", "_sort_fields")
             if _locals.get(k) is not None
         }
@@ -79,9 +77,8 @@ class XASRester(BaseRester):
                 }
             )
         for k in ("chemsys", "elements", "material_ids", "spectrum_ids"):
-            if (v := _locals.get(k) ) is not None:
-                query_params[k] = ",".join([v] if isinstance(v,str) else v)
-                
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = ",".join([v] if isinstance(v, str) else v)
 
         query_params = {
             entry: query_params[entry]

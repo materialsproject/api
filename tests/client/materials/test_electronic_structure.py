@@ -1,4 +1,3 @@
-
 import pytest
 from pymatgen.analysis.magnetism import Ordering
 from typing import Any

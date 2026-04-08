@@ -1,11 +1,15 @@
-
 import pytest
 from typing import Any
 
 from emmet.core.types.enums import XasEdge, XasType
 from pymatgen.core.periodic_table import Element
 
-from mp_api._test_utils import client_search_testing, client_pagination, client_sort, requires_api_key
+from mp_api._test_utils import (
+    client_search_testing,
+    client_pagination,
+    client_sort,
+    requires_api_key,
+)
 
 from mp_api.client.routes.materials.xas import XASRester
 
@@ -61,14 +65,18 @@ def test_client(rester):
         sub_doc_fields=sub_doc_fields,
     )
 
+
 @requires_api_key
 def test_pagination():
     with XASRester() as rester:
-        client_pagination(rester.search,"spectrum_id")
+        client_pagination(rester.search, "spectrum_id")
+
 
 @pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
 @requires_api_key
-@pytest.mark.parametrize("sort_field",["material_id","absorbing_element","spectrum_id"])
+@pytest.mark.parametrize(
+    "sort_field", ["material_id", "absorbing_element", "spectrum_id"]
+)
 def test_sort(sort_field):
     with XASRester() as rester:
-        client_sort(rester.search,sort_field)
+        client_sort(rester.search, sort_field)

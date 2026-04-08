@@ -3,7 +3,12 @@ import os
 import pytest
 from pymatgen.core.periodic_table import Element
 
-from mp_api._test_utils import client_search_testing, client_pagination, client_sort, requires_api_key
+from mp_api._test_utils import (
+    client_search_testing,
+    client_pagination,
+    client_sort,
+    requires_api_key,
+)
 
 from mp_api.client.routes.materials.electrodes import (
     ElectrodeRester,
@@ -88,11 +93,14 @@ def test_conversion_client(conversion_rester):
 @requires_api_key
 def test_pagination():
     with ElectrodeRester() as rester:
-        client_pagination(rester.search,"battery_id")
+        client_pagination(rester.search, "battery_id")
+
 
 @pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
 @requires_api_key
-@pytest.mark.parametrize("sort_field",["battery_id","stability_charge","average_voltage"])
+@pytest.mark.parametrize(
+    "sort_field", ["battery_id", "stability_charge", "average_voltage"]
+)
 def test_sort(sort_field):
     with ElectrodeRester() as rester:
-        client_sort(rester.search,sort_field)
+        client_sort(rester.search, sort_field)

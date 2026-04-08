@@ -1,4 +1,3 @@
-
 try:
     import pymatgen.analysis.alloys
 except ImportError:
@@ -13,7 +12,6 @@ import pytest
 from mp_api._test_utils import client_search_testing, requires_api_key
 
 from mp_api.client.routes.materials.alloys import AlloysRester
-
 
 
 @requires_api_key

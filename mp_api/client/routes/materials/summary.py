@@ -309,10 +309,16 @@ class SummaryRester(BaseRester):
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
-        for k in ("formula", "chemsys", "elements", "exclude_elements", "possible_species"):
+        for k in (
+            "formula",
+            "chemsys",
+            "elements",
+            "exclude_elements",
+            "possible_species",
+        ):
             if (v := _locals.get(k)) is not None:
-                query_params[k] = ",".join([v] if isinstance(v,str) else v)
-                
+                query_params[k] = ",".join([v] if isinstance(v, str) else v)
+
         symm_cardinality = {
             "crystal_system": 7,
             "spacegroup_number": 230,
@@ -331,7 +337,14 @@ class SummaryRester(BaseRester):
             else:
                 query_params.update({k: symm_vals})
 
-        for k in ("deprecated", "is_stable", "is_gap_direct", "is_metal", "has_reconstructed", "theoretical"):
+        for k in (
+            "deprecated",
+            "is_stable",
+            "is_gap_direct",
+            "is_metal",
+            "has_reconstructed",
+            "theoretical",
+        ):
             if (v := _locals.get(k)) is not None:
                 query_params[k] = v
 

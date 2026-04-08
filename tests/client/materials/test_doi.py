@@ -1,7 +1,7 @@
-
 from mp_api._test_utils import client_search_testing, requires_api_key
 
 from mp_api.client.routes.materials.doi import DOIRester
+
 
 @requires_api_key
 def test_doi_search():

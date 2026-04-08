@@ -1,5 +1,10 @@
 import os
-from mp_api._test_utils import client_search_testing, requires_api_key, client_pagination, client_sort
+from mp_api._test_utils import (
+    client_search_testing,
+    requires_api_key,
+    client_pagination,
+    client_sort,
+)
 
 from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
@@ -144,14 +149,16 @@ def test_pagination():
     with SummaryRester() as rester:
         client_pagination(rester.search, "material_id")
 
+
 summary_sort_fields = [
     "formation_energy_per_atom",
     "energy_above_hull",
     "band_gap",
 ]
 
+
 @requires_api_key
-@pytest.mark.parametrize("sort_field",summary_sort_fields)
-def test_sort(sort_field : str):
+@pytest.mark.parametrize("sort_field", summary_sort_fields)
+def test_sort(sort_field: str):
     with SummaryRester() as rester:
         client_sort(rester.search, sort_field)

@@ -10,7 +10,6 @@ from mp_api.client.core.exceptions import MPRestError, MPRestWarning
 from mp_api.client.routes.materials.materials import MaterialsRester
 
 
-
 @pytest.fixture
 def rester():
     rester = BaseRester()

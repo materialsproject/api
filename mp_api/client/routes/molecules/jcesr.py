@@ -45,7 +45,7 @@ class JcesrMoleculesRester(BaseRester):
     ):
         """Query legacy molecule docs using a variety of search criteria.
 
-        JCESR = Joint Center for Energy Storage Research 
+        JCESR = Joint Center for Energy Storage Research
 
         Arguments:
             task_ids (str, List[str]): A single molecule task ID string or list of strings.
@@ -70,7 +70,7 @@ class JcesrMoleculesRester(BaseRester):
             ([MoleculesDoc]) List of molecule documents
         """
         query_params: dict = defaultdict(dict)
-        
+
         if task_ids:
             if isinstance(task_ids, str):
                 task_ids = [task_ids]
@@ -81,14 +81,14 @@ class JcesrMoleculesRester(BaseRester):
             query_params.update({"elements": ",".join([str(ele) for ele in elements])})
 
         _locals = locals()
-        for k in ("pointgroup","smiles","_page","_sort_fields"):
+        for k in ("pointgroup", "smiles", "_page", "_sort_fields"):
             if (v := _locals.get(k)) is not None:
                 query_params[k] = v
 
-        for k in ("nelements","EA","IE","charge"):
+        for k in ("nelements", "EA", "IE", "charge"):
             if (vals := _locals.get(k)) is not None:
                 query_params.update({f"{k}_min": vals[0], f"{k}_max": vals[1]})
-                    
+
         query_params = {
             entry: query_params[entry]
             for entry in query_params

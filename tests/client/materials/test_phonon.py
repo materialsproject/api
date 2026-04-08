@@ -11,7 +11,6 @@ from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.routes.materials.phonon import PhononRester
 
 
-
 @requires_api_key
 def test_phonon_search():
     with PhononRester() as rester:
