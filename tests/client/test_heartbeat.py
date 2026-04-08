@@ -2,9 +2,9 @@ import requests
 import pytest
 from unittest.mock import patch, Mock
 
-import mp_api.client.mprester
+from mp_api._test_utils import requires_api_key
 
-from .conftest import requires_api_key
+import mp_api.client.mprester
 
 
 @pytest.fixture

@@ -2,9 +2,9 @@ import warnings
 
 import pytest
 
+from mp_api._test_utils import requires_api_key
 from mp_api.client import MPRester
 
-from .conftest import requires_api_key
 
 try:
     import pymatgen.analysis.alloys as pmg_alloys

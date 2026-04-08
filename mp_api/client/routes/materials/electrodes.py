@@ -15,7 +15,7 @@ class BaseElectrodeRester(BaseRester):
     primary_key = "battery_id"
     _exclude_search_fields: list[str] | None = None
 
-    def search(  # pragma: ignore
+    def search(
         self,
         battery_ids: str | list[str] | None = None,
         average_voltage: tuple[float, float] | None = None,
@@ -39,6 +39,8 @@ class BaseElectrodeRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        _page: int | None = None,
+        _sort_fields: str | None = None,
     ) -> list[InsertionElectrodeDoc | ConversionElectrodeDoc] | list[dict]:
         """Query using a variety of search criteria.
 
@@ -77,63 +79,45 @@ class BaseElectrodeRester(BaseRester):
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in InsertionElectrodeDoc or ConversionElectrodeDoc to return data for.
                 Default is battery_id and last_updated if all_fields is False.
+            _page (int or None) : Page of the results to skip to.
+            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
 
         Returns:
             ([InsertionElectrodeDoc or ConversionElectrodeDoc], [dict]) List of insertion/conversion electrode documents or dictionaries.
         """
         query_params: dict = defaultdict(dict)
 
-        if battery_ids:
-            if isinstance(battery_ids, str):
-                battery_ids = [battery_ids]
-
-            query_params.update({"battery_ids": ",".join(validate_ids(battery_ids))})
-
-        if working_ion:
-            if isinstance(working_ion, (str, Element)):
-                working_ion = [working_ion]  # type: ignore
-
-            query_params.update(
-                {"working_ion": ",".join([str(ele) for ele in working_ion])}  # type: ignore
-            )
-
-        if formula:
-            if isinstance(formula, str):
-                formula = [formula]
-
-            query_params.update({"formula": ",".join(formula)})
-
-        if elements:
-            query_params.update({"elements": ",".join(elements)})
-
-        if num_elements:
-            if isinstance(num_elements, int):
-                num_elements = (num_elements, num_elements)
-            query_params.update(
-                {"nelements_min": num_elements[0], "nelements_max": num_elements[1]}
-            )
-
-        if exclude_elements:
-            query_params.update({"exclude_elements": ",".join(exclude_elements)})
-
         for param, value in locals().items():
-            if (
-                param
-                not in [
-                    "__class__",
-                    "self",
-                    "working_ion",
-                    "query_params",
-                    "num_elements",
-                ]
-                and value
-            ):
-                if isinstance(value, tuple):
+            if param not in {"__class__", "self", "query_params"} and value is not None:
+                if param == "num_elements":  # this must come first
+                    if isinstance(num_elements, int):
+                        num_elements = (num_elements, num_elements)
+                    query_params.update(
+                        {
+                            "nelements_min": num_elements[0],  # type: ignore[index]
+                            "nelements_max": num_elements[1],  # type: ignore[index]
+                        }
+                    )
+
+                elif isinstance(value, tuple):
                     query_params.update(
                         {f"{param}_min": value[0], f"{param}_max": value[1]}
                     )
+                elif param == "battery_ids":
+                    query_params[param] = ",".join(validate_ids(value))
+                elif param == "working_ion":
+                    query_params["working_ion"] = ",".join(
+                        str(ele)
+                        for ele in (
+                            [value] if isinstance(value, str | Element) else value
+                        )
+                    )
+                elif param in ("formula", "elements", "exclude_elements"):
+                    query_params[param] = ",".join(
+                        [value] if isinstance(value, str) else value
+                    )
                 else:
-                    query_params.update({param: value})
+                    query_params[param] = value
 
         excluded_fields = self._exclude_search_fields or []
         ignored_fields = {
@@ -177,4 +161,6 @@ class ConversionElectrodeRester(BaseElectrodeRester):
         "stability_charge",
         "stability_discharge",
         "exclude_elements",
+        "_page",
+        "_sort_fields",
     ]

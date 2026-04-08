@@ -122,3 +122,9 @@ isort.required-imports = ["from __future__ import annotations"]
 [tool.mypy]
 namespace_packages = true
 ignore_missing_imports = true
+
+[tool.coverage.report]
+exclude_also = [
+  # A pragma comment that excludes an entire file:
+  '\A(?s:.*# pragma: exclude file.*)\Z',
+]

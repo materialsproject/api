@@ -1,8 +1,8 @@
-from ..conftest import client_search_testing, requires_api_key
-
 import pytest
 from pymatgen.analysis.magnetism import Ordering
 from typing import Any
+
+from mp_api._test_utils import client_search_testing, requires_api_key
 
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.routes.materials.electronic_structure import (

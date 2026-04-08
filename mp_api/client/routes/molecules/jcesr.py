@@ -40,8 +40,12 @@ class JcesrMoleculesRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        _page: int | None = None,
+        _sort_fields: str | None = None,
     ):
-        """Query equations of state docs using a variety of search criteria.
+        """Query legacy molecule docs using a variety of search criteria.
+
+        JCESR = Joint Center for Energy Storage Research
 
         Arguments:
             task_ids (str, List[str]): A single molecule task ID string or list of strings.
@@ -59,6 +63,8 @@ class JcesrMoleculesRester(BaseRester):
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in MoleculesDoc to return data for.
                 Default is the material_id only if all_fields is False.
+            _page (int or None) : Page of the results to skip to.
+            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
 
         Returns:
             ([MoleculesDoc]) List of molecule documents
@@ -74,25 +80,14 @@ class JcesrMoleculesRester(BaseRester):
         if elements:
             query_params.update({"elements": ",".join([str(ele) for ele in elements])})
 
-        if pointgroup:
-            query_params.update({"pointgroup": pointgroup})
+        _locals = locals()
+        for k in ("pointgroup", "smiles", "_page", "_sort_fields"):
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = v
 
-        if smiles:
-            query_params.update({"smiles": smiles})
-
-        if nelements:
-            query_params.update(
-                {"nelements_min": nelements[0], "nelements_max": nelements[1]}
-            )
-
-        if EA:
-            query_params.update({"EA_min": EA[0], "EA_max": EA[1]})
-
-        if IE:
-            query_params.update({"IE_min": IE[0], "IE_max": IE[1]})
-
-        if charge:
-            query_params.update({"charge_min": charge[0], "charge_max": charge[1]})
+        for k in ("nelements", "EA", "IE", "charge"):
+            if (vals := _locals.get(k)) is not None:
+                query_params.update({f"{k}_min": vals[0], f"{k}_max": vals[1]})
 
         query_params = {
             entry: query_params[entry]
