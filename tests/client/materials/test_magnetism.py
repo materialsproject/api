@@ -1,8 +1,9 @@
 import os
-from ..conftest import client_search_testing, requires_api_key
 
 import pytest
 from pymatgen.analysis.magnetism import Ordering
+
+from mp_api._test_utils import client_search_testing, requires_api_key
 
 from mp_api.client.routes.materials.magnetism import MagnetismRester
 

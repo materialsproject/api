@@ -1,9 +1,10 @@
 import os
-from ..conftest import client_search_testing, requires_api_key
 
 import pytest
 from emmet.core.types.enums import ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
+
+from mp_api._test_utils import client_search_testing, requires_api_key
 
 from mp_api.client.routes.materials.thermo import ThermoRester
 

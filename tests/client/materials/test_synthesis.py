@@ -1,11 +1,12 @@
 import os
 from typing import List
-
+from pydantic import BaseModel
 import pytest
 from emmet.core.synthesis import SynthesisRecipe, SynthesisTypeEnum
 
+from mp_api._test_utils import requires_api_key
+
 from mp_api.client.routes.materials.synthesis import SynthesisRester
-from ..conftest import requires_api_key
 
 
 @pytest.fixture
@@ -34,10 +35,11 @@ def test_filters_keywords(rester):
     search_method = rester.search
 
     if search_method is not None:
-        doc = search_method(keywords=["silicon"])[0]
+        doc = search_method(keywords=["silicon"],chunk_size=100)[0]
 
         assert isinstance(doc.search_score, float)
-        highlighted = sum((x["texts"] for x in doc.highlights), [])
+        highlights = [x.model_dump() if isinstance(x,BaseModel) else x for x in doc.highlights]
+        highlighted = sum((x["texts"] for x in highlights), [])
         assert "silicon" in " ".join([x["value"] for x in highlighted]).lower()
 
 

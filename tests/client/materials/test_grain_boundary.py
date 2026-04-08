@@ -1,8 +1,9 @@
 import os
-from ..conftest import client_search_testing, requires_api_key
 
 import pytest
 from emmet.core.grain_boundary import GBTypeEnum
+
+from mp_api._test_utils import client_search_testing, requires_api_key
 
 from mp_api.client.routes.materials.grain_boundaries import GrainBoundaryRester
 

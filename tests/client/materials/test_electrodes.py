@@ -1,8 +1,9 @@
 import os
-from ..conftest import client_search_testing, requires_api_key
 
 import pytest
 from pymatgen.core.periodic_table import Element
+
+from mp_api._test_utils import client_search_testing, client_pagination, client_sort, requires_api_key
 
 from mp_api.client.routes.materials.electrodes import (
     ElectrodeRester,
@@ -84,29 +85,14 @@ def test_conversion_client(conversion_rester):
     )
 
 
-@pytest.mark.xfail(reason="sort requires API redeployment", strict=False)
 @requires_api_key
-def test_pagination_sort():
-    num_docs = 5
+def test_pagination():
     with ElectrodeRester() as rester:
-        results_page_1 = rester.search(_page=1, chunk_size=num_docs)
-        results_page_2 = rester.search(_page=2, chunk_size=num_docs)
-        assert all(
-            len(results) == num_docs for results in (results_page_1, results_page_2)
-        )
-        assert {doc.battery_id for doc in results_page_1}.intersection(
-            {doc.battery_id for doc in results_page_2}
-        ) == set()
+        client_pagination(rester.search,"battery_id")
 
-        ascending_e_hull = rester.search(_page=1, _sort_fields="average_voltage")
-        descending_e_hull = rester.search(_page=1, _sort_fields="-average_voltage")
-
-        assert sorted(
-            range(num_docs), key=lambda idx: ascending_e_hull[idx].average_voltage
-        ) == list(range(num_docs))
-
-        assert sorted(
-            range(num_docs),
-            key=lambda idx: descending_e_hull[idx].average_voltage,
-            reverse=True,
-        ) == list(range(num_docs))
+@pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
+@requires_api_key
+@pytest.mark.parametrize("sort_field",["battery_id","stability_charge","average_voltage"])
+def test_sort(sort_field):
+    with ElectrodeRester() as rester:
+        client_sort(rester.search,sort_field)

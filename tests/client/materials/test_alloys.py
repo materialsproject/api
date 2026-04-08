@@ -1,6 +1,3 @@
-import os
-
-import pytest
 
 try:
     import pymatgen.analysis.alloys
@@ -10,9 +7,13 @@ except ImportError:
         allow_module_level=True,
     )
 
+import os
+import pytest
+
+from mp_api._test_utils import client_search_testing, requires_api_key
+
 from mp_api.client.routes.materials.alloys import AlloysRester
 
-from ..conftest import client_search_testing, requires_api_key
 
 
 @requires_api_key

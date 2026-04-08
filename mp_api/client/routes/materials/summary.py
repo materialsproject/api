@@ -206,8 +206,9 @@ class SummaryRester(BaseRester):
         mmnd_inv = {v: k for k, v in min_max_name_dict.items() if k != v}
 
         # Set user query params from `locals`
+        _locals = locals()
         user_settings = {
-            k: v for k, v in locals().items() if k in min_max_name_dict and v
+            k: v for k, v in _locals.items() if k in min_max_name_dict and v is not None
         }
 
         # Check to see if user specified _search fields using **kwargs,
@@ -290,7 +291,7 @@ class SummaryRester(BaseRester):
                 )
 
         for param, value in user_settings.items():
-            if param.startswith("_"):
+            if param in {"_page", "_sort_fields"}:
                 query_params[param] = value
             else:
                 if isinstance(value, (int, float)):
@@ -308,30 +309,10 @@ class SummaryRester(BaseRester):
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
-        if deprecated is not None:
-            query_params.update({"deprecated": deprecated})
-
-        if formula:
-            if isinstance(formula, str):
-                formula = [formula]
-
-            query_params.update({"formula": ",".join(formula)})
-
-        if chemsys:
-            if isinstance(chemsys, str):
-                chemsys = [chemsys]
-
-            query_params.update({"chemsys": ",".join(chemsys)})
-
-        if elements:
-            query_params.update({"elements": ",".join(elements)})
-
-        if exclude_elements is not None:
-            query_params.update({"exclude_elements": ",".join(exclude_elements)})
-
-        if possible_species is not None:
-            query_params.update({"possible_species": ",".join(possible_species)})
-
+        for k in ("formula", "chemsys", "elements", "exclude_elements", "possible_species"):
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = ",".join([v] if isinstance(v,str) else v)
+                
         symm_cardinality = {
             "crystal_system": 7,
             "spacegroup_number": 230,
@@ -350,20 +331,12 @@ class SummaryRester(BaseRester):
             else:
                 query_params.update({k: symm_vals})
 
-        if is_stable is not None:
-            query_params.update({"is_stable": is_stable})
-
-        if is_gap_direct is not None:
-            query_params.update({"is_gap_direct": is_gap_direct})
-
-        if is_metal is not None:
-            query_params.update({"is_metal": is_metal})
+        for k in ("deprecated", "is_stable", "is_gap_direct", "is_metal", "has_reconstructed", "theoretical"):
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = v
 
         if magnetic_ordering:
             query_params.update({"ordering": magnetic_ordering.value})
-
-        if has_reconstructed is not None:
-            query_params.update({"has_reconstructed": has_reconstructed})
 
         if has_props:
             has_props_clean = []
@@ -374,9 +347,6 @@ class SummaryRester(BaseRester):
                     raise MPRestError(f"'{prop}' is not a valid property.")
 
             query_params.update({"has_props": ",".join(has_props_clean)})
-
-        if theoretical is not None:
-            query_params.update({"theoretical": theoretical})
 
         if not include_gnome:
             query_params.update({"batch_id_not_eq": "gnome_r2scan_statics"})

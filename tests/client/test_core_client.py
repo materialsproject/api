@@ -2,12 +2,13 @@ import pytest
 
 import json
 
+from mp_api._test_utils import requires_api_key
+
 from mp_api.client import MPRester
 from mp_api.client.core import BaseRester
 from mp_api.client.core.exceptions import MPRestError, MPRestWarning
 from mp_api.client.routes.materials.materials import MaterialsRester
 
-from .conftest import requires_api_key
 
 
 @pytest.fixture

@@ -6,10 +6,11 @@ import pytest
 from emmet.core.similarity import SimilarityScorer, SimilarityEntry
 from pymatgen.core import Structure
 
+from mp_api._test_utils import client_search_testing, requires_api_key
+
 from mp_api.client.core import MPRestError
 from mp_api.client.routes.materials.similarity import SimilarityRester
 
-from ..conftest import client_search_testing, requires_api_key
 
 try:
     import matminer

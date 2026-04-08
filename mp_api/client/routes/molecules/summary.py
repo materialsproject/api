@@ -28,6 +28,8 @@ class MoleculesSummaryRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        _page: int | None = None,
+        _sort_fields: str | None = None,
     ):
         """Query core data using a variety of search criteria.
 
@@ -50,6 +52,8 @@ class MoleculesSummaryRester(BaseRester):
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in SearchDoc to return data for.
                 Default is material_id if all_fields is False.
+            _page (int or None) : Page of the results to skip to.
+            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
 
         Returns:
             ([MoleculeSummaryDoc]) List of molecules summary documents
@@ -80,29 +84,14 @@ class MoleculesSummaryRester(BaseRester):
                 molecule_ids = [molecule_ids]
             query_params.update({"molecule_ids": ",".join(molecule_ids)})
 
-        if charge:
-            query_params.update({"charge": charge})
+        _locals = locals()
+        for k in ("charge","spin_multiplicity","_page","_sort_fields"):
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = v
 
-        if spin_multiplicity:
-            query_params.update({"spin_multiplicity": spin_multiplicity})
-
-        if formula:
-            if isinstance(formula, str):
-                formula = [formula]
-
-            query_params.update({"formula": ",".join(formula)})
-
-        if chemsys:
-            if isinstance(chemsys, str):
-                chemsys = [chemsys]
-
-            query_params.update({"chemsys": ",".join(chemsys)})
-
-        if elements:
-            query_params.update({"elements": ",".join(elements)})
-
-        if exclude_elements is not None:
-            query_params.update({"exclude_elements": ",".join(exclude_elements)})
+        for k in ("formula","chemsys","elements","exclude_elements"):
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = ",".join([v] if isinstance(v,str) else v)
 
         if has_props:
             query_params.update({"has_props": ",".join([i.value for i in has_props])})
