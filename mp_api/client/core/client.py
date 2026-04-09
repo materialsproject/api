@@ -659,7 +659,7 @@ class BaseRester:
             use_document_model: if None, will defer to the self.use_document_model attribute
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
-            timeout : Time in seconds to wait until a request timeout error is thrown
+            timeout (float or None): Time in seconds to wait until a request timeout error is thrown
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -805,14 +805,16 @@ class BaseRester:
         except RequestException as ex:
             raise MPRestError(str(ex))
 
-    def _submit_requests(  # noqa
+    def _submit_requests(
         self,
-        url,
-        criteria,
-        use_document_model,
-        chunk_size,
-        num_chunks=None,
-        timeout=None,
+        url: str,
+        criteria: dict[str, Any],
+        use_document_model: bool,
+        chunk_size: int | None,
+        num_chunks: int | None = None,
+        timeout: int | None = None,
+        max_batch_size: int = 100,
+        norecur: bool = False,
     ) -> dict:
         """Handle submitting requests sequentially with pagination.
 
@@ -820,12 +822,15 @@ class BaseRester:
         split them into multiple sequential requests and combine results.
 
         Arguments:
-            criteria: dictionary of criteria to filter down
-            url: url used to make request
-            use_document_model: if None, will defer to the self.use_document_model attribute
-            num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
-            chunk_size: Number of data entries per chunk.
-            timeout: Time in seconds to wait until a request timeout error is thrown
+            url (str): url used to make request
+            criteria (dict of str): dictionary of criteria to filter down
+            use_document_model (bool): whether to use the document model
+            num_chunks (int or None): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int or None): Number of data entries per chunk.
+            timeout (int or None): Time in seconds to wait until a request timeout error is thrown
+            max_batch_size (int) : Maximum size of a batch when retrieving batches in parallel
+            norecur (bool) : Whether to forbid recursive splitting of a query field
+                when a direct query fails
 
         Returns:
             Dictionary containing data and metadata
@@ -884,14 +889,6 @@ class BaseRester:
                     timeout=timeout,
                 )
 
-                # Check if we got 0 results - some parameters are silently ignored by the API
-                # when passed as comma-separated values, so we need to split them anyway
-                if total_num_docs == 0 and len(split_values) > 1:
-                    # Treat this the same as a 422 error - split into batches
-                    raise MPRestError(
-                        "Got 0 results for comma-separated parameter, will try splitting"
-                    )
-
                 # If successful, continue with normal pagination
                 data_chunks = [data["data"]]
                 total_data: dict[str, Any] = {"data": []}
@@ -903,18 +900,26 @@ class BaseRester:
                 # Continue with pagination if needed (handled below)
 
             except MPRestError as e:
-                # If we get 422 or 414 error, or 0 results for comma-separated params, split into batches
-                if any(trace in str(e) for trace in ("422", "414", "Got 0 results")):
+                # If we get 422 or 414 error, split into batches
+                if not norecur and any(
+                    trace in str(e)
+                    for trace in (
+                        "422",
+                        "414",
+                    )
+                ):
                     total_data = {"data": []}
                     total_num_docs = 0
                     data_chunks = []
 
                     # Batch the split values to reduce number of requests
                     # Use batches of up to 100 values to balance URL length and request count
-                    batch_size = min(100, max(1, len(split_values) // 10))
+                    num_batches = min(
+                        max_batch_size, max(1, len(split_values) // max_batch_size)
+                    )
+                    batch_size = min(len(split_values), max_batch_size)
 
                     # Setup progress bar for split parameter requests
-                    num_batches = ceil(len(split_values) / batch_size)
                     pbar_message = f"Retrieving {len(split_values)} {split_param} values in {num_batches} batches"
                     pbar = (
                         tqdm(
@@ -938,6 +943,7 @@ class BaseRester:
                             chunk_size=chunk_size,
                             num_chunks=num_chunks,
                             timeout=timeout,
+                            norecur=len(batch) <= max_batch_size,
                         )
 
                         data_chunks.append(result["data"])
@@ -979,6 +985,12 @@ class BaseRester:
             if "meta" in data:
                 total_data["meta"] = data["meta"]
 
+        # otherwise, paginate sequentially
+        if chunk_size is None or chunk_size < 1:
+            raise ValueError(
+                "A positive chunk size must be provided to enable pagination"
+            )
+
         # Get max number of response pages
         max_pages = (
             num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
@@ -998,7 +1010,7 @@ class BaseRester:
                 desc=pbar_message,
                 total=num_docs_needed,
             )
-            if not self.mute_progress_bars
+            if not self.mute_progress_bars and total_num_docs > 0
             else None
         )
 
@@ -1017,10 +1029,6 @@ class BaseRester:
             if pbar is not None:
                 pbar.close()
             return new_total_data
-
-        # otherwise, paginate sequentially
-        if chunk_size is None:
-            raise ValueError("A chunk size must be provided to enable pagination")
 
         # Warning to select specific fields only for many results
         if criteria.get("_all_fields", False) and (total_num_docs / chunk_size > 10):

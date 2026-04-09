@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
+from itertools import chain, product
 
 from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
@@ -200,8 +201,9 @@ class SummaryRester(BaseRester):
         mmnd_inv = {v: k for k, v in min_max_name_dict.items() if k != v}
 
         # Set user query params from `locals`
+        _locals = locals()
         user_settings = {
-            k: v for k, v in locals().items() if k in min_max_name_dict and v
+            k: v for k, v in _locals.items() if k in min_max_name_dict and v
         }
 
         # Check to see if user specified _search fields using **kwargs,
@@ -328,10 +330,11 @@ class SummaryRester(BaseRester):
             "spacegroup_number": 230,
             "spacegroup_symbol": 230,
         }
+        batched_symm_query = {}
         for k, cardinality in symm_cardinality.items():
-            if isinstance(symm_vals := locals().get(k), list | tuple | set):
+            if isinstance(symm_vals := _locals.get(k), list | tuple | set):
                 if len(symm_vals) < cardinality // 2:
-                    query_params.update({k: ",".join(str(v) for v in symm_vals)})
+                    batched_symm_query[k] = symm_vals
                 else:
                     raise MPRestError(
                         f"Querying `{k}` by a list of values is only "
@@ -377,6 +380,24 @@ class SummaryRester(BaseRester):
             for entry in query_params
             if query_params[entry] is not None
         }
+
+        if batched_symm_query:
+            ordered_symm_key = sorted(batched_symm_query)
+            return list(
+                chain.from_iterable(
+                    self._search(  # type: ignore[return-value]
+                        num_chunks=num_chunks,
+                        chunk_size=chunk_size,
+                        all_fields=all_fields,
+                        fields=fields,
+                        **query_params,
+                        **{sk: symm_params[i] for i, sk in enumerate(ordered_symm_key)},
+                    )
+                    for symm_params in product(
+                        *[batched_symm_query[k] for k in ordered_symm_key]
+                    )
+                )
+            )
 
         return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,
