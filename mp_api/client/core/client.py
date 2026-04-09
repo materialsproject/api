@@ -814,6 +814,7 @@ class BaseRester:
         num_chunks: int | None = None,
         timeout: float | None = None,
         max_batch_size: int = 100,
+        norecur: bool = False,
     ) -> dict:
         """Handle submitting requests sequentially with pagination.
 
@@ -827,7 +828,9 @@ class BaseRester:
             num_chunks (int or None): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             timeout (float): Time in seconds to wait until a request timeout error is thrown
-            max_batch_size (int) : Maximum size of a batch for when retrieving batches in parallel
+            max_batch_size (int) : Maximum size of a batch when retrieving batches in parallel
+            norecur (bool) : Whether to forbid recursive splitting of a query field
+                when a direct query fails
 
         Returns:
             Dictionary containing data and metadata
@@ -897,8 +900,8 @@ class BaseRester:
                 # Continue with pagination if needed (handled below)
 
             except MPRestError as e:
-                # If we get 422 or 414 error, or 0 results for comma-separated params, split into batches
-                if any(
+                # If we get 422 or 414 error, split into batches
+                if not norecur and any(
                     trace in str(e)
                     for trace in (
                         "422",
@@ -940,6 +943,7 @@ class BaseRester:
                             chunk_size=chunk_size,
                             num_chunks=num_chunks,
                             timeout=timeout,
+                            norecur=len(batch) <= max_batch_size,
                         )
 
                         data_chunks.append(result["data"])
