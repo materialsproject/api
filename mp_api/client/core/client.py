@@ -659,7 +659,7 @@ class BaseRester:
             use_document_model: if None, will defer to the self.use_document_model attribute
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
-            timeout : Time in seconds to wait until a request timeout error is thrown
+            timeout (float or None): Time in seconds to wait until a request timeout error is thrown
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -810,9 +810,9 @@ class BaseRester:
         url: str,
         criteria: dict[str, Any],
         use_document_model: bool,
-        chunk_size: int,
+        chunk_size: int | None,
         num_chunks: int | None = None,
-        timeout: float | None = None,
+        timeout: int | None = None,
         max_batch_size: int = 100,
         norecur: bool = False,
     ) -> dict:
@@ -826,8 +826,8 @@ class BaseRester:
             criteria (dict of str): dictionary of criteria to filter down
             use_document_model (bool): whether to use the document model
             num_chunks (int or None): Maximum number of chunks of data to yield. None will yield all possible.
-            chunk_size (int): Number of data entries per chunk.
-            timeout (float): Time in seconds to wait until a request timeout error is thrown
+            chunk_size (int or None): Number of data entries per chunk.
+            timeout (int or None): Time in seconds to wait until a request timeout error is thrown
             max_batch_size (int) : Maximum size of a batch when retrieving batches in parallel
             norecur (bool) : Whether to forbid recursive splitting of a query field
                 when a direct query fails
@@ -985,6 +985,12 @@ class BaseRester:
             if "meta" in data:
                 total_data["meta"] = data["meta"]
 
+        # otherwise, paginate sequentially
+        if chunk_size is None or chunk_size < 1:
+            raise ValueError(
+                "A positive chunk size must be provided to enable pagination"
+            )
+
         # Get max number of response pages
         max_pages = (
             num_chunks if num_chunks is not None else ceil(total_num_docs / chunk_size)
@@ -1023,10 +1029,6 @@ class BaseRester:
             if pbar is not None:
                 pbar.close()
             return new_total_data
-
-        # otherwise, paginate sequentially
-        if chunk_size is None:
-            raise ValueError("A chunk size must be provided to enable pagination")
 
         # Warning to select specific fields only for many results
         if criteria.get("_all_fields", False) and (total_num_docs / chunk_size > 10):
