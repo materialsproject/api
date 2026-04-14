@@ -1359,23 +1359,17 @@ class MPRester:
         return meta, urls
 
     def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> list[str]:
-        nomad_exist_task_ids: list[str] = []
         prefix = prefix.replace("/raw/query", "/repo/")
-        for task_id in task_ids:
-            url = prefix + task_id
-            if self._check_nomad_exist(url):
-                nomad_exist_task_ids.append(task_id)
-        return nomad_exist_task_ids
+        return [
+            task_id for task_id in task_ids if self._check_nomad_exist(prefix + task_id)
+        ]
 
     @staticmethod
     def _check_nomad_exist(url) -> bool:
         response = get(url=url)
         if response.status_code != 200:
             return False
-        content = load_json(response.text)
-        if content["pagination"]["total"] == 0:
-            return False
-        return True
+        return load_json(response.text)["pagination"]["total"] != 0
 
     @staticmethod
     def _print_help_message(nomad_exist_task_ids, task_ids, file_patterns, calc_types):
