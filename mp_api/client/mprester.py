@@ -58,7 +58,7 @@ if TYPE_CHECKING:
 
     from mp_api.client.core.client import _DictLikeAccess
 
-DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U"]}
+DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U_R2SCAN"]}
 
 RESTER_LAYOUT = {
     "molecules/core": LazyImport(
@@ -1032,7 +1032,7 @@ class MPRester:
         compatible_only: bool = True,
         property_data: list[str] | None = None,
         conventional_unit_cell: bool = False,
-        additional_criteria: dict = DEFAULT_THERMOTYPE_CRITERIA,
+        additional_criteria: dict | None = None,
         **kwargs,
     ) -> list[ComputedStructureEntry] | list[GibbsComputedStructureEntry]:
         """Helper method to get a list of ComputedEntries in a chemical system.
@@ -1090,6 +1090,17 @@ class MPRester:
             for i in range(len(elements_set))
             for els in itertools.combinations(elements_set, i + 1)
         ]
+
+        if additional_criteria is None:
+            warnings.warn(
+                "The default thermo type when retrieving entries has been changed from "
+                "the mixed/corrected PBE GGA and GGA+U hull (`thermo_type = GGA_GGA+U`) "
+                "to the joint PBE GGA / GGA+U / r2SCAN hull (`thermo_type = GGA_GGA+U_R2SCAN`). "
+                "To use the older behavior, call `get_entries_in_chemsys` with "
+                '`additional_criteria = {"thermo_types": ["GGA_GGA+U"]}`',
+                category=MPRestWarning,
+                stacklevel=2,
+            )
 
         entries = self.get_entries(
             all_chemsyses,
@@ -1348,23 +1359,17 @@ class MPRester:
         return meta, urls
 
     def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> list[str]:
-        nomad_exist_task_ids: list[str] = []
         prefix = prefix.replace("/raw/query", "/repo/")
-        for task_id in task_ids:
-            url = prefix + task_id
-            if self._check_nomad_exist(url):
-                nomad_exist_task_ids.append(task_id)
-        return nomad_exist_task_ids
+        return [
+            task_id for task_id in task_ids if self._check_nomad_exist(prefix + task_id)
+        ]
 
     @staticmethod
     def _check_nomad_exist(url) -> bool:
         response = get(url=url)
         if response.status_code != 200:
             return False
-        content = load_json(response.text)
-        if content["pagination"]["total"] == 0:
-            return False
-        return True
+        return load_json(response.text)["pagination"]["total"] != 0
 
     @staticmethod
     def _print_help_message(nomad_exist_task_ids, task_ids, file_patterns, calc_types):
