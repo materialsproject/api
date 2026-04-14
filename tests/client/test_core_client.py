@@ -94,3 +94,21 @@ def test_warnings_exceptions():
 
     with pytest.raises(MPRestError, match="Number of chunks must be greater than zero"):
         MaterialsRester()._get_all_documents({}, num_chunks=-1)
+
+
+def test_regression_batching():
+    # See https://github.com/materialsproject/api/pull/1077
+    # This test ensures that queries with batched input
+    # that return no results do not infinitely recur
+
+    # This test should simply run if there is no regression
+
+    num_idxs = 100
+    assert (
+        len(
+            MaterialsRester().search(
+                material_ids=[f"mp-{idx}" for idx in range(num_idxs)], deprecated=True
+            )
+        )
+        <= num_idxs
+    )
