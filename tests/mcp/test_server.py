@@ -14,7 +14,11 @@ from mp_api.mcp.server import get_core_mcp, parse_server_args, MCP_SERVER_INSTRU
 
 
 async def get_mcp_tools():
-    return set(await get_core_mcp().get_tools())
+    core_mcp = get_core_mcp()
+    if hasattr(core_mcp, "get_tools"):  # fastmcp < 3
+        return set(await core_mcp.get_tools())
+    # fastmcp >= 3
+    return {tool.name for tool in await core_mcp.list_tools()}
 
 
 async def get_mcp_tool(tool_name):
