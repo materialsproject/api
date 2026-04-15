@@ -175,7 +175,7 @@ class ThermoRester(BaseRester):
         pd = PhaseDiagram.from_dict(
             {
                 k: v if k != "elements" else [e.get("element", e) for e in v]
-                for k, v in pd_dct.items()
+                for k, v in pd_dct.items()  # type: ignore[union-attr]
             }
         )
 
