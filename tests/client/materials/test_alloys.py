@@ -1,3 +1,5 @@
+import pytest
+
 try:
     import pymatgen.analysis.alloys
 except ImportError:
@@ -7,7 +9,6 @@ except ImportError:
     )
 
 import os
-import pytest
 
 from mp_api._test_utils import client_search_testing, requires_api_key
 

@@ -38,7 +38,7 @@ def get_request_headers() -> dict[str, Any]:
         Empty dict if flask is not installed, or not in a request context.
         Request headers otherwise.
     """
-    return request.headers if has_request_context() else {}
+    return request.headers if has_request_context() else {}  # type: ignore[return-value]
 
 
 def is_dev_env(

@@ -167,7 +167,7 @@ class OxygenEvolution:
                         "evolution": "evolution",
                     }.items()
                 }
-                for profile in phase_diagram.get_element_profile("O", composition)
+                for profile in phase_diagram.get_element_profile("O", composition)  # type: ignore[arg-type]
             ]
             for composition in set(compositions)
         }
