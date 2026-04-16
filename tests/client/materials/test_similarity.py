@@ -12,12 +12,6 @@ from mp_api.client.core import MPRestError
 from mp_api.client.routes.materials.similarity import SimilarityRester
 
 
-try:
-    import matminer
-except ImportError:
-    matminer = None
-
-
 @pytest.fixture(scope="module")
 def test_struct():
     poscar = """Al2
@@ -59,21 +53,18 @@ def test_similarity_search():
 def test_similarity_vector_search(test_struct):
     rester = SimilarityRester()
 
-    # skip these tests if `matminer` is not installed
-    if matminer is not None:
-        fv = rester.fingerprint_structure(test_struct)
-        assert isinstance(fv, np.ndarray)
-        assert len(fv) == 122
-        assert isinstance(rester._fingerprinter, SimilarityScorer)
+    fv = rester.fingerprint_structure(test_struct)
+    assert isinstance(fv, np.ndarray)
+    assert len(fv) == 122
+    assert isinstance(rester._fingerprinter, SimilarityScorer)
 
-        assert all(
-            isinstance(entry, SimilarityEntry)
-            and isinstance(entry.dissimilarity, float)
-            for entry in rester.find_similar(
-                test_struct,
-                top=2,
-            )
+    assert all(
+        isinstance(entry, SimilarityEntry) and isinstance(entry.dissimilarity, float)
+        for entry in rester.find_similar(
+            test_struct,
+            top=2,
         )
+    )
 
     get_top = 5
     sim_entries = rester.find_similar("mp-149", top=get_top)
