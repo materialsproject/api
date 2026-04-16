@@ -31,7 +31,7 @@ attrs==26.1.0
     #   cyclopts
     #   jsonschema
     #   referencing
-authlib==1.6.10
+authlib==1.6.11
     # via fastmcp
 babel==2.18.0
     # via sphinx
@@ -112,7 +112,7 @@ docutils==0.22.4
     #   sphinx
 email-validator==2.3.0
     # via pydantic
-emmet-core[all]==0.86.4rc0
+emmet-core[all]==0.86.4rc1
     # via mp-api (pyproject.toml)
 exceptiongroup==1.3.1
     # via fastmcp
@@ -239,6 +239,8 @@ lazy-loader==0.5
     # via scikit-image
 librt==0.9.0
     # via mypy
+lxml==6.0.4
+    # via pymatgen-core
 markdown-it-py==4.0.0
     # via rich
 markupsafe==3.0.3
@@ -401,7 +403,7 @@ pycodestyle==2.14.0
     #   mp-api (pyproject.toml)
 pycparser==3.0
     # via cffi
-pydantic[email]==2.13.0
+pydantic[email]==2.13.1
     # via
     #   emmet-core
     #   fastmcp
@@ -409,7 +411,7 @@ pydantic[email]==2.13.0
     #   openapi-pydantic
     #   pydantic-settings
     #   pymatgen-io-validation
-pydantic-core==2.46.0
+pydantic-core==2.46.1
     # via pydantic
 pydantic-settings==2.13.1
     # via
@@ -446,7 +448,7 @@ pymatgen-analysis-defects==2026.3.20
     # via emmet-core
 pymatgen-analysis-diffusion==2025.11.15
     # via emmet-core
-pymatgen-core==2026.4.7
+pymatgen-core==2026.4.16
     # via pymatgen
 pymatgen-io-validation==0.1.2
     # via emmet-core
