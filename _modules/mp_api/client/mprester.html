@@ -91,7 +91,7 @@
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DictLikeAccess</span>
 
-<span class="n">DEFAULT_THERMOTYPE_CRITERIA</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U&quot;</span><span class="p">]}</span>
+<span class="n">DEFAULT_THERMOTYPE_CRITERIA</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U_R2SCAN&quot;</span><span class="p">]}</span>
 
 <span class="n">RESTER_LAYOUT</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;molecules/core&quot;</span><span class="p">:</span> <span class="n">LazyImport</span><span class="p">(</span>
@@ -1117,7 +1117,7 @@
         <span class="n">compatible_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">property_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conventional_unit_cell</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">additional_criteria</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">DEFAULT_THERMOTYPE_CRITERIA</span><span class="p">,</span>
+        <span class="n">additional_criteria</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">GibbsComputedStructureEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper method to get a list of ComputedEntries in a chemical system.</span>
@@ -1175,6 +1175,17 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">elements_set</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">els</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">elements_set</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">additional_criteria</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;The default thermo type when retrieving entries has been changed from &quot;</span>
+                <span class="s2">&quot;the mixed/corrected PBE GGA and GGA+U hull (`thermo_type = GGA_GGA+U`) &quot;</span>
+                <span class="s2">&quot;to the joint PBE GGA / GGA+U / r2SCAN hull (`thermo_type = GGA_GGA+U_R2SCAN`). &quot;</span>
+                <span class="s2">&quot;To use the older behavior, call `get_entries_in_chemsys` with &quot;</span>
+                <span class="s1">&#39;`additional_criteria = {&quot;thermo_types&quot;: [&quot;GGA_GGA+U&quot;]}`&#39;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
 
         <span class="n">entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entries</span><span class="p">(</span>
             <span class="n">all_chemsyses</span><span class="p">,</span>
@@ -1458,23 +1469,17 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_get_download_info_url_by_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">task_ids</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="n">nomad_exist_task_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/raw/query&quot;</span><span class="p">,</span> <span class="s2">&quot;/repo/&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">task_id</span> <span class="ow">in</span> <span class="n">task_ids</span><span class="p">:</span>
-            <span class="n">url</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">task_id</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_nomad_exist</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
-                <span class="n">nomad_exist_task_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">nomad_exist_task_ids</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">task_id</span> <span class="k">for</span> <span class="n">task_id</span> <span class="ow">in</span> <span class="n">task_ids</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_nomad_exist</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">task_id</span><span class="p">)</span>
+        <span class="p">]</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_nomad_exist</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="n">content</span> <span class="o">=</span> <span class="n">load_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;pagination&quot;</span><span class="p">][</span><span class="s2">&quot;total&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">load_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)[</span><span class="s2">&quot;pagination&quot;</span><span class="p">][</span><span class="s2">&quot;total&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_print_help_message</span><span class="p">(</span><span class="n">nomad_exist_task_ids</span><span class="p">,</span> <span class="n">task_ids</span><span class="p">,</span> <span class="n">file_patterns</span><span class="p">,</span> <span class="n">calc_types</span><span class="p">):</span>

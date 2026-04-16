@@ -35,6 +35,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">product</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.summary</span><span class="w"> </span><span class="kn">import</span> <span class="n">HasProps</span><span class="p">,</span> <span class="n">SummaryDoc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.symmetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrystalSystem</span>
@@ -110,6 +111,8 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">_page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">_sort_fields</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SummaryDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core data using a variety of search criteria.</span>
@@ -187,6 +190,8 @@
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
 <span class="sd">            fields (List[str]): List of fields in SummaryDoc to return data for.</span>
 <span class="sd">                Default is material_id if all_fields is False.</span>
+<span class="sd">            _page (int or None) : Page of the results to skip to.</span>
+<span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading &quot;-&quot; sign will reverse sort order.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.</span>
@@ -218,6 +223,8 @@
             <span class="s2">&quot;weighted_surface_energy&quot;</span><span class="p">,</span>
             <span class="s2">&quot;weighted_work_function&quot;</span><span class="p">,</span>
             <span class="s2">&quot;shape_factor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_page&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_sort_fields&quot;</span><span class="p">,</span>
         <span class="p">]</span>
 
         <span class="n">min_max_name_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -237,8 +244,9 @@
         <span class="n">mmnd_inv</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">min_max_name_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">v</span><span class="p">}</span>
 
         <span class="c1"># Set user query params from `locals`</span>
+        <span class="n">_locals</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
         <span class="n">user_settings</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">min_max_name_dict</span> <span class="ow">and</span> <span class="n">v</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_locals</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">min_max_name_dict</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="p">}</span>
 
         <span class="c1"># Check to see if user specified _search fields using **kwargs,</span>
@@ -321,14 +329,17 @@
                 <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">user_settings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="si">}</span><span class="s2">_min&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="si">}</span><span class="s2">_max&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="p">}</span>
-            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;_page&quot;</span><span class="p">,</span> <span class="s2">&quot;_sort_fields&quot;</span><span class="p">}:</span>
+                <span class="n">query_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="si">}</span><span class="s2">_min&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="si">}</span><span class="s2">_max&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -336,39 +347,26 @@
 
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
-        <span class="k">if</span> <span class="n">deprecated</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">})</span>
-
-        <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="n">formula</span> <span class="o">=</span> <span class="p">[</span><span class="n">formula</span><span class="p">]</span>
-
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">formula</span><span class="p">)})</span>
-
-        <span class="k">if</span> <span class="n">chemsys</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="n">chemsys</span> <span class="o">=</span> <span class="p">[</span><span class="n">chemsys</span><span class="p">]</span>
-
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;chemsys&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chemsys</span><span class="p">)})</span>
-
-        <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">)})</span>
-
-        <span class="k">if</span> <span class="n">exclude_elements</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;exclude_elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_elements</span><span class="p">)})</span>
-
-        <span class="k">if</span> <span class="n">possible_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;possible_species&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">possible_species</span><span class="p">)})</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;formula&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;chemsys&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;elements&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;exclude_elements&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;possible_species&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">v</span> <span class="o">:=</span> <span class="n">_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">query_params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">v</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span>
 
         <span class="n">symm_cardinality</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;crystal_system&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
             <span class="s2">&quot;spacegroup_number&quot;</span><span class="p">:</span> <span class="mi">230</span><span class="p">,</span>
             <span class="s2">&quot;spacegroup_symbol&quot;</span><span class="p">:</span> <span class="mi">230</span><span class="p">,</span>
         <span class="p">}</span>
+        <span class="n">batched_symm_query</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">cardinality</span> <span class="ow">in</span> <span class="n">symm_cardinality</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symm_vals</span> <span class="o">:=</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symm_vals</span> <span class="o">:=</span> <span class="n">_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="nb">set</span><span class="p">):</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">symm_vals</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cardinality</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">symm_vals</span><span class="p">)})</span>
+                    <span class="n">batched_symm_query</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">symm_vals</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Querying `</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">` by a list of values is only &quot;</span>
@@ -378,20 +376,19 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">symm_vals</span><span class="p">})</span>
 
-        <span class="k">if</span> <span class="n">is_stable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;is_stable&quot;</span><span class="p">:</span> <span class="n">is_stable</span><span class="p">})</span>
-
-        <span class="k">if</span> <span class="n">is_gap_direct</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;is_gap_direct&quot;</span><span class="p">:</span> <span class="n">is_gap_direct</span><span class="p">})</span>
-
-        <span class="k">if</span> <span class="n">is_metal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;is_metal&quot;</span><span class="p">:</span> <span class="n">is_metal</span><span class="p">})</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;deprecated&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;is_stable&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;is_gap_direct&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;is_metal&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;has_reconstructed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;theoretical&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">v</span> <span class="o">:=</span> <span class="n">_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">query_params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 
         <span class="k">if</span> <span class="n">magnetic_ordering</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;ordering&quot;</span><span class="p">:</span> <span class="n">magnetic_ordering</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
-
-        <span class="k">if</span> <span class="n">has_reconstructed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;has_reconstructed&quot;</span><span class="p">:</span> <span class="n">has_reconstructed</span><span class="p">})</span>
 
         <span class="k">if</span> <span class="n">has_props</span><span class="p">:</span>
             <span class="n">has_props_clean</span> <span class="o">=</span> <span class="p">[]</span>
@@ -403,9 +400,6 @@
 
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;has_props&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">has_props_clean</span><span class="p">)})</span>
 
-        <span class="k">if</span> <span class="n">theoretical</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;theoretical&quot;</span><span class="p">:</span> <span class="n">theoretical</span><span class="p">})</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="n">include_gnome</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;batch_id_not_eq&quot;</span><span class="p">:</span> <span class="s2">&quot;gnome_r2scan_statics&quot;</span><span class="p">})</span>
 
@@ -414,6 +408,24 @@
             <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">query_params</span>
             <span class="k">if</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">batched_symm_query</span><span class="p">:</span>
+            <span class="n">ordered_symm_key</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">batched_symm_query</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span>  <span class="c1"># type: ignore[return-value]</span>
+                        <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
+                        <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+                        <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
+                        <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
+                        <span class="o">**</span><span class="p">{</span><span class="n">sk</span><span class="p">:</span> <span class="n">symm_params</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ordered_symm_key</span><span class="p">)},</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">symm_params</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span>
+                        <span class="o">*</span><span class="p">[</span><span class="n">batched_symm_query</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ordered_symm_key</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span>  <span class="c1"># type: ignore[return-value]</span>
             <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
