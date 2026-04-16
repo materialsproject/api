@@ -18,7 +18,7 @@ from json2html import Json2Html
 from plotly.express._chart_types import line as line_chart
 from pymatgen.core.structure import Structure as PmgStructure
 
-from mp_api.client.contribs.logger import MPCC_LOGGER
+from mp_api.client.contribs._logger import MPCC_LOGGER
 from mp_api.client.contribs.settings import MPCC_SETTINGS
 from mp_api.client.contribs.utils import _chunk_by_size, _compress, _in_ipython
 from mp_api.client.core.exceptions import MPContribsClientError

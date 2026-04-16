@@ -47,6 +47,7 @@ from swagger_spec_validator.common import SwaggerValidationError
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
+from mp_api.client.contribs._logger import MPCC_LOGGER, TqdmToLogger
 from mp_api.client.contribs._types import (
     Attachment,
     MPCDict,
@@ -55,7 +56,6 @@ from mp_api.client.contribs._types import (
     _Component,
 )
 from mp_api.client.contribs._units import ureg
-from mp_api.client.contribs.logger import MPCC_LOGGER, TqdmToLogger
 from mp_api.client.contribs.schemas import (
     CONTRIBS_DOC_NAME,
     ContribData,
