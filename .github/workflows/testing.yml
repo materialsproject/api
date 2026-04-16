@@ -58,6 +58,7 @@ jobs:
         run: python -m mypy mp_api/
 
       - name: Test with pytest
+        if: always()
         env:
           MP_API_KEY: ${{ secrets[env.API_KEY_NAME] }}
           # MP_API_ENDPOINT: https://api-preview.materialsproject.org/

@@ -34,10 +34,11 @@ from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStruct
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 
+from mp_api._test_utils import requires_api_key
+
 from mp_api.client import MPRester
 from mp_api.client.core import MPRestError, MPRestWarning
 
-from .conftest import requires_api_key
 
 try:
     import mpcontribs.client as contribs_client

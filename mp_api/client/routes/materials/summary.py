@@ -74,6 +74,8 @@ class SummaryRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        _page: int | None = None,
+        _sort_fields: str | None = None,
         **kwargs,
     ) -> list[SummaryDoc] | list[dict]:
         """Query core data using a variety of search criteria.
@@ -151,6 +153,8 @@ class SummaryRester(BaseRester):
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in SummaryDoc to return data for.
                 Default is material_id if all_fields is False.
+            _page (int or None) : Page of the results to skip to.
+            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
 
         Returns:
             ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.
@@ -182,6 +186,8 @@ class SummaryRester(BaseRester):
             "weighted_surface_energy",
             "weighted_work_function",
             "shape_factor",
+            "_page",
+            "_sort_fields",
         ]
 
         min_max_name_dict = {
@@ -203,7 +209,7 @@ class SummaryRester(BaseRester):
         # Set user query params from `locals`
         _locals = locals()
         user_settings = {
-            k: v for k, v in _locals.items() if k in min_max_name_dict and v
+            k: v for k, v in _locals.items() if k in min_max_name_dict and v is not None
         }
 
         # Check to see if user specified _search fields using **kwargs,
@@ -286,14 +292,17 @@ class SummaryRester(BaseRester):
                 )
 
         for param, value in user_settings.items():
-            if isinstance(value, (int, float)):
-                value = (value, value)
-            query_params.update(
-                {
-                    f"{min_max_name_dict[param]}_min": value[0],
-                    f"{min_max_name_dict[param]}_max": value[1],
-                }
-            )
+            if param in {"_page", "_sort_fields"}:
+                query_params[param] = value
+            else:
+                if isinstance(value, (int, float)):
+                    value = (value, value)
+                query_params.update(
+                    {
+                        f"{min_max_name_dict[param]}_min": value[0],
+                        f"{min_max_name_dict[param]}_max": value[1],
+                    }
+                )
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -301,29 +310,15 @@ class SummaryRester(BaseRester):
 
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
-        if deprecated is not None:
-            query_params.update({"deprecated": deprecated})
-
-        if formula:
-            if isinstance(formula, str):
-                formula = [formula]
-
-            query_params.update({"formula": ",".join(formula)})
-
-        if chemsys:
-            if isinstance(chemsys, str):
-                chemsys = [chemsys]
-
-            query_params.update({"chemsys": ",".join(chemsys)})
-
-        if elements:
-            query_params.update({"elements": ",".join(elements)})
-
-        if exclude_elements is not None:
-            query_params.update({"exclude_elements": ",".join(exclude_elements)})
-
-        if possible_species is not None:
-            query_params.update({"possible_species": ",".join(possible_species)})
+        for k in (
+            "formula",
+            "chemsys",
+            "elements",
+            "exclude_elements",
+            "possible_species",
+        ):
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = ",".join([v] if isinstance(v, str) else v)
 
         symm_cardinality = {
             "crystal_system": 7,
@@ -344,20 +339,19 @@ class SummaryRester(BaseRester):
             else:
                 query_params.update({k: symm_vals})
 
-        if is_stable is not None:
-            query_params.update({"is_stable": is_stable})
-
-        if is_gap_direct is not None:
-            query_params.update({"is_gap_direct": is_gap_direct})
-
-        if is_metal is not None:
-            query_params.update({"is_metal": is_metal})
+        for k in (
+            "deprecated",
+            "is_stable",
+            "is_gap_direct",
+            "is_metal",
+            "has_reconstructed",
+            "theoretical",
+        ):
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = v
 
         if magnetic_ordering:
             query_params.update({"ordering": magnetic_ordering.value})
-
-        if has_reconstructed is not None:
-            query_params.update({"has_reconstructed": has_reconstructed})
 
         if has_props:
             has_props_clean = []
@@ -368,9 +362,6 @@ class SummaryRester(BaseRester):
                     raise MPRestError(f"'{prop}' is not a valid property.")
 
             query_params.update({"has_props": ",".join(has_props_clean)})
-
-        if theoretical is not None:
-            query_params.update({"theoretical": theoretical})
 
         if not include_gnome:
             query_params.update({"batch_id_not_eq": "gnome_r2scan_statics"})

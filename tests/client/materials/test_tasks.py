@@ -5,9 +5,9 @@ from emmet.core.mpid import MPID, AlphaID
 from emmet.core.trajectory import RelaxTrajectory
 from emmet.core.utils import utcnow
 
-from mp_api.client.routes.materials.tasks import TaskRester
+from mp_api._test_utils import client_search_testing, requires_api_key
 
-from ..conftest import client_search_testing, requires_api_key
+from mp_api.client.routes.materials.tasks import TaskRester
 
 
 @pytest.fixture

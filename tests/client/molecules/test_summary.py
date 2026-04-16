@@ -1,13 +1,18 @@
 import os
-from .core_function import client_search_testing
 
 import pytest
 from emmet.core.molecules.summary import HasProps
 from emmet.core.mpid import MPculeID
 
+from mp_api._test_utils import (
+    client_search_testing,
+    client_pagination,
+    client_sort,
+    requires_api_key,
+)
 from mp_api.client.routes.molecules.summary import MoleculesSummaryRester
 
-from ..conftest import requires_api_key
+num_docs = 5
 
 excluded_params = [
     "sort_fields",
@@ -16,6 +21,8 @@ excluded_params = [
     "all_fields",
     "fields",
     "exclude_elements",
+    "_page",
+    "_sort_fields",
 ]
 
 alt_name_dict = {"formula": "formula_alphabetical", "molecule_ids": "molecule_id"}
@@ -51,3 +58,17 @@ def test_client():
         custom_field_tests=custom_field_tests,
         sub_doc_fields=[],
     )
+
+
+@requires_api_key
+def test_pagination():
+    with MoleculesSummaryRester() as rester:
+        client_pagination(rester.search, "molecule_id")
+
+
+@pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
+@requires_api_key
+@pytest.mark.parametrize("sort_field", ["molecule_id", "charge", "spin_multiplicity"])
+def test_sort(sort_field):
+    with MoleculesSummaryRester() as rester:
+        client_sort(rester.search, sort_field)

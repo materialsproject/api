@@ -2,9 +2,9 @@ import os
 
 import pytest
 
-from mp_api.client.routes.materials.robocrys import RobocrysRester
+from mp_api._test_utils import requires_api_key
 
-from ..conftest import requires_api_key
+from mp_api.client.routes.materials.robocrys import RobocrysRester
 
 
 @pytest.fixture

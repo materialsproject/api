@@ -1,10 +1,16 @@
 import os
-from ..conftest import client_search_testing, requires_api_key
+from mp_api._test_utils import (
+    client_search_testing,
+    requires_api_key,
+    client_pagination,
+    client_sort,
+)
 
-import pytest
 from emmet.core.summary import HasProps
 from emmet.core.symmetry import CrystalSystem
+import numpy as np
 from pymatgen.analysis.magnetism import Ordering
+import pytest
 
 from mp_api.client.routes.materials.summary import SummaryRester
 from mp_api.client.core.exceptions import MPRestWarning, MPRestError
@@ -16,6 +22,8 @@ excluded_params = [
     "num_chunks",
     "all_fields",
     "fields",
+    "_page",
+    "_sort_fields",
 ]
 
 alt_name_dict: dict = {
@@ -134,3 +142,23 @@ def test_warning_messages():
 
     with pytest.raises(MPRestError, match="not a valid property"):
         _ = search_method(num_elements=10, has_props=["apples"])
+
+
+@requires_api_key
+def test_pagination():
+    with SummaryRester() as rester:
+        client_pagination(rester.search, "material_id")
+
+
+summary_sort_fields = [
+    "formation_energy_per_atom",
+    "energy_above_hull",
+    "band_gap",
+]
+
+
+@requires_api_key
+@pytest.mark.parametrize("sort_field", summary_sort_fields)
+def test_sort(sort_field: str):
+    with SummaryRester() as rester:
+        client_sort(rester.search, sort_field)

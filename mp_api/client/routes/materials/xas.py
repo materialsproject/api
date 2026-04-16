@@ -6,7 +6,6 @@ from emmet.core.xas import XASDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
     from typing import Any
@@ -33,6 +32,8 @@ class XASRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        _page: int | None = None,
+        _sort_fields: str | None = None,
     ):
         """Query core XAS docs using a variety of search criteria.
 
@@ -54,14 +55,18 @@ class XASRester(BaseRester):
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
+            _page (int or None) : Page of the results to skip to.
+            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
 
         Returns:
             ([MaterialsDoc]) List of material documents
         """
-        query_params: dict[str, Any] = {}
-
-        if edge:
-            query_params.update({"edge": edge})
+        _locals = locals()
+        query_params: dict[str, Any] = {
+            k: _locals[k]
+            for k in ("edge", "spectrum_type", "formula", "_page", "_sort_fields")
+            if _locals.get(k) is not None
+        }
 
         if absorbing_element:
             query_params.update(
@@ -71,33 +76,9 @@ class XASRester(BaseRester):
                     else absorbing_element
                 }
             )
-
-        if spectrum_type:
-            query_params.update({"spectrum_type": spectrum_type})
-
-        if formula:
-            query_params.update({"formula": formula})
-
-        if chemsys:
-            if isinstance(chemsys, str):
-                chemsys = [chemsys]
-
-            query_params.update({"chemsys": ",".join(chemsys)})
-
-        if elements:
-            query_params.update({"elements": ",".join(elements)})
-
-        if material_ids:
-            if isinstance(material_ids, str):
-                material_ids = [material_ids]
-
-            query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
-
-        if spectrum_ids:
-            if isinstance(spectrum_ids, str):
-                spectrum_ids = [spectrum_ids]
-
-            query_params.update({"spectrum_ids": ",".join(spectrum_ids)})
+        for k in ("chemsys", "elements", "material_ids", "spectrum_ids"):
+            if (v := _locals.get(k)) is not None:
+                query_params[k] = ",".join([v] if isinstance(v, str) else v)
 
         query_params = {
             entry: query_params[entry]

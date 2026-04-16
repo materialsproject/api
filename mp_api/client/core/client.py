@@ -971,6 +971,10 @@ class BaseRester:
             # No splitting needed - get first page
             total_data = {"data": []}
             initial_criteria = copy(criteria)
+            if isinstance(
+                initial_criteria.get("_page"), int
+            ) and not initial_criteria.get("_per_page"):
+                initial_criteria["_per_page"] = initial_criteria.get("_limit")
             data, total_num_docs = self._submit_request_and_process(
                 url=url,
                 verify=True,
@@ -1446,6 +1450,9 @@ class BaseRester:
         # This method should be customized for each end point to give more user friendly,
         # documented kwargs.
 
+        # If user specifies page, ensure only one chunk is returned
+        if isinstance(kwargs.get("_page"), int) and num_chunks is None:
+            num_chunks = 1
         return self._get_all_documents(
             kwargs,
             all_fields=all_fields,

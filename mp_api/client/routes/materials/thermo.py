@@ -166,11 +166,18 @@ class ThermoRester(BaseRester):
         phdiag_id = f"thermo_type={t_type}/chemsys={sorted_chemsys}"
         version = self.db_version.replace(".", "-")
         obj_key = f"objects/{version}/phase-diagrams/{phdiag_id}.jsonl.gz"
-        pd = self._query_open_data(  # type: ignore[union-attr]
+        pd_dct = self._query_open_data(  # type: ignore[union-attr]
             bucket="materialsproject-build",
             key=obj_key,
-            decoder=lambda x: load_json(x, deser=True),
+            decoder=lambda x: load_json(x, deser=False),
         )[0][0].get("phase_diagram")
+
+        pd = PhaseDiagram.from_dict(
+            {
+                k: v if k != "elements" else [e.get("element", e) for e in v]
+                for k, v in pd_dct.items()  # type: ignore[union-attr]
+            }
+        )
 
         # Ensure el_ref keys are Element objects for PDPlotter.
         # Ensure qhull_data is a numpy array
