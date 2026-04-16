@@ -40,7 +40,6 @@ all = [
   "emmet-core[all]>=0.86.4rc1,<0.86.5",
   "fastmcp",
   "flask",
-  "matminer>=0.10.0",
   "mpcontribs-client>=5.10",
 ]
 test = [

@@ -12,9 +12,9 @@ bibtexparser==1.4.4
     # via pymatgen-core
 blake3==1.0.8
     # via emmet-core
-boto3==1.42.89
+boto3==1.42.90
     # via mp-api (pyproject.toml)
-botocore==1.42.89
+botocore==1.42.90
     # via
     #   boto3
     #   s3transfer
