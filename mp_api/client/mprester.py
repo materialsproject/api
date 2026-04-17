@@ -7,7 +7,7 @@ from collections import defaultdict
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 
-from emmet.core.electronic_structure import BSPathType
+from emmet.core.band_theory import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType

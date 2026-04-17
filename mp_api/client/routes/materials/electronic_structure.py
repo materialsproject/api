@@ -4,8 +4,8 @@ import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from emmet.core.band_theory import BSPathType
 from emmet.core.electronic_structure import (
-    BSPathType,
     DOSProjectionType,
     ElectronicStructureDoc,
 )
