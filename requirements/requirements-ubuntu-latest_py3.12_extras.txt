@@ -132,6 +132,10 @@ flake8==7.3.0
     # via mp-api (pyproject.toml)
 flask==3.1.3
     # via mp-api (pyproject.toml)
+flexcache==0.3
+    # via pint
+flexparser==0.4
+    # via pint
 fonttools==4.62.1
     # via matplotlib
 fqdn==1.5.1
@@ -344,9 +348,12 @@ pillow==12.2.0
     #   imageio
     #   matplotlib
     #   scikit-image
+pint==0.25.3
+    # via mp-api (pyproject.toml)
 platformdirs==4.9.6
     # via
     #   fastmcp
+    #   pint
     #   python-discovery
     #   virtualenv
 plotly==6.7.0
@@ -604,10 +611,13 @@ typing-extensions==4.15.0
     #   bravado
     #   emmet-core
     #   exceptiongroup
+    #   flexcache
+    #   flexparser
     #   mcp
     #   mp-api (pyproject.toml)
     #   mypy
     #   opentelemetry-api
+    #   pint
     #   py-key-value-aio
     #   pydantic
     #   pydantic-core
