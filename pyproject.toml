@@ -35,12 +35,23 @@ dynamic = ["version"]
 [project.optional-dependencies]
 mcp = ["fastmcp"]
 server = ["flask"]
+contribs = [
+  "boltons",
+  "bravado",
+  "filetype",
+  "ipython",
+  "json2html",
+  "pint>=0.25.0",
+  "pyIsEmail",
+  "requests-futures",
+  "swagger-spec-validator",
+  "cachetools",
+]
 all = [
   "custodian",
   "emmet-core[all]>=0.86.4rc1,<0.86.5",
   "fastmcp",
   "flask",
-  "mpcontribs-client>=5.10",
 ]
 test = [
   "pre-commit",
@@ -56,6 +67,7 @@ test = [
   "typing-extensions",
   "types-setuptools",
   "types-requests",
+  "types-tqdm"
 ]
 docs = ["sphinx"]
 
@@ -121,6 +133,7 @@ isort.required-imports = ["from __future__ import annotations"]
 [tool.mypy]
 namespace_packages = true
 ignore_missing_imports = true
+follow_untyped_imports = true
 
 [tool.coverage.report]
 exclude_also = [

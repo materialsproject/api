@@ -97,12 +97,12 @@ pyarrow==23.0.1
     # via mp-api (pyproject.toml)
 pybtex==0.26.1
     # via emmet-core
-pydantic==2.13.1
+pydantic==2.13.2
     # via
     #   emmet-core
     #   pydantic-settings
     #   pymatgen-io-validation
-pydantic-core==2.46.1
+pydantic-core==2.46.2
     # via pydantic
 pydantic-settings==2.13.1
     # via
