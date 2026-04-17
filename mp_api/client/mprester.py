@@ -56,7 +56,7 @@ if TYPE_CHECKING:
     )
     from pymatgen.util.typing import SpeciesLike
 
-    from mp_api.client.core.client import _DictLikeAccess
+    from mp_api.client.core.schemas import _DictLikeAccess
 
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U_R2SCAN"]}
 
