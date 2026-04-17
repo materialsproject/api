@@ -35,7 +35,7 @@ def test_dict_like_access():
     assert instance.get("d", None) == None
 
 
-def test_generate_model():
+def test_model_generation():
     a_vals = [1, 2]
     b_vals = [5.0, 7.0]
     c_vals = [
@@ -103,3 +103,6 @@ def test_generate_model():
         AttributeError, match="`a` data is available but has not been requested"
     ):
         as_models[0].a
+
+    # Ensure graceful handling of empty iterator input (no docs returned)
+    assert _convert_to_model(iter([]), TestClass) == []

@@ -20,7 +20,7 @@ from pymatgen.core.structure import Structure as PmgStructure
 
 from mp_api.client.contribs._logger import MPCC_LOGGER
 from mp_api.client.contribs.settings import MPCC_SETTINGS
-from mp_api.client.contribs.utils import _chunk_by_size, _compress, _in_ipython
+from mp_api.client.contribs.utils import _compress, _in_ipython
 from mp_api.client.core.exceptions import MPContribsClientError
 
 if TYPE_CHECKING:
@@ -316,70 +316,6 @@ class Attachment(dict, _Component):
         """
         keys = {"id", "name", "md5", "content", "mime"}
         return cls((k, v) for k, v in dct.items() if k in keys)
-
-
-class Attachments(list):
-    """Wrapper class to handle attachments automatically."""
-
-    # TODO implement "plural" versions for Attachment methods
-
-    @classmethod
-    def from_list(cls, elements: list) -> list[Attachment]:
-        if not isinstance(elements, list):
-            raise MPContribsClientError(
-                f"Use a list to initialize Attachments, not {type(elements)}."
-            )
-
-        attachments: list[Attachment] = []
-
-        for element in elements:
-            if len(attachments) >= MPCC_SETTINGS.MAX_ELEMS:
-                raise MPContribsClientError(
-                    f"max {MPCC_SETTINGS.MAX_ELEMS} attachments reached"
-                )
-
-            if isinstance(element, Attachment):
-                # simply append, size check already performed
-                attachments.append(element)
-            elif isinstance(element, (list, dict)):
-                attachments += cls.from_data(element)
-            elif isinstance(element, (str, Path)):
-                # don't split files, user should use from_data to split
-                attm = Attachment.from_file(element)
-                attachments.append(attm)
-            else:
-                raise MPContribsClientError("invalid element for Attachments")
-
-        return attachments
-
-    @classmethod
-    def from_data(
-        cls, data: list | dict, prefix: str = "attachment"
-    ) -> list[Attachment]:
-        """Construct list of attachments from data dict or list.
-
-        Args:
-            data (list,dict): JSON-serializable data to go into the attachments
-            prefix (str): prefix for attachment name(s)
-        """
-        try:
-            # try to make single attachment first
-            return [Attachment.from_data(data, name=prefix)]
-        except MPContribsClientError:
-            # chunk data into multiple attachments with < MAX_BYTES
-            if isinstance(data, dict):
-                raise NotImplementedError("dicts not supported yet")
-
-            attachments: list[Attachment] = []
-
-            for idx, chunk in enumerate(_chunk_by_size(data)):
-                if len(attachments) > MPCC_SETTINGS.MAX_ELEMS:
-                    raise MPContribsClientError("list too large to split")
-
-                attm = Attachment.from_data(chunk, name=f"{prefix}{idx}")
-                attachments.append(attm)
-
-            return attachments
 
 
 ComponentIdSets = dict[str, set[str]]

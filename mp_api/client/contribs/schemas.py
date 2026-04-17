@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Literal, Self, get_args
 
 import pandas as pd
+from emmet.core.types.typing import DateTimeType
 from pydantic import BaseModel, Field, create_model, field_serializer, field_validator
 from pymatgen.core import Structure
 
@@ -119,7 +119,7 @@ def _get_pydantic_from_dataframe(
         if not all(pd.isna(df[col_name]))
     }
 
-    return create_model("InferredModel", **model_fields), columns_renamed  # type: ignore[call-overload]
+    return create_model("InferredModel", __base__=_DictLikeAccess, **model_fields), columns_renamed  # type: ignore[call-overload]
 
 
 class Reference(_DictLikeAccess):
@@ -223,9 +223,9 @@ class BaseContrib(_DictLikeAccess):
     formula: str | None = None
     identifier: str | None = None
     is_public: bool = False
-    last_modified: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    last_modified: DateTimeType
     needs_build: bool = True
-    data: dict[str, str | Datum | None] = {}
+    data: dict[str, str | bool | Datum | None] = {}
 
     @field_validator("data", mode="before")
     def construct_data(cls, d: dict) -> dict[str, str | Datum]:
@@ -288,10 +288,14 @@ class ContribSubmission(BaseContrib):
         """Construct a contribution from a DataFrame."""
         base_model, columns_renamed = _get_pydantic_from_dataframe(df)
 
-        non_null_typs = {
-            k: next(t for t in get_args(field.annotation) if t is not None)
-            for k, field in base_model.model_fields.items()
-        }
+        non_null_typs = {}
+        for k, field in base_model.model_fields.items():
+            try:
+                non_null_typs[k] = next(
+                    t for t in get_args(field.annotation) if t is not None
+                )
+            except StopIteration:
+                non_null_typs[k] = field.annotation
 
         # sanitize data
         sanitized = [
