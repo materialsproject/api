@@ -41,6 +41,7 @@ contribs = [
   "filetype",
   "ipython",
   "json2html",
+  "pint>=0.25.0",
   "pyIsEmail",
   "requests-futures",
   "swagger-spec-validator",
