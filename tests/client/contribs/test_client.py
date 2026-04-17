@@ -1,7 +1,7 @@
 import pytest
 
 from unittest.mock import patch, MagicMock
-from mpcontribs.client import validate_email, Client, email_format
+from mp_api.client.contribs.client import validate_email, ContribsClient, email_format
 from swagger_spec_validator.common import SwaggerValidationError
 
 
@@ -24,7 +24,7 @@ def test_validate_email():
 )
 def test_mock():
     host = "localhost:10000"
-    with Client(host=host, headers={"a": "b"}) as client:
+    with ContribsClient(host=host, headers={"a": "b"}) as client:
         spec = client.swagger_spec
         headers = spec.http_client.session.headers
         assert headers.get("Content-Type") == "application/json"
@@ -35,7 +35,7 @@ def test_mock():
         assert spec.user_defined_formats["email"] == email_format
 
     host = "contribs-apis:10000"
-    with Client(host=host) as client:
+    with ContribsClient(host=host) as client:
         spec = client.swagger_spec
         headers = spec.http_client.session.headers
         assert headers.get("Content-Type") == "application/json"
@@ -45,7 +45,7 @@ def test_mock():
         assert spec.user_defined_formats["email"] == email_format
 
     host = "192.168.0.40:10000"
-    with Client(host=host) as client:
+    with ContribsClient(host=host) as client:
         spec = client.swagger_spec
         headers = spec.http_client.session.headers
         assert headers.get("Content-Type") == "application/json"
@@ -55,5 +55,5 @@ def test_mock():
         assert spec.user_defined_formats["email"] == email_format
 
     with pytest.raises(ValueError):
-        with Client(host="not.valid.org") as client:
+        with ContribsClient(host="not.valid.org") as client:
             spec = client.swagger_spec
