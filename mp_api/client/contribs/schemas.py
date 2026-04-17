@@ -315,7 +315,7 @@ class ContribSubmission(BaseContrib):
         }
 
         return [
-            cls(
+            cls(  # type: ignore[call-arg]
                 identifier=str(idx),
                 project=project,
                 data={

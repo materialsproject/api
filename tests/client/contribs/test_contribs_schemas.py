@@ -87,7 +87,8 @@ def test_pydantic_from_pandas(sample_data):
 
     # Now test that the document model actually works
     # Should permit dict-like key access
-    rows = [row.to_dict() for _, row in sample_data.iterrows()]
+    sanitized = sample_data.replace({np.nan: None})
+    rows = [row.to_dict() for _, row in sanitized.iterrows()]
     docs = [
         base_model(
             **{camel_col: row_dict[old_col] for old_col, camel_col in col_map.items()}
@@ -101,10 +102,10 @@ def test_pydantic_from_pandas(sample_data):
     for old_col, camel_col in col_map.items():
         if camel_col in (expected_col_types):
             assert [doc[camel_col] for doc in docs] == pytest.approx(
-                sample_data[old_col].tolist()
+                sanitized[old_col].tolist()
             )
         else:
-            assert [doc[camel_col] for doc in docs] == sample_data[old_col].tolist()
+            assert [doc[camel_col] for doc in docs] == sanitized[old_col].tolist()
 
 
 def test_contrib_submission_from_pandas(sample_data):
@@ -141,6 +142,7 @@ def test_contrib_submission_from_pandas(sample_data):
         contrib["data"][k] == sample_data[new_to_old_col[k]][idx]
         for idx, contrib in enumerate(contributions)
         for k in ("IsStable", "Interpretation")
+        if not pd.isna(sample_data[new_to_old_col[k]][idx])
     )
 
     # Test that these are JSONable
