@@ -22,8 +22,8 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client.core.client import _Rester
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
+from mp_api.client.core.client import _Rester
 from mp_api.client.core.exceptions import (
     MPRestError,
     MPRestWarning,
@@ -33,7 +33,6 @@ from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     LazyImport,
     load_json,
-    validate_endpoint,
     validate_ids,
 )
 from mp_api.client.routes import GENERIC_RESTERS
@@ -94,7 +93,7 @@ class MPRester(_Rester):
         endpoint: str | None = None,
         include_user_agent: bool = True,
         use_document_model: bool = True,
-        session: requests.Session | None = None,
+        session: Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
         local_dataset_cache: (
@@ -143,18 +142,17 @@ class MPRester(_Rester):
                 from multiple computing environments.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-
         super().__init__(
-            api_key = api_key,
-            endpoint = endpoint,
-            include_user_agent = include_user_agent,
-            use_document_model = use_document_model,
-            session = session,
-            headers = headers,
-            mute_progress_bars = mute_progress_bars,
-            local_dataset_cache = local_dataset_cache,
-            force_renew = force_renew,
-            query_builder = query_builder,
+            api_key=api_key,
+            endpoint=endpoint,
+            include_user_agent=include_user_agent,
+            use_document_model=use_document_model,
+            session=session,
+            headers=headers,
+            mute_progress_bars=mute_progress_bars,
+            local_dataset_cache=local_dataset_cache,
+            force_renew=force_renew,
+            query_builder=query_builder,
         )
 
         self._contribs = None

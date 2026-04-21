@@ -23,7 +23,6 @@ from io import BytesIO
 from itertools import chain, islice
 from json import JSONDecodeError
 from math import ceil
-from pathlib import Path
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
 from urllib.parse import urljoin
 
@@ -53,7 +52,6 @@ from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     MPDataset,
     load_json,
-    validate_api_key,
     validate_endpoint,
     validate_ids,
 )
@@ -105,9 +103,10 @@ class _DictLikeAccess(BaseModel):
         except AttributeError:
             return default
 
+
 class _Rester:
-    """Define base attributes of a REST interface."""
-    
+    """Define base attributes of a REST client."""
+
     def __init__(
         self,
         api_key: str | None = None,
@@ -180,7 +179,7 @@ class _Rester:
 
         if "monty_decode" in kwargs:
             # Pop to not repeatedly trigger warning to the user
-            kwargs.pop("monty_decode",None)
+            kwargs.pop("monty_decode", None)
             warnings.warn(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
                 "The client by default returns results consistent with `monty_decode=True`.",
@@ -304,18 +303,17 @@ class BaseRester(_Rester):
             timeout: Time in seconds to wait until a request timeout error is thrown
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-
         super().__init__(
-            api_key = api_key,
-            endpoint = endpoint,
-            include_user_agent = include_user_agent,
-            use_document_model = use_document_model,
-            session = session,
-            headers = headers,
-            mute_progress_bars = mute_progress_bars,
-            local_dataset_cache = local_dataset_cache,
-            force_renew = force_renew,
-            query_builder = query_builder,
+            api_key=api_key,
+            endpoint=endpoint,
+            include_user_agent=include_user_agent,
+            use_document_model=use_document_model,
+            session=session,
+            headers=headers,
+            mute_progress_bars=mute_progress_bars,
+            local_dataset_cache=local_dataset_cache,
+            force_renew=force_renew,
+            query_builder=query_builder,
         )
 
         self.base_endpoint = validate_endpoint(endpoint)
@@ -329,7 +327,7 @@ class BaseRester(_Rester):
         self.timeout = timeout
         self._s3_client = s3_client
 
-        self._delta_tables : dict[str,DeltaTable] = {}
+        self._delta_tables: dict[str, DeltaTable] = {}
 
     @property
     def s3_client(self):
@@ -339,7 +337,6 @@ class BaseRester(_Rester):
                 config=Config(signature_version=UNSIGNED),  # type: ignore
             )
         return self._s3_client
-
 
     @staticmethod
     @cache
@@ -550,21 +547,29 @@ class BaseRester(_Rester):
 
         return decoded_data, len(decoded_data)  # type: ignore
 
-    def _get_delta_table(self, bucket : str, prefix : str, connector : str = "s3a") -> DeltaTable:
+    def _get_delta_table(
+        self, bucket: str, prefix: str, connector: str = "s3a"
+    ) -> DeltaTable:
         """Either create a new DeltaTable, or retrieve a cached one.
 
         Args:
             bucket (str) : name of the bucket in S3
             prefix (str) : name of the prefix in S3
-            connector (str) : s3, s3n, s3a (default), or other 
+            connector (str) : s3, s3n, s3a (default), or other
                 valid Hadoop connector string.
-        
+
         Returns:
             DeltaTable : If one exists at the specified bucket / prefix,
                 will retrieve the cached instance.
         """
-        if (uri := f"{connector}://{bucket}/{prefix}") not in self._delta_tables:        
-            self._delta_tables[uri] = DeltaTable(uri,storage_options={"AWS_SKIP_SIGNATURE": "true","AWS_REGION": "us-east-1"})
+        if (uri := f"{connector}://{bucket}/{prefix}") not in self._delta_tables:
+            self._delta_tables[uri] = DeltaTable(
+                uri,
+                storage_options={
+                    "AWS_SKIP_SIGNATURE": "true",
+                    "AWS_REGION": "us-east-1",
+                },
+            )
         return self._delta_tables[uri]
 
     def _query_delta_backed(
