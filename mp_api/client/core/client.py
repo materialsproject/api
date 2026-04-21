@@ -69,6 +69,17 @@ try:
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION", "")
 
+STATIC_COLLECTIONS = [
+    "eos",
+    "grain_boundaries",
+    "jcesr",
+    "molecules",
+    "phonon",
+    "snls",
+    "surface-properties",
+    "synth-descriptions",
+    "xas",
+]
 
 hdlr = logging.StreamHandler()
 fmt = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
@@ -834,6 +845,9 @@ class BaseRester(_Rester):
 
                 if "tasks" in suffix:
                     bucket_suffix, prefix = ("parsed", "core/tasks/")
+                elif suffix in STATIC_COLLECTIONS:
+                    bucket_suffix = "build"
+                    prefix = f"static-collections/{suffix}"
                 else:
                     bucket_suffix = "build"
                     prefix = f"collections/{self.db_version.replace('.', '-')}/{suffix}"
