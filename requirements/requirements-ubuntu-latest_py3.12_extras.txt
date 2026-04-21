@@ -238,7 +238,7 @@ lazy-loader==0.5
     # via scikit-image
 librt==0.9.0
     # via mypy
-lxml==6.0.4
+lxml==6.1.0
     # via pymatgen-core
 markdown-it-py==4.0.0
     # via rich
