@@ -4,20 +4,27 @@ import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-from emmet.core.band_theory import BSPathType
+import pyarrow as pa
+from emmet.core.band_theory import BSPathType, ElectronicBS, ElectronicDos
 from emmet.core.electronic_structure import (
     DOSProjectionType,
     ElectronicStructureDoc,
 )
+from emmet.core.mpid import AlphaID
+from emmet.core.vasp.calc_types.enums import RunType
 from pymatgen.analysis.magnetism.analyzer import Ordering
 from pymatgen.core.periodic_table import Element
+from pymatgen.electronic_structure.bandstructure import (
+    BandStructure,
+    BandStructureSymmLine,
+)
 from pymatgen.electronic_structure.core import OrbitalType, Spin
 
 from mp_api.client.core import BaseRester, MPRestError
-from mp_api.client.core.utils import load_json, validate_ids
+from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
-    from pymatgen.electronic_structure.dos import CompleteDos
+    from pymatgen.electronic_structure.dos import Dos
 
 
 class ElectronicStructureRester(BaseRester):
@@ -255,20 +262,47 @@ class BandStructureRester(BaseESPropertyRester):
             **query_params,
         )
 
-    def get_bandstructure_from_task_id(self, task_id: str):
+    def get_bandstructure_from_task_id(
+        self,
+        task_id: str,
+        run_type: str | RunType | None = None,
+        path_type: str | BSPathType | None = None,
+    ) -> BandStructure:
         """Get the band structure pymatgen object associated with a given task ID.
 
         Arguments:
             task_id (str): Task ID for the band structure calculation
-
+            run_type (str, RunType, or None): Optional run type,
+                will speed up query due to delta table partitioning.
+            path_type (str, BSPathType, or None) : Optional path type to
+                speed up query
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        return self._query_open_data(  # type: ignore[call-overload]
-            bucket="materialsproject-parsed",
-            key=f"bandstructures/{validate_ids([task_id])[0]}.json.gz",
-            decoder=lambda x: load_json(x, deser=True),
-        )[0][0]["data"]
+        bs_lbl, bs_tbl = self._get_delta_table(
+            "materialsproject-parsed",
+            "core/electronic-structure/bandstructures/",
+            label="bandstructure",
+        )
+
+        selection_string = f"""SELECT *
+FROM   {bs_lbl}
+WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'"""
+        if run_type:
+            rt = RunType(run_type) if isinstance(run_type, str) else run_type
+            selection_string += f"\nAND run_type='{rt.value}'"
+        if path_type:
+            selection_string += f"\nAND path_convention='{path_type}'"
+        table = pa.table(self.query_builder.execute(selection_string))
+        if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
+            emmet_bs = ElectronicBS(**deser[0])
+            return emmet_bs.to_pmg(
+                pmg_cls=BandStructureSymmLine if emmet_bs.labels_dict else BandStructure
+            )
+        raise MPRestError(
+            f"No bandstructure data found for {task_id=}"
+            + (f"run_type={rt}" if run_type else "")
+        )
 
     def get_bandstructure_from_material_id(
         self,
@@ -329,7 +363,10 @@ class BandStructureRester(BaseESPropertyRester):
                 )
             bs_task_id = bs_data["total"]["1"]["task_id"]
 
-        bs_obj = self.get_bandstructure_from_task_id(bs_task_id)
+        bs_obj = self.get_bandstructure_from_task_id(
+            bs_task_id,
+            path_type=path_type if line_mode else BSPathType.unknown,
+        )
 
         if bs_obj:
             return bs_obj
@@ -451,29 +488,46 @@ class DosRester(BaseESPropertyRester):
             **query_params,
         )
 
-    def get_dos_from_task_id(self, task_id: str) -> CompleteDos:
+    def get_dos_from_task_id(
+        self, task_id: str, run_type: str | RunType | None = None
+    ) -> Dos:
         """Get the density of states pymatgen object associated with a given calculation ID.
 
         Arguments:
             task_id (str): Task ID for the density of states calculation
+            run_type (str, RunType, or None): Optional run type to query by.
+                Will speed up query due to delta table partitioning.
 
         Returns:
-            bandstructure (CompleteDos): CompleteDos object
+            pymatgen Dos
         """
-        return self._query_open_data(  # type: ignore[call-overload]
-            bucket="materialsproject-parsed",
-            key=f"dos/{validate_ids([task_id])[0]}.json.gz",
-            decoder=lambda x: load_json(x, deser=True),
-        )[0][0]["data"]
+        dos_lbl, dos_tbl = self._get_delta_table(
+            "materialsproject-parsed",
+            "core/electronic-structure/total-dos/",
+            label="total_dos",
+        )
 
-    def get_dos_from_material_id(self, material_id: str):
+        selection_string = f"""SELECT *
+FROM   {dos_lbl}
+WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'"""
+        if run_type:
+            rt = RunType(run_type) if isinstance(run_type, str) else run_type
+            selection_string += f"\nAND run_type='{rt.value}'"
+        table = pa.table(self.query_builder.execute(selection_string))
+        if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
+            return ElectronicDos(**deser[0]).to_pmg()
+        raise MPRestError(
+            f"No DOS data found for {task_id=}" + (f"run_type={rt}" if run_type else "")
+        )
+
+    def get_dos_from_material_id(self, material_id: str) -> Dos:
         """Get the complete density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
             material_id (str): Materials Project ID for a material
 
         Returns:
-            dos (CompleteDos): CompleteDos object
+            pymatgen Dos
         """
         if not (
             dos_doc := self.es_rester.search(material_ids=material_id, fields=["dos"])
@@ -484,9 +538,6 @@ class DosRester(BaseESPropertyRester):
             raise MPRestError(f"No density of states data found for {material_id}")
 
         dos_task_id = (dos_data.model_dump() if self.use_document_model else dos_data)[
-            "total"
-        ]["1"]["task_id"]
-        if dos_obj := self.get_dos_from_task_id(dos_task_id):
-            return dos_obj
-
-        raise MPRestError("No density of states object found.")
+            "task_id"
+        ]
+        return self.get_dos_from_task_id(dos_task_id)

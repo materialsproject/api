@@ -166,16 +166,15 @@ class ThermoRester(BaseRester):
             )
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
-        version = self.db_version.replace(".", "-")
+        version = "2026-04-13"  # self.db_version.replace(".", "-")
 
-        pd_tbl = self._get_delta_table(
-            "materialsproject-build", "objects/phase-diagrams"
+        pd_lbl, pd_tbl = self._get_delta_table(
+            "materialsproject-build", "objects/phase-diagrams", label="phase_diagrams"
         )
-        qb = self._query_builder.register("phase_diagrams", pd_tbl)
         table = pa.table(
-            qb.execute(
+            self.query_builder.execute(
                 f"""SELECT phase_diagram
-            FROM   phase_diagrams
+            FROM   {pd_lbl}
             WHERE  chemsys='{sorted_chemsys}'
             AND  version='{version}'
             AND  thermo_type='{thermo_type}'

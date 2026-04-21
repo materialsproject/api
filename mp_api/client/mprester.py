@@ -48,6 +48,7 @@ if TYPE_CHECKING:
     from packaging.version import Version
     from pymatgen.analysis.phase_diagram import PDEntry
     from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
+    from pymatgen.electronic_structure.dos import Dos
     from pymatgen.entries.compatibility import Compatibility
     from pymatgen.entries.computed_entries import (
         ComputedEntry,
@@ -1121,18 +1122,34 @@ class MPRester(_Rester):
             material_id=material_id, path_type=path_type, line_mode=line_mode
         )
 
-    def get_dos_by_material_id(self, material_id: str):
-        """Get the complete density of states pymatgen object associated with a Materials Project ID.
+    def get_dos_by_material_id(self, material_id: str) -> Dos:
+        """Get the density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
             material_id (str): Materials Project ID for a material
 
         Returns:
-            dos (CompleteDos): CompleteDos object
+            pymatgen Dos
         """
-        return self.materials.electronic_structure_dos.get_dos_from_material_id(
-            material_id=material_id
-        )  # type: ignore
+        if (
+            not (
+                es_doc := self.materials.electronic_structure.search(
+                    material_ids=material_id, fields=["dos"]
+                )
+            )
+            or not es_doc[0]["dos"]
+        ):
+            raise MPRestError(f"No DOS found for {material_id}")
+
+        dos_data = es_doc[0]["dos"]
+        task_id = dos_data.task_id if self.use_document_model else dos_data["task_id"]
+        run_type = self.materials.tasks.search(task_ids=[task_id], fields=["run_type"])[
+            0
+        ]["run_type"]
+        return self.materials.electronic_structure_dos.get_dos_from_task_id(
+            task_id,
+            run_type=run_type,
+        )
 
     def get_phonon_dos_by_material_id(self, material_id: str):
         """Get phonon density of states data corresponding to a material_id.

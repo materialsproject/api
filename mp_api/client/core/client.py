@@ -268,7 +268,7 @@ class BaseRester(_Rester):
     ):
         """Initialize the REST API helper class.
 
-            s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
+            s3_client: boto3 S3 client object with which to connect to the object stores.
             timeout: Time in seconds to wait until a request timeout error is thrown
 
         Arguments:
@@ -548,21 +548,32 @@ class BaseRester(_Rester):
         return decoded_data, len(decoded_data)  # type: ignore
 
     def _get_delta_table(
-        self, bucket: str, prefix: str, connector: str = "s3a"
-    ) -> DeltaTable:
+        self,
+        bucket: str,
+        prefix: str,
+        connector: str = "s3a",
+        label: str | None = None,
+    ) -> tuple[str, DeltaTable]:
         """Either create a new DeltaTable, or retrieve a cached one.
+
+        If creating a new DeltaTable, will also register in self.query_builder
 
         Args:
             bucket (str) : name of the bucket in S3
             prefix (str) : name of the prefix in S3
             connector (str) : s3, s3n, s3a (default), or other
                 valid Hadoop connector string.
+            label (str or None) : optional label for the table in QueryBuilder
+                If `None`, will be gleaned from the URI
 
         Returns:
+            str : the table name in QueryBuilder
             DeltaTable : If one exists at the specified bucket / prefix,
                 will retrieve the cached instance.
         """
-        if (uri := f"{connector}://{bucket}/{prefix}") not in self._delta_tables:
+        full_key = f"{bucket}/{prefix}"
+        qb_label = label or full_key.replace("/", "_").replace("-", "_")
+        if (uri := f"{connector}://{full_key}") not in self._delta_tables:
             self._delta_tables[uri] = DeltaTable(
                 uri,
                 storage_options={
@@ -570,13 +581,16 @@ class BaseRester(_Rester):
                     "AWS_REGION": "us-east-1",
                 },
             )
-        return self._delta_tables[uri]
+            self.query_builder.register(qb_label, self._delta_tables[uri])
+
+        return qb_label, self._delta_tables[uri]
 
     def _query_delta_backed(
         self,
         bucket: str,
         prefix: str,
         timeout: int | None = None,
+        label: str | None = None,
     ) -> dict[str, Any]:
         """Retrieve data from S3 backed by a DeltaTable.
 
@@ -584,6 +598,7 @@ class BaseRester(_Rester):
             bucket (str) : S3 OpenData bucket
             prefix (str) : S3 object prefix
             timeout (int or None) : timeout on getting access-controlled groups
+            label (str or None) : label of the table in QueryBuilder
 
         Returns:
             dict of str to Any
@@ -640,7 +655,7 @@ class BaseRester(_Rester):
                     )
                 }
 
-        tbl = self._get_delta_table(bucket, prefix)
+        tbl_lbl, tbl = self._get_delta_table(bucket, prefix, label=label)
 
         controlled_batch_str = ",".join(
             [f"'{tag}'" for tag in self.access_controlled_batch_ids]
@@ -651,8 +666,6 @@ class BaseRester(_Rester):
             if not has_gnome_access
             else ""
         )
-
-        builder = self.query_builder.register("tbl", tbl)
 
         # Setup progress bar
         num_docs_needed: int = tbl.count()
@@ -675,7 +688,7 @@ class BaseRester(_Rester):
             else None
         )
 
-        iterator = builder.execute(f"SELECT * FROM tbl {predicate}")
+        iterator = self.query_builder.execute(f"SELECT * FROM {tbl_lbl} {predicate}")
 
         file_options = ds.ParquetFileFormat().make_write_options(compression="zstd")
 
