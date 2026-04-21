@@ -129,6 +129,7 @@ class BaseRester:
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
+        query_builder: QueryBuilder | None = None,
         **kwargs,
     ):
         """Initialize the REST API helper class.
@@ -163,6 +164,7 @@ class BaseRester:
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to 'mp_datasets' in the user's home directory
             force_renew: Option to overwrite existing local dataset
+            query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
         self.api_key = validate_api_key(api_key)
@@ -185,6 +187,7 @@ class BaseRester:
         self.force_renew = force_renew
 
         self._session = session
+        self._query_builder = query_builder or QueryBuilder()
         self._s3_client = s3_client
 
         if "monty_decode" in kwargs:
@@ -545,7 +548,7 @@ class BaseRester:
             else ""
         )
 
-        builder = QueryBuilder().register("tbl", tbl)
+        builder = self._query_builder.register("tbl", tbl)
 
         # Setup progress bar
         num_docs_needed: int = tbl.count()
@@ -1619,6 +1622,7 @@ class CoreRester(BaseRester):
                     mute_progress_bars=self.mute_progress_bars,
                     local_dataset_cache=self.local_dataset_cache,
                     force_renew=self.force_renew,
+                    query_builder=self._query_builder,
                 )
             return self.sub_resters[v]
         raise AttributeError(f"{self.__class__} has no attribute {v}")

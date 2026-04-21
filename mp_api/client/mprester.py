@@ -7,6 +7,7 @@ from collections import defaultdict
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 
+from deltalake import QueryBuilder
 from emmet.core.band_theory import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.types.enums import ThermoType
@@ -102,6 +103,7 @@ class MPRester:
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
+        query_builder: QueryBuilder | None = None,
         **kwargs,
     ):
         """Initialize the MPRester.
@@ -139,6 +141,7 @@ class MPRester:
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
+            query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
         self.api_key = get_user_api_key(api_key=api_key)
@@ -220,6 +223,7 @@ class MPRester:
 
         # Instantiate top level core molecules, materials, and DOI resters, as well
         # as the sunder resters to allow the web server to work.
+        self._query_builder = query_builder or QueryBuilder()
         for rest_name, lazy_rester in (RESTER_LAYOUT | GENERIC_RESTERS).items():
             if rest_name in TOP_LEVEL_RESTERS:
                 setattr(
@@ -235,6 +239,7 @@ class MPRester:
                         mute_progress_bars=self.mute_progress_bars,
                         local_dataset_cache=self.local_dataset_cache,
                         force_renew=self.force_renew,
+                        query_builder=self._query_builder,
                     ),
                 )
 

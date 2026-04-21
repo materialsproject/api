@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import numpy as np
 import pyarrow as pa
-from deltalake import DeltaTable, QueryBuilder
+from deltalake import DeltaTable
 from emmet.core.thermo import ThermoDoc
 from emmet.core.types.enums import ThermoType
 from emmet.core.types.pymatgen_types.phase_diagram_adapter import PhaseDiagramType
@@ -173,7 +173,7 @@ class ThermoRester(BaseRester):
             "s3://materialsproject-build/objects/phase-diagrams/",
             storage_options={"AWS_SKIP_SIGNATURE": "true", "AWS_REGION": "us-east-1"},
         )
-        qb = QueryBuilder().register("phase_diagrams", pd_tbl)
+        qb = self._query_builder.register("phase_diagrams", pd_tbl)
         table = pa.table(
             qb.execute(
                 f"""SELECT phase_diagram
