@@ -169,10 +169,7 @@ class ThermoRester(BaseRester):
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
         version = self.db_version.replace(".", "-")
 
-        pd_tbl = DeltaTable(
-            "s3://materialsproject-build/objects/phase-diagrams/",
-            storage_options={"AWS_SKIP_SIGNATURE": "true", "AWS_REGION": "us-east-1"},
-        )
+        pd_tbl = self._get_delta_table("materialsproject-build","objects/phase-diagrams")
         qb = self._query_builder.register("phase_diagrams", pd_tbl)
         table = pa.table(
             qb.execute(

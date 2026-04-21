@@ -22,8 +22,7 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
-from mp_api.client.core import BaseRester
+from mp_api.client.core.client import _Rester
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.exceptions import (
     MPRestError,
@@ -86,17 +85,16 @@ TOP_LEVEL_RESTERS = [
 ]
 
 
-class MPRester:
+class MPRester(_Rester):
     """Access the new Materials Project API."""
 
     def __init__(
         self,
         api_key: str | None = None,
         endpoint: str | None = None,
-        notify_db_version: bool = False,
         include_user_agent: bool = True,
         use_document_model: bool = True,
-        session: Session | None = None,
+        session: requests.Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
         local_dataset_cache: (
@@ -104,6 +102,7 @@ class MPRester:
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
         query_builder: QueryBuilder | None = None,
+        notify_db_version: bool = False,
         **kwargs,
     ):
         """Initialize the MPRester.
@@ -120,13 +119,6 @@ class MPRester:
                 interface. Defaults to the standard Materials Project REST
                 address at "https://api.materialsproject.org", but
                 can be changed to other URLs implementing a similar interface.
-            notify_db_version (bool): If True, the current MP database version will
-                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
-                version changes, you will be notified. The current database version is
-                also printed on instantiation. These local logs are not sent to
-                materialsproject.org and are not associated with your API key, so be
-                aware that a notification may not be presented if you run MPRester
-                from multiple computing environments.
             include_user_agent (bool): If True, will include a user agent with the
                 HTTP request including information on pymatgen and system version
                 making the API request. This helps MP support pymatgen users, and
@@ -142,25 +134,29 @@ class MPRester:
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
             query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
+            notify_db_version (bool): If True, the current MP database version will
+                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
+                version changes, you will be notified. The current database version is
+                also printed on instantiation. These local logs are not sent to
+                materialsproject.org and are not associated with your API key, so be
+                aware that a notification may not be presented if you run MPRester
+                from multiple computing environments.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        self.api_key = get_user_api_key(api_key=api_key)
 
-        self.endpoint = validate_endpoint(endpoint)
-
-        self.headers = headers or get_consumer()
-        self.session = session or BaseRester._create_session(
-            api_key=self.api_key,
-            include_user_agent=include_user_agent,
-            headers=self.headers,
+        super().__init__(
+            api_key = api_key,
+            endpoint = endpoint,
+            include_user_agent = include_user_agent,
+            use_document_model = use_document_model,
+            session = session,
+            headers = headers,
+            mute_progress_bars = mute_progress_bars,
+            local_dataset_cache = local_dataset_cache,
+            force_renew = force_renew,
+            query_builder = query_builder,
         )
-        if is_dev_env():
-            self.session.headers["x-api-key"] = self.api_key or ""
-        self._include_user_agent = include_user_agent
-        self.use_document_model = use_document_model
-        self.mute_progress_bars = mute_progress_bars
-        self.local_dataset_cache = local_dataset_cache
-        self.force_renew = force_renew
+
         self._contribs = None
 
         self._deprecated_attributes = [
@@ -193,14 +189,6 @@ class MPRester:
             "chemenv",
         ]
 
-        if "monty_decode" in kwargs:
-            warnings.warn(
-                "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
-                "The client by default returns results consistent with `monty_decode=True`.",
-                stacklevel=2,
-                category=MPRestWarning,
-            )
-
         # Check if emmet version of server is compatible
         if (emmet_version := MPRester.get_emmet_version(self.endpoint)) and (
             version.parse(emmet_version.base_version)
@@ -223,7 +211,6 @@ class MPRester:
 
         # Instantiate top level core molecules, materials, and DOI resters, as well
         # as the sunder resters to allow the web server to work.
-        self._query_builder = query_builder or QueryBuilder()
         for rest_name, lazy_rester in (RESTER_LAYOUT | GENERIC_RESTERS).items():
             if rest_name in TOP_LEVEL_RESTERS:
                 setattr(
@@ -232,7 +219,7 @@ class MPRester:
                     lazy_rester(
                         api_key=self.api_key,
                         endpoint=self.endpoint,
-                        include_user_agent=self._include_user_agent,
+                        include_user_agent=self.include_user_agent,
                         session=self.session,
                         use_document_model=self.use_document_model,
                         headers=self.headers,
@@ -273,14 +260,6 @@ class MPRester:
                 )
 
         return self._contribs
-
-    def __enter__(self):
-        """Support for "with" context."""
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Support for "with" context."""
-        self.session.close()
 
     def __getattr__(self, attr):
         if attr in self._deprecated_attributes:

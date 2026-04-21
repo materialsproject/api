@@ -43,6 +43,7 @@ from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
+from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
 from mp_api.client.core.exceptions import (
     MPRestError,
     MPRestWarning,
@@ -104,24 +105,16 @@ class _DictLikeAccess(BaseModel):
         except AttributeError:
             return default
 
-
-class BaseRester:
-    """Base client class with core stubs."""
-
-    suffix: str = ""
-    document_model: type[BaseModel] = _DictLikeAccess
-    primary_key: str = "material_id"
-    delta_backed: bool = False
-
+class _Rester:
+    """Define base attributes of a REST interface."""
+    
     def __init__(
         self,
         api_key: str | None = None,
         endpoint: str | None = None,
         include_user_agent: bool = True,
-        session: requests.Session | None = None,
-        s3_client: Any | None = None,
         use_document_model: bool = True,
-        timeout: int = 20,
+        session: requests.Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
         local_dataset_cache: (
@@ -130,8 +123,8 @@ class BaseRester:
         force_renew: bool = False,
         query_builder: QueryBuilder | None = None,
         **kwargs,
-    ):
-        """Initialize the REST API helper class.
+    ) -> None:
+        """Initialize a RESTer.
 
         Arguments:
             api_key: A String API key for accessing the MaterialsProject
@@ -150,13 +143,11 @@ class BaseRester:
                 making the API request. This helps MP support pymatgen users, and
                 is similar to what most web browsers send with each page request.
                 Set to False to disable the user agent.
-            session: requests Session object with which to connect to the API, for
-                advanced usage only.
-            s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
             use_document_model: If False, skip the creating the document model and return data
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
-            timeout: Time in seconds to wait until a request timeout error is thrown
+            session: requests Session object with which to connect to the API, for
+                advanced usage only.
             headers: Custom headers for localhost connections.
             mute_progress_bars: Whether to disable progress bars.
             local_dataset_cache: Target directory for downloading full datasets. Defaults
@@ -165,34 +156,36 @@ class BaseRester:
             query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        self.api_key = validate_api_key(api_key)
-        self.base_endpoint = validate_endpoint(endpoint)
-        self.endpoint = validate_endpoint(endpoint, suffix=self.suffix)
+        self.api_key = get_user_api_key(api_key=api_key)
+        self.endpoint = validate_endpoint(endpoint)
 
         self.include_user_agent = include_user_agent
         self.use_document_model = use_document_model
-        self.timeout = timeout
-        self.headers = headers or {}
+
+        self.headers = headers or get_consumer()
+        self._session = session or _Rester._create_session(
+            api_key=self.api_key,
+            include_user_agent=self.include_user_agent,
+            headers=self.headers,
+        )
+
+        if is_dev_env():
+            self._session.headers["x-api-key"] = self.api_key or ""
+
+        self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars
-
-        (
-            self.db_version,
-            self.access_controlled_batch_ids,
-        ) = BaseRester._get_heartbeat_info(self.base_endpoint)
-
-        self.local_dataset_cache: Path = Path(local_dataset_cache)
+        self.local_dataset_cache = local_dataset_cache
         self.force_renew = force_renew
-
-        self._session = session
         self._query_builder = query_builder
-        self._s3_client = s3_client
 
         if "monty_decode" in kwargs:
+            # Pop to not repeatedly trigger warning to the user
+            kwargs.pop("monty_decode",None)
             warnings.warn(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
                 "The client by default returns results consistent with `monty_decode=True`.",
-                category=MPRestWarning,
                 stacklevel=2,
+                category=MPRestWarning,
             )
 
     @property
@@ -202,15 +195,6 @@ class BaseRester:
                 self.api_key, self.include_user_agent, self.headers
             )
         return self._session
-
-    @property
-    def s3_client(self):
-        if not self._s3_client:
-            self._s3_client = boto3.client(
-                "s3",
-                config=Config(signature_version=UNSIGNED),  # type: ignore
-            )
-        return self._s3_client
 
     @property
     def query_builder(self):
@@ -255,6 +239,107 @@ class BaseRester:
         if self.session is not None:
             self.session.close()
         self._session = None
+
+
+class BaseRester(_Rester):
+    """Base client class with core stubs."""
+
+    suffix: str = ""
+    document_model: type[BaseModel] = _DictLikeAccess
+    primary_key: str = "material_id"
+    delta_backed: bool = False
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        endpoint: str | None = None,
+        include_user_agent: bool = True,
+        use_document_model: bool = True,
+        session: requests.Session | None = None,
+        headers: dict | None = None,
+        mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
+        local_dataset_cache: (
+            str | os.PathLike
+        ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
+        force_renew: bool = False,
+        query_builder: QueryBuilder | None = None,
+        s3_client: Any | None = None,
+        timeout: int = 20,
+        **kwargs,
+    ):
+        """Initialize the REST API helper class.
+
+            s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
+            timeout: Time in seconds to wait until a request timeout error is thrown
+
+        Arguments:
+            api_key: A String API key for accessing the MaterialsProject
+                REST interface. Please obtain your API key at
+                https://www.materialsproject.org/dashboard. If this is None,
+                the code will check if there is a "PMG_MAPI_KEY" setting.
+                If so, it will use that environment variable. This makes
+                easier for heavy users to simply add this environment variable to
+                their setups and MPRester can then be called without any arguments.
+            endpoint: Url of endpoint to access the MaterialsProject REST
+                interface. Defaults to the standard Materials Project REST
+                address at "https://api.materialsproject.org", but
+                can be changed to other urls implementing a similar interface.
+            include_user_agent: If True, will include a user agent with the
+                HTTP request including information on pymatgen and system version
+                making the API request. This helps MP support pymatgen users, and
+                is similar to what most web browsers send with each page request.
+                Set to False to disable the user agent.
+            session: requests Session object with which to connect to the API, for
+                advanced usage only.
+            use_document_model: If False, skip the creating the document model and return data
+                as a dictionary. This can be simpler to work with but bypasses data validation
+                and will not give auto-complete for available fields.
+            headers: Custom headers for localhost connections.
+            mute_progress_bars: Whether to disable progress bars.
+            local_dataset_cache: Target directory for downloading full datasets. Defaults
+                to 'mp_datasets' in the user's home directory
+            force_renew: Option to overwrite existing local dataset
+            query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
+            s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
+            timeout: Time in seconds to wait until a request timeout error is thrown
+            **kwargs: access to legacy kwargs that may be in the process of being deprecated
+        """
+
+        super().__init__(
+            api_key = api_key,
+            endpoint = endpoint,
+            include_user_agent = include_user_agent,
+            use_document_model = use_document_model,
+            session = session,
+            headers = headers,
+            mute_progress_bars = mute_progress_bars,
+            local_dataset_cache = local_dataset_cache,
+            force_renew = force_renew,
+            query_builder = query_builder,
+        )
+
+        self.base_endpoint = validate_endpoint(endpoint)
+        self.endpoint = validate_endpoint(endpoint, suffix=self.suffix)
+
+        (
+            self.db_version,
+            self.access_controlled_batch_ids,
+        ) = BaseRester._get_heartbeat_info(self.base_endpoint)
+
+        self.timeout = timeout
+        self._s3_client = s3_client
+
+        self._delta_tables : dict[str,DeltaTable] = {}
+
+    @property
+    def s3_client(self):
+        if not self._s3_client:
+            self._s3_client = boto3.client(
+                "s3",
+                config=Config(signature_version=UNSIGNED),  # type: ignore
+            )
+        return self._s3_client
+
 
     @staticmethod
     @cache
@@ -465,15 +550,22 @@ class BaseRester:
 
         return decoded_data, len(decoded_data)  # type: ignore
 
-    @staticmethod
-    def _get_delta_table(bucket : str, prefix : str) -> DeltaTable:
-        return DeltaTable(
-            f"s3a://{bucket}/{prefix}",
-            storage_options={
-                "AWS_SKIP_SIGNATURE": "true",
-                "AWS_REGION": "us-east-1",
-            },
-        )
+    def _get_delta_table(self, bucket : str, prefix : str, connector : str = "s3a") -> DeltaTable:
+        """Either create a new DeltaTable, or retrieve a cached one.
+
+        Args:
+            bucket (str) : name of the bucket in S3
+            prefix (str) : name of the prefix in S3
+            connector (str) : s3, s3n, s3a (default), or other 
+                valid Hadoop connector string.
+        
+        Returns:
+            DeltaTable : If one exists at the specified bucket / prefix,
+                will retrieve the cached instance.
+        """
+        if (uri := f"{connector}://{bucket}/{prefix}") not in self._delta_tables:        
+            self._delta_tables[uri] = DeltaTable(uri,storage_options={"AWS_SKIP_SIGNATURE": "true","AWS_REGION": "us-east-1"})
+        return self._delta_tables[uri]
 
     def _query_delta_backed(
         self,
@@ -543,13 +635,7 @@ class BaseRester:
                     )
                 }
 
-        tbl = DeltaTable(
-            f"s3a://{bucket}/{prefix}",
-            storage_options={
-                "AWS_SKIP_SIGNATURE": "true",
-                "AWS_REGION": "us-east-1",
-            },
-        )
+        tbl = self._get_delta_table(bucket, prefix)
 
         controlled_batch_str = ",".join(
             [f"'{tag}'" for tag in self.access_controlled_batch_ids]
