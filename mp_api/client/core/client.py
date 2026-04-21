@@ -120,7 +120,6 @@ class BaseRester:
         include_user_agent: bool = True,
         session: requests.Session | None = None,
         s3_client: Any | None = None,
-        debug: bool = False,
         use_document_model: bool = True,
         timeout: int = 20,
         headers: dict | None = None,
@@ -154,7 +153,6 @@ class BaseRester:
             session: requests Session object with which to connect to the API, for
                 advanced usage only.
             s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
-            debug: if True, print the URL for every request
             use_document_model: If False, skip the creating the document model and return data
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
@@ -171,7 +169,6 @@ class BaseRester:
         self.base_endpoint = validate_endpoint(endpoint)
         self.endpoint = validate_endpoint(endpoint, suffix=self.suffix)
 
-        self.debug = debug
         self.include_user_agent = include_user_agent
         self.use_document_model = use_document_model
         self.timeout = timeout
@@ -187,7 +184,7 @@ class BaseRester:
         self.force_renew = force_renew
 
         self._session = session
-        self._query_builder = query_builder or QueryBuilder()
+        self._query_builder = query_builder
         self._s3_client = s3_client
 
         if "monty_decode" in kwargs:
@@ -214,6 +211,12 @@ class BaseRester:
                 config=Config(signature_version=UNSIGNED),  # type: ignore
             )
         return self._s3_client
+
+    @property
+    def query_builder(self):
+        if not self._query_builder:
+            self._query_builder = QueryBuilder()
+        return self._query_builder
 
     @staticmethod
     def _create_session(api_key, include_user_agent, headers):
@@ -462,6 +465,16 @@ class BaseRester:
 
         return decoded_data, len(decoded_data)  # type: ignore
 
+    @staticmethod
+    def _get_delta_table(bucket : str, prefix : str) -> DeltaTable:
+        return DeltaTable(
+            f"s3a://{bucket}/{prefix}",
+            storage_options={
+                "AWS_SKIP_SIGNATURE": "true",
+                "AWS_REGION": "us-east-1",
+            },
+        )
+
     def _query_delta_backed(
         self,
         bucket: str,
@@ -548,7 +561,7 @@ class BaseRester:
             else ""
         )
 
-        builder = self._query_builder.register("tbl", tbl)
+        builder = self.query_builder.register("tbl", tbl)
 
         # Setup progress bar
         num_docs_needed: int = tbl.count()
