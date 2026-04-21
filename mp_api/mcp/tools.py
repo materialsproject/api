@@ -12,7 +12,8 @@ from emmet.core.chemenv import (
     COORDINATION_GEOMETRIES_IUPAC,
     COORDINATION_GEOMETRIES_NAMES,
 )
-from emmet.core.electronic_structure import BSPathType, DOSProjectionType
+from emmet.core.band_theory import BSPathType
+from emmet.core.electronic_structure import DOSProjectionType
 from emmet.core.grain_boundary import GBTypeEnum
 from emmet.core.mpid import MPID
 from emmet.core.summary import HasProps

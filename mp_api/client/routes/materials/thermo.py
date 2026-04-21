@@ -3,13 +3,17 @@ from __future__ import annotations
 from collections import defaultdict
 
 import numpy as np
+import pyarrow as pa
+from deltalake import DeltaTable, QueryBuilder
 from emmet.core.thermo import ThermoDoc
 from emmet.core.types.enums import ThermoType
+from emmet.core.types.pymatgen_types.phase_diagram_adapter import PhaseDiagramType
+from pydantic import TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import load_json, validate_ids
+from mp_api.client.core.utils import validate_ids
 
 
 class ThermoRester(BaseRester):
@@ -163,21 +167,28 @@ class ThermoRester(BaseRester):
             )
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
-        phdiag_id = f"thermo_type={t_type}/chemsys={sorted_chemsys}"
         version = self.db_version.replace(".", "-")
-        obj_key = f"objects/{version}/phase-diagrams/{phdiag_id}.jsonl.gz"
-        pd_dct = self._query_open_data(  # type: ignore[union-attr]
-            bucket="materialsproject-build",
-            key=obj_key,
-            decoder=lambda x: load_json(x, deser=False),
-        )[0][0].get("phase_diagram")
 
-        pd = PhaseDiagram.from_dict(
-            {
-                k: v if k != "elements" else [e.get("element", e) for e in v]
-                for k, v in pd_dct.items()  # type: ignore[union-attr]
-            }
+        pd_tbl = DeltaTable(
+            "s3://materialsproject-build/objects/phase-diagrams/",
+            storage_options={"AWS_SKIP_SIGNATURE": "true", "AWS_REGION": "us-east-1"},
         )
+        qb = QueryBuilder().register("phase_diagrams", pd_tbl)
+        table = pa.table(
+            qb.execute(
+                f"""SELECT phase_diagram
+            FROM   phase_diagrams
+            WHERE  chemsys='{sorted_chemsys}'
+            AND  version='{version}'
+            AND  thermo_type='{thermo_type}'
+            """
+            )
+        )
+        as_py = table["phase_diagram"].to_pylist(maps_as_pydicts="strict")
+
+        pd: PhaseDiagram | None = None
+        if len(pds := TypeAdapter(list[PhaseDiagramType]).validate_python(as_py)) > 0:
+            pd = pds[0]
 
         # Ensure el_ref keys are Element objects for PDPlotter.
         # Ensure qhull_data is a numpy array
