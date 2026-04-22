@@ -1232,7 +1232,7 @@ class MPRester:
             (Chgcar, (Chgcar, CoreTaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and CoreTaskDoc
         """
         # TODO: change when `validate_ids` is updated to return AlphaID
-        validated_id = AlphaID(f"mp-{validate_ids([task_id])[0].split(" - ")[-1]}")
+        validated_id = AlphaID(f"mp-{validate_ids([task_id])[0].split('-')[-1]}")
         chgcar = self.materials.tasks._query_open_data(
             bucket="materialsproject-parsed",
             key=f"chgcars/{validated_id.string}.json.gz",
