@@ -174,6 +174,7 @@ class BaseESPropertyRester(BaseRester):
 
 class BandStructureRester(BaseESPropertyRester):
     suffix = "materials/electronic_structure/bandstructure"
+    delta_backed = False
 
     def search_bandstructure_summary(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
@@ -375,6 +376,7 @@ WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'"""
 
 class DosRester(BaseESPropertyRester):
     suffix = "materials/electronic_structure/dos"
+    delta_backed = False
 
     def search_dos_summary(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""

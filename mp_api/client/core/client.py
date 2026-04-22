@@ -257,7 +257,7 @@ class BaseRester(_Rester):
     suffix: str = ""
     document_model: type[BaseModel] = _DictLikeAccess
     primary_key: str = "material_id"
-    delta_backed: bool = False
+    delta_backed: bool = True
 
     def __init__(
         self,

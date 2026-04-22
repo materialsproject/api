@@ -38,7 +38,7 @@ class TaskRester(BaseRester):
         traj_lbl, traj_tbl = self._get_delta_table(
             "materialsproject-parsed",
             "core/trajectories/",
-            label = "traj",
+            label="traj",
         )
 
         traj_data = pa.table(

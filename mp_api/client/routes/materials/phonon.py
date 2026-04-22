@@ -18,6 +18,7 @@ class PhononRester(BaseRester):
     suffix = "materials/phonon"
     document_model = PhononBSDOSDoc  # type: ignore
     primary_key = "material_id"
+    delta_backed = False
 
     def search(
         self,

@@ -42,8 +42,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Any, Literal
 
-    from deltalake import QueryBuilder
     import numpy as np
+    from deltalake import QueryBuilder
     from emmet.core.tasks import CoreTaskDoc
     from packaging.version import Version
     from pymatgen.analysis.phase_diagram import PDEntry
