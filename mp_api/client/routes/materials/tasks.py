@@ -96,7 +96,11 @@ class TaskRester(BaseRester):
             if isinstance(task_ids, str):
                 task_ids = [task_ids]
 
-            query_params.update({"task_ids": ",".join(validate_ids(task_ids))})
+            # TODO: fix when validate_ids returns AlphaID
+            query_params["task_ids"] = ",".join(
+                str(AlphaID(task_id.split("-")[-1], padlen=8))
+                for task_id in validate_ids(task_ids)
+            )
 
         if formula:
             query_params.update({"formula": formula})
