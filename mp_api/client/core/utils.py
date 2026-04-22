@@ -116,10 +116,8 @@ def validate_ids(id_list: list[str]) -> list[str]:
             " data for all IDs and filter locally."
         )
 
-    # TODO: after the transition to AlphaID in the document models,
-    # The following line should be changed to
-    # return [validate_identifier(idx,serialize=True) for idx in id_list]
-    return [str(validate_identifier(idx)) for idx in id_list]
+    [validate_identifier(idx, serialize=False) for idx in id_list]
+    return [getattr(idx, "string", str(idx)) for idx in id_list]
 
 
 def validate_endpoint(endpoint: str | None, suffix: str | None = None) -> str:

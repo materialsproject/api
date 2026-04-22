@@ -7,7 +7,7 @@ from collections import defaultdict
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 
-from emmet.core.electronic_structure import BSPathType
+from emmet.core.band_theory import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
@@ -21,9 +21,8 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
-from mp_api.client.core import BaseRester
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
+from mp_api.client.core.client import _Rester
 from mp_api.client.core.exceptions import (
     MPRestError,
     MPRestWarning,
@@ -33,7 +32,6 @@ from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     LazyImport,
     load_json,
-    validate_endpoint,
     validate_ids,
 )
 from mp_api.client.routes import GENERIC_RESTERS
@@ -45,10 +43,12 @@ if TYPE_CHECKING:
     from typing import Any, Literal
 
     import numpy as np
+    from deltalake import QueryBuilder
     from emmet.core.tasks import CoreTaskDoc
     from packaging.version import Version
     from pymatgen.analysis.phase_diagram import PDEntry
     from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
+    from pymatgen.electronic_structure.dos import Dos
     from pymatgen.entries.compatibility import Compatibility
     from pymatgen.entries.computed_entries import (
         ComputedEntry,
@@ -85,14 +85,13 @@ TOP_LEVEL_RESTERS = [
 ]
 
 
-class MPRester:
+class MPRester(_Rester):
     """Access the new Materials Project API."""
 
     def __init__(
         self,
         api_key: str | None = None,
         endpoint: str | None = None,
-        notify_db_version: bool = False,
         include_user_agent: bool = True,
         use_document_model: bool = True,
         session: Session | None = None,
@@ -102,6 +101,8 @@ class MPRester:
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
+        query_builder: QueryBuilder | None = None,
+        notify_db_version: bool = False,
         **kwargs,
     ):
         """Initialize the MPRester.
@@ -118,13 +119,6 @@ class MPRester:
                 interface. Defaults to the standard Materials Project REST
                 address at "https://api.materialsproject.org", but
                 can be changed to other URLs implementing a similar interface.
-            notify_db_version (bool): If True, the current MP database version will
-                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
-                version changes, you will be notified. The current database version is
-                also printed on instantiation. These local logs are not sent to
-                materialsproject.org and are not associated with your API key, so be
-                aware that a notification may not be presented if you run MPRester
-                from multiple computing environments.
             include_user_agent (bool): If True, will include a user agent with the
                 HTTP request including information on pymatgen and system version
                 making the API request. This helps MP support pymatgen users, and
@@ -139,25 +133,29 @@ class MPRester:
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
+            query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
+            notify_db_version (bool): If True, the current MP database version will
+                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
+                version changes, you will be notified. The current database version is
+                also printed on instantiation. These local logs are not sent to
+                materialsproject.org and are not associated with your API key, so be
+                aware that a notification may not be presented if you run MPRester
+                from multiple computing environments.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        self.api_key = get_user_api_key(api_key=api_key)
-
-        self.endpoint = validate_endpoint(endpoint)
-
-        self.headers = headers or get_consumer()
-        self.session = session or BaseRester._create_session(
-            api_key=self.api_key,
+        super().__init__(
+            api_key=api_key,
+            endpoint=endpoint,
             include_user_agent=include_user_agent,
-            headers=self.headers,
+            use_document_model=use_document_model,
+            session=session,
+            headers=headers,
+            mute_progress_bars=mute_progress_bars,
+            local_dataset_cache=local_dataset_cache,
+            force_renew=force_renew,
+            query_builder=query_builder,
         )
-        if is_dev_env():
-            self.session.headers["x-api-key"] = self.api_key or ""
-        self._include_user_agent = include_user_agent
-        self.use_document_model = use_document_model
-        self.mute_progress_bars = mute_progress_bars
-        self.local_dataset_cache = local_dataset_cache
-        self.force_renew = force_renew
+
         self._contribs = None
 
         self._deprecated_attributes = [
@@ -190,14 +188,6 @@ class MPRester:
             "chemenv",
         ]
 
-        if "monty_decode" in kwargs:
-            warnings.warn(
-                "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
-                "The client by default returns results consistent with `monty_decode=True`.",
-                stacklevel=2,
-                category=MPRestWarning,
-            )
-
         # Check if emmet version of server is compatible
         if (emmet_version := MPRester.get_emmet_version(self.endpoint)) and (
             version.parse(emmet_version.base_version)
@@ -228,13 +218,14 @@ class MPRester:
                     lazy_rester(
                         api_key=self.api_key,
                         endpoint=self.endpoint,
-                        include_user_agent=self._include_user_agent,
+                        include_user_agent=self.include_user_agent,
                         session=self.session,
                         use_document_model=self.use_document_model,
                         headers=self.headers,
                         mute_progress_bars=self.mute_progress_bars,
                         local_dataset_cache=self.local_dataset_cache,
                         force_renew=self.force_renew,
+                        query_builder=self._query_builder,
                     ),
                 )
 
@@ -268,14 +259,6 @@ class MPRester:
                 )
 
         return self._contribs
-
-    def __enter__(self):
-        """Support for "with" context."""
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Support for "with" context."""
-        self.session.close()
 
     def __getattr__(self, attr):
         if attr in self._deprecated_attributes:
@@ -1139,18 +1122,34 @@ class MPRester:
             material_id=material_id, path_type=path_type, line_mode=line_mode
         )
 
-    def get_dos_by_material_id(self, material_id: str):
-        """Get the complete density of states pymatgen object associated with a Materials Project ID.
+    def get_dos_by_material_id(self, material_id: str) -> Dos:
+        """Get the density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
             material_id (str): Materials Project ID for a material
 
         Returns:
-            dos (CompleteDos): CompleteDos object
+            pymatgen Dos
         """
-        return self.materials.electronic_structure_dos.get_dos_from_material_id(
-            material_id=material_id
-        )  # type: ignore
+        if (
+            not (
+                es_doc := self.materials.electronic_structure.search(
+                    material_ids=material_id, fields=["dos"]
+                )
+            )
+            or not es_doc[0]["dos"]
+        ):
+            raise MPRestError(f"No DOS found for {material_id}")
+
+        dos_data = es_doc[0]["dos"]
+        task_id = dos_data.task_id if self.use_document_model else dos_data["task_id"]
+        run_type = self.materials.tasks.search(task_ids=[task_id], fields=["run_type"])[
+            0
+        ]["run_type"]
+        return self.materials.electronic_structure_dos.get_dos_from_task_id(
+            task_id,
+            run_type=run_type,
+        )
 
     def get_phonon_dos_by_material_id(self, material_id: str):
         """Get phonon density of states data corresponding to a material_id.

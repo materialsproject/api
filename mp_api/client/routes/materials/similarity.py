@@ -26,6 +26,7 @@ class SimilarityRester(BaseRester):
     suffix = "materials/similarity"
     document_model = SimilarityDoc  # type: ignore
     primary_key = "material_id"
+    delta_backed = False
 
     _fingerprinter: SimilarityScorer | None = None
 
