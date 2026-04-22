@@ -7,7 +7,6 @@ from collections import defaultdict
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 
-from deltalake import QueryBuilder
 from emmet.core.band_theory import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.types.enums import ThermoType
@@ -43,6 +42,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Any, Literal
 
+    from deltalake import QueryBuilder
     import numpy as np
     from emmet.core.tasks import CoreTaskDoc
     from packaging.version import Version
