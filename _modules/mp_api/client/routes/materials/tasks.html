@@ -136,7 +136,13 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">task_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">task_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;task_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">task_ids</span><span class="p">))})</span>
+            <span class="c1"># TODO: this should just be a join on `validate_ids`,</span>
+            <span class="c1"># once `validate_ids` returns AlphaID</span>
+            <span class="n">validated</span> <span class="o">=</span> <span class="n">validate_ids</span><span class="p">(</span><span class="n">task_ids</span><span class="p">)</span>
+            <span class="n">validated</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span> <span class="k">for</span> <span class="n">task_id</span> <span class="ow">in</span> <span class="n">validated</span>
+            <span class="p">]</span>
+            <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;task_ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validated</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span> <span class="n">formula</span><span class="p">})</span>
