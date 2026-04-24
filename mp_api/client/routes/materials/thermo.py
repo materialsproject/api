@@ -174,7 +174,7 @@ class ThermoRester(BaseRester):
         )[0][0].get("phase_diagram")
 
         pd = PhaseDiagram.from_dict(
-            {
+            {  # type: ignore[arg-type]
                 k: v if k != "elements" else [e.get("element", e) for e in v]
                 for k, v in pd_dct.items()  # type: ignore[union-attr]
             }  # post pymatgen/-core split, different serialization behavior
