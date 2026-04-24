@@ -7,7 +7,7 @@ from collections import defaultdict
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 
-from emmet.core.electronic_structure import BSPathType
+from emmet.core.band_theory import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
@@ -1231,9 +1231,11 @@ class MPRester:
         Returns:
             (Chgcar, (Chgcar, CoreTaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and CoreTaskDoc
         """
+        # TODO: change when `validate_ids` is updated to return AlphaID
+        validated_id = AlphaID(validate_ids([task_id])[0].split("-")[-1], prefix="mp")
         chgcar = self.materials.tasks._query_open_data(
             bucket="materialsproject-parsed",
-            key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
+            key=f"chgcars/{validated_id.string}.json.gz",
             decoder=lambda x: load_json(x, deser=True),
         )[0][0]["data"]
 

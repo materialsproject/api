@@ -12,13 +12,13 @@ bibtexparser==1.4.4
     # via pymatgen-core
 blake3==1.0.8
     # via emmet-core
-boto3==1.42.90
+boto3==1.42.94
     # via mp-api (pyproject.toml)
-botocore==1.42.90
+botocore==1.42.94
     # via
     #   boto3
     #   s3transfer
-certifi==2026.2.25
+certifi==2026.4.22
     # via requests
 charset-normalizer==3.4.7
     # via requests
@@ -26,15 +26,15 @@ contourpy==1.3.3
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
-deltalake==1.5.0
+deltalake==1.5.1
     # via mp-api (pyproject.toml)
 deprecated==1.3.1
     # via deltalake
-emmet-core==0.86.4rc1
+emmet-core==0.86.4rc2
     # via mp-api (pyproject.toml)
 fonttools==4.62.1
     # via matplotlib
-idna==3.11
+idna==3.13
     # via requests
 inflect==7.5.0
     # via emmet-core
@@ -48,7 +48,7 @@ kiwisolver==1.5.0
     # via matplotlib
 latexcodec==3.0.1
     # via pybtex
-lxml==6.0.4
+lxml==6.1.0
     # via pymatgen-core
 matplotlib==3.10.8
     # via pymatgen-core
@@ -61,7 +61,7 @@ more-itertools==11.0.2
     # via inflect
 mpmath==1.3.0
     # via sympy
-narwhals==2.19.0
+narwhals==2.20.0
     # via plotly
 networkx==3.6.1
     # via pymatgen-core
@@ -93,18 +93,18 @@ plotly==6.7.0
     # via pymatgen-core
 pubchempy==1.0.5
     # via emmet-core
-pyarrow==23.0.1
+pyarrow==24.0.0
     # via mp-api (pyproject.toml)
 pybtex==0.26.1
     # via emmet-core
-pydantic==2.13.1
+pydantic==2.13.3
     # via
     #   emmet-core
     #   pydantic-settings
     #   pymatgen-io-validation
-pydantic-core==2.46.1
+pydantic-core==2.46.3
     # via pydantic
-pydantic-settings==2.13.1
+pydantic-settings==2.14.0
     # via
     #   emmet-core
     #   pymatgen-io-validation
@@ -137,7 +137,7 @@ requests==2.33.1
     #   pymatgen-io-validation
 ruamel-yaml==0.19.1
     # via monty
-s3transfer==0.16.0
+s3transfer==0.16.1
     # via boto3
 scipy==1.17.1
     # via pymatgen-core
