@@ -41,6 +41,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPID</span><span class="p">,</span> <span class="n">AlphaID</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreTaskDoc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelaxTrajectory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.vasp.calc_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunType</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
@@ -61,18 +62,28 @@
 
 <div class="viewcode-block" id="TaskRester.get_trajectory">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.tasks.TaskRester.html#mp_api.client.routes.materials.tasks.TaskRester.get_trajectory">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="n">MPID</span> <span class="o">|</span> <span class="n">AlphaID</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trajectory</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="n">MPID</span> <span class="o">|</span> <span class="n">AlphaID</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">RunType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a Trajectory object containing the geometry of the</span>
 <span class="sd">        material throughout a calculation. This is most useful for</span>
 <span class="sd">        observing how a material relaxes during a geometry optimization.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            task_id (str, MPID, AlphaID): Task ID</span>
+<span class="sd">            run_type (str, RunType): Task run type</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            dict representing emmet.core.trajectory.RelaxTrajectory</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">as_alpha</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">predicate</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;WHERE run_type=&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39; AND identifier=&#39;</span><span class="si">{</span><span class="n">as_alpha</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="k">if</span> <span class="n">run_type</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;WHERE identifier=&#39;</span><span class="si">{</span><span class="n">as_alpha</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+        <span class="p">)</span>
+
         <span class="n">traj_tbl</span> <span class="o">=</span> <span class="n">DeltaTable</span><span class="p">(</span>
             <span class="s2">&quot;s3a://materialsproject-parsed/core/trajectories/&quot;</span><span class="p">,</span>
             <span class="n">storage_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;AWS_SKIP_SIGNATURE&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;AWS_REGION&quot;</span><span class="p">:</span> <span class="s2">&quot;us-east-1&quot;</span><span class="p">},</span>
@@ -85,7 +96,7 @@
                 <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">                SELECT *</span>
 <span class="s2">                FROM   traj</span>
-<span class="s2">                WHERE  identifier=&#39;</span><span class="si">{</span><span class="n">as_alpha</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">                </span><span class="si">{</span><span class="n">predicate</span><span class="si">}</span><span class="s2">;</span>
 <span class="s2">                &quot;&quot;&quot;</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
