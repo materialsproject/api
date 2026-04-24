@@ -20,7 +20,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-  "pymatgen>=2022.3.7,!=2024.2.20",
+  "pymatgen>2024.2.20",
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",

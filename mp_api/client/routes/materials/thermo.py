@@ -7,6 +7,7 @@ from emmet.core.thermo import ThermoDoc
 from emmet.core.types.enums import ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
+from pymatgen.core import __version__ as __pmg_version__
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import load_json, validate_ids
@@ -176,7 +177,9 @@ class ThermoRester(BaseRester):
             {
                 k: v if k != "elements" else [e.get("element", e) for e in v]
                 for k, v in pd_dct.items()  # type: ignore[union-attr]
-            }
+            }  # post pymatgen/-core split, different serialization behavior
+            if int(__pmg_version__.split(".", 1)[0]) >= 2026
+            else pd_dct  # pymatgen<=2025.10.7
         )
 
         # Ensure el_ref keys are Element objects for PDPlotter.
