@@ -1,4 +1,5 @@
 """Define custom MCP tools for the Materials Project API."""
+
 from __future__ import annotations
 
 from fastmcp import FastMCP
