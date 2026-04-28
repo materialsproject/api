@@ -89,7 +89,9 @@ log_cli_level = "info"
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py312"
+
+[tool.ruff.lint]
 select = [
   "B",   # flake8-bugbear
   "D",   # pydocstyle
@@ -127,7 +129,7 @@ pydocstyle.convention = "google"
 flake8-unused-arguments.ignore-variadic-names = true
 isort.required-imports = ["from __future__ import annotations"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "*/__init__.py" = ["F401"] # F401: imported but unused
 
 [tool.mypy]

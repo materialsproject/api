@@ -1545,8 +1545,7 @@ class ContribsClient(SwaggerClient):
         data_id_fields: dict[str, str] | None = None,
         fmt: Literal["sets"] = "sets",
         op: VALID_OPS_T = "query",
-    ) -> AllIdSets:
-        ...
+    ) -> AllIdSets: ...
 
     @overload
     def get_all_ids(
@@ -1557,8 +1556,7 @@ class ContribsClient(SwaggerClient):
         data_id_fields: dict[str, str] | None = None,
         fmt: Literal["map"] = "map",
         op: VALID_OPS_T = "query",
-    ) -> AllIdMap:
-        ...
+    ) -> AllIdMap: ...
 
     def get_all_ids(
         self,
@@ -2222,13 +2220,11 @@ class ContribsClient(SwaggerClient):
                             include=MPCC_SETTINGS.COMPONENTS,
                             timeout=timeout,
                         ).get(project_name, {"identifiers": set()})
-                        unique_identifiers[
-                            project_name
-                        ] = self.projects.getProjectByName(
-                            pk=project_name, _fields=["unique_identifiers"]
-                        ).result()[
-                            "unique_identifiers"
-                        ]
+                        unique_identifiers[project_name] = (
+                            self.projects.getProjectByName(
+                                pk=project_name, _fields=["unique_identifiers"]
+                            ).result()["unique_identifiers"]
+                        )
                         existing_ids = existing.get(project_name, {}).get(
                             "identifiers", []
                         )
@@ -2342,9 +2338,9 @@ class ContribsClient(SwaggerClient):
                 for path in paths:
                     with gzip.open(path, "rb") as f:
                         for c in orjson.loads(f.read()):
-                            components_loaded[component][
-                                c["id"]
-                            ] = component_cls.from_dict(c)
+                            components_loaded[component][c["id"]] = (
+                                component_cls.from_dict(c)
+                            )
 
             cids = list(self._project_contrib_ids(values))
             if not cids:

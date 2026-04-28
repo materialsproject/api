@@ -1,4 +1,5 @@
 """Define unit registry used in the client."""
+
 from __future__ import annotations
 
 from pint import UnitRegistry

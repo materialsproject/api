@@ -74,9 +74,10 @@ def test_attachment():
         attachment.write(outdir=temp_dir)
         # Attachment can't read from gzipped output, so we ungzip first
         not_gzipped = Path(temp_dir) / attachment.name.split(".gz")[0]
-        with gzip.open(Path(temp_dir) / attachment.name, "rb") as f_in, open(
-            not_gzipped, "wb"
-        ) as f_out:
+        with (
+            gzip.open(Path(temp_dir) / attachment.name, "rb") as f_in,
+            open(not_gzipped, "wb") as f_out,
+        ):
             f_out.write(f_in.read())
 
         # create a copy of the original attachment from the non-gzipped file

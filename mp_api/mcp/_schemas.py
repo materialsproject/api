@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Self
 
 from emmet.core.summary import SummaryDoc
 from pydantic import BaseModel, Field, model_validator
 from pymatgen.core import Structure
-from typing_extensions import Self
 
 from mp_api.client.core.utils import validate_ids
 

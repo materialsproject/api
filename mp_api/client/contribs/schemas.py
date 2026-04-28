@@ -1,4 +1,5 @@
 """Define data models used when querying the client."""
+
 from __future__ import annotations
 
 import re

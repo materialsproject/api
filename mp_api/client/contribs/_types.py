@@ -24,9 +24,7 @@ from mp_api.client.contribs.utils import _compress, _in_ipython
 from mp_api.client.core.exceptions import MPContribsClientError
 
 if TYPE_CHECKING:
-    from typing import Any, Literal
-
-    from typing_extensions import Self
+    from typing import Any, Literal, Self
 
 j2h = Json2Html()
 

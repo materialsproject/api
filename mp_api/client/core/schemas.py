@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from importlib import import_module
 from itertools import chain
-from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
+from typing import TYPE_CHECKING, ForwardRef, get_args
 
 from emmet.core.utils import jsanitize
 from pydantic import BaseModel, create_model
@@ -99,7 +99,7 @@ def _generate_returned_model(
             # Fields with a default_factory cannot also have a default in pydantic>=2.12.3
             field_copy.default = None
         include_fields[name] = (  # type: ignore[assignment]
-            Optional[model_fields[name].annotation],
+            model_fields[name].annotation | None,
             field_copy,
         )
 

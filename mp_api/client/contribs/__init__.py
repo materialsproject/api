@@ -1,4 +1,5 @@
 """Pull in core MPContribs client features."""
+
 from __future__ import annotations
 
 from mp_api.client.contribs._types import Attachment, Table
