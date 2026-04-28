@@ -1026,7 +1026,7 @@ class BaseRester:
             )
 
         # Paginate through remaining results
-        skip = chunk_size if "_limit" not in criteria else criteria["_limit"]
+        skip = criteria.get("_limit") or chunk_size
         remaining_docs = total_num_docs - initial_data_length
 
         while total_data_len < num_docs_needed and remaining_docs > 0:

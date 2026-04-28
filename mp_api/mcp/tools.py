@@ -308,9 +308,10 @@ class MPCoreMCP(_NeedsMPClient):
         self,
         elements: str,
         thermo_type: Literal[  # type: ignore[valid-type]
-            *[x.value for x in ThermoType.__members__.values() if x.value != "UNKNOWN"]
-        ]
-        | str = "GGA_GGA+U_R2SCAN",
+            "GGA_GGA+U",
+            "GGA_GGA+U_R2SCAN",
+            "R2SCAN",
+        ] = "GGA_GGA+U_R2SCAN",
     ) -> plotly_go.Figure:
         """Find a thermodynamic phase diagram in the Materials Project by specified elements.
 

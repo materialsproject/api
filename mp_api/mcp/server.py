@@ -1,4 +1,5 @@
 """Configure the Materials Project MCP server."""
+
 from __future__ import annotations
 
 from argparse import ArgumentParser

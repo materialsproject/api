@@ -104,7 +104,9 @@ class BaseElectrodeRester(BaseRester):
                         {f"{param}_min": value[0], f"{param}_max": value[1]}
                     )
                 elif param == "battery_ids":
-                    query_params[param] = ",".join(validate_ids(value))
+                    query_params[param] = ",".join(
+                        validate_ids([value] if isinstance(value, str) else value)
+                    )
                 elif param == "working_ion":
                     query_params["working_ion"] = ",".join(
                         str(ele)

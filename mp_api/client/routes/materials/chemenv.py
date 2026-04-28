@@ -22,18 +22,18 @@ class ChemenvRester(BaseRester):
     def search(
         self,
         material_ids: str | list[str] | None = None,
-        chemenv_iucr: COORDINATION_GEOMETRIES_IUCR
-        | list[COORDINATION_GEOMETRIES_IUCR]
-        | None = None,
-        chemenv_iupac: COORDINATION_GEOMETRIES_IUPAC
-        | list[COORDINATION_GEOMETRIES_IUPAC]
-        | None = None,
-        chemenv_name: COORDINATION_GEOMETRIES_NAMES
-        | list[COORDINATION_GEOMETRIES_NAMES]
-        | None = None,
-        chemenv_symbol: COORDINATION_GEOMETRIES
-        | list[COORDINATION_GEOMETRIES]
-        | None = None,
+        chemenv_iucr: (
+            COORDINATION_GEOMETRIES_IUCR | list[COORDINATION_GEOMETRIES_IUCR] | None
+        ) = None,
+        chemenv_iupac: (
+            COORDINATION_GEOMETRIES_IUPAC | list[COORDINATION_GEOMETRIES_IUPAC] | None
+        ) = None,
+        chemenv_name: (
+            COORDINATION_GEOMETRIES_NAMES | list[COORDINATION_GEOMETRIES_NAMES] | None
+        ) = None,
+        chemenv_symbol: (
+            COORDINATION_GEOMETRIES | list[COORDINATION_GEOMETRIES] | None
+        ) = None,
         species: str | list[str] | None = None,
         elements: str | list[str] | None = None,
         exclude_elements: list[str] | None = None,

@@ -1,4 +1,5 @@
 """Define routes to non-core molecules resters."""
+
 from __future__ import annotations
 
 from mp_api.client.core.utils import LazyImport

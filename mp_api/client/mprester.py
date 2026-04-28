@@ -678,11 +678,13 @@ class MPRester:
     def get_pourbaix_entries(
         self,
         chemsys: str | list[str] | list[ComputedEntry | ComputedStructureEntry],
-        solid_compat: Literal[
-            "MaterialsProjectCompatibility", "MaterialsProject2020Compatibility"
-        ]
-        | Compatibility
-        | None = "MaterialsProject2020Compatibility",
+        solid_compat: (
+            Literal[
+                "MaterialsProjectCompatibility", "MaterialsProject2020Compatibility"
+            ]
+            | Compatibility
+            | None
+        ) = "MaterialsProject2020Compatibility",
         use_gibbs: Literal[300] | None = None,
     ) -> list[PourbaixEntry]:
         """A helper function to get all entries necessary to generate
@@ -1247,9 +1249,11 @@ class MPRester:
         Returns:
             (Chgcar, (Chgcar, CoreTaskDoc | dict), None): Pymatgen Chgcar object, or tuple with object and CoreTaskDoc
         """
+        # TODO: change when `validate_ids` is updated to return AlphaID
+        validated_id = AlphaID(validate_ids([task_id])[0].split("-")[-1], prefix="mp")
         chgcar = self.materials.tasks._query_open_data(
             bucket="materialsproject-parsed",
-            key=f"chgcars/{validate_ids([task_id])[0]}.json.gz",
+            key=f"chgcars/{validated_id.string}.json.gz",
             decoder=lambda x: load_json(x, deser=True),
         )[0][0]["data"]
 
@@ -1403,13 +1407,11 @@ class MPRester:
         Note this method also no longer supports direct MongoDB-type queries. For more information,
         please see the new documentation.
         """
-        raise NotImplementedError(
-            """
+        raise NotImplementedError("""
             The MPRester().query method has been replaced with the MPRester().summary.search method.
             Note this method also no longer supports direct MongoDB-type queries. For more information,
             please see the new documentation.
-            """
-        )
+            """)
 
     def get_cohesive_energy(
         self,
