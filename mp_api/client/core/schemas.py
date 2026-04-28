@@ -99,7 +99,7 @@ def _generate_returned_model(
             # Fields with a default_factory cannot also have a default in pydantic>=2.12.3
             field_copy.default = None
         include_fields[name] = (  # type: ignore[assignment]
-            model_fields[name].annotation | None,
+            model_fields[name].annotation | None,  # type: ignore[operator]
             field_copy,
         )
 
