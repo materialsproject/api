@@ -59,7 +59,7 @@ bravado-core==6.3.1
     # via bravado
 cachetools==7.0.6
     # via
-    #   mpcontribs-client
+    #   mp-api (pyproject.toml)
     #   py-key-value-aio
 caio==0.9.25
     # via aiofile
@@ -130,13 +130,11 @@ filelock==3.29.0
     #   python-discovery
     #   virtualenv
 filetype==1.2.0
-    # via mpcontribs-client
+    # via mp-api (pyproject.toml)
 flake8==7.3.0
     # via mp-api (pyproject.toml)
 flask==3.1.3
     # via mp-api (pyproject.toml)
-flatten-dict==0.4.2
-    # via mpcontribs-client
 flexcache==0.3
     # via pint
 flexparser==0.4
@@ -183,7 +181,7 @@ inflect==7.5.0
 iniconfig==2.3.0
     # via pytest
 ipython==9.10.1
-    # via mpcontribs-client
+    # via mp-api (pyproject.toml)
 ipython-pygments-lexers==1.1.1
     # via ipython
 isoduration==20.11.0
@@ -217,7 +215,7 @@ joblib==1.5.3
 joserfc==1.6.4
     # via authlib
 json2html==1.3.0
-    # via mpcontribs-client
+    # via mp-api (pyproject.toml)
 jsonpointer==3.1.1
     # via jsonschema
 jsonref==1.1.0
@@ -282,8 +280,6 @@ more-itertools==11.0.2
     #   jaraco-functools
 mp-pyrho==0.5.1
     # via pymatgen-analysis-defects
-mpcontribs-client==5.10.5
-    # via mp-api (pyproject.toml)
 mpmath==1.3.0
     # via sympy
 msgpack==1.1.2
@@ -311,7 +307,6 @@ numpy==2.4.4
     #   imageio
     #   matplotlib
     #   monty
-    #   mpcontribs-client
     #   pandas
     #   pymatgen-analysis-defects
     #   pymatgen-analysis-diffusion
@@ -345,7 +340,6 @@ palettable==3.3.3
     # via pymatgen-core
 pandas==3.0.2
     # via
-    #   mpcontribs-client
     #   pymatgen-core
     #   seaborn
 parso==0.8.6
@@ -362,7 +356,7 @@ pillow==12.2.0
     #   matplotlib
     #   scikit-image
 pint==0.25.3
-    # via mpcontribs-client
+    # via mp-api (pyproject.toml)
 platformdirs==4.9.6
     # via
     #   fastmcp
@@ -370,9 +364,7 @@ platformdirs==4.9.6
     #   python-discovery
     #   virtualenv
 plotly==6.7.0
-    # via
-    #   mpcontribs-client
-    #   pymatgen-core
+    # via pymatgen-core
 pluggy==1.6.0
     # via
     #   pytest
@@ -428,7 +420,7 @@ pygments==2.20.0
     #   rich
     #   sphinx
 pyisemail==2.0.1
-    # via mpcontribs-client
+    # via mp-api (pyproject.toml)
 pyjwt[crypto]==2.12.1
     # via mcp
 pymatgen==2026.3.23
@@ -436,7 +428,6 @@ pymatgen==2026.3.23
     #   emmet-core
     #   mp-api (pyproject.toml)
     #   mp-pyrho
-    #   mpcontribs-client
     #   pymatgen-analysis-alloys
     #   pymatgen-analysis-defects
     #   pymatgen-analysis-diffusion
@@ -518,7 +509,7 @@ requests==2.33.1
     #   requests-futures
     #   sphinx
 requests-futures==1.0.2
-    # via mpcontribs-client
+    # via mp-api (pyproject.toml)
 rfc3339-validator==0.1.4
     # via jsonschema
 rfc3986-validator==0.1.1
@@ -567,7 +558,6 @@ six==1.17.0
     # via
     #   bravado
     #   bravado-core
-    #   flatten-dict
     #   python-dateutil
     #   rfc3339-validator
 snowballstemmer==3.0.1
@@ -601,7 +591,7 @@ starlette==1.0.0
 swagger-spec-validator==3.0.4
     # via
     #   bravado-core
-    #   mpcontribs-client
+    #   mp-api (pyproject.toml)
 sympy==1.14.0
     # via pymatgen-core
 tabulate==0.10.0
@@ -609,9 +599,7 @@ tabulate==0.10.0
 tifffile==2026.3.3
     # via scikit-image
 tqdm==4.67.3
-    # via
-    #   mpcontribs-client
-    #   pymatgen-core
+    # via pymatgen-core
 traitlets==5.14.3
     # via
     #   ipython
@@ -619,8 +607,12 @@ traitlets==5.14.3
 typeguard==4.5.1
     # via inflect
 types-requests==2.33.0.20260408
-    # via mp-api (pyproject.toml)
+    # via
+    #   mp-api (pyproject.toml)
+    #   types-tqdm
 types-setuptools==82.0.0.20260408
+    # via mp-api (pyproject.toml)
+types-tqdm==4.67.3.20260408
     # via mp-api (pyproject.toml)
 typing-extensions==4.15.0
     # via
@@ -655,8 +647,6 @@ typing-inspection==0.4.2
     #   pydantic-settings
 tzdata==2026.1
     # via arrow
-ujson==5.12.0
-    # via mpcontribs-client
 uncalled-for==0.3.1
     # via fastmcp
 uncertainties==3.2.3

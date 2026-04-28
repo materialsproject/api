@@ -13,6 +13,10 @@ class MPRestWarning(Warning):
     """Raised when a query is malformed but interpretable."""
 
 
+class MPContribsClientError(ValueError):
+    """Raised when the MPContribs client has problems."""
+
+
 def _emit_status_warning() -> None:
     """Emit a warning if client can't hear a heartbeat."""
     warnings.warn(
