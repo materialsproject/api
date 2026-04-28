@@ -52,18 +52,11 @@ class TaskRester(BaseRester):
             storage_options={"AWS_SKIP_SIGNATURE": "true", "AWS_REGION": "us-east-1"},
         )
 
-        traj_data = pa.table(
-            QueryBuilder()
-            .register("traj", traj_tbl)
-            .execute(
-                f"""
+        traj_data = pa.table(QueryBuilder().register("traj", traj_tbl).execute(f"""
                 SELECT *
                 FROM   traj
                 {predicate};
-                """
-            )
-            .read_all()
-        ).to_pylist(maps_as_pydicts="strict")
+                """).read_all()).to_pylist(maps_as_pydicts="strict")
 
         if not traj_data:
             raise MPRestError(f"No trajectory data for {task_id} found")

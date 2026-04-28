@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12", "3.13", "3.14"]
 
     runs-on: ${{ matrix.os }}
 
@@ -43,16 +43,6 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: echo "SSL_CERT_FILE=$(python -m certifi)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Format API key name (Linux/MacOS)
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-        run: |
-          echo "API_KEY_NAME=$(echo ${{ format('MP_API_KEY_{0}_{1}', matrix.os, matrix.python-version) }} | awk '{gsub(/-|\./, "_"); print}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_ENV
-
-      - name: Format API key name (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          echo "API_KEY_NAME=$(echo ${{ format('MP_API_KEY_{0}_{1}', matrix.os, matrix.python-version) }} | awk '{gsub(/-|\./, "_"); print}' | tr '[:lower:]' '[:upper:]')" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-
       - name: Lint with mypy
         shell: bash -l {0}
         run: python -m mypy mp_api/
@@ -60,7 +50,7 @@ jobs:
       - name: Test with pytest
         if: always()
         env:
-          MP_API_KEY: ${{ secrets[env.API_KEY_NAME] }}
+          MP_API_KEY: ${{ secrets.MP_API_KEY_UBUNTU_LATEST_3_12 }}
           # MP_API_ENDPOINT: https://api-preview.materialsproject.org/
         run: |
           pytest -n auto -x --cov=mp_api --cov-report=xml

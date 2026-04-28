@@ -662,11 +662,13 @@ class MPRester:
     def get_pourbaix_entries(
         self,
         chemsys: str | list[str] | list[ComputedEntry | ComputedStructureEntry],
-        solid_compat: Literal[
-            "MaterialsProjectCompatibility", "MaterialsProject2020Compatibility"
-        ]
-        | Compatibility
-        | None = "MaterialsProject2020Compatibility",
+        solid_compat: (
+            Literal[
+                "MaterialsProjectCompatibility", "MaterialsProject2020Compatibility"
+            ]
+            | Compatibility
+            | None
+        ) = "MaterialsProject2020Compatibility",
         use_gibbs: Literal[300] | None = None,
     ) -> list[PourbaixEntry]:
         """A helper function to get all entries necessary to generate
@@ -1389,13 +1391,11 @@ class MPRester:
         Note this method also no longer supports direct MongoDB-type queries. For more information,
         please see the new documentation.
         """
-        raise NotImplementedError(
-            """
+        raise NotImplementedError("""
             The MPRester().query method has been replaced with the MPRester().summary.search method.
             Note this method also no longer supports direct MongoDB-type queries. For more information,
             please see the new documentation.
-            """
-        )
+            """)
 
     def get_cohesive_energy(
         self,
