@@ -38,6 +38,7 @@ from mp_api._test_utils import requires_api_key
 
 from mp_api.client import MPRester
 from mp_api.client.core import MPRestError, MPRestWarning
+from mp_api.client.core.settings import _DEFAULT_ENDPOINT
 
 try:
     import mpcontribs.client as contribs_client
@@ -55,7 +56,7 @@ def mpr():
 @requires_api_key
 class TestMPRester:
     fake_mp_api_key = "12345678901234567890123456789012"  # 32 chars
-    default_endpoint = "https://api.materialsproject.org/"
+    default_endpoint = _DEFAULT_ENDPOINT
 
     def test_get_structure_by_material_id(self, mpr):
         s0 = mpr.get_structure_by_material_id("mp-149")
