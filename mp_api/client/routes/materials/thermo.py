@@ -171,16 +171,15 @@ class ThermoRester(BaseRester):
         pd_lbl, pd_tbl = self._get_delta_table(
             "materialsproject-build", "objects/phase-diagrams", label="phase_diagrams"
         )
-        table = pa.table(
-            self.query_builder.execute(
-                f"""SELECT phase_diagram
+
+        query = f"""
+            SELECT phase_diagram
             FROM   {pd_lbl}
             WHERE  chemsys='{sorted_chemsys}'
-            AND  version='{version}'
-            AND  thermo_type='{thermo_type}'
-            """
-            )
-        )
+              AND  version='{version}'
+              AND  thermo_type='{thermo_type}'
+        """
+        table = self._query_delta_single(query)
         as_py = table["phase_diagram"].to_pylist(maps_as_pydicts="strict")
 
         pd: PhaseDiagram | None = None

@@ -582,6 +582,7 @@ class BaseRester(_Rester):
             DeltaTable : If one exists at the specified bucket / prefix,
                 will retrieve the cached instance.
         """
+        delta_timeout = f"{self.timeout}s"
         full_key = f"{bucket}/{prefix}"
         qb_label = label or full_key.replace("/", "_").replace("-", "_")
         if (uri := f"{connector}://{full_key}") not in self._delta_tables:
@@ -590,11 +591,45 @@ class BaseRester(_Rester):
                 storage_options={
                     "AWS_SKIP_SIGNATURE": "true",
                     "AWS_REGION": "us-east-1",
+                    "timeout": delta_timeout,
+                    "connect_timeout": delta_timeout,
+                    "retry_delay": "3",
+                    "max_retries": f"{MAPI_CLIENT_SETTINGS.MAX_RETRIES}",
                 },
             )
             self.query_builder.register(qb_label, self._delta_tables[uri])
 
         return qb_label, self._delta_tables[uri]
+
+    def _query_delta_single(self, query: str) -> pa.Table:
+        """Execute a SQL query against a registered Delta table.
+
+        Wraps the query execution in a try/except to provide a more
+        actionable error message when the underlying Delta query engine
+        fails (e.g., due to network timeouts, missing tables, or
+        malformed queries).
+
+        Args:
+            query (str): A SQL query string compatible with the
+                QueryBuilder engine.
+
+        Returns:
+            pa.Table: The query result as a PyArrow Table.
+
+        Raises:
+            MPRestError: If query execution fails for any reason,
+                including network timeouts, connectivity issues, or
+                invalid queries. Inspect the chained exception for
+                the underlying cause.
+        """
+        try:
+            return pa.table(self.query_builder.execute(query).read_all())
+        except Exception as e:
+            raise MPRestError(
+                f"Failed to retrieve object due to: {e}. "
+                f"If this is a timeout error, try increasing the 'timeout' "
+                f"parameter on MPRester (current value: {self.timeout}s)."
+            ) from e
 
     def _query_delta_backed(
         self,
