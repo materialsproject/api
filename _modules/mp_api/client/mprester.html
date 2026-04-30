@@ -732,11 +732,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_pourbaix_entries</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComputedEntry</span> <span class="o">|</span> <span class="n">ComputedStructureEntry</span><span class="p">],</span>
-        <span class="n">solid_compat</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span>
-            <span class="s2">&quot;MaterialsProjectCompatibility&quot;</span><span class="p">,</span> <span class="s2">&quot;MaterialsProject2020Compatibility&quot;</span>
-        <span class="p">]</span>
-        <span class="o">|</span> <span class="n">Compatibility</span>
-        <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;MaterialsProject2020Compatibility&quot;</span><span class="p">,</span>
+        <span class="n">solid_compat</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">Literal</span><span class="p">[</span>
+                <span class="s2">&quot;MaterialsProjectCompatibility&quot;</span><span class="p">,</span> <span class="s2">&quot;MaterialsProject2020Compatibility&quot;</span>
+            <span class="p">]</span>
+            <span class="o">|</span> <span class="n">Compatibility</span>
+            <span class="o">|</span> <span class="kc">None</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="s2">&quot;MaterialsProject2020Compatibility&quot;</span><span class="p">,</span>
         <span class="n">use_gibbs</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">300</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PourbaixEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A helper function to get all entries necessary to generate</span>
@@ -1501,13 +1503,11 @@
 <span class="sd">        Note this method also no longer supports direct MongoDB-type queries. For more information,</span>
 <span class="sd">        please see the new documentation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            The MPRester().query method has been replaced with the MPRester().summary.search method.</span>
-<span class="sd">            Note this method also no longer supports direct MongoDB-type queries. For more information,</span>
-<span class="sd">            please see the new documentation.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-        <span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            The MPRester().query method has been replaced with the MPRester().summary.search method.</span>
+<span class="s2">            Note this method also no longer supports direct MongoDB-type queries. For more information,</span>
+<span class="s2">            please see the new documentation.</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="MPRester.get_cohesive_energy">
@@ -1845,7 +1845,7 @@
       &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>

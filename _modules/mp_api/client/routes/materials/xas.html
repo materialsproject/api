@@ -108,9 +108,11 @@
         <span class="k">if</span> <span class="n">absorbing_element</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;absorbing_element&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">absorbing_element</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">absorbing_element</span><span class="p">)</span> <span class="o">==</span> <span class="n">Element</span>
-                    <span class="k">else</span> <span class="n">absorbing_element</span>
+                    <span class="s2">&quot;absorbing_element&quot;</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="nb">str</span><span class="p">(</span><span class="n">absorbing_element</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">absorbing_element</span><span class="p">,</span> <span class="n">Element</span><span class="p">)</span>
+                        <span class="k">else</span> <span class="n">absorbing_element</span>
+                    <span class="p">)</span>
                 <span class="p">}</span>
             <span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;chemsys&quot;</span><span class="p">,</span> <span class="s2">&quot;elements&quot;</span><span class="p">,</span> <span class="s2">&quot;material_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;spectrum_ids&quot;</span><span class="p">):</span>
@@ -180,7 +182,7 @@
       &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>

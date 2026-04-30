@@ -89,18 +89,11 @@
             <span class="n">storage_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;AWS_SKIP_SIGNATURE&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;AWS_REGION&quot;</span><span class="p">:</span> <span class="s2">&quot;us-east-1&quot;</span><span class="p">},</span>
         <span class="p">)</span>
 
-        <span class="n">traj_data</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">table</span><span class="p">(</span>
-            <span class="n">QueryBuilder</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;traj&quot;</span><span class="p">,</span> <span class="n">traj_tbl</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">traj_data</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">QueryBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;traj&quot;</span><span class="p">,</span> <span class="n">traj_tbl</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">                SELECT *</span>
 <span class="s2">                FROM   traj</span>
 <span class="s2">                </span><span class="si">{</span><span class="n">predicate</span><span class="si">}</span><span class="s2">;</span>
-<span class="s2">                &quot;&quot;&quot;</span>
-            <span class="p">)</span>
-            <span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">)</span>
+<span class="s2">                &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_all</span><span class="p">())</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">traj_data</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No trajectory data for </span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2"> found&quot;</span><span class="p">)</span>
@@ -229,7 +222,7 @@
       &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
