@@ -41,15 +41,13 @@ class TaskRester(BaseRester):
             label="traj",
         )
 
-        traj_data = pa.table(
-            self.query_builder.execute(
-                f"""
-                SELECT *
-                FROM   {traj_lbl}
-                WHERE  identifier='{as_alpha}'
-                """
-            ).read_all()
-        ).to_pylist(maps_as_pydicts="strict")
+        query = f"""
+            SELECT *
+            FROM   {traj_lbl}
+            WHERE  identifier='{as_alpha}'
+        """
+
+        traj_data = self._query_delta_single(query).to_pylist(maps_as_pydicts="strict")
 
         if not traj_data:
             raise MPRestError(f"No trajectory data for {task_id} found")

@@ -6,10 +6,7 @@ from typing import TYPE_CHECKING
 
 import pyarrow as pa
 from emmet.core.band_theory import BSPathType, ElectronicBS, ElectronicDos
-from emmet.core.electronic_structure import (
-    DOSProjectionType,
-    ElectronicStructureDoc,
-)
+from emmet.core.electronic_structure import DOSProjectionType, ElectronicStructureDoc
 from emmet.core.mpid import AlphaID
 from emmet.core.vasp.calc_types.enums import RunType
 from pymatgen.analysis.magnetism.analyzer import Ordering
@@ -286,15 +283,19 @@ class BandStructureRester(BaseESPropertyRester):
             label="bandstructure",
         )
 
-        selection_string = f"""SELECT *
-FROM   {bs_lbl}
-WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'"""
+        query = f"""
+            SELECT *
+            FROM   {bs_lbl}
+            WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'
+        """
+
         if run_type:
             rt = RunType(run_type) if isinstance(run_type, str) else run_type
-            selection_string += f"\nAND run_type='{rt.value}'"
+            query += f"\nAND run_type='{rt.value}'"
         if path_type:
-            selection_string += f"\nAND path_convention='{path_type}'"
-        table = pa.table(self.query_builder.execute(selection_string))
+            query += f"\nAND path_convention='{path_type}'"
+
+        table = self._query_delta_single(query)
         if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
             emmet_bs = ElectronicBS(**deser[0])
             return emmet_bs.to_pmg(
@@ -509,13 +510,17 @@ class DosRester(BaseESPropertyRester):
             label="total_dos",
         )
 
-        selection_string = f"""SELECT *
-FROM   {dos_lbl}
-WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'"""
+        query = f"""
+            SELECT *
+            FROM   {dos_lbl}
+            WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'
+        """
+
         if run_type:
             rt = RunType(run_type) if isinstance(run_type, str) else run_type
-            selection_string += f"\nAND run_type='{rt.value}'"
-        table = pa.table(self.query_builder.execute(selection_string))
+            query += f"\nAND run_type='{rt.value}'"
+
+        table = self._query_delta_single(query)
         if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
             return ElectronicDos(**deser[0]).to_pmg()
         raise MPRestError(
