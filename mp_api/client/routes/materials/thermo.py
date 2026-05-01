@@ -3,14 +3,12 @@ from __future__ import annotations
 from collections import defaultdict
 
 import numpy as np
-import pyarrow as pa
 from emmet.core.thermo import ThermoDoc
 from emmet.core.types.enums import ThermoType
 from emmet.core.types.pymatgen_types.phase_diagram_adapter import PhaseDiagramType
 from pydantic import TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
-from pymatgen.core import __version__ as __pmg_version__
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids
