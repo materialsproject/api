@@ -1,4 +1,5 @@
 """Define routes and imports to non-core materials resters."""
+
 from __future__ import annotations
 
 from mp_api.client.core.utils import LazyImport

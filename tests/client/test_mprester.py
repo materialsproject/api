@@ -38,7 +38,7 @@ from mp_api._test_utils import requires_api_key
 
 from mp_api.client import MPRester
 from mp_api.client.core import MPRestError, MPRestWarning
-
+from mp_api.client.core.settings import _DEFAULT_ENDPOINT
 
 try:
     import mpcontribs.client as contribs_client
@@ -56,7 +56,7 @@ def mpr():
 @requires_api_key
 class TestMPRester:
     fake_mp_api_key = "12345678901234567890123456789012"  # 32 chars
-    default_endpoint = "https://api.materialsproject.org/"
+    default_endpoint = _DEFAULT_ENDPOINT
 
     def test_get_structure_by_material_id(self, mpr):
         s0 = mpr.get_structure_by_material_id("mp-149")
@@ -536,9 +536,9 @@ loop_
                 for norm, refs in ref_e_coh.items():
                     _e_coh = _mpr.get_cohesive_energy(list(refs), normalization=norm)
                     if norm == "atom":
-                        e_coh[
-                            "serial" if use_document_model else "noserial"
-                        ] = _e_coh.copy()
+                        e_coh["serial" if use_document_model else "noserial"] = (
+                            _e_coh.copy()
+                        )
 
                     # Ensure energies match reference data
                     assert all(v == pytest.approx(refs[k]) for k, v in _e_coh.items())
@@ -661,10 +661,13 @@ loop_
     def test_nomad_integration(self, mpr):
         # No particular reason for this MPID other than that it exists in NOMAD.
         target_mpid = "mp-10018"
-        with pytest.warns(
-            MPRestWarning, match="Full downloads of raw data are being transitioned"
-        ), pytest.warns(
-            MPRestWarning, match="the following ids are not found on NOMAD"
+        with (
+            pytest.warns(
+                MPRestWarning, match="Full downloads of raw data are being transitioned"
+            ),
+            pytest.warns(
+                MPRestWarning, match="the following ids are not found on NOMAD"
+            ),
         ):
             calc_type_map, nomad_urls = mpr.get_download_info(
                 target_mpid, file_patterns=["some_pattern"]

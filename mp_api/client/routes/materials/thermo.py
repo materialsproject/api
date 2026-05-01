@@ -10,6 +10,7 @@ from emmet.core.types.pymatgen_types.phase_diagram_adapter import PhaseDiagramTy
 from pydantic import TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
+from pymatgen.core import __version__ as __pmg_version__
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import validate_ids

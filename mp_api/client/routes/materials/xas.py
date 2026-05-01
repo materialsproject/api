@@ -72,9 +72,11 @@ class XASRester(BaseRester):
         if absorbing_element:
             query_params.update(
                 {
-                    "absorbing_element": str(absorbing_element.symbol)
-                    if type(absorbing_element) == Element
-                    else absorbing_element
+                    "absorbing_element": (
+                        str(absorbing_element.symbol)
+                        if isinstance(absorbing_element, Element)
+                        else absorbing_element
+                    )
                 }
             )
         for k in ("chemsys", "elements", "material_ids", "spectrum_ids"):

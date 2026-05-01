@@ -4,7 +4,6 @@ import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-import pyarrow as pa
 from emmet.core.band_theory import BSPathType, ElectronicBS, ElectronicDos
 from emmet.core.electronic_structure import DOSProjectionType, ElectronicStructureDoc
 from emmet.core.mpid import AlphaID
