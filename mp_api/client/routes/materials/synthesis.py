@@ -12,6 +12,7 @@ from mp_api.client.core import BaseRester, MPRestError
 class SynthesisRester(BaseRester):
     suffix = "materials/synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
+    delta_backed = False
 
     def search(
         self,

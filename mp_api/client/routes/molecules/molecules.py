@@ -20,3 +20,4 @@ class MoleculeRester(CoreRester):
     primary_key = "molecule_id"
     suffix = "molecules/core"
     _sub_resters = MOLECULES_RESTERS
+    delta_backed = False

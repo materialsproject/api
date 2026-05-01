@@ -12,6 +12,7 @@ class GrainBoundaryRester(BaseRester):
     suffix = "materials/grain_boundaries"
     document_model = GrainBoundaryDoc  # type: ignore
     primary_key = "material_id"
+    delta_backed = False
 
     def search(
         self,

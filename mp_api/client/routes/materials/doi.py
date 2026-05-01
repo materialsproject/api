@@ -12,6 +12,7 @@ class DOIRester(BaseRester):
     suffix = "doi"
     document_model = DOIDoc  # type: ignore
     primary_key = "material_id"
+    delta_backed = False
 
     def search(
         self,

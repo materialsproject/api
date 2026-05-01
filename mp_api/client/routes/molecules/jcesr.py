@@ -15,6 +15,7 @@ class JcesrMoleculesRester(BaseRester):
     suffix = "molecules/jcesr"
     document_model = MoleculesDoc  # type: ignore
     primary_key = "task_id"
+    delta_backed = False
 
     def __init__(self, **kwargs):
         """Throw deprecation warning when JCESR client is initialized."""

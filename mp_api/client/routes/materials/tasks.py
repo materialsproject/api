@@ -3,8 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-import pyarrow as pa
-from deltalake import DeltaTable, QueryBuilder
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.tasks import CoreTaskDoc
 from emmet.core.trajectory import RelaxTrajectory
@@ -40,23 +38,26 @@ class TaskRester(BaseRester):
             dict representing emmet.core.trajectory.RelaxTrajectory
         """
         as_alpha = str(AlphaID(task_id, padlen=8)).split("-")[-1]
-
         predicate = (
             f"WHERE run_type='{str(run_type)}' AND identifier='{as_alpha}'"
             if run_type
             else f"WHERE identifier='{as_alpha}'"
         )
 
-        traj_tbl = DeltaTable(
-            "s3a://materialsproject-parsed/core/trajectories/",
-            storage_options={"AWS_SKIP_SIGNATURE": "true", "AWS_REGION": "us-east-1"},
+        traj_lbl, traj_tbl = self._get_delta_table(
+            "materialsproject-parsed",
+            "core/trajectories/",
+            label="traj",
         )
 
-        traj_data = pa.table(QueryBuilder().register("traj", traj_tbl).execute(f"""
-                SELECT *
-                FROM   traj
-                {predicate};
-                """).read_all()).to_pylist(maps_as_pydicts="strict")
+        query = f"""
+            SELECT *
+            FROM   {traj_lbl}
+            WHERE  identifier='{as_alpha}'
+            {predicate};
+        """
+
+        traj_data = self._query_delta_single(query).to_pylist(maps_as_pydicts="strict")
 
         if not traj_data:
             raise MPRestError(f"No trajectory data for {task_id} found")

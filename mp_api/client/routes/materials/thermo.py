@@ -5,12 +5,13 @@ from collections import defaultdict
 import numpy as np
 from emmet.core.thermo import ThermoDoc
 from emmet.core.types.enums import ThermoType
+from emmet.core.types.pymatgen_types.phase_diagram_adapter import PhaseDiagramType
+from pydantic import TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
-from pymatgen.core import __version__ as __pmg_version__
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.utils import load_json, validate_ids
+from mp_api.client.core.utils import validate_ids
 
 
 class ThermoRester(BaseRester):
@@ -164,23 +165,25 @@ class ThermoRester(BaseRester):
             )
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
-        phdiag_id = f"thermo_type={t_type}/chemsys={sorted_chemsys}"
-        version = self.db_version.replace(".", "-")
-        obj_key = f"objects/{version}/phase-diagrams/{phdiag_id}.jsonl.gz"
-        pd_dct = self._query_open_data(  # type: ignore[union-attr]
-            bucket="materialsproject-build",
-            key=obj_key,
-            decoder=lambda x: load_json(x, deser=False),
-        )[0][0].get("phase_diagram")
+        version = "2026-04-13"  # self.db_version.replace(".", "-")
 
-        pd = PhaseDiagram.from_dict(
-            {  # type: ignore[arg-type]
-                k: v if k != "elements" else [e.get("element", e) for e in v]
-                for k, v in pd_dct.items()  # type: ignore[union-attr]
-            }  # post pymatgen/-core split, different serialization behavior
-            if int(__pmg_version__.split(".", 1)[0]) >= 2026
-            else pd_dct  # pymatgen<=2025.10.7
+        pd_lbl, pd_tbl = self._get_delta_table(
+            "materialsproject-build", "objects/phase-diagrams", label="phase_diagrams"
         )
+
+        query = f"""
+            SELECT phase_diagram
+            FROM   {pd_lbl}
+            WHERE  chemsys='{sorted_chemsys}'
+              AND  version='{version}'
+              AND  thermo_type='{thermo_type}'
+        """
+        table = self._query_delta_single(query)
+        as_py = table["phase_diagram"].to_pylist(maps_as_pydicts="strict")
+
+        pd: PhaseDiagram | None = None
+        if len(pds := TypeAdapter(list[PhaseDiagramType]).validate_python(as_py)) > 0:
+            pd = pds[0]
 
         # Ensure el_ref keys are Element objects for PDPlotter.
         # Ensure qhull_data is a numpy array

@@ -53,13 +53,13 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
+from emmet.core.band_theory import BSPathType
 from emmet.core.chemenv import (
     COORDINATION_GEOMETRIES,
     COORDINATION_GEOMETRIES_IUCR,
     COORDINATION_GEOMETRIES_IUPAC,
     COORDINATION_GEOMETRIES_NAMES,
 )
-from emmet.core.band_theory import BSPathType
 from emmet.core.electronic_structure import DOSProjectionType
 from emmet.core.grain_boundary import GBTypeEnum
 from emmet.core.mpid import MPID
