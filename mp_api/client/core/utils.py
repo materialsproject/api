@@ -116,8 +116,8 @@ def validate_ids(id_list: list[str]) -> list[str]:
             " data for all IDs and filter locally."
         )
 
-    [validate_identifier(idx, serialize=False) for idx in id_list]
-    return [getattr(idx, "string", str(idx)) for idx in id_list]
+    validated = [validate_identifier(idx, serialize=False) for idx in id_list]
+    return [getattr(idx, "string", str(idx)) for idx in validated]
 
 
 def validate_endpoint(endpoint: str | None, suffix: str | None = None) -> str:
@@ -240,6 +240,14 @@ class LazyImport:
             self._load()
         if hasattr(self._imported, v):
             return getattr(self._imported, v)
+
+        raise AttributeError(
+            f"{self._module_name}{'.' + self._class_name if self._class_name else ''} "
+            f"has no attribute {v}"
+        )
+
+    def __dir__(self) -> list[str]:
+        return self._obj.__dir__()
 
 
 class MPDataset:

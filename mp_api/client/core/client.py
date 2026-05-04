@@ -23,6 +23,7 @@ from io import BytesIO
 from itertools import chain, islice
 from json import JSONDecodeError
 from math import ceil
+from pathlib import Path
 from typing import TYPE_CHECKING, ForwardRef, Optional, get_args
 from urllib.parse import urljoin
 
@@ -184,7 +185,7 @@ class _Rester:
 
         self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars
-        self.local_dataset_cache = local_dataset_cache
+        self.local_dataset_cache = Path(local_dataset_cache)
         self.force_renew = force_renew
         self._query_builder = query_builder
 
@@ -1436,12 +1437,7 @@ class BaseRester(_Rester):
             )
 
             return [
-                data_model(
-                    **{
-                        field: raw_doc[field]
-                        for field in set_fields.intersection(raw_doc)
-                    }
-                )
+                data_model(**raw_doc)
                 for raw_doc in (data if is_list else chain([first_doc], data))
             ]
 
@@ -1464,7 +1460,14 @@ class BaseRester(_Rester):
             set of str: set_fields, fields_not_requested)
         """
         model_fields = self.document_model.model_fields
-        set_fields = set(doc).intersection(model_fields)
+        aliases = {
+            anno.alias: field for field, anno in model_fields.items() if anno.alias
+        }
+        set_fields = (
+            set(doc)
+            .intersection(model_fields)
+            .union({aliases[k] for k in set(doc).intersection(aliases)})
+        )
         unset_fields = set(model_fields).difference(set_fields)
         user_requested_fields: list[str] = requested_fields or []
         fields_not_requested = unset_fields.difference(user_requested_fields)

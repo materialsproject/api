@@ -326,7 +326,9 @@ class BandStructureRester(BaseESPropertyRester):
                 material_ids=material_id, fields=["bandstructure"]
             )
             if not bs_doc:
-                raise MPRestError("No electronic structure data found.")
+                raise MPRestError(
+                    f"No electronic structure data found for material ID {material_id}."
+                )
 
             if (_bs_data := bs_doc[0]["bandstructure"]) is None:
                 raise MPRestError(
@@ -349,7 +351,9 @@ class BandStructureRester(BaseESPropertyRester):
                     material_ids=material_id, fields=["dos"]
                 )
             ):
-                raise MPRestError("No electronic structure data found.")
+                raise MPRestError(
+                    f"No electronic structure data found for material ID {material_id}."
+                )
 
             if (_bs_data := bs_doc[0]["dos"]) is None:
                 raise MPRestError(
@@ -538,7 +542,9 @@ class DosRester(BaseESPropertyRester):
         if not (
             dos_doc := self.es_rester.search(material_ids=material_id, fields=["dos"])
         ):
-            return None
+            raise MPRestError(
+                f"No electronic structure data found for material ID {material_id}."
+            )
 
         if not (dos_data := dos_doc[0].get("dos")):
             raise MPRestError(f"No density of states data found for {material_id}")

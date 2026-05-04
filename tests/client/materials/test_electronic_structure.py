@@ -104,7 +104,7 @@ def test_bs_client():
         with pytest.raises(MPRestError, match="No electronic structure data found."):
             _ = bs_rester.get_bandstructure_from_material_id("mp-0")
 
-        with pytest.raises(MPRestError, match="No object found"):
+        with pytest.raises(MPRestError, match="No bandstructure data found"):
             _ = bs_rester.get_bandstructure_from_task_id("mp-0")
 
 
