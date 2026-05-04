@@ -78,7 +78,6 @@ def client_search_testing(
                 doc = docs[0].model_dump()
             else:
                 raise ValueError("No documents returned")
-            print(doc)
 
             for sub_field in sub_doc_fields:
                 if sub_field in doc:
