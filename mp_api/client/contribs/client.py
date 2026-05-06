@@ -16,7 +16,7 @@ from copy import deepcopy
 from math import isclose
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Literal, cast, overload
+from typing import TYPE_CHECKING, Literal, overload
 from urllib.parse import urlsplit
 
 import orjson
@@ -69,7 +69,7 @@ from mp_api.client.core.schemas import _convert_to_model
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterable, Sequence
-    from typing import Any
+    from typing import Any, cast
 
     from mp_api.client.contribs.types import (
         AllIdMap,
@@ -861,7 +861,7 @@ class ContribsClient(SwaggerClient):
                 "references": [{"label": "REF", "url": url}],
             }
         )
-        resp = self.projects.createProject(project=project.model_dump()).result()
+        resp = self.projects.createProject(project=project.to_draft()).result()
         owner = resp.get("owner")
         if owner:
             MPCC_LOGGER.info(f"Project `{name}` created with owner `{owner}`")
@@ -1432,12 +1432,13 @@ class ContribsClient(SwaggerClient):
                 ret[project] = id_sets
 
             project_sets = ret[project]
-            cast(set[str], project_sets["ids"]).add(contrib["id"])
-            cast(set[str], project_sets["identifiers"]).add(contrib["identifier"])
+            if TYPE_CHECKING:
+                cast(set[str], project_sets["ids"]).add(contrib["id"])
+                cast(set[str], project_sets["identifiers"]).add(contrib["identifier"])
 
             if data_id_field:
                 data_value = contrib.get("data", {}).get(data_id_field)
-                if isinstance(data_value, str):
+                if TYPE_CHECKING and isinstance(data_value, str):
                     cast(set[str], project_sets[f"{data_id_field}_set"]).add(data_value)
 
             for component in components:
@@ -1448,7 +1449,9 @@ class ContribsClient(SwaggerClient):
                 if component not in project_sets:
                     project_sets[component] = {"ids": set(), "md5s": set()}
 
-                component_sets = cast(ComponentIdSets, project_sets[component])
+                if TYPE_CHECKING:
+                    component_sets = cast(ComponentIdSets, project_sets[component])
+
                 for item in component_items:
                     if not isinstance(item, dict):
                         continue

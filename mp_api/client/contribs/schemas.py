@@ -98,10 +98,17 @@ def _get_pydantic_from_dataframe(
     """
     columns_renamed = {}
     columns_to_unit = {}
+    character_replacements = str.maketrans(
+        {
+            "^": "**",
+            ":": "",
+            "#": "",
+        }
+    )
     for col in df.columns:
         base_name, unit = _get_unit(col)
         base_name = _to_camel_case(base_name)
-        columns_renamed[col] = base_name
+        columns_renamed[col] = base_name.translate(character_replacements)
         if unit:
             columns_to_unit[col] = unit
 
@@ -179,7 +186,19 @@ class ContribsProject(_DictLikeAccess):
     @field_serializer("other", mode="plain")
     def unflatten_other(self, v: dict[str, str]) -> dict[str, Any]:
         """Unflatten column metadata."""
-        return unflatten_dict(v)
+        return unflatten_dict(v or {})
+
+    def to_draft(self) -> dict[str, Any]:
+        """Strip out fields that cannot be used in creating a project.
+
+        The API forbids including `is_public` and `is_approved` when
+        submitting a project, even if these fields are False.
+        """
+        return {
+            k: v
+            for k, v in self.model_dump().items()
+            if k not in {"is_approved", "is_public"}
+        }
 
 
 class ContribMeta(_DictLikeAccess):
@@ -330,6 +349,14 @@ class ContribSubmission(BaseContrib):
             )
             for idx, entry in enumerate(sanitized)
         ]
+
+    def to_submission(self) -> dict[str, Any]:
+        """Pop null keys."""
+        return {
+            k: v
+            for k, v in self.model_dump(mode="json").items()
+            if v is not None and k != "id"
+        }
 
 
 class QueryResult(_DictLikeAccess):
