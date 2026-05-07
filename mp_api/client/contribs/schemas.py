@@ -234,6 +234,14 @@ class Datum(_DictLikeAccess):
         """Format for display."""
         return self.display_name
 
+    def __float__(self) -> float:
+        """Allow conversion to float."""
+        return float(self.value)
+
+    def __int__(self) -> int:
+        """Allow conversion to int."""
+        return int(self.value)
+
 
 class BaseContrib(_DictLikeAccess):
     """Define base schema for a single contribution."""

@@ -16,7 +16,7 @@ from copy import deepcopy
 from math import isclose
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Literal, overload
+from typing import TYPE_CHECKING, Literal, cast, overload
 from urllib.parse import urlsplit
 
 import orjson
@@ -69,7 +69,7 @@ from mp_api.client.core.schemas import _convert_to_model
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterable, Sequence
-    from typing import Any, cast
+    from typing import Any
 
     from mp_api.client.contribs.types import (
         AllIdMap,
@@ -1419,6 +1419,7 @@ class ContribsClient(SwaggerClient):
         components: set[str],
         data_id_fields: dict[str, str],
     ) -> AllIdSets:
+
         ret: AllIdSets = {}
 
         for contrib in contributions:
@@ -1432,13 +1433,12 @@ class ContribsClient(SwaggerClient):
                 ret[project] = id_sets
 
             project_sets = ret[project]
-            if TYPE_CHECKING:
-                cast(set[str], project_sets["ids"]).add(contrib["id"])
-                cast(set[str], project_sets["identifiers"]).add(contrib["identifier"])
+            cast(set[str], project_sets["ids"]).add(contrib["id"])
+            cast(set[str], project_sets["identifiers"]).add(contrib["identifier"])
 
             if data_id_field:
                 data_value = contrib.get("data", {}).get(data_id_field)
-                if TYPE_CHECKING and isinstance(data_value, str):
+                if isinstance(data_value, str):
                     cast(set[str], project_sets[f"{data_id_field}_set"]).add(data_value)
 
             for component in components:
@@ -1449,8 +1449,7 @@ class ContribsClient(SwaggerClient):
                 if component not in project_sets:
                     project_sets[component] = {"ids": set(), "md5s": set()}
 
-                if TYPE_CHECKING:
-                    component_sets = cast(ComponentIdSets, project_sets[component])
+                component_sets = cast(ComponentIdSets, project_sets[component])
 
                 for item in component_items:
                     if not isinstance(item, dict):
