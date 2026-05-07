@@ -75,7 +75,7 @@ and will not give auto-complete for available fields.</p></li>
 <li><p><strong>local_dataset_cache</strong> – Target directory for downloading full datasets. Defaults
 to “mp_datasets” in the user’s home directory</p></li>
 <li><p><strong>force_renew</strong> – Option to overwrite existing local dataset</p></li>
-<li><p><strong>**kwargs</strong> – access to legacy kwargs that may be in the process of being deprecated</p></li>
+<li><p><strong>**kwargs</strong> – access to ContribsClient kwargs or (possibly-deprecated) legacy kwargs</p></li>
 </ul>
 </dd>
 </dl>
@@ -118,7 +118,7 @@ and will not give auto-complete for available fields.</p></li>
 <li><p><strong>local_dataset_cache</strong> – Target directory for downloading full datasets. Defaults
 to “mp_datasets” in the user’s home directory</p></li>
 <li><p><strong>force_renew</strong> – Option to overwrite existing local dataset</p></li>
-<li><p><strong>**kwargs</strong> – access to legacy kwargs that may be in the process of being deprecated</p></li>
+<li><p><strong>**kwargs</strong> – access to ContribsClient kwargs or (possibly-deprecated) legacy kwargs</p></li>
 </ul>
 </dd>
 </dl>
@@ -222,11 +222,26 @@ to “mp_datasets” in the user’s home directory</p></li>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">contribs</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.contribs" title="mp_api.client.mprester.MPRester.contribs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">contribs</span></code></a></p></td>
+<td><p>Create an instance of the MP ContribsClient.</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py property">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.contribs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">contribs</span></span><a class="headerlink" href="#mp_api.client.mprester.MPRester.contribs" title="Link to this definition">¶</a></dt>
+<dd><p>Create an instance of the MP ContribsClient.</p>
+<dl class="simple">
+<dt>NB: The following args are taken from <cite>MPRester</cite>:</dt><dd><ul class="simple">
+<li><p>api_key</p></li>
+<li><p>headers</p></li>
+<li><p>session</p></li>
+<li><p>use_document_model</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id">
 <span class="sig-name descname"><span class="pre">get_task_ids_associated_with_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">CalcType</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_task_ids_associated_with_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id" title="Link to this definition">¶</a></dt>

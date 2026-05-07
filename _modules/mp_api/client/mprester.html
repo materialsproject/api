@@ -89,7 +89,7 @@
     <span class="p">)</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.util.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpeciesLike</span>
 
-    <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DictLikeAccess</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DictLikeAccess</span>
 
 <span class="n">DEFAULT_THERMOTYPE_CRITERIA</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U_R2SCAN&quot;</span><span class="p">]}</span>
 
@@ -176,7 +176,7 @@
 <span class="sd">            local_dataset_cache: Target directory for downloading full datasets. Defaults</span>
 <span class="sd">                to &quot;mp_datasets&quot; in the user&#39;s home directory</span>
 <span class="sd">            force_renew: Option to overwrite existing local dataset</span>
-<span class="sd">            **kwargs: access to legacy kwargs that may be in the process of being deprecated</span>
+<span class="sd">            **kwargs: access to ContribsClient kwargs or (possibly-deprecated) legacy kwargs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">get_user_api_key</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
 
@@ -196,6 +196,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">local_dataset_cache</span> <span class="o">=</span> <span class="n">local_dataset_cache</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">force_renew</span> <span class="o">=</span> <span class="n">force_renew</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contribs_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="s2">&quot;host&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;project&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span>
+        <span class="p">}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_deprecated_attributes</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;eos&quot;</span><span class="p">,</span>
@@ -278,22 +286,31 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">contribs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an instance of the MP ContribsClient.</span>
+
+<span class="sd">        NB: The following args are taken from `MPRester`:</span>
+<span class="sd">            - api_key</span>
+<span class="sd">            - headers</span>
+<span class="sd">            - session</span>
+<span class="sd">            - use_document_model</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">mpcontribs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.contribs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContribsClient</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="o">=</span> <span class="n">ContribsClient</span><span class="p">(</span>
+                    <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
                     <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
                     <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+                    <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
+                    <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_contribs_kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
 
             <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">&quot;mpcontribs-client not installed. &quot;</span>
-                    <span class="s2">&quot;Install the package to query MPContribs data, construct pourbaix diagrams, &quot;</span>
-                    <span class="s2">&quot;or to compute cohesive energies: &#39;pip install mpcontribs-client&#39;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Run `pip install &#39;mp-api[contribs]&#39;` to make use of the MPContribs client.&quot;</span><span class="p">,</span>
                     <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                     <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                 <span class="p">)</span>
@@ -304,7 +321,6 @@
                     <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                     <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                 <span class="p">)</span>
-
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1318,7 +1334,7 @@
             <span class="c1"># Prefer reconstructed surfaces, which have lower surface energies.</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">miller</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">miller_energy_map</span><span class="p">)</span> <span class="ow">or</span> <span class="n">surf</span><span class="o">.</span><span class="n">is_reconstructed</span><span class="p">:</span>
                 <span class="n">miller_energy_map</span><span class="p">[</span><span class="n">miller</span><span class="p">]</span> <span class="o">=</span> <span class="n">surf</span><span class="o">.</span><span class="n">surface_energy</span>
-        <span class="n">millers</span><span class="p">,</span> <span class="n">energies</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">miller_energy_map</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">millers</span><span class="p">,</span> <span class="n">energies</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">miller_energy_map</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">WulffShape</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">millers</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span></div>
 
 
@@ -1624,7 +1640,11 @@
 
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">dfa</span><span class="p">:</span> <span class="p">{</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;formula&quot;</span><span class="p">]:</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">dfa</span><span class="p">][</span><span class="s2">&quot;energy&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;formula&quot;</span><span class="p">]:</span> <span class="p">(</span>
+                    <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dfa</span><span class="si">}</span><span class="s2">.energy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
+                    <span class="k">else</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">dfa</span><span class="p">][</span><span class="s2">&quot;energy&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
                 <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">_atomic_energies</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">dfa</span> <span class="ow">in</span> <span class="n">funcs</span>
