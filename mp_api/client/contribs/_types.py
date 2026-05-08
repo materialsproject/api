@@ -316,12 +316,36 @@ class Attachment(dict, _Component):
         return cls((k, v) for k, v in dct.items() if k in keys)
 
 
+"""
+The following type annotations are only used in type checking
+(mypy) the ContribsClient.get_all_ids function.
+This function has highly hetereogeneous output and these
+represent the intermediate and final data structures returned
+by that function.
+
+They **shouldn't** have to be used elsewhere.
+"""
+
 ComponentIdSets = dict[str, set[str]]
+"""Use only when type checking of ContribsClient.get_all_ids(...,fmt="sets")."""
+
 ProjectIdSets = dict[str, set[str] | ComponentIdSets]
+"""Use only when type checking of ContribsClient.get_all_ids(...,fmt="sets")."""
+
 AllIdSets = dict[str, ProjectIdSets]
+"""Use only when type checking of ContribsClient.get_all_ids(...,fmt="sets")."""
 
 ComponentNameMap = dict[str, dict[str, str]]
+"""Use only when type checking of ContribsClient.get_all_ids(...,fmt="map")."""
+
 IdentifierLeaf = dict[str, str | ComponentNameMap]
+"""Use only when type checking of ContribsClient.get_all_ids(...,fmt="map")."""
+
 IdentifierBranch = dict[str, IdentifierLeaf]
+"""Use only when type checking of ContribsClient.get_all_ids(...,fmt="map")."""
+
 ProjectIdMap = dict[str, IdentifierLeaf | IdentifierBranch]
+"""Use only when type checking of ContribsClient.get_all_ids(...,fmt="map")."""
+
 AllIdMap = dict[str, ProjectIdMap]
+"""Use only when type checking of ContribsClient.get_all_ids(...,fmt="map")."""

@@ -50,6 +50,7 @@ from urllib3.util.retry import Retry
 from mp_api.client.contribs._logger import MPCC_LOGGER, TqdmToLogger
 from mp_api.client.contribs._types import (
     Attachment,
+    ComponentIdSets,
     MPCDict,
     MPCStructure,
     Table,
@@ -71,10 +72,9 @@ if TYPE_CHECKING:
     from collections.abc import Generator, Iterable, Sequence
     from typing import Any
 
-    from mp_api.client.contribs.types import (
+    from mp_api.client.contribs._types import (
         AllIdMap,
         AllIdSets,
-        ComponentIdSets,
         IdentifierLeaf,
         ProjectIdSets,
     )
@@ -88,7 +88,7 @@ warnings.formatwarning = lambda msg, *args, **kwargs: f"{msg}\n"
 warnings.filterwarnings("default", category=DeprecationWarning, module=__name__)
 
 
-def validate_email(email_string: str):
+def validate_email(email_string: str) -> AllIdMap:
     """Validate user email address.
 
     Args:
