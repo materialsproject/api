@@ -27,6 +27,7 @@ from mp_api.client.core.exceptions import (
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from typing import Any, Literal
 
     from pydantic._internal._model_construction import ModelMetaclass
@@ -246,8 +247,8 @@ class LazyImport:
             f"has no attribute {v}"
         )
 
-    def __dir__(self) -> list[str]:
-        return self._obj.__dir__()
+    def __dir__(self) -> Iterable[str]:
+        return self._obj.__dir__() if hasattr(self._obj, "__dir__") else []
 
 
 class MPDataset:
