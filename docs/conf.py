@@ -6,6 +6,8 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+from __future__ import annotations
+
 project = "mp-api"
 copyright = "2022, The Materials Project"
 author = "The Materials Project"

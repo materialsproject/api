@@ -56,7 +56,7 @@ if TYPE_CHECKING:
     )
     from pymatgen.util.typing import SpeciesLike
 
-    from mp_api.client.core.client import _DictLikeAccess
+    from mp_api.client.core.schemas import _DictLikeAccess
 
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U_R2SCAN"]}
 
@@ -157,6 +157,14 @@ class MPRester(_Rester):
         )
 
         self._contribs = None
+        self._contribs_kwargs = {
+            k: kwargs[k]
+            for k in (
+                "host",
+                "project",
+            )
+            if k in kwargs
+        }
 
         self._deprecated_attributes = [
             "eos",
@@ -231,22 +239,31 @@ class MPRester(_Rester):
 
     @property
     def contribs(self):
+        """Create an instance of the MP ContribsClient.
+
+        NB: The following args are taken from `MPRester`:
+            - api_key
+            - headers
+            - session
+            - use_document_model
+
+        """
         if self._contribs is None:
             try:
-                from mpcontribs.client import Client
+                from mp_api.client.contribs.client import ContribsClient
 
-                self._contribs = Client(
-                    self.api_key,  # type: ignore
+                self._contribs = ContribsClient(
+                    api_key=self.api_key,
                     headers=self.headers,
                     session=self.session,
+                    use_document_model=self.use_document_model,
+                    **self._contribs_kwargs,
                 )
 
             except ImportError:
                 self._contribs = None
                 warnings.warn(
-                    "mpcontribs-client not installed. "
-                    "Install the package to query MPContribs data, construct pourbaix diagrams, "
-                    "or to compute cohesive energies: 'pip install mpcontribs-client'",
+                    "Run `pip install 'mp-api[contribs]'` to make use of the MPContribs client.",
                     category=MPRestWarning,
                     stacklevel=2,
                 )
@@ -257,7 +274,6 @@ class MPRester(_Rester):
                     category=MPRestWarning,
                     stacklevel=2,
                 )
-
         return self._contribs
 
     def __getattr__(self, attr):
@@ -1217,7 +1233,7 @@ class MPRester(_Rester):
             # Prefer reconstructed surfaces, which have lower surface energies.
             if (miller not in miller_energy_map) or surf.is_reconstructed:
                 miller_energy_map[miller] = surf.surface_energy
-        millers, energies = zip(*miller_energy_map.items())
+        millers, energies = zip(*miller_energy_map.items(), strict=False)
         return WulffShape(lattice, millers, energies)
 
     def get_charge_density_from_task_id(
@@ -1505,7 +1521,11 @@ class MPRester(_Rester):
 
         return {
             dfa: {
-                entry["formula"]: entry["data"][dfa]["energy"]["value"]
+                entry["formula"]: (
+                    entry["data"][f"{dfa}.energy"].value
+                    if self.use_document_model
+                    else entry["data"][dfa]["energy"]["value"]
+                )
                 for entry in _atomic_energies
             }
             for dfa in funcs
