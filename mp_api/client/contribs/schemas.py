@@ -372,5 +372,5 @@ class QueryResult(_DictLikeAccess):
 
     total_count: int
     total_pages: int
-    data: list[BaseModel] | None = None
+    data: list[ContribData] | None = None
     has_more: bool = False
