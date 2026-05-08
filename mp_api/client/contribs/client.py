@@ -88,11 +88,15 @@ warnings.formatwarning = lambda msg, *args, **kwargs: f"{msg}\n"
 warnings.filterwarnings("default", category=DeprecationWarning, module=__name__)
 
 
-def validate_email(email_string: str) -> AllIdMap:
+def validate_email(email_string: str) -> None:
     """Validate user email address.
 
     Args:
         email_string (str) : the user's email address
+    Returns:
+        None
+    Raises:
+        SwaggerValidationError on malformed email address.
     """
     if email_string.count(":") != 1:
         raise SwaggerValidationError(
@@ -106,6 +110,8 @@ def validate_email(email_string: str) -> AllIdMap:
     d = is_email(email, diagnose=True)
     if d > BaseDiagnosis.CATEGORIES["VALID"]:
         raise SwaggerValidationError(f"{email} {d.message}")
+
+    return None
 
 
 # TODO: mypy has some problems with putting a bare `str`
@@ -2109,7 +2115,7 @@ class ContribsClient(SwaggerClient):
                         digest in digests[project_name][component]
                         or digest
                         in existing.get(project_name, {})
-                        .get(component, {})
+                        .get(component, {})  # type: ignore[union-attr]
                         .get("md5s", [])
                     )
 
@@ -2227,9 +2233,9 @@ class ContribsClient(SwaggerClient):
                                 pk=project_name, _fields=["unique_identifiers"]
                             ).result()["unique_identifiers"]
                         )
-                        existing_ids = existing.get(project_name, {}).get(
-                            "identifiers", []
-                        )
+                        existing_ids: Iterable[str] = existing.get(
+                            project_name, {}
+                        ).get("identifiers", [])
                         contribs[project_name] = [
                             c
                             for c in contribs[project_name]
