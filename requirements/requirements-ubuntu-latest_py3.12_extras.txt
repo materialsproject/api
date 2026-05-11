@@ -646,7 +646,7 @@ uncertainties==3.2.3
     # via pymatgen-core
 uri-template==1.3.0
     # via jsonschema
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   botocore
     #   requests
