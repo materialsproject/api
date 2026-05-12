@@ -43,7 +43,6 @@ if TYPE_CHECKING:
     from typing import Any, Literal
 
     import numpy as np
-    from deltalake import QueryBuilder
     from emmet.core.tasks import CoreTaskDoc
     from packaging.version import Version
     from pymatgen.analysis.phase_diagram import PDEntry
@@ -56,6 +55,7 @@ if TYPE_CHECKING:
     )
     from pymatgen.util.typing import SpeciesLike
 
+    from mp_api.client.core.client import QueryBuilderWithCache
     from mp_api.client.core.schemas import _DictLikeAccess
 
 DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U_R2SCAN"]}
@@ -101,7 +101,7 @@ class MPRester(_Rester):
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
-        query_builder: QueryBuilder | None = None,
+        query_builder: QueryBuilderWithCache | None = None,
         notify_db_version: bool = False,
         **kwargs,
     ):
@@ -133,7 +133,8 @@ class MPRester(_Rester):
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
-            query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
+            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+                NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
             notify_db_version (bool): If True, the current MP database version will
                 be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
                 version changes, you will be notified. The current database version is

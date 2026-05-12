@@ -276,7 +276,7 @@ class BandStructureRester(BaseESPropertyRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        bs_lbl, bs_tbl = self._get_delta_table(
+        bs_lbl, _ = self._get_delta_table(
             "materialsproject-parsed",
             "core/electronic-structure/bandstructures/",
             label="bandstructure",
@@ -507,7 +507,7 @@ class DosRester(BaseESPropertyRester):
         Returns:
             pymatgen Dos
         """
-        dos_lbl, dos_tbl = self._get_delta_table(
+        dos_lbl, _ = self._get_delta_table(
             "materialsproject-parsed",
             "core/electronic-structure/total-dos/",
             label="total_dos",

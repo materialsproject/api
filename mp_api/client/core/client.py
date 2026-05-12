@@ -59,7 +59,7 @@ from mp_api.client.core.utils import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
-    from typing import Any
+    from typing import Any, Self
 
     from mp_api.client.core.utils import LazyImport
 
@@ -97,6 +97,31 @@ def _batched(iterable: Iterable, n: int) -> Iterator:
         yield batch
 
 
+class QueryBuilderWithCache(QueryBuilder):
+
+    def __init__(self) -> None:
+        """Extend deltalake.QueryBuilder with stored DeltaTables.
+
+        The deltalake.QueryBuilder class does not permit introspection
+        of registered DeltaTables through the python API.
+
+        Re-registering a DeltaTable
+        (1) wastes time by reading its metadata
+        (2) raises an exception because a table is already registered
+
+        This class simply allows for caching the DeltaTable instances
+        and table names on the QueryBuilder class.
+        """
+        # Dict of table names (labels) to DeltaTable instances
+        self._delta_tables: dict[str, DeltaTable] = {}
+        super().__init__()
+
+    def register(self, table_name: str, delta_table: DeltaTable) -> Self:
+        """Register and cache a DeltaTable."""
+        self._delta_tables[table_name] = delta_table
+        return super().register(table_name, delta_table)
+
+
 class _Rester:
     """Define base attributes of a REST client."""
 
@@ -113,7 +138,7 @@ class _Rester:
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
-        query_builder: QueryBuilder | None = None,
+        query_builder: QueryBuilderWithCache | None = None,
         **kwargs,
     ) -> None:
         """Initialize a RESTer.
@@ -145,7 +170,8 @@ class _Rester:
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to 'mp_datasets' in the user's home directory
             force_renew: Option to overwrite existing local dataset
-            query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
+            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+                NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
         self.api_key = get_user_api_key(api_key=api_key)
@@ -168,7 +194,9 @@ class _Rester:
         self.mute_progress_bars = mute_progress_bars
         self.local_dataset_cache = Path(local_dataset_cache)
         self.force_renew = force_renew
-        self._query_builder = query_builder
+        self._query_builder = (
+            query_builder if isinstance(query_builder, QueryBuilderWithCache) else None
+        )
 
         if "monty_decode" in kwargs:
             # Pop to not repeatedly trigger warning to the user
@@ -191,7 +219,7 @@ class _Rester:
     @property
     def query_builder(self):
         if not self._query_builder:
-            self._query_builder = QueryBuilder()
+            self._query_builder = QueryBuilderWithCache()
         return self._query_builder
 
     @staticmethod
@@ -319,8 +347,6 @@ class BaseRester(_Rester):
 
         self.timeout = timeout
         self._s3_client = s3_client
-
-        self._delta_tables: dict[str, DeltaTable] = {}
 
     @property
     def s3_client(self):
@@ -556,19 +582,34 @@ class BaseRester(_Rester):
             prefix (str) : name of the prefix in S3
             connector (str) : s3, s3n, s3a (default), or other
                 valid Hadoop connector string.
-            label (str or None) : optional label for the table in QueryBuilder
+            label (str or None) : optional label for the table in the
+                cached query builder
                 If `None`, will be gleaned from the URI
 
         Returns:
-            str : the table name in QueryBuilder
+            str : the table name in the stored query builder
             DeltaTable : If one exists at the specified bucket / prefix,
                 will retrieve the cached instance.
         """
         delta_timeout = f"{self.timeout}s"
         full_key = f"{bucket}/{prefix}"
         qb_label = label or full_key.replace("/", "_").replace("-", "_")
-        if (uri := f"{connector}://{full_key}") not in self._delta_tables:
-            self._delta_tables[uri] = DeltaTable(
+
+        uri = f"{connector}://{full_key}"
+        if not uri.endswith("/"):
+            uri += "/"
+
+        try:
+            stored_label, delta_table = next(
+                (_label, _table)
+                for _label, _table in self.query_builder._delta_tables.items()
+                if _table.table_uri == uri
+            )
+        except StopIteration:
+            stored_label = None
+
+        if stored_label is None:
+            delta_table = DeltaTable(
                 uri,
                 storage_options={
                     "AWS_SKIP_SIGNATURE": "true",
@@ -579,9 +620,19 @@ class BaseRester(_Rester):
                     "max_retries": f"{MAPI_CLIENT_SETTINGS.MAX_RETRIES}",
                 },
             )
-            self.query_builder.register(qb_label, self._delta_tables[uri])
+            self.query_builder.register(qb_label, delta_table)
 
-        return qb_label, self._delta_tables[uri]
+        elif stored_label != qb_label:
+            warnings.warn(
+                f"DeltaTable with URI {uri} already found with different label: "
+                f"Stored label = {stored_label}; submitted label {qb_label}. "
+                "Using stored DeltaTable.",
+                category=MPRestWarning,
+                stacklevel=2,
+            )
+            return stored_label, delta_table
+
+        return qb_label, delta_table
 
     def _query_delta_single(self, query: str) -> pa.Table:
         """Execute a SQL query against a registered Delta table.

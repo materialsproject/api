@@ -42,7 +42,7 @@ class TaskRester(BaseRester):
             f"WHERE run_type='{str(run_type)}' AND " if run_type else ""
         ) + f"WHERE identifier='{as_alpha}'"
 
-        traj_lbl, traj_tbl = self._get_delta_table(
+        traj_lbl, _ = self._get_delta_table(
             "materialsproject-parsed",
             "core/trajectories/",
             label="traj",

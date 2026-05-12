@@ -165,9 +165,9 @@ class ThermoRester(BaseRester):
             )
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
-        version = "2026-04-13"  # self.db_version.replace(".", "-")
+        version = self.db_version.replace(".", "-")
 
-        pd_lbl, pd_tbl = self._get_delta_table(
+        pd_lbl, _ = self._get_delta_table(
             "materialsproject-build", "objects/phase-diagrams", label="phase_diagrams"
         )
 
