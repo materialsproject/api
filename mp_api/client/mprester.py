@@ -10,8 +10,12 @@ from typing import TYPE_CHECKING
 from emmet.core.band_theory import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.types.enums import ThermoType
+from emmet.core.types.pymatgen_types.computed_entries_adapter import (
+    ComputedStructureEntryType,
+)
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
+from pydantic import TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
 from pymatgen.core import Composition, Element, Structure
@@ -620,9 +624,8 @@ class MPRester(_Rester):
         )
 
         for doc in docs:
-            entry_list = doc["entries"].values()
-            for entry in entry_list:
-                entry_dict: dict = entry.as_dict() if hasattr(entry, "as_dict") else entry  # type: ignore
+            entry_list = doc.model_dump()["entries"].values()
+            for entry_dict in entry_list:
                 if not compatible_only:
                     entry_dict["correction"] = 0.0
                     entry_dict["energy_adjustments"] = []
@@ -652,7 +655,9 @@ class MPRester(_Rester):
                             correction["n_atoms"] *= site_ratio
 
                 # Need to store object to permit de-duplication
-                entries.add(ComputedStructureEntry.from_dict(entry_dict))
+                entries.add(
+                    TypeAdapter(ComputedStructureEntryType).validate_python(entry_dict)
+                )
 
         return list(entries)
 
