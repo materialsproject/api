@@ -366,7 +366,7 @@ class BandStructureRester(BaseESPropertyRester):
                 raise MPRestError(
                     f"No uniform band structure data found for {material_id}"
                 )
-            bs_task_id = bs_data["total"]["1"]["task_id"]
+            bs_task_id = bs_data["task_id"]
 
         bs_obj = self.get_bandstructure_from_task_id(
             bs_task_id,

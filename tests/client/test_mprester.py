@@ -168,6 +168,7 @@ loop_
             <= 2
         )
 
+    @pytest.mark.skip(reason="Re-enable after deployment of db version 2026.04.13")
     def test_get_bandstructure_by_material_id(self, mpr):
         bs = mpr.get_bandstructure_by_material_id("mp-149")
         assert isinstance(bs, BandStructureSymmLine)
@@ -175,6 +176,7 @@ loop_
         assert isinstance(bs_uniform, BandStructure)
         assert not isinstance(bs_uniform, BandStructureSymmLine)
 
+    @pytest.mark.skip(reason="Re-enable after deployment of db version 2026.04.13")
     def test_get_dos_by_id(self, mpr):
         dos = mpr.get_dos_by_material_id("mp-149")
         assert isinstance(dos, CompleteDos)
