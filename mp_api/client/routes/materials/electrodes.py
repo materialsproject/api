@@ -3,12 +3,15 @@ from __future__ import annotations
 import warnings
 from collections import defaultdict
 
-from emmet.core.electrode import ConversionElectrodeDoc, InsertionElectrodeDoc
+from emmet.core.electrode import (
+    ConversionElectrodeDoc,
+    InsertionElectrodeDoc,
+    validate_battery_id,
+)
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.exceptions import MPRestWarning
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.exceptions import MPRestError, MPRestWarning
 
 
 class BaseElectrodeRester(BaseRester):
@@ -104,9 +107,19 @@ class BaseElectrodeRester(BaseRester):
                         {f"{param}_min": value[0], f"{param}_max": value[1]}
                     )
                 elif param == "battery_ids":
-                    query_params[param] = ",".join(
-                        validate_ids([value] if isinstance(value, str) else value)
-                    )
+                    _battery_ids = [value] if isinstance(value, str) else value
+                    try:
+                        for battery_id in _battery_ids:
+                            validate_battery_id(battery_id)
+                        query_params[param] = ",".join(_battery_ids)
+
+                    except Exception:
+                        raise MPRestError(
+                            f"At least one battery_id in: {value} is invalid."
+                            " Try using the validate_battery_id function from emmet.core.electrode"
+                            " to test your inputs."
+                        )
+
                 elif param == "working_ion":
                     query_params["working_ion"] = ",".join(
                         str(ele)

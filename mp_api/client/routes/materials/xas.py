@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from emmet.core.xas import XASDoc
+from emmet.core.xas import XASDoc, validate_xas_spectrum_id
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.exceptions import MPRestError
 
 if TYPE_CHECKING:
     from typing import Any
@@ -81,7 +82,19 @@ class XASRester(BaseRester):
             )
         for k in ("chemsys", "elements", "material_ids", "spectrum_ids"):
             if (v := _locals.get(k)) is not None:
-                query_params[k] = ",".join([v] if isinstance(v, str) else v)
+                _v = [v] if isinstance(v, str) else v
+                if k == "spectrum_ids":
+                    try:
+                        for spectrum_id in k:
+                            validate_xas_spectrum_id(spectrum_id)
+                    except Exception:
+                        raise MPRestError(
+                            f"At least one spectrum_id in: {_v} is invalid."
+                            " Try using the validate_xas_spectrum_id function from emmet.core.xas"
+                            " to test your inputs."
+                        )
+
+                query_params[k] = ",".join(_v)
 
         query_params = {
             entry: query_params[entry]

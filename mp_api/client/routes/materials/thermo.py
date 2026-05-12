@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 import numpy as np
-from emmet.core.thermo import ThermoDoc
+from emmet.core.thermo import ThermoDoc, validate_thermo_id
 from emmet.core.types.enums import ThermoType
 from emmet.core.types.pymatgen_types.phase_diagram_adapter import PhaseDiagramType
 from pydantic import TypeAdapter
@@ -11,6 +11,7 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.utils import validate_ids
 
 
@@ -91,7 +92,17 @@ class ThermoRester(BaseRester):
             query_params.update({"material_ids": ",".join(validate_ids(material_ids))})
 
         if thermo_ids:
-            query_params.update({"thermo_ids": ",".join(validate_ids(thermo_ids))})
+            try:
+                for thermo_id in thermo_ids:
+                    validate_thermo_id(thermo_id)
+                query_params.update({"thermo_ids": ",".join(thermo_ids)})
+
+            except Exception:
+                raise MPRestError(
+                    f"At least one thermo_id in: {thermo_ids} is invalid."
+                    " Try using the validate_thermo_id function from emmet.core.thermo"
+                    " to test your inputs."
+                )
 
         if thermo_types:
             t_types = {t if isinstance(t, str) else t.value for t in thermo_types}
