@@ -797,7 +797,7 @@ class ContribsClient(SwaggerClient):
         ret = self.projects.queryProjects(**query).result()  # first page
         total_count, total_pages = ret["total_count"], ret["total_pages"]
 
-        if total_pages < 2:
+        if total_pages < 2 or ("page" in query):
             return (
                 _convert_to_model(  # type: ignore[return-value]
                     ret["data"],
@@ -828,7 +828,12 @@ class ContribsClient(SwaggerClient):
         ]
         responses = _run_futures(futures, total=total_count, timeout=timeout)
 
-        ret["data"].extend([resp["result"]["data"] for resp in responses.values()])
+        # NOTE: resp["result"]["data"] is a dict where each key is an int,
+        # and each value is a **list** of projects as dict
+        # Double iteration is necessary because of this nested structure
+        ret["data"].extend(
+            [entry for resp in responses.values() for entry in resp["result"]["data"]]
+        )
 
         return (
             _convert_to_model(  # type: ignore[return-value]
