@@ -50,6 +50,7 @@ from urllib3.util.retry import Retry
 from mp_api.client.contribs._logger import MPCC_LOGGER, TqdmToLogger
 from mp_api.client.contribs._types import (
     Attachment,
+    ComponentIdSets,
     MPCDict,
     MPCStructure,
     Table,
@@ -71,10 +72,9 @@ if TYPE_CHECKING:
     from collections.abc import Generator, Iterable, Sequence
     from typing import Any
 
-    from mp_api.client.contribs.types import (
+    from mp_api.client.contribs._types import (
         AllIdMap,
         AllIdSets,
-        ComponentIdSets,
         IdentifierLeaf,
         ProjectIdSets,
     )
@@ -88,11 +88,15 @@ warnings.formatwarning = lambda msg, *args, **kwargs: f"{msg}\n"
 warnings.filterwarnings("default", category=DeprecationWarning, module=__name__)
 
 
-def validate_email(email_string: str):
+def validate_email(email_string: str) -> None:
     """Validate user email address.
 
     Args:
         email_string (str) : the user's email address
+    Returns:
+        None
+    Raises:
+        SwaggerValidationError on malformed email address.
     """
     if email_string.count(":") != 1:
         raise SwaggerValidationError(
@@ -106,6 +110,8 @@ def validate_email(email_string: str):
     d = is_email(email, diagnose=True)
     if d > BaseDiagnosis.CATEGORIES["VALID"]:
         raise SwaggerValidationError(f"{email} {d.message}")
+
+    return None
 
 
 # TODO: mypy has some problems with putting a bare `str`
@@ -791,7 +797,7 @@ class ContribsClient(SwaggerClient):
         ret = self.projects.queryProjects(**query).result()  # first page
         total_count, total_pages = ret["total_count"], ret["total_pages"]
 
-        if total_pages < 2:
+        if total_pages < 2 or ("page" in query):
             return (
                 _convert_to_model(  # type: ignore[return-value]
                     ret["data"],
@@ -822,7 +828,12 @@ class ContribsClient(SwaggerClient):
         ]
         responses = _run_futures(futures, total=total_count, timeout=timeout)
 
-        ret["data"].extend([resp["result"]["data"] for resp in responses.values()])
+        # NOTE: resp["result"]["data"] is a dict where each key is an int,
+        # and each value is a **list** of projects as dict
+        # Double iteration is necessary because of this nested structure
+        ret["data"].extend(
+            [entry for resp in responses.values() for entry in resp["result"]["data"]]
+        )
 
         return (
             _convert_to_model(  # type: ignore[return-value]
@@ -2109,7 +2120,7 @@ class ContribsClient(SwaggerClient):
                         digest in digests[project_name][component]
                         or digest
                         in existing.get(project_name, {})
-                        .get(component, {})
+                        .get(component, {})  # type: ignore[union-attr]
                         .get("md5s", [])
                     )
 
@@ -2227,9 +2238,9 @@ class ContribsClient(SwaggerClient):
                                 pk=project_name, _fields=["unique_identifiers"]
                             ).result()["unique_identifiers"]
                         )
-                        existing_ids = existing.get(project_name, {}).get(
-                            "identifiers", []
-                        )
+                        existing_ids: Iterable[str] = existing.get(
+                            project_name, {}
+                        ).get("identifiers", [])
                         contribs[project_name] = [
                             c
                             for c in contribs[project_name]
