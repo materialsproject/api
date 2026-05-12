@@ -29,11 +29,7 @@ from mp_api.client.core.exceptions import (
     _emit_status_warning,
 )
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
-from mp_api.client.core.utils import (
-    LazyImport,
-    load_json,
-    validate_ids,
-)
+from mp_api.client.core.utils import LazyImport, load_json, validate_ids
 from mp_api.client.routes import GENERIC_RESTERS
 from mp_api.client.routes.materials import MATERIALS_RESTERS
 from mp_api.client.routes.molecules import MOLECULES_RESTERS
@@ -155,6 +151,7 @@ class MPRester(_Rester):
             local_dataset_cache=local_dataset_cache,
             force_renew=force_renew,
             query_builder=query_builder,
+            **kwargs,
         )
 
         self._contribs = None
@@ -1407,11 +1404,13 @@ class MPRester(_Rester):
         Note this method also no longer supports direct MongoDB-type queries. For more information,
         please see the new documentation.
         """
-        raise NotImplementedError("""
+        raise NotImplementedError(
+            """
             The MPRester().query method has been replaced with the MPRester().summary.search method.
             Note this method also no longer supports direct MongoDB-type queries. For more information,
             please see the new documentation.
-            """)
+            """
+        )
 
     def get_cohesive_energy(
         self,

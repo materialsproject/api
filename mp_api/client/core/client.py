@@ -335,6 +335,7 @@ class BaseRester(_Rester):
             local_dataset_cache=local_dataset_cache,
             force_renew=force_renew,
             query_builder=query_builder,
+            **kwargs,
         )
 
         self.base_endpoint = validate_endpoint(endpoint)
