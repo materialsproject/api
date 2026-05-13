@@ -48,12 +48,14 @@ ignore_generic = [
 ]  # temp
 
 # Temporarily ignore molecules resters while molecules query operators are changed
+# Temp ignore eos rester for material_id -> task_id schema change
 with MPRester() as mpr:
     resters_to_test = [
         rester
         for rester in mpr._all_resters
         if (
             "molecule" not in rester._class_name.lower()
+            and "eos" not in rester._class_name.lower()
             and not (pmg_alloys is None and "alloys" in str(rester).lower())
         )
     ]

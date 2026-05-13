@@ -1,18 +1,17 @@
+import importlib
 import itertools
 import os
 import random
-import importlib
-import requests
 from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
+import requests
 from emmet.core.mpid import MPID, AlphaID
+from emmet.core.phonon import PhononBS, PhononDOS
 from emmet.core.tasks import TaskDoc
-from emmet.core.vasp.calc_types import CalcType
-from emmet.core.phonon import PhononDOS, PhononBS
 from emmet.core.types.enums import ThermoType
-
+from emmet.core.vasp.calc_types import CalcType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixDiagram, PourbaixEntry
 from pymatgen.analysis.wulff import WulffShape
@@ -26,16 +25,15 @@ from pymatgen.electronic_structure.bandstructure import (
 )
 from pymatgen.electronic_structure.dos import CompleteDos
 from pymatgen.entries.compatibility import (
-    MaterialsProjectAqueousCompatibility,
     MaterialsProject2020Compatibility,
+    MaterialsProjectAqueousCompatibility,
 )
-from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
+from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 
 from mp_api._test_utils import requires_api_key
-
 from mp_api.client import MPRester
 from mp_api.client.core import MPRestError, MPRestWarning
 from mp_api.client.core.settings import _DEFAULT_ENDPOINT
@@ -675,7 +673,7 @@ loop_
                 target_mpid, file_patterns=["some_pattern"]
             )
             assert all(
-                isinstance(entry["task_id"], MPID)
+                isinstance(entry["task_id"], AlphaID)
                 and isinstance(entry["calc_type"], CalcType)
                 for entry in calc_type_map[target_mpid]
             )
@@ -689,7 +687,7 @@ loop_
                 [MPID(target_mpid)], calc_types=["GGA Deformation"]
             )
             assert all(
-                isinstance(entry["task_id"], MPID)
+                isinstance(entry["task_id"], AlphaID)
                 and entry["calc_type"].value == "GGA Deformation"
                 for entry in calc_type_map[target_mpid]
             )
@@ -702,7 +700,9 @@ loop_
 
     def test_db_warning(self, monkeypatch: pytest.MonkeyPatch):
         from pathlib import Path
+
         import yaml
+
         from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
         with NamedTemporaryFile(suffix=".yaml") as tmp_log:

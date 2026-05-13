@@ -1,16 +1,15 @@
-import pytest
 from typing import Any
 
+import pytest
 from emmet.core.types.enums import XasEdge, XasType
 from pymatgen.core.periodic_table import Element
 
 from mp_api._test_utils import (
-    client_search_testing,
     client_pagination,
+    client_search_testing,
     client_sort,
     requires_api_key,
 )
-
 from mp_api.client.routes.materials.xas import XASRester
 
 
@@ -35,8 +34,8 @@ sub_doc_fields: list[str] = []
 alt_name_dict: dict[str, str] = {
     "required_elements": "elements",
     "formula": "formula_pretty",
-    "exclude_elements": "material_id",
-    "spectrum_ids": "spectrum_id",
+    "exclude_elements": "absorbing_element",
+    "spectrum_ids": "absorbing_element",
 }
 
 custom_field_tests: dict[str, Any] = {
@@ -66,16 +65,17 @@ def test_client(rester):
     )
 
 
-@requires_api_key
-def test_pagination():
-    with XASRester() as rester:
-        client_pagination(rester.search, "spectrum_id")
+# TODO: how to test pagination now that spectrum_id is computed, not stored?
+# @requires_api_key
+# def test_pagination():
+#     with XASRester() as rester:
+#         client_pagination(rester.search, "task_id")
 
 
 @pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
 @requires_api_key
 @pytest.mark.parametrize(
-    "sort_field", ["material_id", "absorbing_element", "spectrum_id"]
+    "sort_field", ["spectrum_type", "absorbing_element", "chemsys"]
 )
 def test_sort(sort_field):
     with XASRester() as rester:

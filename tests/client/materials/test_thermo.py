@@ -5,7 +5,6 @@ from emmet.core.types.enums import ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 from mp_api._test_utils import client_search_testing, requires_api_key
-
 from mp_api.client.routes.materials.thermo import ThermoRester
 
 
@@ -30,7 +29,7 @@ sub_doc_fields: list = []
 alt_name_dict: dict = {
     "formula": "formula_pretty",
     "material_ids": "material_id",
-    "thermo_ids": "thermo_id",
+    "thermo_ids": "material_id",
     "thermo_types": "thermo_type",
     "total_energy": "energy_per_atom",
     "formation_energy": "formation_energy_per_atom",

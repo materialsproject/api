@@ -3,7 +3,6 @@ import os
 import pytest
 
 from mp_api._test_utils import client_search_testing, requires_api_key
-
 from mp_api.client.core.exceptions import MPRestError, MPRestWarning
 from mp_api.client.routes.materials.eos import EOSRester
 
@@ -27,7 +26,7 @@ excluded_params = [
 
 sub_doc_fields: list = []
 
-alt_name_dict: dict = {"task_ids": "task_id"}
+alt_name_dict: dict = {"task_ids": "eos"}
 
 custom_field_tests: dict = {"task_ids": ["mp-149"]}
 
