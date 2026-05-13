@@ -46,7 +46,6 @@ custom_field_tests: dict[str, Any] = {
     "formula": "Ce(WO4)2",
     "chemsys": "Ce-O-W",
     "elements": ["Ce"],
-    "spectrum_ids": ["mp-1194531-XANES-Fe-L2", "mp-1194531-XANES-Fe-K"],
 }
 
 

@@ -15,7 +15,7 @@ _MUTE_PROGRESS_BAR = PMG_SETTINGS.get("MPRESTER_MUTE_PROGRESS_BARS", False)
 _MAX_LIST_LENGTH = min(PMG_SETTINGS.get("MPRESTER_MAX_LIST_LENGTH", 10000), 10000)
 
 _EMMET_SETTINGS = EmmetSettings()  # type: ignore[call-arg]
-_DEFAULT_ENDPOINT = "https://api.materialsproject.org/"
+_DEFAULT_ENDPOINT = "http://0.0.0.0:8000"  # "https://api.materialsproject.org/"
 
 
 class MAPIClientSettings(BaseSettings):
