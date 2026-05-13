@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import numpy as np
 from emmet.core.thermo import ThermoDoc
 from emmet.core.types.enums import ThermoType
-from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
 from pymatgen.core import __version__ as __pmg_version__
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.utils import load_json, validate_ids
+
+if TYPE_CHECKING:
+    from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 
 class ThermoRester(BaseRester):
@@ -156,6 +159,8 @@ class ThermoRester(BaseRester):
         Returns:
             (PhaseDiagram): Pymatgen phase diagram object.
         """
+        from pymatgen.analysis.phase_diagram import PhaseDiagram
+
         t_type = thermo_type if isinstance(thermo_type, str) else thermo_type.value
         valid_types = {*map(str, ThermoType.__members__.values())}
         if invalid_types := {t_type} - valid_types:

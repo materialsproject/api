@@ -7,16 +7,19 @@ import warnings
 from collections.abc import Sequence
 from io import StringIO
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import requests
-from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Composition, Element
 from scipy.constants import Avogadro, Boltzmann, atm, elementary_charge
 from scipy.interpolate import make_splrep, splev
 
 from mp_api.client.core.exceptions import MPRestWarning
+
+if TYPE_CHECKING:
+    from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 DEFAULT_CACHE_FILE = Path(__file__).absolute().parent / "JANAF_O2_data.json"
 # O2 partial pressure at ambient conditions, in MPa

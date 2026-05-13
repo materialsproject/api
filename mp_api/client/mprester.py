@@ -12,8 +12,6 @@ from emmet.core.mpid import MPID, AlphaID
 from emmet.core.types.enums import ThermoType
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
-from pymatgen.analysis.phase_diagram import PhaseDiagram
-from pymatgen.analysis.pourbaix_diagram import IonEntry
 from pymatgen.core import Composition, Element, Structure
 from pymatgen.core.ion import Ion
 from pymatgen.entries.computed_entries import ComputedStructureEntry
@@ -47,8 +45,8 @@ if TYPE_CHECKING:
     import numpy as np
     from emmet.core.tasks import CoreTaskDoc
     from packaging.version import Version
-    from pymatgen.analysis.phase_diagram import PDEntry
-    from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
+    from pymatgen.analysis.phase_diagram import PDEntry, PhaseDiagram
+    from pymatgen.analysis.pourbaix_diagram import IonEntry, PourbaixEntry
     from pymatgen.entries.compatibility import Compatibility
     from pymatgen.entries.computed_entries import (
         ComputedEntry,
@@ -717,6 +715,7 @@ class MPRester:
             list of PourbaixEntry
         """
         # imports are not top-level due to expense
+        from pymatgen.analysis.phase_diagram import PhaseDiagram
         from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
         from pymatgen.entries.compatibility import (
             Compatibility,
@@ -949,6 +948,8 @@ class MPRester:
             [IonEntry]: IonEntry are similar to PDEntry objects. Their energies
                 are free energies in eV.
         """
+        from pymatgen.analysis.pourbaix_diagram import IonEntry
+
         # determine the chemsys from the phase diagram
         chemsys = "-".join([el.symbol for el in pd.elements])
 
@@ -1570,6 +1571,8 @@ class MPRester:
         entries: list[ComputedEntry | ComputedStructureEntry | PDEntry],
         thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
     ) -> list[dict[str, Any]] | None:
+        from pymatgen.analysis.phase_diagram import PhaseDiagram
+
         chemsys: set[SpeciesLike] = {
             ele for entry in entries for ele in entry.composition.elements
         }
