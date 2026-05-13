@@ -182,6 +182,12 @@ class ThermoRester(BaseRester):
             "materialsproject-build", "objects/phase-diagrams", label="phase_diagrams"
         )
 
+        # phase-diagram tbl has r2SCAN, not R2SCAN
+        # mixing of ThermoType/RunType in emmet -_-
+        # TODO: coerce upstream? allow case-insensitivity in emmet?
+        if thermo_type == ThermoType.R2SCAN:
+            thermo_type = "r2SCAN"
+
         query = f"""
             SELECT phase_diagram
             FROM   {pd_lbl}
