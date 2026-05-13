@@ -65,10 +65,12 @@ def test_client(rester):
 
 
 # TODO: how to test pagination now that spectrum_id is computed, not stored?
-# @requires_api_key
-# def test_pagination():
-#     with XASRester() as rester:
-#         client_pagination(rester.search, "task_id")
+@requires_api_key
+def test_pagination():
+    with XASRester() as rester:
+        client_pagination(
+            rester.search, "task_id", additional_fields=["spectrum_type", "edge"]
+        )
 
 
 @pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)

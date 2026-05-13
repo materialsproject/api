@@ -59,7 +59,7 @@ from mp_api.client.core.utils import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
-    from typing import Any, Self
+    from typing import Any
 
     from mp_api.client.core.utils import LazyImport
 
@@ -116,7 +116,7 @@ class QueryBuilderWithCache(QueryBuilder):
         self._delta_tables: dict[str, DeltaTable] = {}
         super().__init__()
 
-    def register(self, table_name: str, delta_table: DeltaTable) -> Self:
+    def register(self, table_name: str, delta_table: DeltaTable) -> QueryBuilder:
         """Register and cache a DeltaTable."""
         self._delta_tables[table_name] = delta_table
         return super().register(table_name, delta_table)
@@ -282,7 +282,7 @@ class BaseRester(_Rester):
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
-        query_builder: QueryBuilder | None = None,
+        query_builder: QueryBuilderWithCache | None = None,
         s3_client: Any | None = None,
         timeout: int = 20,
         **kwargs,
@@ -319,7 +319,8 @@ class BaseRester(_Rester):
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to 'mp_datasets' in the user's home directory
             force_renew: Option to overwrite existing local dataset
-            query_builder : Instance of deltalake QueryBuilder to use in querying delta tables
+            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+                NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
             s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
             timeout: Time in seconds to wait until a request timeout error is thrown
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
