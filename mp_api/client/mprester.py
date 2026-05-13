@@ -1409,13 +1409,11 @@ class MPRester(_Rester):
         Note this method also no longer supports direct MongoDB-type queries. For more information,
         please see the new documentation.
         """
-        raise NotImplementedError(
-            """
+        raise NotImplementedError("""
             The MPRester().query method has been replaced with the MPRester().summary.search method.
             Note this method also no longer supports direct MongoDB-type queries. For more information,
             please see the new documentation.
-            """
-        )
+            """)
 
     def get_cohesive_energy(
         self,
