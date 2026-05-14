@@ -3,7 +3,6 @@ import os
 import pytest
 
 from mp_api._test_utils import client_search_testing, requires_api_key
-
 from mp_api.client.routes.materials.chemenv import ChemenvRester
 
 
@@ -34,11 +33,11 @@ alt_name_dict: dict = {
 }
 
 custom_field_tests: dict = {
-    "material_ids": ["mp-22526"],
+    "material_ids": ["mp-149"],
     "elements": ["Si", "O"],
     "exclude_elements": ["Si", "O"],
     "chemenv_symbol": ["S:1"],
-    "chemenv_iupac": ["IC-12"],
+    "chemenv_iupac": ["A-2"],
     "chemenv_iucr": ["[2l]"],
     "chemenv_name": ["Octahedron"],
     "species": ["Cu2+"],
