@@ -2,11 +2,9 @@ import os
 
 import numpy as np
 import pytest
-
 from emmet.core.phonon import PhononBS, PhononDOS
 
 from mp_api._test_utils import client_search_testing, requires_api_key
-
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.routes.materials.phonon import PhononRester
 
@@ -23,17 +21,22 @@ def test_phonon_search():
                 "fields",
             ],
             alt_name_dict={
-                "material_ids": "material_id",
+                "phonon_ids": "identifier",
             },
             custom_field_tests={
+                # test search kwarg backwards compat
                 "material_ids": ["mp-149", "mp-13"],
-                "material_ids": "mp-149",
+                "phonon_ids": ["ft", "mp-13"],
+                "phonon_ids": "mp-149",
                 "phonon_method": "dfpt",
             },
             sub_doc_fields=[],
         )
 
 
+# NOTE: below funcs still query legacy jsonl s3 objects
+#       they are key by 'mp-123' -> don't change id search strings
+#       to Alpha version
 @requires_api_key
 @pytest.mark.parametrize("use_document_model", [True, False])
 def test_phonon_get_methods(use_document_model):
