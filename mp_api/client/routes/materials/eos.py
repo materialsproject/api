@@ -58,7 +58,7 @@ class EOSRester(BaseRester):
             )
 
         if task_ids:
-            query_params["material_ids"] = ",".join(
+            query_params["task_ids"] = ",".join(
                 validate_ids([task_ids] if isinstance(task_ids, str) else task_ids)
             )
 
