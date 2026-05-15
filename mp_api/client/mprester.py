@@ -1601,24 +1601,26 @@ class MPRester(_Rester):
         }
         chemsys_str = "-".join(sorted(str(ele) for ele in chemsys))
 
-        thermo_type = (
-            ThermoType(thermo_type) if isinstance(thermo_type, str) else thermo_type
+        thermo_type_valid_str: str = (
+            ThermoType(thermo_type).value
+            if (isinstance(thermo_type, str) and thermo_type != "r2SCAN")
+            else str(thermo_type)
         )
 
         corrector: Compatibility | None = None
-        if thermo_type == ThermoType.GGA_GGA_U:
+        if thermo_type_valid_str == ThermoType.GGA_GGA_U.value:
             from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
 
             corrector = MaterialsProject2020Compatibility()
 
-        elif thermo_type == ThermoType.GGA_GGA_U_R2SCAN:
+        elif thermo_type_valid_str == ThermoType.GGA_GGA_U_R2SCAN.value:
             from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 
             corrector = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
 
         try:
             pd = self.materials.thermo.get_phase_diagram_from_chemsys(
-                chemsys_str, thermo_type=thermo_type
+                chemsys_str, thermo_type=thermo_type_valid_str
             )
         except MPRestError:
             pd = None
@@ -1626,7 +1628,7 @@ class MPRester(_Rester):
         if not pd:
             warnings.warn(
                 f"No phase diagram data available for chemical system {chemsys_str} "
-                f"and thermo type {thermo_type}.",
+                f"and thermo type {thermo_type_valid_str}.",
                 category=MPRestWarning,
                 stacklevel=2,
             )

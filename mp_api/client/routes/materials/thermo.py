@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import numpy as np
 from emmet.core.thermo import ThermoDoc, validate_thermo_id
@@ -14,11 +15,44 @@ from mp_api.client.core import BaseRester
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.utils import validate_ids
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from enums import Enum
+
 
 class ThermoRester(BaseRester):
     suffix = "materials/thermo"
     document_model = ThermoDoc  # type: ignore
     primary_key = "material_id"
+
+    @staticmethod
+    def _check_thermo_types(thermo_types: Sequence[str | Enum]) -> set[str]:
+        """Check if a user has input any invalid thermo types.
+
+        Args:
+        thermo_types (Sequence of str or Enum) : list of thermo types
+            the user has queried for
+
+        phase-diagram tbl has "r2SCAN", not "R2SCAN"
+        mixing of ThermoType/RunType in emmet -_-
+        TODO: coerce upstream? allow case-insensitivity in emmet?
+
+        Returns:
+        set of str: validated thermo types
+
+        Raises:
+        ValueError if any invalid thermo types are input
+        """
+        t_types: set[str] = {t if isinstance(t, str) else t.value for t in thermo_types}
+        t_types = {"r2SCAN" if t == "R2SCAN" else t for t in t_types}
+        valid_types = {"r2SCAN", *map(str, ThermoType.__members__.values())}
+
+        if invalid_types := t_types - valid_types:
+            raise ValueError(
+                f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}"
+            )
+        return t_types
 
     def search(
         self,
@@ -57,7 +91,7 @@ class ThermoRester(BaseRester):
             material_ids (List[str]): List of Materials Project IDs to return data for.
             thermo_ids (List[str]): List of thermo IDs to return data for. This is a combination of the Materials
                 Project ID and thermo type (e.g. mp-149_GGA_GGA+U).
-            thermo_types (List[ThermoType]): List of thermo types to return data for (e.g. ThermoType.GGA_GGA_U).
+            thermo_types (List[ThermoType or str]): List of thermo/run types to return data for (e.g. ThermoType.GGA_GGA_U).
             num_elements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
             total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
             uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
@@ -105,13 +139,9 @@ class ThermoRester(BaseRester):
                 )
 
         if thermo_types:
-            t_types = {t if isinstance(t, str) else t.value for t in thermo_types}
-            valid_types = {*map(str, ThermoType.__members__.values())}
-            if invalid_types := t_types - valid_types:
-                raise ValueError(
-                    f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}"
-                )
-            query_params.update({"thermo_types": ",".join(t_types)})
+            query_params.update(
+                {"thermo_types": ",".join(self._check_thermo_types(thermo_types))}
+            )
 
         if num_elements:
             if isinstance(num_elements, int):
@@ -168,12 +198,7 @@ class ThermoRester(BaseRester):
         Returns:
             (PhaseDiagram): Pymatgen phase diagram object.
         """
-        t_type = thermo_type if isinstance(thermo_type, str) else thermo_type.value
-        valid_types = {*map(str, ThermoType.__members__.values())}
-        if invalid_types := {t_type} - valid_types:
-            raise ValueError(
-                f"Invalid thermo type(s) passed: {invalid_types}, valid types are: {valid_types}"
-            )
+        validated_thermo_type = self._check_thermo_types([thermo_type]).pop()
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
         version = self.db_version.replace(".", "-")
@@ -182,18 +207,12 @@ class ThermoRester(BaseRester):
             "materialsproject-build", "objects/phase-diagrams", label="phase_diagrams"
         )
 
-        # phase-diagram tbl has r2SCAN, not R2SCAN
-        # mixing of ThermoType/RunType in emmet -_-
-        # TODO: coerce upstream? allow case-insensitivity in emmet?
-        if thermo_type == ThermoType.R2SCAN:
-            thermo_type = "r2SCAN"
-
         query = f"""
             SELECT phase_diagram
             FROM   {pd_lbl}
             WHERE  chemsys='{sorted_chemsys}'
               AND  version='{version}'
-              AND  thermo_type='{thermo_type}'
+              AND  thermo_type='{validated_thermo_type}'
         """
         table = self._query_delta_single(query)
         as_py = table["phase_diagram"].to_pylist(maps_as_pydicts="strict")

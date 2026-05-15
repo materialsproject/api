@@ -564,81 +564,83 @@ loop_
                 mpr.get_cohesive_energy("mp-1")
 
     @pytest.mark.parametrize(
-        "chemsys, thermo_type",
-        [
-            [("Fe", "P"), "GGA_GGA+U"],
-            [("Li", "S"), ThermoType.GGA_GGA_U_R2SCAN],
-            [("Ni", "Se"), ThermoType.R2SCAN],
-            [("Ni", "Kr"), "R2SCAN"],
-        ],
+        "thermo_type", ["GGA_GGA+U", ThermoType.GGA_GGA_U_R2SCAN, "r2SCAN"]
     )
-    def test_get_stability(self, chemsys, thermo_type):
+    def test_get_stability(self, thermo_type):
         """
         This test is adapted from the pymatgen one - the scope is broadened
         to include more diverse chemical environments and thermo types which
         reflect the scope of the current MP database.
         """
         with MPRester() as mpr:
-            entries = mpr.get_entries_in_chemsys(
-                chemsys, additional_criteria={"thermo_types": [thermo_type]}
-            )
 
-            no_compound_entries = all(
-                len(entry.composition.elements) == 1 for entry in entries
-            )
-
-            modified_entries = [
-                ComputedEntry(
-                    entry.composition,
-                    entry.uncorrected_energy + 0.01,
-                    parameters=entry.parameters,
-                    entry_id=f"mod_{entry.entry_id}",
+            # No golden test data. Always test on fetched thermo data
+            chemsys_to_test: set[str] = {
+                doc.chemsys
+                for doc in mpr.materials.thermo.search(
+                    thermo_types=[thermo_type],
+                    num_elements=2,
+                    num_chunks=1,
+                    chunk_size=4,
+                    fields=["chemsys"],
                 )
-                for entry in entries
-                if entry.composition.reduced_formula in ["Fe2P", "".join(chemsys)]
-            ]
+            }
 
-            if len(modified_entries) == 0:
-                # create fake entry to get PD retrieval to fail
+            for chemsys in chemsys_to_test:
+
+                entries = mpr.get_entries_in_chemsys(
+                    chemsys, additional_criteria={"thermo_types": [thermo_type]}
+                )
+
                 modified_entries = [
                     ComputedEntry(
-                        "".join(chemsys),
-                        np.average([entry.energy for entry in entries]),
-                        entry_id=f"hypothetical",
+                        entry.composition,
+                        entry.uncorrected_energy + 0.01,
+                        parameters=entry.parameters,
+                        entry_id=f"mod_{entry.entry_id}",
                     )
+                    for entry in entries
+                    if entry.entry_id == entries[0].entry_id
                 ]
 
-            if no_compound_entries:
-                with pytest.warns(
-                    MPRestWarning, match="No phase diagram data available"
+                if (
+                    all(len(entry.composition.elements) == 1 for entry in entries)
+                    and chemsys.count("-") > 0
                 ):
-                    mpr.get_stability(modified_entries, thermo_type=thermo_type)
-                return
+                    # For a multi-element chemsys with no multinaries, only elementals,
+                    # there should be no phase diagram data available.
+                    with pytest.warns(
+                        MPRestWarning, match="No phase diagram data available"
+                    ):
+                        mpr.get_stability(modified_entries, thermo_type=thermo_type)
+                    return
 
-            else:
-                rester_ehulls = mpr.get_stability(
-                    modified_entries, thermo_type=thermo_type
-                )
+                else:
+                    rester_ehulls = mpr.get_stability(
+                        modified_entries, thermo_type=thermo_type
+                    )
 
-        all_entries = entries + modified_entries
+            all_entries = entries + modified_entries
 
-        compat = None
-        if thermo_type == "GGA_GGA+U":
-            compat = MaterialsProject2020Compatibility()
-        elif thermo_type == "GGA_GGA+U_R2SCAN":
-            compat = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
+            compat = None
+            if thermo_type == "GGA_GGA+U":
+                compat = MaterialsProject2020Compatibility()
+            elif thermo_type == "GGA_GGA+U_R2SCAN":
+                compat = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
 
-        if compat:
-            all_entries = compat.process_entries(all_entries)
+            if compat:
+                all_entries = compat.process_entries(all_entries)
 
-        pd = PhaseDiagram(all_entries)
-        for entry in all_entries:
-            if str(entry.entry_id).startswith("mod"):
-                for dct in rester_ehulls:
-                    if dct["entry_id"] == entry.entry_id:
-                        data = dct
-                        break
-                assert pd.get_e_above_hull(entry) == pytest.approx(data["e_above_hull"])
+            pd = PhaseDiagram(all_entries)
+            for entry in all_entries:
+                if str(entry.entry_id).startswith("mod"):
+                    for dct in rester_ehulls:
+                        if dct["entry_id"] == entry.entry_id:
+                            data = dct
+                            break
+                    assert pd.get_e_above_hull(entry) == pytest.approx(
+                        data["e_above_hull"]
+                    )
 
     @pytest.mark.parametrize(
         "mpid, working_ion, thermo_type",
