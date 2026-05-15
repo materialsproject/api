@@ -15,7 +15,7 @@ from emmet.core.types.pymatgen_types.computed_entries_adapter import (
 )
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
-from pydantic import TypeAdapter
+from pydantic import BaseModel, TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
 from pymatgen.core import Composition, Element, Structure
@@ -317,7 +317,7 @@ class MPRester(_Rester):
         )
 
     def __repr__(self) -> str:
-        return f"MPRester({'v' + self.self.db_version if self.db_version else 'unknown version'})"
+        return f"MPRester({'v' + self.db_version if self.db_version else 'unknown version'})"
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
@@ -645,7 +645,10 @@ class MPRester(_Rester):
         )
 
         for doc in docs:
-            entry_list = doc.model_dump()["entries"].values()
+            entry_list = (doc.model_dump() if isinstance(doc, BaseModel) else doc)[
+                "entries"
+            ].values()
+
             for entry_dict in entry_list:
                 if not compatible_only:
                     entry_dict["correction"] = 0.0

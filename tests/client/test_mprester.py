@@ -191,74 +191,77 @@ loop_
         assert e[0].composition.reduced_formula == "LiFePO4"
 
     def test_get_entries(self, mpr):
+
+        # Avoiding "golden test data": freshly retrieve 5 thermo docs and
+        # perform entry querying based off those entries
+        thermo_docs = mpr.materials.thermo.search(
+            num_chunks=1, chunk_size=5, num_elements=(2, 3)
+        )
+
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
         with pytest.warns(
             DeprecationWarning, match="The `inc_structure` argument is deprecated"
         ):
-            entries = mpr.get_entries(chemsys, inc_structure=False)
+            entries = mpr.get_entries(thermo_docs[0].chemsys, inc_structure=False)
 
-        elements = {Element(sym) for sym in syms}
-        for e in entries:
-            assert isinstance(e, ComputedEntry)
-            assert set(e.composition.elements).issubset(elements)
+        assert all(isinstance(e, ComputedEntry) for e in entries)
+        assert all(
+            set(e.composition.elements).issubset(thermo_docs[0].elements)
+            for e in entries
+        )
 
         # Formula
-        formula = "SiO2"
-        entries = mpr.get_entries(formula)
-
-        for e in entries:
-            assert isinstance(e, ComputedEntry)
+        entries = mpr.get_entries(thermo_docs[1].formula_pretty)
+        assert all(isinstance(e, ComputedEntry) for e in entries)
 
         # Property data
-        formula = "BiFeO3"
-        entries = mpr.get_entries(formula, property_data=["energy_above_hull"])
+        entries = mpr.get_entries(
+            thermo_docs[2].formula_pretty, property_data=["energy_above_hull"]
+        )
 
-        for e in entries:
-            assert e.data.get("energy_above_hull", None) is not None
+        assert all(e.data.get("energy_above_hull", None) is not None for e in entries)
 
         # Conventional structure
-        entry = next(
-            e
-            for e in mpr.get_entry_by_material_id(
-                "mp-22526", conventional_unit_cell=True
-            )
-            if e.entry_id == "mp-22526-r2SCAN"
+        as_conv = mpr.get_entry_by_material_id(
+            thermo_docs[3].material_id, conventional_unit_cell=True
         )
-
-        s = entry.structure
-        assert pytest.approx(s.lattice.a) == s.lattice.b
-        assert pytest.approx(s.lattice.a) != s.lattice.c
-        assert pytest.approx(s.lattice.alpha) == 90
-        assert pytest.approx(s.lattice.beta) == 90
-        assert pytest.approx(s.lattice.gamma) == 120
+        assert all(e.structure == e.structure.to_conventional() for e in as_conv)
 
         # Ensure energy per atom is same
-        entry = next(
-            e
-            for e in mpr.get_entry_by_material_id(
-                "mp-22526", conventional_unit_cell=False
-            )
-            if e.entry_id == "mp-22526-r2SCAN"
+        non_standardized = mpr.get_entry_by_material_id(
+            thermo_docs[3].material_id, conventional_unit_cell=False
         )
-        s = entry.structure
-        assert pytest.approx(s.lattice.a) == s.lattice.b
-        assert pytest.approx(s.lattice.a, abs=1e-3) == s.lattice.c
-        assert pytest.approx(s.lattice.alpha, abs=1e-3) == s.lattice.beta
-        assert pytest.approx(s.lattice.alpha, abs=1e-3) == s.lattice.gamma
+        assert all(
+            e.uncorrected_energy_per_atom
+            == pytest.approx(
+                next(
+                    f for f in non_standardized if f.entry_id == e.entry_id
+                ).uncorrected_energy_per_atom
+            )
+            for e in as_conv
+        )
 
         # Additional criteria
         entry = mpr.get_entries(
-            "mp-149",
-            additional_criteria={"energy_above_hull": (0.0, 10)},
+            thermo_docs[4].material_id,
+            additional_criteria={
+                "energy_above_hull": (0.0, 2 * thermo_docs[4].energy_above_hull)
+            },
             property_data=["energy_above_hull"],
         )[0]
 
         assert "energy_above_hull" in entry.data
 
+        # Test out of range
         entries = mpr.get_entries(
-            "mp-149",
-            additional_criteria={"energy_above_hull": (1, 10)},
+            thermo_docs[4].material_id,
+            additional_criteria={
+                "energy_above_hull": (
+                    1.5 * thermo_docs[4].energy_above_hull,
+                    2 * thermo_docs[4].energy_above_hull,
+                )
+            },
             property_data=["energy_above_hull"],
         )
 
