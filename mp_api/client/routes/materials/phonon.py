@@ -225,7 +225,7 @@ class PhononRester(BaseRester):
 
         self.use_document_model = True
         docs[0]["phonon_dos"] = self.get_dos_from_phonon_id(  # type: ignore[index]
-            phonon_id, phonon_method
+            phonon_id, phonon_method  # type: ignore[arg-type]
         )
         doc = PhononBSDOSDoc(**docs[0])  # type: ignore[arg-type]
         self.use_document_model = use_document_model

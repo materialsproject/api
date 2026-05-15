@@ -25,7 +25,7 @@ sub_doc_fields: list = []
 
 alt_name_dict: dict = {"material_ids": "material_id"}
 
-custom_field_tests: dict = {"material_ids": ["mp-149"]}
+custom_field_tests: dict = {"material_ids": ["mp-13"]}
 
 
 @requires_api_key

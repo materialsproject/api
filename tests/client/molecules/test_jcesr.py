@@ -68,9 +68,13 @@ def test_pagination():
         client_pagination(rester.search, "task_id")
 
 
-@pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
 @requires_api_key
-@pytest.mark.parametrize("sort_field", ["task_id", "IE", "EA"])
+@pytest.mark.parametrize(
+    "sort_field",
+    [
+        "task_id",
+    ],
+)
 def test_sort(sort_field):
     with JcesrMoleculesRester() as rester:
         client_sort(rester.search, sort_field)

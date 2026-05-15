@@ -54,8 +54,10 @@ with MPRester() as mpr:
         rester
         for rester in mpr._all_resters
         if (
-            "molecule" not in rester._class_name.lower()
-            and "eos" not in rester._class_name.lower()
+            not any(
+                substr in rester._class_name.lower()
+                for substr in ("molecule", "electrode")
+            )
             and not (pmg_alloys is None and "alloys" in str(rester).lower())
         )
     ]

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class XASRester(BaseRester):
     suffix = "materials/xas"
     document_model = XASDoc  # type: ignore
-    primary_key = "spectrum_id"
+    primary_key = "material_id"
     delta_backed = False
 
     def search(

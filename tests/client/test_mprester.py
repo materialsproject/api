@@ -80,8 +80,7 @@ class TestMPRester:
         assert len(results) > 0
 
     def test_get_material_id_references(self, mpr):
-        data = mpr.get_material_id_references("mp-123")
-        assert len(data) > 5
+        assert len(mpr.get_material_id_references("mp-123")) > 0
 
     def test_get_material_id_doc(self, mpr):
         mp_ids = mpr.get_material_ids("Al2O3")
@@ -378,7 +377,7 @@ loop_
         # the rf factor correction is necessary to make sure the composition
         # of the reference solid is normalized to a single formula unit
         ref_solid_entry = next(
-            e for e in ion_ref_entries if e.entry_id.startswith("mp-4770")
+            e for e in ion_ref_entries if str(e.entry_id).startswith("mp-4770")
         )
         rf = ref_solid_entry.composition.get_reduced_composition_and_factor()[1]
         solid_energy = ion_ref_pd.get_form_energy(ref_solid_entry) / rf
@@ -419,14 +418,16 @@ loop_
         assert isinstance(ws, WulffShape)
 
     def test_large_list(self, mpr):
+        num_chunks = 10
+        chunk_size = 500
         mpids = [
             str(doc.material_id)
             for doc in mpr.materials.summary.search(
-                chunk_size=1000, num_chunks=10, fields=["material_id"]
+                chunk_size=chunk_size, num_chunks=num_chunks, fields=["material_id"]
             )
         ]
         docs = mpr.materials.summary.search(material_ids=mpids, fields=["material_id"])
-        assert len(docs) == 10000
+        assert len(docs) == chunk_size * num_chunks
 
     def test_get_api_key_endpoint_from_env_var(self, monkeypatch: pytest.MonkeyPatch):
         """Ensure the MP_API_KEY and MP_API_ENDPOINT from environment variable

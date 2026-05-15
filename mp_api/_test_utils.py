@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from enum import Enum
+
 try:
     import pytest
 except ImportError as exc:
@@ -108,19 +110,40 @@ def client_pagination(
     ) == set()
 
 
-def client_sort(search_method: Callable, sort_fields: str | Sequence[str]):
+def client_sort(
+    search_method: Callable,
+    sort_fields: str | Sequence[str],
+    aux_query: dict[str, Any] | None = None,
+):
     """Test sorting on an endpoint.
 
     Args:
     search_method (Callable) : Client search method to use
     sort_fields (str or Sequence of str) : fields to sort on
+    aux_query (dict) : auxiliary query needed to filter documents
 
     Raises:
     AssertionError if sorting in ascending or descending order does not work.
     """
+
+    def _normalize(doc, field: str):
+        v = getattr(doc, field)
+        # serialize enums
+        return v.value if isinstance(v, Enum) else v
+
+    user_query = {
+        k: v
+        for k, v in (aux_query or {}).items()
+        if k not in ("_page", "_sort_fields", "chunk_size", "fields")
+    }
     for sort_field in [sort_fields] if isinstance(sort_fields, str) else sort_fields:
+
         asc = search_method(
-            _page=1, _sort_fields=sort_field, chunk_size=NUM_DOCS, fields=[sort_field]
+            _page=1,
+            _sort_fields=sort_field,
+            chunk_size=NUM_DOCS,
+            fields=[sort_field, "deprecated", "material_id"],
+            **user_query,
         )
         desc = search_method(
             _page=1,
@@ -130,12 +153,12 @@ def client_sort(search_method: Callable, sort_fields: str | Sequence[str]):
         )
 
         idxs = list(range(NUM_DOCS))
-        assert sorted(idxs, key=lambda idx: getattr(asc[idx], sort_field)) == idxs
+        assert sorted(idxs, key=lambda idx: _normalize(asc[idx], sort_field)) == idxs
 
         assert (
             sorted(
                 idxs,
-                key=lambda idx: getattr(desc[idx], sort_field),
+                key=lambda idx: _normalize(desc[idx], sort_field),
                 reverse=True,
             )
             == idxs

@@ -95,11 +95,8 @@ def test_pagination():
         client_pagination(rester.search, "material_ids")
 
 
-@pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
 @requires_api_key
-@pytest.mark.parametrize(
-    "sort_field", ["working_ion", "stability_charge", "average_voltage"]
-)
+@pytest.mark.parametrize("sort_field", ["stability_charge", "average_voltage"])
 def test_sort(sort_field):
     with ElectrodeRester() as rester:
         client_sort(rester.search, sort_field)

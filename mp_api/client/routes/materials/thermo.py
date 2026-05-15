@@ -18,7 +18,7 @@ from mp_api.client.core.utils import validate_ids
 class ThermoRester(BaseRester):
     suffix = "materials/thermo"
     document_model = ThermoDoc  # type: ignore
-    primary_key = "thermo_id"
+    primary_key = "material_id"
 
     def search(
         self,

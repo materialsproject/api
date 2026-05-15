@@ -13,7 +13,7 @@ import orjson
 import pyarrow.dataset as ds
 from deltalake import DeltaTable
 from emmet.core import __version__ as _EMMET_CORE_VER
-from emmet.core.mpid_ext import validate_identifier
+from emmet.core.mpid import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 

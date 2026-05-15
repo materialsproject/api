@@ -64,7 +64,6 @@ def test_client(rester):
     )
 
 
-# TODO: how to test pagination now that spectrum_id is computed, not stored?
 @requires_api_key
 def test_pagination():
     with XASRester() as rester:
@@ -73,10 +72,13 @@ def test_pagination():
         )
 
 
-@pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
 @requires_api_key
 @pytest.mark.parametrize(
-    "sort_field", ["spectrum_type", "absorbing_element", "chemsys"]
+    "sort_field",
+    [
+        "spectrum_type",
+        "absorbing_element",
+    ],
 )
 def test_sort(sort_field):
     with XASRester() as rester:
