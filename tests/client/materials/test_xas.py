@@ -82,4 +82,4 @@ def test_pagination():
 )
 def test_sort(sort_field):
     with XASRester() as rester:
-        client_sort(rester.search, sort_field)
+        client_sort(rester.search, sort_field, default_fields=())

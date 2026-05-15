@@ -99,4 +99,4 @@ def test_pagination():
 @pytest.mark.parametrize("sort_field", ["stability_charge", "average_voltage"])
 def test_sort(sort_field):
     with ElectrodeRester() as rester:
-        client_sort(rester.search, sort_field)
+        client_sort(rester.search, sort_field, default_fields=())

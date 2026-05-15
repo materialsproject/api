@@ -114,6 +114,7 @@ def client_sort(
     search_method: Callable,
     sort_fields: str | Sequence[str],
     aux_query: dict[str, Any] | None = None,
+    default_fields: tuple[str, ...] = ("deprecated", "material_id"),
 ):
     """Test sorting on an endpoint.
 
@@ -121,6 +122,7 @@ def client_sort(
     search_method (Callable) : Client search method to use
     sort_fields (str or Sequence of str) : fields to sort on
     aux_query (dict) : auxiliary query needed to filter documents
+    default_fields (list): default fields to return
 
     Raises:
     AssertionError if sorting in ascending or descending order does not work.
@@ -142,7 +144,7 @@ def client_sort(
             _page=1,
             _sort_fields=sort_field,
             chunk_size=NUM_DOCS,
-            fields=[sort_field, "deprecated", "material_id"],
+            fields=[sort_field, *default_fields],
             **user_query,
         )
         desc = search_method(
