@@ -97,6 +97,7 @@ class MPRester(_Rester):
         session: Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
+        db_version: str | None = None,
         local_dataset_cache: (
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
@@ -130,6 +131,9 @@ class MPRester(_Rester):
             session: Session object to use. By default (None), the client will create one.
             headers: Custom headers for localhost connections.
             mute_progress_bars:  Whether to mute progress bars.
+            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database
+                than what is currently deployed. The Materials Project cannot guarantee that all
+                features will still work.
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
@@ -152,6 +156,7 @@ class MPRester(_Rester):
             session=session,
             headers=headers,
             mute_progress_bars=mute_progress_bars,
+            db_version=db_version,
             local_dataset_cache=local_dataset_cache,
             force_renew=force_renew,
             query_builder=query_builder,
@@ -210,6 +215,17 @@ class MPRester(_Rester):
                 stacklevel=2,
             )
 
+        if self.db_version:
+            warnings.warn(
+                "Specifying an explicit database version is an experimental "
+                "feature. The Materials Project cannot guarantee "
+                "functionality at this time, use at your own risk!",
+                stacklevel=2,
+                category=MPRestWarning,
+            )
+        else:
+            self.db_version = self._get_heartbeat_info(self.endpoint)[0]
+
         if notify_db_version:
             self._db_version_check()
 
@@ -233,6 +249,7 @@ class MPRester(_Rester):
                         use_document_model=self.use_document_model,
                         headers=self.headers,
                         mute_progress_bars=self.mute_progress_bars,
+                        db_version=self.db_version,
                         local_dataset_cache=self.local_dataset_cache,
                         force_renew=self.force_renew,
                         query_builder=self._query_builder,
@@ -300,8 +317,7 @@ class MPRester(_Rester):
         )
 
     def __repr__(self) -> str:
-        db_version = self.get_database_version()
-        return f"MPRester({'v' + db_version if db_version else 'unknown version'})"
+        return f"MPRester({'v' + self.self.db_version if self.db_version else 'unknown version'})"
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
@@ -364,7 +380,9 @@ class MPRester(_Rester):
         return structure_data
 
     def get_database_version(self) -> str | None:
-        """The Materials Project database is periodically updated and has a
+        """DEPRECATED: use `self.db_version` instead.
+
+        The Materials Project database is periodically updated and has a
         database version associated with it. When the database is updated,
         consolidated data (information about "a material") may and does
         change, while calculation data about a specific calculation task
@@ -376,10 +394,13 @@ class MPRester(_Rester):
 
         Returns: database version as a string if accessible, None otherwise
         """
-        if (get_resp := get(url=self.endpoint + "heartbeat")).status_code == 403:
-            _emit_status_warning()
-            return None
-        return get_resp.json()["db_version"]
+        warnings.warn(
+            "`get_database_version` has been deprecated in favor of "
+            "MPRester().db_version.",
+            stacklevel=2,
+            category=MPRestWarning,
+        )
+        return self.db_version
 
     @staticmethod
     @cache
@@ -1676,7 +1697,6 @@ class MPRester(_Rester):
         """Check if the database version has drifted."""
         import yaml  # type: ignore[import-untyped]
 
-        db_version = self.get_database_version()
         old_db_version = None
         if MAPI_CLIENT_SETTINGS.LOG_FILE.exists():
             old_db_version = (
@@ -1687,15 +1707,15 @@ class MPRester(_Rester):
             if not isinstance(old_db_version, str):
                 old_db_version = None
 
-        if old_db_version != db_version:
+        if old_db_version != self.db_version:
             MAPI_CLIENT_SETTINGS.LOG_FILE.write_text(
-                yaml.safe_dump({"MAPI_DB_VERSION": db_version})
+                yaml.safe_dump({"MAPI_DB_VERSION": self.db_version})
             )
 
             if old_db_version:
                 warnings.warn(
                     "Materials Project database version has changed "
-                    f"from v{old_db_version} to v{db_version}.",
+                    f"from v{old_db_version} to v{self.db_version}.",
                     category=MPRestWarning,
                     stacklevel=2,
                 )

@@ -54,7 +54,9 @@ def mpr():
 @requires_api_key
 class TestMPRester:
     fake_mp_api_key = "12345678901234567890123456789012"  # 32 chars
-    default_endpoint = _DEFAULT_ENDPOINT
+    default_endpoint = _DEFAULT_ENDPOINT + (
+        "/" if not _DEFAULT_ENDPOINT.endswith("/") else ""
+    )
 
     def test_get_structure_by_material_id(self, mpr):
         s0 = mpr.get_structure_by_material_id("mp-149")
@@ -67,8 +69,13 @@ class TestMPRester:
         assert {s.formula for s in s2} == {"Si2"}
 
     def test_get_database_version(self, mpr):
-        db_version = mpr.get_database_version()
+        db_version = mpr.db_version
         assert db_version is not None
+
+        with pytest.warns(
+            MPRestWarning, match="`get_database_version` has been deprecated"
+        ):
+            assert db_version == mpr.get_database_version()
 
     def test_get_material_id_from_task_id(self, mpr):
         assert mpr.get_material_id_from_task_id("mp-540081") == "mp-19017"
@@ -710,7 +717,7 @@ loop_
             monkeypatch.setattr(MAPI_CLIENT_SETTINGS, "LOG_FILE", Path(tmp_log.name))
 
             with MPRester(notify_db_version=True) as mpr:
-                db_version = mpr.get_database_version()
+                db_version = mpr.db_version
 
             parsed_db_ver = yaml.safe_load(Path(tmp_log.name).read_text()).get(
                 "MAPI_DB_VERSION"
