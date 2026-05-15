@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 
 from emmet.core.xas import XASDoc, validate_xas_spectrum_id
 from pymatgen.core.periodic_table import Element
 
-from mp_api.client.core import BaseRester
+from mp_api.client.core import BaseRester, MPRestWarning
 from mp_api.client.core.exceptions import MPRestError
 
 if TYPE_CHECKING:
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 class XASRester(BaseRester):
     suffix = "materials/xas"
     document_model = XASDoc  # type: ignore
-    primary_key = "material_id"
+    primary_key = "task_id"
     delta_backed = False
 
     def search(
@@ -27,7 +28,7 @@ class XASRester(BaseRester):
         formula: str | None = None,
         chemsys: str | list[str] | None = None,
         elements: list[str] | None = None,
-        material_ids: list[str] | None = None,
+        task_ids: list[str] | None = None,
         spectrum_type: XasType | None = None,
         spectrum_ids: str | list[str] | None = None,
         num_chunks: int | None = None,
@@ -36,6 +37,7 @@ class XASRester(BaseRester):
         fields: list[str] | None = None,
         _page: int | None = None,
         _sort_fields: str | None = None,
+        **kwargs,
     ):
         """Query core XAS docs using a variety of search criteria.
 
@@ -47,7 +49,7 @@ class XASRester(BaseRester):
             chemsys (str, List[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             elements (List[str]): A list of elements.
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            task_ids (str, List[str]): A single Task ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
             spectrum_type (XasType): Spectrum type (e.g. EXAFS, XAFS, or XANES).
             spectrum_ids (str, List[str]): A single Spectrum ID string or list of strings
@@ -59,10 +61,26 @@ class XASRester(BaseRester):
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
+            **kwargs : used for handling deprecated kwargs
 
         Returns:
             ([MaterialsDoc]) List of material documents
         """
+        if "material_ids" in kwargs:
+            if task_ids:
+                raise MPRestError(
+                    "You have specified both `task_ids` and the deprecated `material_ids` tag. "
+                    "Please specify only `task_ids`."
+                )
+            task_ids = kwargs.pop("material_ids")
+            warnings.warn(
+                "`material_id` has been replaced by `task_id` in the xas endpoint. "
+                "Please migrate to using the newer field name and the `task_ids` kwarg "
+                "for searching.",
+                stacklevel=2,
+                category=MPRestWarning,
+            )
+
         _locals = locals()
         query_params: dict[str, Any] = {
             k: _locals[k]
@@ -80,7 +98,7 @@ class XASRester(BaseRester):
                     )
                 }
             )
-        for k in ("chemsys", "elements", "material_ids", "spectrum_ids"):
+        for k in ("chemsys", "elements", "task_ids", "spectrum_ids"):
             if (v := _locals.get(k)) is not None:
                 _v = [v] if isinstance(v, str) else v
                 if k == "spectrum_ids":
