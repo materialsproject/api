@@ -682,6 +682,7 @@ class BaseRester(_Rester):
         self,
         bucket: str,
         prefix: str,
+        access_controlled: bool = True,
         timeout: int | None = None,
         label: str | None = None,
     ) -> dict[str, Any]:
@@ -690,6 +691,7 @@ class BaseRester(_Rester):
         Args:
             bucket (str) : S3 OpenData bucket
             prefix (str) : S3 object prefix
+            access_controlled (bool): whether or not table has access controlled data
             timeout (int or None) : timeout on getting access-controlled groups
             label (str or None) : label of the table in QueryBuilder
 
@@ -756,7 +758,7 @@ class BaseRester(_Rester):
 
         predicate = (
             f"WHERE batch_id NOT IN ({controlled_batch_str})"
-            if not has_gnome_access and controlled_batch_str
+            if not has_gnome_access and controlled_batch_str and access_controlled
             else ""
         )
         # TODO: do we need something like this?
@@ -936,18 +938,18 @@ class BaseRester(_Rester):
                 elif suffix in STATIC_COLLECTIONS:
                     bucket_suffix = "build"
                     prefix = f"static-collections/{suffix}"
-                elif self.delta_backed:
-                    return self._query_delta_backed(
-                        "materialsproject-build",
-                        f"collections/{suffix}/",
-                        timeout=timeout,
-                    )
                 else:
                     # TODO: remove once all collections are migrated to delta-backed format
                     bucket_suffix = "build"
-                    prefix = f"collections/{self.db_version.replace('.', '-')}/{suffix}"
+                    prefix = f"collections/{suffix}"
 
                 bucket = f"materialsproject-{bucket_suffix}"
+
+                if self.delta_backed:
+                    access_controlled = suffix not in STATIC_COLLECTIONS
+                    return self._query_delta_backed(
+                        bucket, prefix, access_controlled, timeout=timeout
+                    )
 
                 # Paginate over all entries in the bucket.
                 # TODO: change when a subset of entries needed from DB
