@@ -47,9 +47,9 @@ blinker==1.9.0
     # via flask
 boltons==25.0.0
     # via mp-api (pyproject.toml)
-boto3==1.43.9
+boto3==1.43.10
     # via mp-api (pyproject.toml)
-botocore==1.43.9
+botocore==1.43.10
     # via
     #   boto3
     #   s3transfer
@@ -113,7 +113,7 @@ docutils==0.22.4
     # via sphinx
 email-validator==2.3.0
     # via pydantic
-emmet-core[all]==0.87.0rc2
+emmet-core[all]==0.87.0rc3
     # via mp-api (pyproject.toml)
 exceptiongroup==1.3.1
     # via fastmcp-slim
@@ -245,7 +245,7 @@ librt==0.11.0
     # via mypy
 lobsterpy==0.6.1
     # via emmet-core
-lxml==6.1.0
+lxml==6.1.1
     # via pymatgen-core
 markdown-it-py==4.2.0
     # via rich
@@ -692,5 +692,5 @@ werkzeug==3.1.8
     # via flask
 wrapt==2.1.2
     # via deprecated
-zipp==3.23.1
+zipp==4.1.0
     # via importlib-metadata
