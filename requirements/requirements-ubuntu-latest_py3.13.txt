@@ -12,9 +12,9 @@ bibtexparser==1.4.4
     # via pymatgen-core
 blake3==1.0.8
     # via emmet-core
-boto3==1.43.9
+boto3==1.43.10
     # via mp-api (pyproject.toml)
-botocore==1.43.9
+botocore==1.43.10
     # via
     #   boto3
     #   s3transfer
@@ -48,7 +48,7 @@ kiwisolver==1.5.0
     # via matplotlib
 latexcodec==3.0.1
     # via pybtex
-lxml==6.1.0
+lxml==6.1.1
     # via pymatgen-core
 matplotlib==3.10.9
     # via pymatgen-core
