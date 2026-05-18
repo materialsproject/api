@@ -4,7 +4,7 @@ import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-from emmet.core.phonon import PhononBS, PhononBSDOSDoc, PhononDOS
+from emmet.core.phonon import PhononBS, PhononBSDOSDoc, PhononBSDOSTask, PhononDOS
 
 from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
 from mp_api.client.core.utils import validate_ids
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 class PhononRester(BaseRester):
     suffix = "materials/phonon"
-    document_model = PhononBSDOSDoc  # type: ignore
+    document_model = PhononBSDOSTask  # type: ignore
     primary_key = "identifier"
 
     def search(
@@ -29,7 +29,7 @@ class PhononRester(BaseRester):
         all_fields: bool = True,
         fields: list[str] | None = None,
         **kwargs,
-    ) -> list[PhononBSDOSDoc] | list[dict]:
+    ) -> list[PhononBSDOSTask] | list[dict]:
         """Query phonon docs using a variety of search criteria.
 
         Arguments:
@@ -39,12 +39,12 @@ class PhononRester(BaseRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in PhononBSDOSDoc to return data for.
-                Default is material_id, last_updated, and formula_pretty if all_fields is False.
+            fields (List[str]): List of fields in PhononBSDOSTask to return data for.
+                Default is identifier, last_updated, and formula_pretty if all_fields is False.
             **kwargs : used for handling deprecated kwargs
 
         Returns:
-            ([PhononBSDOSDoc], [dict]) List of phonon documents or dictionaries.
+            ([PhononBSDOSTask], [dict]) List of phonon documents or dictionaries.
         """
         query_params: dict = defaultdict(dict)
 
