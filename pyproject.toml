@@ -46,6 +46,7 @@ contribs = [
   "requests-futures",
   "swagger-spec-validator",
   "cachetools",
+  "pymongo",
 ]
 all = [
   "custodian",
