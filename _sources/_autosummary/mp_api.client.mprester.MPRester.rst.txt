@@ -56,5 +56,7 @@ mp\_api.client.mprester.MPRester
    .. autosummary::
    
       ~MPRester.contribs
+      ~MPRester.query_builder
+      ~MPRester.session
    
    

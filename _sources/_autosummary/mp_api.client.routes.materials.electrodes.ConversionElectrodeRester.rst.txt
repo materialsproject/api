@@ -32,6 +32,7 @@ mp\_api.client.routes.materials.electrodes.ConversionElectrodeRester
       ~ConversionElectrodeRester.available_fields
       ~ConversionElectrodeRester.delta_backed
       ~ConversionElectrodeRester.primary_key
+      ~ConversionElectrodeRester.query_builder
       ~ConversionElectrodeRester.s3_client
       ~ConversionElectrodeRester.session
       ~ConversionElectrodeRester.suffix

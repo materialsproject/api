@@ -33,12 +33,14 @@
   <h1>Source code for mp_api.client.routes.materials.xas</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.xas</span><span class="w"> </span><span class="kn">import</span> <span class="n">XASDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.xas</span><span class="w"> </span><span class="kn">import</span> <span class="n">XASDoc</span><span class="p">,</span> <span class="n">validate_xas_spectrum_id</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestError</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
@@ -51,7 +53,8 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">XASRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/xas&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">XASDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;spectrum_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;task_id&quot;</span>
+    <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="XASRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester.search">[docs]</a>
@@ -62,7 +65,7 @@
         <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">task_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">spectrum_type</span><span class="p">:</span> <span class="n">XasType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">spectrum_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -71,6 +74,7 @@
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">_page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">_sort_fields</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core XAS docs using a variety of search criteria.</span>
 
@@ -82,7 +86,7 @@
 <span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).</span>
 <span class="sd">            elements (List[str]): A list of elements.</span>
-<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">            task_ids (str, List[str]): A single Task ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
 <span class="sd">            spectrum_type (XasType): Spectrum type (e.g. EXAFS, XAFS, or XANES).</span>
 <span class="sd">            spectrum_ids (str, List[str]): A single Spectrum ID string or list of strings</span>
@@ -94,10 +98,26 @@
 <span class="sd">                Default is material_id, last_updated, and formula_pretty if all_fields is False.</span>
 <span class="sd">            _page (int or None) : Page of the results to skip to.</span>
 <span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading &quot;-&quot; sign will reverse sort order.</span>
+<span class="sd">            **kwargs : used for handling deprecated kwargs</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([MaterialsDoc]) List of material documents</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;material_ids&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">task_ids</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="s2">&quot;You have specified both `task_ids` and the deprecated `material_ids` tag. &quot;</span>
+                    <span class="s2">&quot;Please specify only `task_ids`.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">task_ids</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;material_ids&quot;</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`material_id` has been replaced by `task_id` in the xas endpoint. &quot;</span>
+                <span class="s2">&quot;Please migrate to using the newer field name and the `task_ids` kwarg &quot;</span>
+                <span class="s2">&quot;for searching.&quot;</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+
         <span class="n">_locals</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">k</span><span class="p">:</span> <span class="n">_locals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
@@ -115,9 +135,21 @@
                     <span class="p">)</span>
                 <span class="p">}</span>
             <span class="p">)</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;chemsys&quot;</span><span class="p">,</span> <span class="s2">&quot;elements&quot;</span><span class="p">,</span> <span class="s2">&quot;material_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;spectrum_ids&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;chemsys&quot;</span><span class="p">,</span> <span class="s2">&quot;elements&quot;</span><span class="p">,</span> <span class="s2">&quot;task_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;spectrum_ids&quot;</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">v</span> <span class="o">:=</span> <span class="n">_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">query_params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">v</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span>
+                <span class="n">_v</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;spectrum_ids&quot;</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">spectrum_id</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
+                            <span class="n">validate_xas_spectrum_id</span><span class="p">(</span><span class="n">spectrum_id</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;At least one spectrum_id in: </span><span class="si">{</span><span class="n">_v</span><span class="si">}</span><span class="s2"> is invalid.&quot;</span>
+                            <span class="s2">&quot; Try using the validate_xas_spectrum_id function from emmet.core.xas&quot;</span>
+                            <span class="s2">&quot; to test your inputs.&quot;</span>
+                        <span class="p">)</span>
+
+                <span class="n">query_params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_v</span><span class="p">)</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>

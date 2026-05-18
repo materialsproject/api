@@ -43,8 +43,12 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.band_theory</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSPathType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPID</span><span class="p">,</span> <span class="n">AlphaID</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.types.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.types.pymatgen_types.computed_entries_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ComputedStructureEntryType</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.vasp.calc_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalcType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">packaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">TypeAdapter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.phase_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseDiagram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.pourbaix_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">IonEntry</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composition</span><span class="p">,</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Structure</span>
@@ -54,21 +58,15 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.symmetry.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span><span class="p">,</span> <span class="n">get</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client._server_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_consumer</span><span class="p">,</span> <span class="n">get_user_api_key</span><span class="p">,</span> <span class="n">is_dev_env</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._oxygen_evolution</span><span class="w"> </span><span class="kn">import</span> <span class="n">OxygenEvolution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Rester</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">MPRestError</span><span class="p">,</span>
     <span class="n">MPRestWarning</span><span class="p">,</span>
     <span class="n">_emit_status_warning</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAPI_CLIENT_SETTINGS</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">LazyImport</span><span class="p">,</span>
-    <span class="n">load_json</span><span class="p">,</span>
-    <span class="n">validate_endpoint</span><span class="p">,</span>
-    <span class="n">validate_ids</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LazyImport</span><span class="p">,</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes</span><span class="w"> </span><span class="kn">import</span> <span class="n">GENERIC_RESTERS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials</span><span class="w"> </span><span class="kn">import</span> <span class="n">MATERIALS_RESTERS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.molecules</span><span class="w"> </span><span class="kn">import</span> <span class="n">MOLECULES_RESTERS</span>
@@ -82,6 +80,7 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">packaging.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">Version</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.phase_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDEntry</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.pourbaix_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PourbaixEntry</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.dos</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dos</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.compatibility</span><span class="w"> </span><span class="kn">import</span> <span class="n">Compatibility</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.computed_entries</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">ComputedEntry</span><span class="p">,</span>
@@ -89,6 +88,7 @@
     <span class="p">)</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.util.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpeciesLike</span>
 
+    <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">QueryBuilderWithCache</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DictLikeAccess</span>
 
 <span class="n">DEFAULT_THERMOTYPE_CRITERIA</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U_R2SCAN&quot;</span><span class="p">]}</span>
@@ -120,7 +120,7 @@
 
 <div class="viewcode-block" id="MPRester">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MPRester</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MPRester</span><span class="p">(</span><span class="n">_Rester</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Access the new Materials Project API.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MPRester.__init__">
@@ -129,16 +129,18 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">notify_db_version</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">include_user_agent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">use_document_model</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">session</span><span class="p">:</span> <span class="n">Session</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">mute_progress_bars</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">MUTE_PROGRESS_BARS</span><span class="p">,</span>
+        <span class="n">db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">local_dataset_cache</span><span class="p">:</span> <span class="p">(</span>
             <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span>
         <span class="p">)</span> <span class="o">=</span> <span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LOCAL_DATASET_CACHE</span><span class="p">,</span>
         <span class="n">force_renew</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">query_builder</span><span class="p">:</span> <span class="n">QueryBuilderWithCache</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">notify_db_version</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the MPRester.</span>
@@ -155,13 +157,6 @@
 <span class="sd">                interface. Defaults to the standard Materials Project REST</span>
 <span class="sd">                address at &quot;https://api.materialsproject.org&quot;, but</span>
 <span class="sd">                can be changed to other URLs implementing a similar interface.</span>
-<span class="sd">            notify_db_version (bool): If True, the current MP database version will</span>
-<span class="sd">                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database</span>
-<span class="sd">                version changes, you will be notified. The current database version is</span>
-<span class="sd">                also printed on instantiation. These local logs are not sent to</span>
-<span class="sd">                materialsproject.org and are not associated with your API key, so be</span>
-<span class="sd">                aware that a notification may not be presented if you run MPRester</span>
-<span class="sd">                from multiple computing environments.</span>
 <span class="sd">            include_user_agent (bool): If True, will include a user agent with the</span>
 <span class="sd">                HTTP request including information on pymatgen and system version</span>
 <span class="sd">                making the API request. This helps MP support pymatgen users, and</span>
@@ -173,28 +168,38 @@
 <span class="sd">            session: Session object to use. By default (None), the client will create one.</span>
 <span class="sd">            headers: Custom headers for localhost connections.</span>
 <span class="sd">            mute_progress_bars:  Whether to mute progress bars.</span>
+<span class="sd">            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database</span>
+<span class="sd">                than what is currently deployed. The Materials Project cannot guarantee that all</span>
+<span class="sd">                features will still work.</span>
 <span class="sd">            local_dataset_cache: Target directory for downloading full datasets. Defaults</span>
 <span class="sd">                to &quot;mp_datasets&quot; in the user&#39;s home directory</span>
 <span class="sd">            force_renew: Option to overwrite existing local dataset</span>
-<span class="sd">            **kwargs: access to ContribsClient kwargs or (possibly-deprecated) legacy kwargs</span>
+<span class="sd">            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables</span>
+<span class="sd">                NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.</span>
+<span class="sd">            notify_db_version (bool): If True, the current MP database version will</span>
+<span class="sd">                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database</span>
+<span class="sd">                version changes, you will be notified. The current database version is</span>
+<span class="sd">                also printed on instantiation. These local logs are not sent to</span>
+<span class="sd">                materialsproject.org and are not associated with your API key, so be</span>
+<span class="sd">                aware that a notification may not be presented if you run MPRester</span>
+<span class="sd">                from multiple computing environments.</span>
+<span class="sd">            **kwargs: access to legacy kwargs that may be in the process of being deprecated</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">get_user_api_key</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="n">validate_endpoint</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span> <span class="ow">or</span> <span class="n">get_consumer</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span> <span class="ow">or</span> <span class="n">BaseRester</span><span class="o">.</span><span class="n">_create_session</span><span class="p">(</span>
-            <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span>
+            <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span>
             <span class="n">include_user_agent</span><span class="o">=</span><span class="n">include_user_agent</span><span class="p">,</span>
-            <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">use_document_model</span><span class="o">=</span><span class="n">use_document_model</span><span class="p">,</span>
+            <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">mute_progress_bars</span><span class="o">=</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+            <span class="n">db_version</span><span class="o">=</span><span class="n">db_version</span><span class="p">,</span>
+            <span class="n">local_dataset_cache</span><span class="o">=</span><span class="n">local_dataset_cache</span><span class="p">,</span>
+            <span class="n">force_renew</span><span class="o">=</span><span class="n">force_renew</span><span class="p">,</span>
+            <span class="n">query_builder</span><span class="o">=</span><span class="n">query_builder</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="n">is_dev_env</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;x-api-key&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_include_user_agent</span> <span class="o">=</span> <span class="n">include_user_agent</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="n">use_document_model</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span> <span class="o">=</span> <span class="n">mute_progress_bars</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">local_dataset_cache</span> <span class="o">=</span> <span class="n">local_dataset_cache</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">force_renew</span> <span class="o">=</span> <span class="n">force_renew</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_contribs_kwargs</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">k</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
@@ -235,14 +240,6 @@
             <span class="s2">&quot;chemenv&quot;</span><span class="p">,</span>
         <span class="p">]</span>
 
-        <span class="k">if</span> <span class="s2">&quot;monty_decode&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">&quot;Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`.&quot;</span>
-                <span class="s2">&quot;The client by default returns results consistent with `monty_decode=True`.&quot;</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-            <span class="p">)</span>
-
         <span class="c1"># Check if emmet version of server is compatible</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">emmet_version</span> <span class="o">:=</span> <span class="n">MPRester</span><span class="o">.</span><span class="n">get_emmet_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span>
             <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">emmet_version</span><span class="o">.</span><span class="n">base_version</span><span class="p">)</span>
@@ -254,6 +251,17 @@
                 <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Specifying an explicit database version is an experimental &quot;</span>
+                <span class="s2">&quot;feature. The Materials Project cannot guarantee &quot;</span>
+                <span class="s2">&quot;functionality at this time, use at your own risk!&quot;</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_heartbeat_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">notify_db_version</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db_version_check</span><span class="p">()</span>
@@ -273,13 +281,15 @@
                     <span class="n">lazy_rester</span><span class="p">(</span>
                         <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
                         <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">,</span>
-                        <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_include_user_agent</span><span class="p">,</span>
+                        <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include_user_agent</span><span class="p">,</span>
                         <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
                         <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
                         <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
                         <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+                        <span class="n">db_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">,</span>
                         <span class="n">local_dataset_cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">local_dataset_cache</span><span class="p">,</span>
                         <span class="n">force_renew</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">force_renew</span><span class="p">,</span>
+                        <span class="n">query_builder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_query_builder</span><span class="p">,</span>
                     <span class="p">),</span>
                 <span class="p">)</span></div>
 
@@ -323,14 +333,6 @@
                 <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Support for &quot;with&quot; context.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Support for &quot;with&quot; context.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
     <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deprecated_attributes</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -353,8 +355,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">db_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database_version</span><span class="p">()</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;MPRester(</span><span class="si">{</span><span class="s1">&#39;v&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">db_version</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">db_version</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;unknown version&#39;</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;MPRester(</span><span class="si">{</span><span class="s1">&#39;v&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;unknown version&#39;</span><span class="si">}</span><span class="s2">)&quot;</span>
 
 <div class="viewcode-block" id="MPRester.get_task_ids_associated_with_material_id">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id">[docs]</a>
@@ -425,7 +426,9 @@
 <div class="viewcode-block" id="MPRester.get_database_version">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_database_version">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_database_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The Materials Project database is periodically updated and has a</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;DEPRECATED: use `self.db_version` instead.</span>
+
+<span class="sd">        The Materials Project database is periodically updated and has a</span>
 <span class="sd">        database version associated with it. When the database is updated,</span>
 <span class="sd">        consolidated data (information about &quot;a material&quot;) may and does</span>
 <span class="sd">        change, while calculation data about a specific calculation task</span>
@@ -437,10 +440,13 @@
 
 <span class="sd">        Returns: database version as a string if accessible, None otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">get_resp</span> <span class="o">:=</span> <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">+</span> <span class="s2">&quot;heartbeat&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span><span class="p">:</span>
-            <span class="n">_emit_status_warning</span><span class="p">()</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">get_resp</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;db_version&quot;</span><span class="p">]</span></div>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;`get_database_version` has been deprecated in favor of &quot;</span>
+            <span class="s2">&quot;MPRester().db_version.&quot;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span></div>
 
 
 <div class="viewcode-block" id="MPRester.get_emmet_version">
@@ -706,9 +712,11 @@
         <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
-            <span class="n">entry_list</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entry_list</span><span class="p">:</span>
-                <span class="n">entry_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="s2">&quot;as_dict&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">entry</span>  <span class="c1"># type: ignore</span>
+            <span class="n">entry_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">)</span> <span class="k">else</span> <span class="n">doc</span><span class="p">)[</span>
+                <span class="s2">&quot;entries&quot;</span>
+            <span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">entry_dict</span> <span class="ow">in</span> <span class="n">entry_list</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">compatible_only</span><span class="p">:</span>
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;correction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;energy_adjustments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -738,7 +746,9 @@
                             <span class="n">correction</span><span class="p">[</span><span class="s2">&quot;n_atoms&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">site_ratio</span>
 
                 <span class="c1"># Need to store object to permit de-duplication</span>
-                <span class="n">entries</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ComputedStructureEntry</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">))</span>
+                <span class="n">entries</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="n">TypeAdapter</span><span class="p">(</span><span class="n">ComputedStructureEntryType</span><span class="p">)</span><span class="o">.</span><span class="n">validate_python</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">)</span>
+                <span class="p">)</span>
 
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span></div>
 
@@ -1248,18 +1258,34 @@
 
 <div class="viewcode-block" id="MPRester.get_dos_by_material_id">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_dos_by_material_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_by_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the complete density of states pymatgen object associated with a Materials Project ID.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_by_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dos</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the density of states pymatgen object associated with a Materials Project ID.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_id (str): Materials Project ID for a material</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            dos (CompleteDos): CompleteDos object</span>
+<span class="sd">            pymatgen Dos</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">electronic_structure_dos</span><span class="o">.</span><span class="n">get_dos_from_material_id</span><span class="p">(</span>
-            <span class="n">material_id</span><span class="o">=</span><span class="n">material_id</span>
-        <span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="p">(</span>
+                <span class="n">es_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">electronic_structure</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                    <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="n">es_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No DOS found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">dos_data</span> <span class="o">=</span> <span class="n">es_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
+        <span class="n">task_id</span> <span class="o">=</span> <span class="n">dos_data</span><span class="o">.</span><span class="n">task_id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">dos_data</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
+        <span class="n">run_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="n">task_id</span><span class="p">],</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;run_type&quot;</span><span class="p">])[</span>
+            <span class="mi">0</span>
+        <span class="p">][</span><span class="s2">&quot;run_type&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">electronic_structure_dos</span><span class="o">.</span><span class="n">get_dos_from_task_id</span><span class="p">(</span>
+            <span class="n">task_id</span><span class="p">,</span>
+            <span class="n">run_type</span><span class="o">=</span><span class="n">run_type</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="MPRester.get_phonon_dos_by_material_id">
@@ -1694,24 +1720,26 @@
         <span class="p">}</span>
         <span class="n">chemsys_str</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">chemsys</span><span class="p">))</span>
 
-        <span class="n">thermo_type</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">ThermoType</span><span class="p">(</span><span class="n">thermo_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thermo_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">thermo_type</span>
+        <span class="n">thermo_type_valid_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ThermoType</span><span class="p">(</span><span class="n">thermo_type</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">thermo_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">thermo_type</span> <span class="o">!=</span> <span class="s2">&quot;r2SCAN&quot;</span><span class="p">)</span>
+            <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">thermo_type</span><span class="p">)</span>
         <span class="p">)</span>
 
         <span class="n">corrector</span><span class="p">:</span> <span class="n">Compatibility</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">thermo_type</span> <span class="o">==</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">GGA_GGA_U</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">thermo_type_valid_str</span> <span class="o">==</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">GGA_GGA_U</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.compatibility</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialsProject2020Compatibility</span>
 
             <span class="n">corrector</span> <span class="o">=</span> <span class="n">MaterialsProject2020Compatibility</span><span class="p">()</span>
 
-        <span class="k">elif</span> <span class="n">thermo_type</span> <span class="o">==</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">GGA_GGA_U_R2SCAN</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">thermo_type_valid_str</span> <span class="o">==</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">GGA_GGA_U_R2SCAN</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.mixing_scheme</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialsProjectDFTMixingScheme</span>
 
             <span class="n">corrector</span> <span class="o">=</span> <span class="n">MaterialsProjectDFTMixingScheme</span><span class="p">(</span><span class="n">run_type_2</span><span class="o">=</span><span class="s2">&quot;r2SCAN&quot;</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">pd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">get_phase_diagram_from_chemsys</span><span class="p">(</span>
-                <span class="n">chemsys_str</span><span class="p">,</span> <span class="n">thermo_type</span><span class="o">=</span><span class="n">thermo_type</span>
+                <span class="n">chemsys_str</span><span class="p">,</span> <span class="n">thermo_type</span><span class="o">=</span><span class="n">thermo_type_valid_str</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="n">MPRestError</span><span class="p">:</span>
             <span class="n">pd</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1719,7 +1747,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;No phase diagram data available for chemical system </span><span class="si">{</span><span class="n">chemsys_str</span><span class="si">}</span><span class="s2"> &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;and thermo type </span><span class="si">{</span><span class="n">thermo_type</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;and thermo type </span><span class="si">{</span><span class="n">thermo_type_valid_str</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
                 <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
@@ -1793,7 +1821,6 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the database version has drifted.&quot;&quot;&quot;</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>  <span class="c1"># type: ignore[import-untyped]</span>
 
-        <span class="n">db_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database_version</span><span class="p">()</span>
         <span class="n">old_db_version</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LOG_FILE</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">old_db_version</span> <span class="o">=</span> <span class="p">(</span>
@@ -1804,15 +1831,15 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old_db_version</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">old_db_version</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="n">old_db_version</span> <span class="o">!=</span> <span class="n">db_version</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">old_db_version</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">:</span>
             <span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LOG_FILE</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">({</span><span class="s2">&quot;MAPI_DB_VERSION&quot;</span><span class="p">:</span> <span class="n">db_version</span><span class="p">})</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">({</span><span class="s2">&quot;MAPI_DB_VERSION&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">})</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">old_db_version</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                     <span class="s2">&quot;Materials Project database version has changed &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;from v</span><span class="si">{</span><span class="n">old_db_version</span><span class="si">}</span><span class="s2"> to v</span><span class="si">{</span><span class="n">db_version</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;from v</span><span class="si">{</span><span class="n">old_db_version</span><span class="si">}</span><span class="s2"> to v</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
                     <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                     <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                 <span class="p">)</span></div>

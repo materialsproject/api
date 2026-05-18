@@ -37,20 +37,23 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.band_theory</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSPathType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.electronic_structure</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">DOSProjectionType</span><span class="p">,</span>
-    <span class="n">ElectronicStructureDoc</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.band_theory</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSPathType</span><span class="p">,</span> <span class="n">ElectronicBS</span><span class="p">,</span> <span class="n">ElectronicDos</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.electronic_structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">DOSProjectionType</span><span class="p">,</span> <span class="n">ElectronicStructureDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">AlphaID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.vasp.calc_types.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.magnetism.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ordering</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.bandstructure</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BandStructure</span><span class="p">,</span>
+    <span class="n">BandStructureSymmLine</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrbitalType</span><span class="p">,</span> <span class="n">Spin</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.dos</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompleteDos</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.dos</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dos</span>
 
 
 <div class="viewcode-block" id="ElectronicStructureRester">
@@ -214,6 +217,7 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BandStructureRester</span><span class="p">(</span><span class="n">BaseESPropertyRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/electronic_structure/bandstructure&quot;</span>
+    <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="BandStructureRester.search_bandstructure_summary">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester.search_bandstructure_summary">[docs]</a>
@@ -310,20 +314,51 @@
 
 <div class="viewcode-block" id="BandStructureRester.get_bandstructure_from_task_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.BandStructureRester.html#mp_api.client.routes.materials.electronic_structure.BandStructureRester.get_bandstructure_from_task_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_bandstructure_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_bandstructure_from_task_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">run_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">RunType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">path_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">BSPathType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BandStructure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the band structure pymatgen object associated with a given task ID.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            task_id (str): Task ID for the band structure calculation</span>
-
+<span class="sd">            run_type (str, RunType, or None): Optional run type,</span>
+<span class="sd">                will speed up query due to delta table partitioning.</span>
+<span class="sd">            path_type (str, BSPathType, or None) : Optional path type to</span>
+<span class="sd">                speed up query</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (BandStructure): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>  <span class="c1"># type: ignore[call-overload]</span>
-            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;bandstructures/</span><span class="si">{</span><span class="n">validate_ids</span><span class="p">([</span><span class="n">task_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">load_json</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">deser</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span></div>
+        <span class="n">bs_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+            <span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;core/electronic-structure/bandstructures/&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT *</span>
+<span class="s2">            FROM   </span><span class="si">{</span><span class="n">bs_lbl</span><span class="si">}</span>
+<span class="s2">            WHERE  identifier=&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">run_type</span><span class="p">:</span>
+            <span class="n">rt</span> <span class="o">=</span> <span class="n">RunType</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">run_type</span>
+            <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">AND run_type=&#39;</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+        <span class="k">if</span> <span class="n">path_type</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">AND path_convention=&#39;</span><span class="si">{</span><span class="n">path_type</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deser</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">emmet_bs</span> <span class="o">=</span> <span class="n">ElectronicBS</span><span class="p">(</span><span class="o">**</span><span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">emmet_bs</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">(</span>
+                <span class="n">pmg_cls</span><span class="o">=</span><span class="n">BandStructureSymmLine</span> <span class="k">if</span> <span class="n">emmet_bs</span><span class="o">.</span><span class="n">labels_dict</span> <span class="k">else</span> <span class="n">BandStructure</span>
+            <span class="p">)</span>
+        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No bandstructure data found for </span><span class="si">{</span><span class="n">task_id</span><span class="si">=}</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;run_type=</span><span class="si">{</span><span class="n">rt</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">run_type</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BandStructureRester.get_bandstructure_from_material_id">
@@ -349,7 +384,9 @@
                 <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">]</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">bs_doc</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No electronic structure data found.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span><span class="n">_bs_data</span> <span class="o">:=</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
@@ -372,7 +409,9 @@
                     <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
             <span class="p">):</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No electronic structure data found.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span><span class="n">_bs_data</span> <span class="o">:=</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
@@ -385,9 +424,12 @@
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-            <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
+            <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
 
-        <span class="n">bs_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bandstructure_from_task_id</span><span class="p">(</span><span class="n">bs_task_id</span><span class="p">)</span>
+        <span class="n">bs_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bandstructure_from_task_id</span><span class="p">(</span>
+            <span class="n">bs_task_id</span><span class="p">,</span>
+            <span class="n">path_type</span><span class="o">=</span><span class="n">path_type</span> <span class="k">if</span> <span class="n">line_mode</span> <span class="k">else</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">unknown</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">bs_obj</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">bs_obj</span>
@@ -400,6 +442,7 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DosRester</span><span class="p">(</span><span class="n">BaseESPropertyRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/electronic_structure/dos&quot;</span>
+    <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="DosRester.search_dos_summary">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.search_dos_summary">[docs]</a>
@@ -521,48 +564,68 @@
 
 <div class="viewcode-block" id="DosRester.get_dos_from_task_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.get_dos_from_task_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompleteDos</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_task_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">RunType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dos</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the density of states pymatgen object associated with a given calculation ID.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            task_id (str): Task ID for the density of states calculation</span>
+<span class="sd">            run_type (str, RunType, or None): Optional run type to query by.</span>
+<span class="sd">                Will speed up query due to delta table partitioning.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            bandstructure (CompleteDos): CompleteDos object</span>
+<span class="sd">            pymatgen Dos</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>  <span class="c1"># type: ignore[call-overload]</span>
-            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;dos/</span><span class="si">{</span><span class="n">validate_ids</span><span class="p">([</span><span class="n">task_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-            <span class="n">decoder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">load_json</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">deser</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span></div>
+        <span class="n">dos_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+            <span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;core/electronic-structure/total-dos/&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;total_dos&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT *</span>
+<span class="s2">            FROM   </span><span class="si">{</span><span class="n">dos_lbl</span><span class="si">}</span>
+<span class="s2">            WHERE  identifier=&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">run_type</span><span class="p">:</span>
+            <span class="n">rt</span> <span class="o">=</span> <span class="n">RunType</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">run_type</span>
+            <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">AND run_type=&#39;</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deser</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ElectronicDos</span><span class="p">(</span><span class="o">**</span><span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No DOS data found for </span><span class="si">{</span><span class="n">task_id</span><span class="si">=}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;run_type=</span><span class="si">{</span><span class="n">rt</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">run_type</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DosRester.get_dos_from_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electronic_structure.DosRester.html#mp_api.client.routes.materials.electronic_structure.DosRester.get_dos_from_material_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dos</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the complete density of states pymatgen object associated with a Materials Project ID.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_id (str): Materials Project ID for a material</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            dos (CompleteDos): CompleteDos object</span>
+<span class="sd">            pymatgen Dos</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
             <span class="n">dos_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dos&quot;</span><span class="p">])</span>
         <span class="p">):</span>
-            <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">dos_data</span> <span class="o">:=</span> <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dos&quot;</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No density of states data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">dos_task_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">dos_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">dos_data</span><span class="p">)[</span>
-            <span class="s2">&quot;total&quot;</span>
-        <span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">dos_obj</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_task_id</span><span class="p">(</span><span class="n">dos_task_id</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">dos_obj</span>
-
-        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No density of states object found.&quot;</span><span class="p">)</span></div>
+            <span class="s2">&quot;task_id&quot;</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_task_id</span><span class="p">(</span><span class="n">dos_task_id</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

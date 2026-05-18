@@ -32,6 +32,7 @@ mp\_api.client.routes.materials.substrates.SubstratesRester
       ~SubstratesRester.available_fields
       ~SubstratesRester.delta_backed
       ~SubstratesRester.primary_key
+      ~SubstratesRester.query_builder
       ~SubstratesRester.s3_client
       ~SubstratesRester.session
       ~SubstratesRester.suffix

@@ -20,9 +20,12 @@ mp\_api.client.routes.materials.phonon.PhononRester
       ~PhononRester.compute_thermo_quantities
       ~PhononRester.count
       ~PhononRester.get_bandstructure_from_material_id
+      ~PhononRester.get_bandstructure_from_phonon_id
       ~PhononRester.get_data_by_id
       ~PhononRester.get_dos_from_material_id
+      ~PhononRester.get_dos_from_phonon_id
       ~PhononRester.get_forceconstants_from_material_id
+      ~PhononRester.get_forceconstants_from_phonon_id
       ~PhononRester.search
    
    
@@ -36,6 +39,7 @@ mp\_api.client.routes.materials.phonon.PhononRester
       ~PhononRester.available_fields
       ~PhononRester.delta_backed
       ~PhononRester.primary_key
+      ~PhononRester.query_builder
       ~PhononRester.s3_client
       ~PhononRester.session
       ~PhononRester.suffix

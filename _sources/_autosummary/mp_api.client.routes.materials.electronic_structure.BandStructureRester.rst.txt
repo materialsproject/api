@@ -36,6 +36,7 @@ mp\_api.client.routes.materials.electronic\_structure.BandStructureRester
       ~BandStructureRester.delta_backed
       ~BandStructureRester.es_rester
       ~BandStructureRester.primary_key
+      ~BandStructureRester.query_builder
       ~BandStructureRester.s3_client
       ~BandStructureRester.session
       ~BandStructureRester.suffix

@@ -34,6 +34,7 @@ mp\_api.client.routes.materials.similarity.SimilarityRester
       ~SimilarityRester.available_fields
       ~SimilarityRester.delta_backed
       ~SimilarityRester.primary_key
+      ~SimilarityRester.query_builder
       ~SimilarityRester.s3_client
       ~SimilarityRester.session
       ~SimilarityRester.suffix

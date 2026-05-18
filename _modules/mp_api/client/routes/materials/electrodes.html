@@ -36,12 +36,15 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.electrode</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConversionElectrodeDoc</span><span class="p">,</span> <span class="n">InsertionElectrodeDoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.electrode</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ConversionElectrodeDoc</span><span class="p">,</span>
+    <span class="n">InsertionElectrodeDoc</span><span class="p">,</span>
+    <span class="n">validate_battery_id</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestWarning</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestError</span><span class="p">,</span> <span class="n">MPRestWarning</span>
 
 
 <div class="viewcode-block" id="BaseElectrodeRester">
@@ -141,9 +144,19 @@
                         <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_min&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_max&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
                     <span class="p">)</span>
                 <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s2">&quot;battery_ids&quot;</span><span class="p">:</span>
-                    <span class="n">query_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                        <span class="n">validate_ids</span><span class="p">([</span><span class="n">value</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span><span class="p">)</span>
-                    <span class="p">)</span>
+                    <span class="n">_battery_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">battery_id</span> <span class="ow">in</span> <span class="n">_battery_ids</span><span class="p">:</span>
+                            <span class="n">validate_battery_id</span><span class="p">(</span><span class="n">battery_id</span><span class="p">)</span>
+                        <span class="n">query_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_battery_ids</span><span class="p">)</span>
+
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;At least one battery_id in: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> is invalid.&quot;</span>
+                            <span class="s2">&quot; Try using the validate_battery_id function from emmet.core.electrode&quot;</span>
+                            <span class="s2">&quot; to test your inputs.&quot;</span>
+                        <span class="p">)</span>
+
                 <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s2">&quot;working_ion&quot;</span><span class="p">:</span>
                     <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;working_ion&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                         <span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>

@@ -33,6 +33,7 @@ mp\_api.client.routes.materials.robocrys.RobocrysRester
       ~RobocrysRester.available_fields
       ~RobocrysRester.delta_backed
       ~RobocrysRester.primary_key
+      ~RobocrysRester.query_builder
       ~RobocrysRester.s3_client
       ~RobocrysRester.session
       ~RobocrysRester.suffix
