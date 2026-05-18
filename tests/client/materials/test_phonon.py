@@ -21,13 +21,13 @@ def test_phonon_search():
                 "fields",
             ],
             alt_name_dict={
-                "phonon_ids": "identifier",
+                "identifiers": "identifier",
             },
             custom_field_tests={
                 # test search kwarg backwards compat
                 "material_ids": ["mp-149", "mp-13"],
-                "phonon_ids": ["ft", "mp-13"],
-                "phonon_ids": "mp-149",
+                "identifiers": ["ft", "mp-13"],
+                "identifiers": "mp-149",
                 "phonon_method": "dfpt",
             },
             sub_doc_fields=[],
