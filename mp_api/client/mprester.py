@@ -656,9 +656,7 @@ class MPRester(_Rester):
                     entry_dict["energy_adjustments"] = []
 
                 if property_data:
-                    entry_dict["data"] = {
-                        property: doc[property] for property in property_data
-                    }
+                    entry_dict["data"] = {prop: doc[prop] for prop in property_data}
 
                 if conventional_unit_cell:
                     entry_struct = Structure.from_dict(entry_dict["structure"])
