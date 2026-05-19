@@ -58,7 +58,8 @@ if TYPE_CHECKING:
     from mp_api.client.core.client import QueryBuilderWithCache
     from mp_api.client.core.schemas import _DictLikeAccess
 
-DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U_R2SCAN"]}
+DEFAULT_THERMOTYPE = ThermoType("GGA_GGA+U_R2SCAN")
+DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": [DEFAULT_THERMOTYPE.value]}
 
 RESTER_LAYOUT = {
     "molecules/core": LazyImport(
@@ -1069,8 +1070,8 @@ class MPRester(_Rester):
         (i.e., all LixOy, FexOy, LixFey, LixFeyOz, Li, Fe and O phases). Extremely
         useful for creating phase diagrams of entire chemical systems.
 
-        Note that by default this returns mixed GGA/GGA+U entries. For others,
-        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.
+        Note that by default this returns mixed GGA/GGA+U/r2SCAN entries. For others,
+        pass GGA/GGA+U, or R2SCAN as thermo_types in additional_criteria.
 
         Args:
             elements (str or [str]): Parent chemical system string comprising element
@@ -1594,8 +1595,26 @@ class MPRester(_Rester):
     def get_stability(
         self,
         entries: list[ComputedEntry | ComputedStructureEntry | PDEntry],
-        thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
+        thermo_type: str | ThermoType = DEFAULT_THERMOTYPE,
     ) -> list[dict[str, Any]] | None:
+        """Get the energy above hull of a list of entries.
+
+        Args:
+        entries (list of ComputedEntry or ComputedStructureEntry or PDEntry) :
+            List of entries with energy and composition information to compute
+            hull energies.
+        thermo_type (str or ThermoType) : The hull type to use.
+            Defaults to ThermoType.GGA_GGA_U_R2SCAN.
+
+        Returns:
+        list of dict:
+            {
+                "e_above_hull": float, # energy above the hull
+                "composition": dict[str,float], # composition as dict
+                "energy": float, # energy with mixing / corrections
+                "entry_id": str, # optional identifier
+            }
+        """
         chemsys: set[SpeciesLike] = {
             ele for entry in entries for ele in entry.composition.elements
         }
@@ -1659,8 +1678,29 @@ class MPRester(_Rester):
         self,
         material_id: str | MPID | AlphaID,
         working_ion: str | Element,
-        thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
+        thermo_type: str | ThermoType = DEFAULT_THERMOTYPE,
     ) -> dict[str, np.ndarray]:
+        """Get the amount of O2 evolved at a range of temperatures.
+
+        Args:
+        material_id (str, MPID, or AlphaID) : identifier of the material to compute
+        working_ion (str or Element) : The working ion of the battery material
+        thermo_type (str or ThermoType) : The hull type to use.
+            Defaults to ThermoType.GGA_GGA_U_R2SCAN.
+
+        Returns:
+        dict of str to np.ndarray :
+        {
+            "mu": np.ndarray[float], # the chemical potential in eV/atom
+            "reaction": np.ndarray[str], # the redox reaction
+            "evolution": np.ndarray[float], # the number of O2 evolved in the redox, per formula unit
+            "temperature": np.ndarray[float], # the temperature in K
+        }
+
+        Raises:
+        ValueError : If no insertion electrode data for the combination of material_id
+            and working_ion could be found, or if the entry contains no oxygen.
+        """
         working_ion = (
             Element[working_ion] if isinstance(working_ion, str) else working_ion
         )

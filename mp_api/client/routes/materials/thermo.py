@@ -192,8 +192,6 @@ class ThermoRester(BaseRester):
         Arguments:
             chemsys (str): A chemical system (e.g. Li-Fe-O)
             thermo_type (ThermoType): The thermo type for the phase diagram.
-                Defaults to ThermoType.GGA_GGA_U.
-
 
         Returns:
             (PhaseDiagram): Pymatgen phase diagram object.
