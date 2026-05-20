@@ -91,7 +91,8 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">QueryBuilderWithCache</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DictLikeAccess</span>
 
-<span class="n">DEFAULT_THERMOTYPE_CRITERIA</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GGA_GGA+U_R2SCAN&quot;</span><span class="p">]}</span>
+<span class="n">DEFAULT_THERMOTYPE</span> <span class="o">=</span> <span class="n">ThermoType</span><span class="p">(</span><span class="s2">&quot;GGA_GGA+U_R2SCAN&quot;</span><span class="p">)</span>
+<span class="n">DEFAULT_THERMOTYPE_CRITERIA</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">DEFAULT_THERMOTYPE</span><span class="o">.</span><span class="n">value</span><span class="p">]}</span>
 
 <span class="n">RESTER_LAYOUT</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;molecules/core&quot;</span><span class="p">:</span> <span class="n">LazyImport</span><span class="p">(</span>
@@ -722,9 +723,7 @@
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;energy_adjustments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
                 <span class="k">if</span> <span class="n">property_data</span><span class="p">:</span>
-                    <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                        <span class="nb">property</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="n">property_data</span>
-                    <span class="p">}</span>
+                    <span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">prop</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">property_data</span><span class="p">}</span>
 
                 <span class="k">if</span> <span class="n">conventional_unit_cell</span><span class="p">:</span>
                     <span class="n">entry_struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">])</span>
@@ -1154,8 +1153,8 @@
 <span class="sd">        (i.e., all LixOy, FexOy, LixFey, LixFeyOz, Li, Fe and O phases). Extremely</span>
 <span class="sd">        useful for creating phase diagrams of entire chemical systems.</span>
 
-<span class="sd">        Note that by default this returns mixed GGA/GGA+U entries. For others,</span>
-<span class="sd">        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.</span>
+<span class="sd">        Note that by default this returns mixed GGA/GGA+U/r2SCAN entries. For others,</span>
+<span class="sd">        pass GGA/GGA+U, or R2SCAN as thermo_types in additional_criteria.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            elements (str or [str]): Parent chemical system string comprising element</span>
@@ -1710,11 +1709,31 @@
             <span class="n">num_form_unit</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">get_reduced_composition_and_factor</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">energy_per_atom</span> <span class="o">*</span> <span class="n">natom</span> <span class="o">-</span> <span class="n">atomic_energy</span><span class="p">)</span> <span class="o">/</span> <span class="n">num_form_unit</span>
 
+<div class="viewcode-block" id="MPRester.get_stability">
+<a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_stability">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_stability</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComputedEntry</span> <span class="o">|</span> <span class="n">ComputedStructureEntry</span> <span class="o">|</span> <span class="n">PDEntry</span><span class="p">],</span>
-        <span class="n">thermo_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">ThermoType</span> <span class="o">=</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">GGA_GGA_U</span><span class="p">,</span>
+        <span class="n">thermo_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">ThermoType</span> <span class="o">=</span> <span class="n">DEFAULT_THERMOTYPE</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the energy above hull of a list of entries.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        entries (list of ComputedEntry or ComputedStructureEntry or PDEntry) :</span>
+<span class="sd">            List of entries with energy and composition information to compute</span>
+<span class="sd">            hull energies.</span>
+<span class="sd">        thermo_type (str or ThermoType) : The hull type to use.</span>
+<span class="sd">            Defaults to ThermoType.GGA_GGA_U_R2SCAN.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        list of dict:</span>
+<span class="sd">            {</span>
+<span class="sd">                &quot;e_above_hull&quot;: float, # energy above the hull</span>
+<span class="sd">                &quot;composition&quot;: dict[str,float], # composition as dict</span>
+<span class="sd">                &quot;energy&quot;: float, # energy with mixing / corrections</span>
+<span class="sd">                &quot;entry_id&quot;: str, # optional identifier</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">chemsys</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">SpeciesLike</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">ele</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">elements</span>
         <span class="p">}</span>
@@ -1772,14 +1791,38 @@
                 <span class="s2">&quot;entry_id&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="s2">&quot;entry_id&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;user-entry-</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
-        <span class="p">]</span>
+        <span class="p">]</span></div>
 
+
+<div class="viewcode-block" id="MPRester.get_oxygen_evolution">
+<a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_oxygen_evolution">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_oxygen_evolution</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MPID</span> <span class="o">|</span> <span class="n">AlphaID</span><span class="p">,</span>
         <span class="n">working_ion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Element</span><span class="p">,</span>
-        <span class="n">thermo_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">ThermoType</span> <span class="o">=</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">GGA_GGA_U</span><span class="p">,</span>
+        <span class="n">thermo_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">ThermoType</span> <span class="o">=</span> <span class="n">DEFAULT_THERMOTYPE</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the amount of O2 evolved at a range of temperatures.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        material_id (str, MPID, or AlphaID) : identifier of the material to compute</span>
+<span class="sd">        working_ion (str or Element) : The working ion of the battery material</span>
+<span class="sd">        thermo_type (str or ThermoType) : The hull type to use.</span>
+<span class="sd">            Defaults to ThermoType.GGA_GGA_U_R2SCAN.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        dict of str to np.ndarray :</span>
+<span class="sd">        {</span>
+<span class="sd">            &quot;mu&quot;: np.ndarray[float], # the chemical potential in eV/atom</span>
+<span class="sd">            &quot;reaction&quot;: np.ndarray[str], # the redox reaction</span>
+<span class="sd">            &quot;evolution&quot;: np.ndarray[float], # the number of O2 evolved in the redox, per formula unit</span>
+<span class="sd">            &quot;temperature&quot;: np.ndarray[float], # the temperature in K</span>
+<span class="sd">        }</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        ValueError : If no insertion electrode data for the combination of material_id</span>
+<span class="sd">            and working_ion could be found, or if the entry contains no oxygen.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">working_ion</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">Element</span><span class="p">[</span><span class="n">working_ion</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">working_ion</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">working_ion</span>
         <span class="p">)</span>
@@ -1815,7 +1858,8 @@
         <span class="k">return</span> <span class="n">OxygenEvolution</span><span class="p">()</span><span class="o">.</span><span class="n">get_oxygen_evolution_from_phase_diagram</span><span class="p">(</span>
             <span class="n">phase_diagram</span><span class="p">,</span>
             <span class="n">unique_composition</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_db_version_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the database version has drifted.&quot;&quot;&quot;</span>

@@ -197,8 +197,8 @@ from multiple computing environments.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_material_ids" title="mp_api.client.mprester.MPRester.get_material_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_material_ids</span></code></a>(chemsys_formula)</p></td>
 <td><p>Get all materials ids for a formula or chemsys.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_oxygen_evolution</span></code>(material_id, working_ion)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_oxygen_evolution" title="mp_api.client.mprester.MPRester.get_oxygen_evolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_oxygen_evolution</span></code></a>(material_id, working_ion)</p></td>
+<td><p>Get the amount of O2 evolved at a range of temperatures.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_bandstructure_by_material_id</span></code></a>(...)</p></td>
 <td><p>Get phonon dispersion data corresponding to a material_id.</p></td>
@@ -209,8 +209,8 @@ from multiple computing environments.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_pourbaix_entries" title="mp_api.client.mprester.MPRester.get_pourbaix_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pourbaix_entries</span></code></a>(chemsys[, ...])</p></td>
 <td><p>A helper function to get all entries necessary to generate a Pourbaix diagram from the rest interface.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_stability</span></code>(entries[, thermo_type])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_stability" title="mp_api.client.mprester.MPRester.get_stability"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_stability</span></code></a>(entries[, thermo_type])</p></td>
+<td><p>Get the energy above hull of a list of entries.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_structure_by_material_id" title="mp_api.client.mprester.MPRester.get_structure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_structure_by_material_id</span></code></a>(material_id[, ...])</p></td>
 <td><p>Get a Structure corresponding to a material_id.</p></td>
@@ -648,8 +648,8 @@ For example, elements = [“Li”, “Fe”, “O”] will return a list of all
 entries in the parent Li-Fe-O chemical system, as well as all subsystems
 (i.e., all LixOy, FexOy, LixFey, LixFeyOz, Li, Fe and O phases). Extremely
 useful for creating phase diagrams of entire chemical systems.</p>
-<p>Note that by default this returns mixed GGA/GGA+U entries. For others,
-pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.</p>
+<p>Note that by default this returns mixed GGA/GGA+U/r2SCAN entries. For others,
+pass GGA/GGA+U, or R2SCAN as thermo_types in additional_criteria.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -881,6 +881,62 @@ indexed first by the functionals in funcs, and second by the atom.</p>
 <dd class="field-odd"><p>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]])</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_stability">
+<span class="sig-name descname"><span class="pre">get_stability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ComputedEntry</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ComputedStructureEntry</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PDEntry</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thermo_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ThermoType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ThermoType.GGA_GGA_U_R2SCAN</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_stability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_stability" title="Link to this definition">¶</a></dt>
+<dd><p>Get the energy above hull of a list of entries.</p>
+<p>Args:
+entries (list of ComputedEntry or ComputedStructureEntry or PDEntry) :</p>
+<blockquote>
+<div><p>List of entries with energy and composition information to compute
+hull energies.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>thermo_type (str or ThermoType)<span class="classifier">The hull type to use.</span></dt><dd><p>Defaults to ThermoType.GGA_GGA_U_R2SCAN.</p>
+</dd>
+</dl>
+<p>Returns:
+list of dict:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>{</dt><dd><p>“e_above_hull”: float, # energy above the hull
+“composition”: dict[str,float], # composition as dict
+“energy”: float, # energy with mixing / corrections
+“entry_id”: str, # optional identifier</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_oxygen_evolution">
+<span class="sig-name descname"><span class="pre">get_oxygen_evolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">MPID</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AlphaID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">working_ion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thermo_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ThermoType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ThermoType.GGA_GGA_U_R2SCAN</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_oxygen_evolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_oxygen_evolution" title="Link to this definition">¶</a></dt>
+<dd><p>Get the amount of O2 evolved at a range of temperatures.</p>
+<p>Args:
+material_id (str, MPID, or AlphaID) : identifier of the material to compute
+working_ion (str or Element) : The working ion of the battery material
+thermo_type (str or ThermoType) : The hull type to use.</p>
+<blockquote>
+<div><p>Defaults to ThermoType.GGA_GGA_U_R2SCAN.</p>
+</div></blockquote>
+<p>Returns:
+dict of str to np.ndarray :
+{</p>
+<blockquote>
+<div><p>“mu”: np.ndarray[float], # the chemical potential in eV/atom
+“reaction”: np.ndarray[str], # the redox reaction
+“evolution”: np.ndarray[float], # the number of O2 evolved in the redox, per formula unit
+“temperature”: np.ndarray[float], # the temperature in K</p>
+</div></blockquote>
+<p>}</p>
+<p>Raises:
+ValueError : If no insertion electrode data for the combination of material_id</p>
+<blockquote>
+<div><p>and working_ion could be found, or if the entry contains no oxygen.</p>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>
