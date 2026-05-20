@@ -39,8 +39,8 @@ class TaskRester(BaseRester):
         """
         as_alpha = str(AlphaID(task_id, padlen=8)).split("-")[-1]
         predicate = (
-            f"WHERE run_type='{str(run_type)}' AND " if run_type else ""
-        ) + f"WHERE identifier='{as_alpha}'"
+            f"WHERE run_type='{str(run_type)}' AND " if run_type else "WHERE "
+        ) + f"identifier='{as_alpha}'"
 
         traj_lbl, _ = self._get_delta_table(
             "materialsproject-parsed",
