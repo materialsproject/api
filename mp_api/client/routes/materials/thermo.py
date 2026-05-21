@@ -13,6 +13,7 @@ from pymatgen.core import Element
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core.exceptions import MPRestError
+from mp_api.client.core.settings import DEFAULT_THERMOTYPE
 from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
@@ -185,13 +186,14 @@ class ThermoRester(BaseRester):
         )
 
     def get_phase_diagram_from_chemsys(
-        self, chemsys: str, thermo_type: ThermoType | str
+        self, chemsys: str, thermo_type: ThermoType | str = DEFAULT_THERMOTYPE
     ) -> PhaseDiagram:
         """Get a pre-computed phase diagram for a given chemsys.
 
         Arguments:
             chemsys (str): A chemical system (e.g. Li-Fe-O)
             thermo_type (ThermoType): The thermo type for the phase diagram.
+                Defaults to ThermoType.GGA_GGA_U_R2SCAN.
 
         Returns:
             (PhaseDiagram): Pymatgen phase diagram object.

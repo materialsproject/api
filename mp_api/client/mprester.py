@@ -32,7 +32,11 @@ from mp_api.client.core.exceptions import (
     MPRestWarning,
     _emit_status_warning,
 )
-from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
+from mp_api.client.core.settings import (
+    DEFAULT_THERMOTYPE,
+    DEFAULT_THERMOTYPE_CRITERIA,
+    MAPI_CLIENT_SETTINGS,
+)
 from mp_api.client.core.utils import LazyImport, load_json, validate_ids
 from mp_api.client.routes import GENERIC_RESTERS
 from mp_api.client.routes.materials import MATERIALS_RESTERS
@@ -58,8 +62,6 @@ if TYPE_CHECKING:
     from mp_api.client.core.client import QueryBuilderWithCache
     from mp_api.client.core.schemas import _DictLikeAccess
 
-DEFAULT_THERMOTYPE = ThermoType("GGA_GGA+U_R2SCAN")
-DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": [DEFAULT_THERMOTYPE.value]}
 
 RESTER_LAYOUT = {
     "molecules/core": LazyImport(
