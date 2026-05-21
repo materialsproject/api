@@ -326,7 +326,7 @@ class BandStructureRester(BaseESPropertyRester):
     def get_bandstructure_from_material_id(
         self,
         material_id: str,
-        path_type: BSPathType = BSPathType.setyawan_curtarolo,
+        path_type: str | BSPathType = BSPathType.setyawan_curtarolo,
         line_mode=True,
         load_projections: bool = False,
     ):
@@ -334,7 +334,7 @@ class BandStructureRester(BaseESPropertyRester):
 
         Arguments:
             material_id (str): Materials Project ID for a material
-            path_type (BSPathType): k-point path selection convention
+            path_type (BSPathType or its value as a str): k-point path selection convention
             line_mode (bool): Whether to return data for a line-mode calculation
             load_projections (bool) : Optionally load atom- and spin-projected
                 bandstructure, if available.
@@ -342,6 +342,9 @@ class BandStructureRester(BaseESPropertyRester):
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
+        pt: BSPathType = (
+            BSPathType(path_type) if isinstance(path_type, str) else path_type
+        )
         if line_mode:
             bs_doc = self.es_rester.search(
                 material_ids=material_id, fields=["bandstructure"]
@@ -353,18 +356,18 @@ class BandStructureRester(BaseESPropertyRester):
 
             if (_bs_data := bs_doc[0]["bandstructure"]) is None:
                 raise MPRestError(
-                    f"No {path_type.value} band structure data found for {material_id}"
+                    f"No {pt.value} band structure data found for {material_id}"
                 )
 
             bs_data = (
                 _bs_data.model_dump() if self.use_document_model else _bs_data  # type: ignore
             )
 
-            if bs_data.get(path_type.value, None) is None:
+            if bs_data.get(pt.value, None) is None:
                 raise MPRestError(
-                    f"No {path_type.value} band structure data found for {material_id}"
+                    f"No {pt.value} band structure data found for {material_id}"
                 )
-            bs_task_id = bs_data[path_type.value]["task_id"]
+            bs_task_id = bs_data[pt.value]["task_id"]
 
         else:
             if not (
@@ -391,7 +394,7 @@ class BandStructureRester(BaseESPropertyRester):
 
         bs_obj = self.get_bandstructure_from_task_id(
             bs_task_id,
-            path_type=path_type if line_mode else BSPathType.unknown,
+            path_type=pt if line_mode else BSPathType.unknown,
             load_projections=load_projections,
         )
 
@@ -529,7 +532,7 @@ class DosRester(BaseESPropertyRester):
             run_type (str, RunType, or None): Optional run type to query by.
                 Will speed up query due to delta table partitioning.
             load_projections (bool) : Optionally load atom- and spin-projected
-                bandstructure, if available.
+                DOS, if available.
 
         Returns:
             pymatgen Dos
@@ -579,7 +582,7 @@ class DosRester(BaseESPropertyRester):
         Arguments:
             material_id (str): Materials Project ID for a material
             load_projections (bool) : Optionally load atom- and spin-projected
-                bandstructure, if available.
+                DOS, if available.
 
         Returns:
             pymatgen Dos
