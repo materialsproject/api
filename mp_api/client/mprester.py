@@ -1153,6 +1153,7 @@ class MPRester(_Rester):
         material_id: str,
         path_type: BSPathType = BSPathType.setyawan_curtarolo,
         line_mode=True,
+        load_projections: bool = False,
     ):
         """Get the band structure pymatgen object associated with a Materials Project ID.
 
@@ -1160,41 +1161,35 @@ class MPRester(_Rester):
             material_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
             line_mode (bool): Whether to return data for a line-mode calculation
+            load_projections (bool) : Optionally load atom- and spin-projected
+                bandstructure, if available.
 
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
         return self.materials.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+            material_id=material_id,
+            path_type=path_type,
+            line_mode=line_mode,
+            load_projections=load_projections,
         )
 
-    def get_dos_by_material_id(self, material_id: str) -> Dos:
+    def get_dos_by_material_id(
+        self, material_id: str, load_projections: bool = False
+    ) -> Dos:
         """Get the density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
             material_id (str): Materials Project ID for a material
+            load_projections (bool) : Optionally load atom- and spin-orbital-projected
+                DOS, if available.
 
         Returns:
             pymatgen Dos
         """
-        if (
-            not (
-                es_doc := self.materials.electronic_structure.search(
-                    material_ids=material_id, fields=["dos"]
-                )
-            )
-            or not es_doc[0]["dos"]
-        ):
-            raise MPRestError(f"No DOS found for {material_id}")
-
-        dos_data = es_doc[0]["dos"]
-        task_id = dos_data.task_id if self.use_document_model else dos_data["task_id"]
-        run_type = self.materials.tasks.search(task_ids=[task_id], fields=["run_type"])[
-            0
-        ]["run_type"]
-        return self.materials.electronic_structure_dos.get_dos_from_task_id(
-            task_id,
-            run_type=run_type,
+        return self.materials.electronic_structure_dos.get_dos_from_material_id(
+            material_id,
+            load_projections=load_projections,
         )
 
     def get_phonon_dos_by_material_id(self, material_id: str):

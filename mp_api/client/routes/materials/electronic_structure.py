@@ -531,7 +531,7 @@ class DosRester(BaseESPropertyRester):
             task_id (str): Task ID for the density of states calculation
             run_type (str, RunType, or None): Optional run type to query by.
                 Will speed up query due to delta table partitioning.
-            load_projections (bool) : Optionally load atom- and spin-projected
+            load_projections (bool) : Optionally load atom- and spin-orbital-projected
                 DOS, if available.
 
         Returns:
@@ -581,7 +581,7 @@ class DosRester(BaseESPropertyRester):
 
         Arguments:
             material_id (str): Materials Project ID for a material
-            load_projections (bool) : Optionally load atom- and spin-projected
+            load_projections (bool) : Optionally load atom- and spin-orbital-projected
                 DOS, if available.
 
         Returns:
