@@ -264,6 +264,7 @@ class BandStructureRester(BaseESPropertyRester):
         task_id: str,
         run_type: str | RunType | None = None,
         path_type: str | BSPathType | None = None,
+        load_projections: bool = False,
     ) -> BandStructure:
         """Get the band structure pymatgen object associated with a given task ID.
 
@@ -273,6 +274,9 @@ class BandStructureRester(BaseESPropertyRester):
                 will speed up query due to delta table partitioning.
             path_type (str, BSPathType, or None) : Optional path type to
                 speed up query
+            load_projections (bool) : Optionally load atom- and spin-projected
+                bandstructure, if available.
+
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
@@ -296,6 +300,20 @@ class BandStructureRester(BaseESPropertyRester):
 
         table = self._query_delta_single(query)
         if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
+            if load_projections:
+                proj_bs_label, _ = self._get_delta_table(
+                    "materialsproject-parsed",
+                    "core/electronic-structure/projected-bandstructures/",
+                    label="bandstructure_projections",
+                )
+                proj_table = self._query_delta_single(
+                    query.replace(bs_lbl, proj_bs_label)
+                )
+                if (
+                    len(deser_proj := proj_table.to_pylist(maps_as_pydicts="strict"))
+                    > 0
+                ):
+                    deser[0]["projections"] = deser_proj[0]
             emmet_bs = ElectronicBS(**deser[0])
             return emmet_bs.to_pmg(
                 pmg_cls=BandStructureSymmLine if emmet_bs.labels_dict else BandStructure
@@ -310,6 +328,7 @@ class BandStructureRester(BaseESPropertyRester):
         material_id: str,
         path_type: BSPathType = BSPathType.setyawan_curtarolo,
         line_mode=True,
+        load_projections: bool = False,
     ):
         """Get the band structure pymatgen object associated with a Materials Project ID.
 
@@ -317,6 +336,8 @@ class BandStructureRester(BaseESPropertyRester):
             material_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
             line_mode (bool): Whether to return data for a line-mode calculation
+            load_projections (bool) : Optionally load atom- and spin-projected
+                bandstructure, if available.
 
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
@@ -371,6 +392,7 @@ class BandStructureRester(BaseESPropertyRester):
         bs_obj = self.get_bandstructure_from_task_id(
             bs_task_id,
             path_type=path_type if line_mode else BSPathType.unknown,
+            load_projections=load_projections,
         )
 
         if bs_obj:
@@ -495,7 +517,10 @@ class DosRester(BaseESPropertyRester):
         )
 
     def get_dos_from_task_id(
-        self, task_id: str, run_type: str | RunType | None = None
+        self,
+        task_id: str,
+        run_type: str | RunType | None = None,
+        load_projections: bool = False,
     ) -> Dos:
         """Get the density of states pymatgen object associated with a given calculation ID.
 
@@ -503,6 +528,8 @@ class DosRester(BaseESPropertyRester):
             task_id (str): Task ID for the density of states calculation
             run_type (str, RunType, or None): Optional run type to query by.
                 Will speed up query due to delta table partitioning.
+            load_projections (bool) : Optionally load atom- and spin-projected
+                bandstructure, if available.
 
         Returns:
             pymatgen Dos
@@ -525,16 +552,34 @@ class DosRester(BaseESPropertyRester):
 
         table = self._query_delta_single(query)
         if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
+            if load_projections:
+                proj_dos_label, _ = self._get_delta_table(
+                    "materialsproject-parsed",
+                    "core/electronic-structure/projected-dos/",
+                    label="dos_projections",
+                )
+                proj_table = self._query_delta_single(
+                    query.replace(dos_lbl, proj_dos_label)
+                )
+                if (
+                    len(deser_proj := proj_table.to_pylist(maps_as_pydicts="strict"))
+                    > 0
+                ):
+                    deser[0]["projected_densities"] = deser_proj[0]
             return ElectronicDos(**deser[0]).to_pmg()
         raise MPRestError(
             f"No DOS data found for {task_id=}" + (f"run_type={rt}" if run_type else "")
         )
 
-    def get_dos_from_material_id(self, material_id: str) -> Dos:
+    def get_dos_from_material_id(
+        self, material_id: str, load_projections: bool = False
+    ) -> Dos:
         """Get the complete density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
             material_id (str): Materials Project ID for a material
+            load_projections (bool) : Optionally load atom- and spin-projected
+                bandstructure, if available.
 
         Returns:
             pymatgen Dos
@@ -552,4 +597,4 @@ class DosRester(BaseESPropertyRester):
         dos_task_id = (dos_data.model_dump() if self.use_document_model else dos_data)[
             "task_id"
         ]
-        return self.get_dos_from_task_id(dos_task_id)
+        return self.get_dos_from_task_id(dos_task_id, load_projections=load_projections)
