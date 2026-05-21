@@ -46,6 +46,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_THERMOTYPE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -225,13 +226,14 @@
 <div class="viewcode-block" id="ThermoRester.get_phase_diagram_from_chemsys">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.thermo.ThermoRester.html#mp_api.client.routes.materials.thermo.ThermoRester.get_phase_diagram_from_chemsys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_phase_diagram_from_chemsys</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">thermo_type</span><span class="p">:</span> <span class="n">ThermoType</span> <span class="o">|</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">thermo_type</span><span class="p">:</span> <span class="n">ThermoType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_THERMOTYPE</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseDiagram</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a pre-computed phase diagram for a given chemsys.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            chemsys (str): A chemical system (e.g. Li-Fe-O)</span>
 <span class="sd">            thermo_type (ThermoType): The thermo type for the phase diagram.</span>
+<span class="sd">                Defaults to ThermoType.GGA_GGA_U_R2SCAN.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            (PhaseDiagram): Pymatgen phase diagram object.</span>

@@ -65,7 +65,11 @@
     <span class="n">MPRestWarning</span><span class="p">,</span>
     <span class="n">_emit_status_warning</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAPI_CLIENT_SETTINGS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DEFAULT_THERMOTYPE</span><span class="p">,</span>
+    <span class="n">DEFAULT_THERMOTYPE_CRITERIA</span><span class="p">,</span>
+    <span class="n">MAPI_CLIENT_SETTINGS</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LazyImport</span><span class="p">,</span> <span class="n">load_json</span><span class="p">,</span> <span class="n">validate_ids</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes</span><span class="w"> </span><span class="kn">import</span> <span class="n">GENERIC_RESTERS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials</span><span class="w"> </span><span class="kn">import</span> <span class="n">MATERIALS_RESTERS</span>
@@ -91,8 +95,6 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">QueryBuilderWithCache</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DictLikeAccess</span>
 
-<span class="n">DEFAULT_THERMOTYPE</span> <span class="o">=</span> <span class="n">ThermoType</span><span class="p">(</span><span class="s2">&quot;GGA_GGA+U_R2SCAN&quot;</span><span class="p">)</span>
-<span class="n">DEFAULT_THERMOTYPE_CRITERIA</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thermo_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">DEFAULT_THERMOTYPE</span><span class="o">.</span><span class="n">value</span><span class="p">]}</span>
 
 <span class="n">RESTER_LAYOUT</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;molecules/core&quot;</span><span class="p">:</span> <span class="n">LazyImport</span><span class="p">(</span>
