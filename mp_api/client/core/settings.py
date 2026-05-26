@@ -9,8 +9,10 @@ from pymatgen.core import _load_pmg_settings
 
 from mp_api.client import __file__ as root_dir
 
-DEFAULT_THERMOTYPE = ThermoType("GGA_GGA+U_R2SCAN")
-DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": [DEFAULT_THERMOTYPE.value]}
+DEFAULT_THERMOTYPE: ThermoType = ThermoType("GGA_GGA+U_R2SCAN")
+DEFAULT_THERMOTYPE_CRITERIA: dict[str, list[str]] = {
+    "thermo_types": [DEFAULT_THERMOTYPE.value]
+}
 
 PMG_SETTINGS = _load_pmg_settings()
 _NUM_PARALLEL_REQUESTS = min(PMG_SETTINGS.get("MPRESTER_NUM_PARALLEL_REQUESTS", 4), 4)

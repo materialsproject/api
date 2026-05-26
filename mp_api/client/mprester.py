@@ -1590,7 +1590,7 @@ class MPRester(_Rester):
     def get_stability(
         self,
         entries: list[ComputedEntry | ComputedStructureEntry | PDEntry],
-        thermo_type: str | ThermoType = DEFAULT_THERMOTYPE,
+        thermo_type: ThermoType | str = DEFAULT_THERMOTYPE,
     ) -> list[dict[str, Any]] | None:
         """Get the energy above hull of a list of entries.
 
