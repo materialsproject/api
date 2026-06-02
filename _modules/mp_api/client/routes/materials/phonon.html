@@ -33,15 +33,16 @@
   <h1>Source code for mp_api.client.routes.materials.phonon</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.band_theory</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSPathType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.mpid</span><span class="w"> </span><span class="kn">import</span> <span class="n">AlphaID</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.phonon</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhononBS</span><span class="p">,</span> <span class="n">PhononBSDOSDoc</span><span class="p">,</span> <span class="n">PhononBSDOSTask</span><span class="p">,</span> <span class="n">PhononDOS</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span><span class="p">,</span> <span class="n">MPRestWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials.summary</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryRester</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
@@ -52,26 +53,49 @@
 <div class="viewcode-block" id="PhononRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PhononRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
+    <span class="n">_summary_rester</span><span class="p">:</span> <span class="n">SummaryRester</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/phonon&quot;</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">PhononBSDOSTask</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;identifier&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary_rester</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SummaryRester</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary_rester</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary_rester</span> <span class="o">=</span> <span class="n">SummaryRester</span><span class="p">(</span>
+                <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
+                <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_endpoint</span><span class="p">,</span>
+                <span class="n">include_user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include_user_agent</span><span class="p">,</span>
+                <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+                <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+                <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary_rester</span>
 
 <div class="viewcode-block" id="PhononRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">identifiers</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">material_ids</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhononBSDOSTask</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Query phonon docs using a variety of search criteria.</span>
 
+<span class="sd">        Exactly one of `identifiers` and `material_ids` may be supplied.</span>
+<span class="sd">        When `material_ids` is supplied, the summary endpoint is queried to</span>
+<span class="sd">        resolve each material&#39;s `phonon_IDs` into the underlying phonon task</span>
+<span class="sd">        identifiers (filtered by `phonon_method` when provided), and those</span>
+<span class="sd">        phonon IDs are then used to query the phonon endpoint.</span>
+
 <span class="sd">        Arguments:</span>
 <span class="sd">            identifiers (str, List[str]): A single Phonon Task ID string or list of strings</span>
+<span class="sd">                (e.g., aaaaaaft, [aaaaaaft, aaaeguxu]).</span>
+<span class="sd">            material_ids (str, List[str]): A single Materials Project ID or list of IDs</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
 <span class="sd">            phonon_method (str): phonon method to search (dfpt, phonopy, pheasy)</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
@@ -79,27 +103,58 @@
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
 <span class="sd">            fields (List[str]): List of fields in PhononBSDOSTask to return data for.</span>
 <span class="sd">                Default is identifier, last_updated, and formula_pretty if all_fields is False.</span>
-<span class="sd">            **kwargs : used for handling deprecated kwargs</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([PhononBSDOSTask], [dict]) List of phonon documents or dictionaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">identifiers</span> <span class="ow">and</span> <span class="n">material_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;Specify exactly one of `identifiers` or `material_ids`, not both.&quot;</span>
+            <span class="p">)</span>
+
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s2">&quot;material_ids&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">identifiers</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="s2">&quot;You have specified both `identifiers` and the deprecated `material_ids` tag. &quot;</span>
-                    <span class="s2">&quot;Please specify only `identifiers`.&quot;</span>
-                <span class="p">)</span>
-            <span class="n">identifiers</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;material_ids&quot;</span><span class="p">)</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">&quot;`material_id` has been replaced by `identifier` in the phonon endpoint. &quot;</span>
-                <span class="s2">&quot;Please migrate to using the newer field name and the more generic `identifiers` kwarg &quot;</span>
-                <span class="s2">&quot;for searching.&quot;</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+        <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
+            <span class="n">material_ids</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">material_ids</span><span class="p">)</span>
             <span class="p">)</span>
+            <span class="n">summary_docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                <span class="n">material_ids</span><span class="o">=</span><span class="n">material_ids</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">,</span> <span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="n">resolved_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">missing</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">found_material_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">summary_docs</span><span class="p">:</span>
+                <span class="n">mid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">])</span>
+                <span class="n">phonon_ids_by_method</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+
+                <span class="k">if</span> <span class="n">phonon_method</span><span class="p">:</span>
+                    <span class="n">method_ids</span> <span class="o">=</span> <span class="n">phonon_ids_by_method</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">phonon_method</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">method_ids</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">pid</span> <span class="k">for</span> <span class="n">ids</span> <span class="ow">in</span> <span class="n">phonon_ids_by_method</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">ids</span>
+                    <span class="p">]</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">method_ids</span><span class="p">:</span>
+                    <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="n">found_material_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
+                <span class="n">resolved_ids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">method_ids</span><span class="p">)</span>
+
+            <span class="n">missing</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">mid</span> <span class="k">for</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">material_ids</span> <span class="k">if</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">found_material_ids</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                <span class="n">method_suffix</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; with phonon_method=</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">!r}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">phonon_method</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No phonon data found for material ID(s) </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">missing</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">method_suffix</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">identifiers</span> <span class="o">=</span> <span class="n">resolved_ids</span>
 
         <span class="k">if</span> <span class="n">identifiers</span><span class="p">:</span>
             <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;identifiers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -129,42 +184,88 @@
 <div class="viewcode-block" id="PhononRester.get_bandstructure_from_phonon_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.get_bandstructure_from_phonon_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_bandstructure_from_phonon_id</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">path_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">setyawan_curtarolo</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhononBS</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the phonon band structure pymatgen object associated with a given phonon ID and phonon method.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            identifier (str): Phonon ID for the phonon band structure calculation</span>
 <span class="sd">            phonon_method (str): phonon method, i.e. pheasy or dfpt</span>
+<span class="sd">            path_type (BSPathType or str): k-path selection convention for the band structure.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (PhononBS): PhononBS object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
-            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-bandstructures/</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span><span class="o">.</span><span class="n">string</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ph_bs_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+            <span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;phonon/electronic-structure/bandstructures/&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;ph_bandstructure&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="n">PhononBS</span><span class="p">(</span><span class="o">**</span><span class="n">result</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-            <span class="k">else</span> <span class="n">result</span>  <span class="c1"># type: ignore[return-value]</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT *</span>
+<span class="s2">            FROM   </span><span class="si">{</span><span class="n">ph_bs_lbl</span><span class="si">}</span>
+<span class="s2">            WHERE  identifier=&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">            AND    phonon_method=&#39;</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">path_type</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">AND path_convention=&#39;</span><span class="si">{</span><span class="n">path_type</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">deser</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">deser</span> <span class="ow">and</span> <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bs</span> <span class="o">=</span> <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;bandstructure&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">PhononBS</span><span class="p">(</span><span class="o">**</span><span class="n">bs</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">bs</span>
+
+        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No phonon bandstructure data found for </span><span class="si">{</span><span class="n">identifier</span><span class="si">=}</span><span class="s2"> and </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">=}</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot; and run_type=</span><span class="si">{</span><span class="n">path_type</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">path_type</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="PhononRester.get_bandstructure_from_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.get_bandstructure_from_material_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_bandstructure_from_material_id</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">path_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">setyawan_curtarolo</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhononBS</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated: use `get_bandstructure_from_phonon_id` instead.&quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;`material_id` has been replaced by `identifier` in the phonon endpoint. &quot;</span>
-            <span class="s2">&quot;Please migrate to using `get_bandstructure_from_phonon_id` with the `identifier` kwarg.&quot;</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the phonon band structure pymatgen object associated with a given material ID and phonon method.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            material_id (str): Materials Project ID for a material</span>
+<span class="sd">            phonon_method (str): phonon method, i.e. pheasy or dfpt</span>
+<span class="sd">            path_type (BSPathType or str): k-path selection convention for the band structure.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bandstructure (PhononBS): PhononBS object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pt</span><span class="p">:</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">BSPathType</span><span class="p">(</span><span class="n">path_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">path_type</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bandstructure_from_phonon_id</span><span class="p">(</span><span class="n">material_id</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">)</span></div>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">summary_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No phonon bandstructure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No phonon bandstructure data found for material ID: </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2"> and phonon method: </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bandstructure_from_phonon_id</span><span class="p">(</span>
+            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span><span class="p">,</span> <span class="n">pt</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="PhononRester.get_dos_from_phonon_id">
@@ -181,15 +282,27 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            dos (PhononDOS): PhononDOS object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>
-            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-dos/</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span><span class="o">.</span><span class="n">string</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ph_dos_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+            <span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;phonon/electronic-structure/dos/&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;ph_dos&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="n">PhononDOS</span><span class="p">(</span><span class="o">**</span><span class="n">result</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
-            <span class="k">else</span> <span class="n">result</span>  <span class="c1"># type: ignore[return-value]</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT *</span>
+<span class="s2">            FROM   </span><span class="si">{</span><span class="n">ph_dos_lbl</span><span class="si">}</span>
+<span class="s2">            WHERE  identifier=&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">            AND    phonon_method=&#39;</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">deser</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">deser</span> <span class="ow">and</span> <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dos&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dos</span> <span class="o">=</span> <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;dos&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">PhononDOS</span><span class="p">(</span><span class="o">**</span><span class="n">dos</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">dos</span>
+
+        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No phonon dos data found for </span><span class="si">{</span><span class="n">identifier</span><span class="si">=}</span><span class="s2"> and </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">=}</span><span class="s2">&quot;</span>
         <span class="p">)</span></div>
 
 
@@ -198,48 +311,102 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_dos_from_material_id</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhononDOS</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated: use `get_dos_from_phonon_id` instead.&quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;`material_id` has been replaced by `identifier` in the phonon endpoint. &quot;</span>
-            <span class="s2">&quot;Please migrate to using `get_dos_from_phonon_id` with the `identifier` kwarg.&quot;</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_phonon_id</span><span class="p">(</span><span class="n">material_id</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">)</span></div>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the phonon dos pymatgen object associated with a given material ID and phonon method.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            material_id (str): Materials Project ID for a material</span>
+<span class="sd">            phonon_method (str): phonon method, i.e. pheasy or dfpt</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dos (PhononDOS): PhononDOS object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">summary_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No phonon dos data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No phonon dos data found for material ID: </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2"> and phonon method: </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_phonon_id</span><span class="p">(</span>
+            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="PhononRester.get_forceconstants_from_phonon_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.get_forceconstants_from_phonon_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_forceconstants_from_phonon_id</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Matrix3D</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the force constants associated with a given phonon ID.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the force constants associated with a given phonon ID and phonon method.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            identifier (str): Phonon ID for the force constants calculation</span>
+<span class="sd">            phonon_method (str): phonon method, i.e. pheasy or dfpt</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            force constants (list[list[Matrix3D]]): force constants</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_open_data</span><span class="p">(</span>  <span class="c1"># type: ignore[return-value]</span>
-            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ph-force-constants/</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2">.json.gz&quot;</span><span class="p">,</span>
-        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+        <span class="n">ph_fc_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+            <span class="s2">&quot;materialsproject-parsed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;phonon/force-constants/&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;ph_force_constants&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT *</span>
+<span class="s2">            FROM   </span><span class="si">{</span><span class="n">ph_fc_lbl</span><span class="si">}</span>
+<span class="s2">            WHERE  identifier=&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">            AND    phonon_method=&#39;</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">deser</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">deser</span> <span class="ow">and</span> <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;force_constants&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;force_constants&quot;</span><span class="p">]</span>
+
+        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No phonon force constants data found for </span><span class="si">{</span><span class="n">identifier</span><span class="si">=}</span><span class="s2"> and </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">=}</span><span class="s2">&quot;</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="PhononRester.get_forceconstants_from_material_id">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.get_forceconstants_from_material_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_forceconstants_from_material_id</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Matrix3D</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated: use `get_forceconstants_from_phonon_id` instead.&quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;`material_id` has been replaced by `identifier` in the phonon endpoint. &quot;</span>
-            <span class="s2">&quot;Please migrate to using `get_forceconstants_from_phonon_id` with the `identifier` kwarg.&quot;</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_forceconstants_from_phonon_id</span><span class="p">(</span><span class="n">material_id</span><span class="p">)</span></div>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the force constants associated with a given material ID and phonon method.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            material_id (str): Materials Project ID for a material</span>
+<span class="sd">            phonon_method (str): phonon method, i.e. pheasy or dfpt</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            force constants (list[list[Matrix3D]]): force constants</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">summary_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No phonon force constants data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No phonon force constants data found for material ID: </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2"> and phonon method: </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_forceconstants_from_phonon_id</span><span class="p">(</span>
+            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="PhononRester.compute_thermo_quantities">
@@ -247,48 +414,59 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_thermo_quantities</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute thermodynamical quantities for given phonon ID and phonon_method.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute thermodynamical quantities for a given phonon ID or material ID and phonon_method.</span>
+
+<span class="sd">        Exactly one of `identifier` or `material_id` must be supplied.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            identifier (str): Phonon ID to calculate quantities for</span>
+<span class="sd">            material_id (str): Materials Project ID to calculate quantities for; the first</span>
+<span class="sd">                phonon ID associated with the requested `phonon_method` for the material</span>
+<span class="sd">                will be used.</span>
 <span class="sd">            phonon_method (str): phonon method, i.e. pheasy or dfpt</span>
-<span class="sd">            **kwargs : used for handling deprecated kwargs</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            quantities (dict): thermodynamical quantities</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;material_id&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">identifier</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="s2">&quot;You have specified both `identifier` and the deprecated `material_id` tag. &quot;</span>
-                    <span class="s2">&quot;Please specify only `identifier`.&quot;</span>
-                <span class="p">)</span>
-            <span class="n">identifier</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;material_id&quot;</span><span class="p">)</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">&quot;`material_id` has been replaced by `identifier` in the phonon endpoint. &quot;</span>
-                <span class="s2">&quot;Please migrate to using the newer field name and the more generic `identifier` kwarg.&quot;</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+        <span class="k">if</span> <span class="n">identifier</span> <span class="ow">and</span> <span class="n">material_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="s2">&quot;Specify exactly one of `identifier` or `material_id`, not both.&quot;</span>
             <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">identifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;`identifier` must be specified.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">identifier</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">material_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;One of `identifier` or `material_id` must be specified.&quot;</span><span class="p">)</span>
 
         <span class="n">use_document_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">identifiers</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">phonon_method</span><span class="o">=</span><span class="n">phonon_method</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">docs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No phonon document found&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">material_id</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+                    <span class="n">summary_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                        <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;No phonon data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;No phonon data found for material ID: </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2"> and &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;phonon method: </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">identifier</span> <span class="o">=</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_dos&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_phonon_id</span><span class="p">(</span>  <span class="c1"># type: ignore[index]</span>
-            <span class="n">identifier</span><span class="p">,</span> <span class="n">phonon_method</span>  <span class="c1"># type: ignore[arg-type]</span>
-        <span class="p">)</span>
-        <span class="n">doc</span> <span class="o">=</span> <span class="n">PhononBSDOSDoc</span><span class="p">(</span><span class="o">**</span><span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># type: ignore[arg-type]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="n">use_document_model</span>
+            <span class="n">ph_dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_phonon_id</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">)</span>
+            <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">identifiers</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">phonon_method</span><span class="o">=</span><span class="n">phonon_method</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">docs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;No phonon document found&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_dos&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ph_dos</span>  <span class="c1"># type: ignore[index]</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="n">PhononBSDOSDoc</span><span class="p">(</span><span class="o">**</span><span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># type: ignore[arg-type]</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="n">use_document_model</span>
         <span class="c1"># below: same as numpy.linspace(0,800,100) but written out for mypy</span>
         <span class="k">return</span> <span class="n">doc</span><span class="o">.</span><span class="n">compute_thermo_quantities</span><span class="p">([</span><span class="n">i</span> <span class="o">*</span> <span class="mi">800</span> <span class="o">/</span> <span class="mi">99</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)])</span></div>
 </div>
