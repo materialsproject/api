@@ -106,9 +106,7 @@ class PhononRester(BaseRester):
                 found_material_ids.add(mid)
                 resolved_ids.extend(method_ids)
 
-            missing.extend(
-                mid for mid in material_ids if mid not in found_material_ids
-            )
+            missing.extend(mid for mid in material_ids if mid not in found_material_ids)
 
             if missing:
                 method_suffix = (
