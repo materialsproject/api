@@ -24,7 +24,7 @@ dependencies = [
   "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
-  "emmet-core>=0.87.0rc2,<0.87.2",
+  "emmet-core>=0.87.0rc10,<0.87.2",
   "boto3",
   "orjson >= 3.10,<4",
   "pyarrow >= 20.0.0",
@@ -50,7 +50,7 @@ contribs = [
 ]
 all = [
   "custodian",
-  "emmet-core[all]>=0.87.0rc2,<0.87.2",
+  "emmet-core[all]>=0.87.0rc10,<0.87.2",
   "fastmcp",
   "flask",
 ]
