@@ -34,7 +34,7 @@ emmet-core==0.86.4
     # via mp-api (pyproject.toml)
 fonttools==4.62.1
     # via matplotlib
-idna==3.13
+idna==3.15
     # via requests
 inflect==7.5.0
     # via emmet-core
@@ -170,7 +170,7 @@ typing-inspection==0.4.2
     #   pydantic-settings
 uncertainties==3.2.3
     # via pymatgen-core
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   botocore
     #   requests
