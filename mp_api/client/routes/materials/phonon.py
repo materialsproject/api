@@ -89,8 +89,8 @@ class PhononRester(BaseRester):
             missing: list[str] = []
             found_material_ids: set[str] = set()
             for doc in summary_docs:
-                mid = str(doc["material_id"])
-                phonon_ids_by_method = doc.get("phonon_IDs") or {}
+                mid = str(doc["material_id"])  # type: ignore[arg-type, index]
+                phonon_ids_by_method = doc.get("phonon_IDs") or {}  # type: ignore[union-attr]
 
                 if phonon_method:
                     method_ids = phonon_ids_by_method.get(phonon_method) or []
@@ -215,13 +215,13 @@ class PhononRester(BaseRester):
                 f"No phonon bandstructure data found for material ID {material_id}."
             )
 
-        if phonon_method not in summary_doc[0]["phonon_IDs"]:
+        if phonon_method not in summary_doc[0]["phonon_IDs"]:  # type: ignore[arg-type, index]
             raise MPRestError(
                 f"No phonon bandstructure data found for material ID: {material_id} and phonon method: {phonon_method}."
             )
 
         return self.get_bandstructure_from_phonon_id(
-            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method, pt
+            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method, pt  # type: ignore[arg-type, index]
         )
 
     def get_dos_from_phonon_id(
@@ -280,13 +280,13 @@ class PhononRester(BaseRester):
                 f"No phonon dos data found for material ID {material_id}."
             )
 
-        if phonon_method not in summary_doc[0]["phonon_IDs"]:
+        if phonon_method not in summary_doc[0]["phonon_IDs"]:  # type: ignore[arg-type, index]
             raise MPRestError(
                 f"No phonon dos data found for material ID: {material_id} and phonon method: {phonon_method}."
             )
 
         return self.get_dos_from_phonon_id(
-            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method
+            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method  # type: ignore[arg-type, index]
         )
 
     def get_forceconstants_from_phonon_id(
@@ -344,20 +344,20 @@ class PhononRester(BaseRester):
                 f"No phonon force constants data found for material ID {material_id}."
             )
 
-        if phonon_method not in summary_doc[0]["phonon_IDs"]:
+        if phonon_method not in summary_doc[0]["phonon_IDs"]:  # type: ignore[arg-type, index]
             raise MPRestError(
                 f"No phonon force constants data found for material ID: {material_id} and phonon method: {phonon_method}."
             )
 
         return self.get_forceconstants_from_phonon_id(
-            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method
+            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method  # type: ignore[arg-type, index]
         )
 
     def compute_thermo_quantities(
         self,
-        identifier: str | None = None,
         material_id: str | None = None,
         phonon_method: str | None = None,
+        identifier: str | None = None,
     ):
         """Compute thermodynamical quantities for a given phonon ID or material ID and phonon_method.
 
@@ -392,12 +392,21 @@ class PhononRester(BaseRester):
                     raise MPRestError(
                         f"No phonon data found for material ID {material_id}."
                     )
-                if phonon_method not in summary_doc[0]["phonon_IDs"]:
+                if phonon_method not in summary_doc[0]["phonon_IDs"]:  # type: ignore[arg-type, index]
                     raise MPRestError(
                         f"No phonon data found for material ID: {material_id} and "
                         f"phonon method: {phonon_method}."
                     )
-                identifier = summary_doc[0]["phonon_IDs"][phonon_method][0]
+                identifier = summary_doc[0]["phonon_IDs"][phonon_method][0]  # type: ignore[arg-type, index]
+
+            if identifier is None or phonon_method is None:
+                suffix = (
+                    f" for {material_id=}" if material_id else f" for {identifier=}"
+                )
+                raise MPRestError(
+                    f"Could not resolve a phonon identifier or method{suffix} "
+                    f"({phonon_method=})."
+                )
 
             ph_dos = self.get_dos_from_phonon_id(identifier, phonon_method)
             docs = self.search(identifiers=identifier, phonon_method=phonon_method)
@@ -406,7 +415,7 @@ class PhononRester(BaseRester):
 
             self.use_document_model = True
             docs[0]["phonon_dos"] = ph_dos  # type: ignore[index]
-            doc = PhononBSDOSDoc(**docs[0])  # type: ignore[arg-type]
+            doc = PhononBSDOSDoc(**docs[0])  # type: ignore[arg-type, index]
         finally:
             self.use_document_model = use_document_model
         # below: same as numpy.linspace(0,800,100) but written out for mypy
