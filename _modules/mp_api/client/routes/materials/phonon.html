@@ -126,8 +126,8 @@
             <span class="n">missing</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">found_material_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">summary_docs</span><span class="p">:</span>
-                <span class="n">mid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">])</span>
-                <span class="n">phonon_ids_by_method</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+                <span class="n">mid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">])</span>  <span class="c1"># type: ignore[arg-type, index]</span>
+                <span class="n">phonon_ids_by_method</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>  <span class="c1"># type: ignore[union-attr]</span>
 
                 <span class="k">if</span> <span class="n">phonon_method</span><span class="p">:</span>
                     <span class="n">method_ids</span> <span class="o">=</span> <span class="n">phonon_ids_by_method</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">phonon_method</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
@@ -258,13 +258,13 @@
                 <span class="sa">f</span><span class="s2">&quot;No phonon bandstructure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>  <span class="c1"># type: ignore[arg-type, index]</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;No phonon bandstructure data found for material ID: </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2"> and phonon method: </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bandstructure_from_phonon_id</span><span class="p">(</span>
-            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span><span class="p">,</span> <span class="n">pt</span>
+            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span><span class="p">,</span> <span class="n">pt</span>  <span class="c1"># type: ignore[arg-type, index]</span>
         <span class="p">)</span></div>
 
 
@@ -329,13 +329,13 @@
                 <span class="sa">f</span><span class="s2">&quot;No phonon dos data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>  <span class="c1"># type: ignore[arg-type, index]</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;No phonon dos data found for material ID: </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2"> and phonon method: </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_phonon_id</span><span class="p">(</span>
-            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span>
+            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span>  <span class="c1"># type: ignore[arg-type, index]</span>
         <span class="p">)</span></div>
 
 
@@ -399,13 +399,13 @@
                 <span class="sa">f</span><span class="s2">&quot;No phonon force constants data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>  <span class="c1"># type: ignore[arg-type, index]</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;No phonon force constants data found for material ID: </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2"> and phonon method: </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_forceconstants_from_phonon_id</span><span class="p">(</span>
-            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span>
+            <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">phonon_method</span>  <span class="c1"># type: ignore[arg-type, index]</span>
         <span class="p">)</span></div>
 
 
@@ -413,9 +413,9 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.phonon.PhononRester.html#mp_api.client.routes.materials.phonon.PhononRester.compute_thermo_quantities">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_thermo_quantities</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">phonon_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute thermodynamical quantities for a given phonon ID or material ID and phonon_method.</span>
 
@@ -450,12 +450,21 @@
                     <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;No phonon data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">.&quot;</span>
                     <span class="p">)</span>
-                <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">phonon_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">]:</span>  <span class="c1"># type: ignore[arg-type, index]</span>
                     <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;No phonon data found for material ID: </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2"> and &quot;</span>
                         <span class="sa">f</span><span class="s2">&quot;phonon method: </span><span class="si">{</span><span class="n">phonon_method</span><span class="si">}</span><span class="s2">.&quot;</span>
                     <span class="p">)</span>
-                <span class="n">identifier</span> <span class="o">=</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">identifier</span> <span class="o">=</span> <span class="n">summary_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_IDs&quot;</span><span class="p">][</span><span class="n">phonon_method</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore[arg-type, index]</span>
+
+            <span class="k">if</span> <span class="n">identifier</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">phonon_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">suffix</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; for </span><span class="si">{</span><span class="n">material_id</span><span class="si">=}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">material_id</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot; for </span><span class="si">{</span><span class="n">identifier</span><span class="si">=}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Could not resolve a phonon identifier or method</span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">phonon_method</span><span class="si">=}</span><span class="s2">).&quot;</span>
+                <span class="p">)</span>
 
             <span class="n">ph_dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_phonon_id</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">phonon_method</span><span class="p">)</span>
             <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">identifiers</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">phonon_method</span><span class="o">=</span><span class="n">phonon_method</span><span class="p">)</span>
@@ -464,7 +473,7 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;phonon_dos&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ph_dos</span>  <span class="c1"># type: ignore[index]</span>
-            <span class="n">doc</span> <span class="o">=</span> <span class="n">PhononBSDOSDoc</span><span class="p">(</span><span class="o">**</span><span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="n">PhononBSDOSDoc</span><span class="p">(</span><span class="o">**</span><span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># type: ignore[arg-type, index]</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="o">=</span> <span class="n">use_document_model</span>
         <span class="c1"># below: same as numpy.linspace(0,800,100) but written out for mypy</span>
