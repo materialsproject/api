@@ -23,7 +23,7 @@ from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
 )
-from pymatgen.electronic_structure.dos import CompleteDos
+from pymatgen.electronic_structure.dos import CompleteDos, Dos
 from pymatgen.entries.compatibility import (
     MaterialsProject2020Compatibility,
     MaterialsProjectAqueousCompatibility,
@@ -172,7 +172,6 @@ loop_
             <= 2
         )
 
-    @pytest.mark.skip(reason="Re-enable after deployment of db version 2026.04.13")
     def test_get_bandstructure_by_material_id(self, mpr):
         bs = mpr.get_bandstructure_by_material_id("mp-149")
         assert isinstance(bs, BandStructureSymmLine)
@@ -180,10 +179,11 @@ loop_
         assert isinstance(bs_uniform, BandStructure)
         assert not isinstance(bs_uniform, BandStructureSymmLine)
 
-    @pytest.mark.skip(reason="Re-enable after deployment of db version 2026.04.13")
     def test_get_dos_by_id(self, mpr):
         dos = mpr.get_dos_by_material_id("mp-149")
-        assert isinstance(dos, CompleteDos)
+        assert isinstance(dos, Dos)
+        complete_dos = mpr.get_dos_by_material_id("mp-149", load_projections=True)
+        assert isinstance(complete_dos, CompleteDos)
 
     def test_get_entry_by_material_id(self, mpr):
         e = mpr.get_entry_by_material_id("mp-19017")
