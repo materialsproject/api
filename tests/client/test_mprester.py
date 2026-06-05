@@ -195,7 +195,10 @@ loop_
         # Avoiding "golden test data": freshly retrieve 5 thermo docs and
         # perform entry querying based off those entries
         thermo_docs = mpr.materials.thermo.search(
-            num_chunks=1, chunk_size=5, num_elements=(2, 3)
+            num_chunks=1,
+            chunk_size=5,
+            num_elements=(2, 3),
+            energy_above_hull=(0.05, 0.5),
         )
 
         syms = ["Li", "Fe", "O"]
