@@ -816,7 +816,7 @@ class BaseRester(_Rester):
             accumulator: list[pa.RecordBatch],
             group: int,
             schema: pa.Schema,
-            partitioning: pa.dataset.partitioning,
+            partitioning: pa.dataset.Partitioning,
         ):
             # somewhere post datafusion 51.0.0 and arrow-rs 57.0.0
             # casts to *View types began, need to cast back to base schema
