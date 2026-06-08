@@ -50,9 +50,9 @@ blinker==1.9.0
     # via flask
 boltons==25.0.0
     # via mp-api (pyproject.toml)
-boto3==1.43.24
+boto3==1.43.25
     # via mp-api (pyproject.toml)
-botocore==1.43.24
+botocore==1.43.25
     # via
     #   boto3
     #   s3transfer
@@ -103,7 +103,7 @@ deltalake==1.5.1
     # via mp-api (pyproject.toml)
 deprecated==1.3.1
     # via deltalake
-distlib==0.4.1
+distlib==0.4.2
     # via virtualenv
 dnspython==2.8.0
     # via
@@ -116,7 +116,7 @@ docutils==0.22.4
     # via sphinx
 email-validator==2.3.0
     # via pydantic
-emmet-core[all]==0.87.0rc13
+emmet-core[all]==0.87.0
     # via mp-api (pyproject.toml)
 exceptiongroup==1.3.1
     # via fastmcp-slim
@@ -124,9 +124,9 @@ execnet==2.1.2
     # via pytest-xdist
 executing==2.2.1
     # via stack-data
-fastmcp==3.4.1
+fastmcp==3.4.2
     # via mp-api (pyproject.toml)
-fastmcp-slim[client,server]==3.4.1
+fastmcp-slim[client,server]==3.4.2
     # via fastmcp
 filelock==3.29.1
     # via
@@ -215,7 +215,7 @@ joblib==1.5.3
     # via
     #   pymatgen-analysis-diffusion
     #   pymatgen-core
-joserfc==1.7.0
+joserfc==1.7.1
     # via
     #   authlib
     #   fastmcp-slim
@@ -644,7 +644,7 @@ types-requests==2.33.0.20260518
     #   types-tqdm
 types-setuptools==82.0.0.20260518
     # via mp-api (pyproject.toml)
-types-tqdm==4.67.3.20260518
+types-tqdm==4.68.0.20260608
     # via mp-api (pyproject.toml)
 typing-extensions==4.15.0
     # via
@@ -699,7 +699,7 @@ virtualenv==21.4.2
     # via pre-commit
 watchfiles==1.2.0
     # via fastmcp-slim
-wcwidth==0.7.0
+wcwidth==0.8.1
     # via prompt-toolkit
 webcolors==25.10.0
     # via jsonschema
