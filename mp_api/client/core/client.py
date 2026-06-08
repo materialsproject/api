@@ -33,7 +33,7 @@ import requests
 from botocore import UNSIGNED
 from botocore.config import Config
 from botocore.exceptions import ClientError
-from deltalake import DeltaTable, QueryBuilder, convert_to_deltalake
+from deltalake import DeltaTable, QueryBuilder, Schema, convert_to_deltalake
 from emmet.core.arrow import arrowize
 from emmet.core.utils import jsanitize
 from pydantic import BaseModel
@@ -78,6 +78,13 @@ STATIC_COLLECTIONS = [
     "surface-properties",
     "synth-descriptions",
     "xas",
+]
+CONTROLLED_COLLECTIONS = [
+    "chemenv",
+    "materials",
+    "oxidation-states",
+    "summary",
+    "thermo",
 ]
 
 hdlr = logging.StreamHandler()
@@ -683,6 +690,7 @@ class BaseRester(_Rester):
         bucket: str,
         prefix: str,
         access_controlled: bool = True,
+        versioned: bool = False,
         timeout: int | None = None,
         label: str | None = None,
     ) -> dict[str, Any]:
@@ -692,12 +700,16 @@ class BaseRester(_Rester):
             bucket (str) : S3 OpenData bucket
             prefix (str) : S3 object prefix
             access_controlled (bool): whether or not table has access controlled data
+            versioned (bool): whether or not table is partitioned on db version
             timeout (int or None) : timeout on getting access-controlled groups
             label (str or None) : label of the table in QueryBuilder
 
         Returns:
             dict of str to Any
         """
+        # just in case
+        prefix = prefix.rstrip("/")
+
         # Check if user has access to GNoMe
         # temp suppress tqdm
         re_enable = not self.mute_progress_bars
@@ -755,11 +767,15 @@ class BaseRester(_Rester):
         controlled_batch_str = ",".join(
             [f"'{tag}'" for tag in self.access_controlled_batch_ids]
         )
+        _coll = prefix.split("/")[-1]
+
+        if _coll == "tasks":
+            condition = f"batch_id NOT IN ({controlled_batch_str})"
+        else:
+            condition = "builder_meta.license != 'BY-NC'"
 
         predicate = (
-            f"WHERE batch_id NOT IN ({controlled_batch_str})"
-            if not has_gnome_access and controlled_batch_str and access_controlled
-            else ""
+            f"WHERE {condition}" if not has_gnome_access and access_controlled else ""
         )
         # TODO: do we need something like this?
         # predicate += f"{' AND ' if predicate else 'WHERE '}version='{self.db_version}'"
@@ -768,10 +784,13 @@ class BaseRester(_Rester):
         num_docs_needed: int = tbl.count()
 
         if not has_gnome_access:
+            mongo_predicate = (
+                {"batch_id_neq_any": self.access_controlled_batch_ids}
+                if _coll == "tasks"
+                else {"license": "BY-NC"}
+            )
             try:
-                num_docs_needed = self.count(
-                    {"batch_id_neq_any": self.access_controlled_batch_ids}
-                )
+                num_docs_needed = self.count(mongo_predicate)
             except MPRestError:
                 # batch_id isn't a valid field
                 num_docs_needed = self.count()
@@ -793,7 +812,12 @@ class BaseRester(_Rester):
 
         file_options = ds.ParquetFileFormat().make_write_options(compression="zstd")
 
-        def _flush(accumulator: list[pa.RecordBatch], group: int, schema: pa.Schema):
+        def _flush(
+            accumulator: list[pa.RecordBatch],
+            group: int,
+            schema: pa.Schema,
+            partitioning: pa.dataset.partitioning,
+        ):
             # somewhere post datafusion 51.0.0 and arrow-rs 57.0.0
             # casts to *View types began, need to cast back to base schema
             # -> pyarrow is behind on implementation support for *View types
@@ -807,6 +831,7 @@ class BaseRester(_Rester):
                 tbl,
                 base_dir=target_path,
                 format="parquet",
+                partitioning=partitioning,
                 basename_template=f"group-{group}-" + "part-{i}.zstd.parquet",
                 existing_data_behavior="overwrite_or_ignore",
                 max_rows_per_group=1024,
@@ -816,7 +841,18 @@ class BaseRester(_Rester):
         group = 1
         size = 0
         accumulator = []
-        schema = pa.schema(arrowize(self.document_model))
+        _schema = pa.schema(arrowize(self.document_model))
+        schema = (
+            _schema.insert(0, pa.field("version", pa.string()))
+            if versioned
+            else _schema
+        )
+        partitioning_schema = pa.schema([pa.field("version", pa.string())])
+        partitioning = (
+            pa.dataset.partitioning(partitioning_schema, flavor="hive")
+            if versioned
+            else None
+        )
         for page in iterator:
             # arro3 rb to pyarrow rb for compat w/ pyarrow ds writer
             rg = pa.record_batch(page)
@@ -828,13 +864,13 @@ class BaseRester(_Rester):
                 pbar.update(page_size)
 
             if size >= MAPI_CLIENT_SETTINGS.DATASET_FLUSH_THRESHOLD:
-                _flush(accumulator, group, schema)
+                _flush(accumulator, group, schema, partitioning)
                 group += 1
                 size = 0
                 accumulator.clear()
 
         if accumulator:
-            _flush(accumulator, group + 1, schema)
+            _flush(accumulator, group + 1, schema, partitioning)
 
         if pbar is not None:
             pbar.close()
@@ -842,7 +878,13 @@ class BaseRester(_Rester):
         logger.info(f"Dataset for {suffix} written to {target_path}")
         logger.info("Converting to DeltaTable...")
 
-        convert_to_deltalake(target_path)
+        delta_paritioning = Schema.from_arrow(partitioning_schema)
+
+        convert_to_deltalake(
+            target_path,
+            partition_by=delta_paritioning if versioned else None,
+            partition_strategy="hive" if versioned else None,
+        )
 
         logger.info(
             "Consult the delta-rs and pyarrow documentation for advanced usage: "
@@ -928,13 +970,15 @@ class BaseRester(_Rester):
                     suffix = self.suffix
                 elif self.suffix == "molecules/summary":
                     suffix = "molecules"
+                elif self.suffix == "molecules/jcesr":
+                    suffix = "jcesr"
                 else:
                     infix, suffix = self.suffix.split("/", 1)
                     suffix = infix if suffix == "core" else suffix
                     suffix = suffix.replace("_", "-")
 
                 if "tasks" in suffix:
-                    bucket_suffix, prefix = ("parsed", "core/tasks/")
+                    bucket_suffix, prefix = ("parsed", "core/tasks")
                 elif suffix in STATIC_COLLECTIONS:
                     bucket_suffix = "build"
                     prefix = f"static-collections/{suffix}"
@@ -946,9 +990,14 @@ class BaseRester(_Rester):
                 bucket = f"materialsproject-{bucket_suffix}"
 
                 if self.delta_backed:
-                    access_controlled = suffix not in STATIC_COLLECTIONS
+                    access_controlled = suffix in CONTROLLED_COLLECTIONS
+                    versioned = suffix != "tasks" and suffix not in STATIC_COLLECTIONS
                     return self._query_delta_backed(
-                        bucket, prefix, access_controlled, timeout=timeout
+                        bucket=bucket,
+                        prefix=prefix,
+                        access_controlled=access_controlled,
+                        versioned=versioned,
+                        timeout=timeout,
                     )
 
                 # Paginate over all entries in the bucket.
