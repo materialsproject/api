@@ -33,7 +33,7 @@ import requests
 from botocore import UNSIGNED
 from botocore.config import Config
 from botocore.exceptions import ClientError
-from deltalake import DeltaTable, QueryBuilder, convert_to_deltalake
+from deltalake import DeltaTable, QueryBuilder, Schema, convert_to_deltalake
 from emmet.core.arrow import arrowize
 from emmet.core.utils import jsanitize
 from pydantic import BaseModel
@@ -42,6 +42,7 @@ from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
+from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
 from mp_api.client.core.exceptions import (
     MPRestError,
     MPRestWarning,
@@ -52,7 +53,6 @@ from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     MPDataset,
     load_json,
-    validate_api_key,
     validate_endpoint,
     validate_ids,
 )
@@ -68,6 +68,24 @@ try:
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION", "")
 
+STATIC_COLLECTIONS = [
+    "eos",
+    "grain_boundaries",
+    "jcesr",
+    "molecules",
+    "phonon",
+    "snls",
+    "surface-properties",
+    "synth-descriptions",
+    "xas",
+]
+CONTROLLED_COLLECTIONS = [
+    "chemenv",
+    "materials",
+    "oxidation-states",
+    "summary",
+    "thermo",
+]
 
 hdlr = logging.StreamHandler()
 fmt = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
@@ -86,33 +104,52 @@ def _batched(iterable: Iterable, n: int) -> Iterator:
         yield batch
 
 
-class BaseRester:
-    """Base client class with core stubs."""
+class QueryBuilderWithCache(QueryBuilder):
 
-    suffix: str = ""
-    document_model: type[BaseModel] = _DictLikeAccess
-    primary_key: str = "material_id"
-    delta_backed: bool = False
+    def __init__(self) -> None:
+        """Extend deltalake.QueryBuilder with stored DeltaTables.
+
+        The deltalake.QueryBuilder class does not permit introspection
+        of registered DeltaTables through the python API.
+
+        Re-registering a DeltaTable
+        (1) wastes time by reading its metadata
+        (2) raises an exception because a table is already registered
+
+        This class simply allows for caching the DeltaTable instances
+        and table names on the QueryBuilder class.
+        """
+        # Dict of table names (labels) to DeltaTable instances
+        self._delta_tables: dict[str, DeltaTable] = {}
+        super().__init__()
+
+    def register(self, table_name: str, delta_table: DeltaTable) -> QueryBuilder:
+        """Register and cache a DeltaTable."""
+        self._delta_tables[table_name] = delta_table
+        return super().register(table_name, delta_table)
+
+
+class _Rester:
+    """Define base attributes of a REST client."""
 
     def __init__(
         self,
         api_key: str | None = None,
         endpoint: str | None = None,
         include_user_agent: bool = True,
-        session: requests.Session | None = None,
-        s3_client: Any | None = None,
-        debug: bool = False,
         use_document_model: bool = True,
-        timeout: int = 20,
+        session: requests.Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
+        db_version: str | None = None,
         local_dataset_cache: (
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
+        query_builder: QueryBuilderWithCache | None = None,
         **kwargs,
-    ):
-        """Initialize the REST API helper class.
+    ) -> None:
+        """Initialize a RESTer.
 
         Arguments:
             api_key: A String API key for accessing the MaterialsProject
@@ -131,49 +168,56 @@ class BaseRester:
                 making the API request. This helps MP support pymatgen users, and
                 is similar to what most web browsers send with each page request.
                 Set to False to disable the user agent.
-            session: requests Session object with which to connect to the API, for
-                advanced usage only.
-            s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
-            debug: if True, print the URL for every request
             use_document_model: If False, skip the creating the document model and return data
                 as a dictionary. This can be simpler to work with but bypasses data validation
                 and will not give auto-complete for available fields.
-            timeout: Time in seconds to wait until a request timeout error is thrown
+            session: requests Session object with which to connect to the API, for
+                advanced usage only.
             headers: Custom headers for localhost connections.
             mute_progress_bars: Whether to disable progress bars.
+            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database
+                than what is currently deployed. The Materials Project cannot guarantee that all
+                features will still work.
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to 'mp_datasets' in the user's home directory
             force_renew: Option to overwrite existing local dataset
+            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+                NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        self.api_key = validate_api_key(api_key)
-        self.base_endpoint = validate_endpoint(endpoint)
-        self.endpoint = validate_endpoint(endpoint, suffix=self.suffix)
+        self.api_key = get_user_api_key(api_key=api_key)
+        self.endpoint = validate_endpoint(endpoint)
 
-        self.debug = debug
         self.include_user_agent = include_user_agent
         self.use_document_model = use_document_model
-        self.timeout = timeout
-        self.headers = headers or {}
+
+        self.headers = headers or get_consumer()
+        self._session = session or _Rester._create_session(
+            api_key=self.api_key,
+            include_user_agent=self.include_user_agent,
+            headers=self.headers,
+        )
+
+        if is_dev_env():
+            self._session.headers["x-api-key"] = self.api_key or ""
+
+        self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars
-
-        (
-            self.db_version,
-            self.access_controlled_batch_ids,
-        ) = BaseRester._get_heartbeat_info(self.base_endpoint)
-
-        self.local_dataset_cache: Path = Path(local_dataset_cache)
+        self.db_version: str = db_version or ""
+        self.local_dataset_cache = Path(local_dataset_cache)
         self.force_renew = force_renew
-
-        self._session = session
-        self._s3_client = s3_client
+        self._query_builder = (
+            query_builder if isinstance(query_builder, QueryBuilderWithCache) else None
+        )
 
         if "monty_decode" in kwargs:
+            # Pop to not repeatedly trigger warning to the user
+            kwargs.pop("monty_decode", None)
             warnings.warn(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
                 "The client by default returns results consistent with `monty_decode=True`.",
-                category=MPRestWarning,
                 stacklevel=2,
+                category=MPRestWarning,
             )
 
     @property
@@ -185,13 +229,10 @@ class BaseRester:
         return self._session
 
     @property
-    def s3_client(self):
-        if not self._s3_client:
-            self._s3_client = boto3.client(
-                "s3",
-                config=Config(signature_version=UNSIGNED),  # type: ignore
-            )
-        return self._s3_client
+    def query_builder(self):
+        if not self._query_builder:
+            self._query_builder = QueryBuilderWithCache()
+        return self._query_builder
 
     @staticmethod
     def _create_session(api_key, include_user_agent, headers):
@@ -269,6 +310,112 @@ class BaseRester:
             )  # Catiously do not allow access to any access controlled `batch_id`s
         response = get_resp.json()
         return response["db_version"], response["access_controlled_batch_ids"]
+
+
+class BaseRester(_Rester):
+    """Base client class with core stubs."""
+
+    suffix: str = ""
+    document_model: type[BaseModel] = _DictLikeAccess
+    primary_key: str = "material_id"
+    delta_backed: bool = True
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        endpoint: str | None = None,
+        include_user_agent: bool = True,
+        use_document_model: bool = True,
+        session: requests.Session | None = None,
+        headers: dict | None = None,
+        mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
+        db_version: str | None = None,
+        local_dataset_cache: (
+            str | os.PathLike
+        ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
+        force_renew: bool = False,
+        query_builder: QueryBuilderWithCache | None = None,
+        s3_client: Any | None = None,
+        timeout: int = 20,
+        **kwargs,
+    ):
+        """Initialize the REST API helper class.
+
+            s3_client: boto3 S3 client object with which to connect to the object stores.
+            timeout: Time in seconds to wait until a request timeout error is thrown
+
+        Arguments:
+            api_key: A String API key for accessing the MaterialsProject
+                REST interface. Please obtain your API key at
+                https://www.materialsproject.org/dashboard. If this is None,
+                the code will check if there is a "PMG_MAPI_KEY" setting.
+                If so, it will use that environment variable. This makes
+                easier for heavy users to simply add this environment variable to
+                their setups and MPRester can then be called without any arguments.
+            endpoint: Url of endpoint to access the MaterialsProject REST
+                interface. Defaults to the standard Materials Project REST
+                address at "https://api.materialsproject.org", but
+                can be changed to other urls implementing a similar interface.
+            include_user_agent: If True, will include a user agent with the
+                HTTP request including information on pymatgen and system version
+                making the API request. This helps MP support pymatgen users, and
+                is similar to what most web browsers send with each page request.
+                Set to False to disable the user agent.
+            session: requests Session object with which to connect to the API, for
+                advanced usage only.
+            use_document_model: If False, skip the creating the document model and return data
+                as a dictionary. This can be simpler to work with but bypasses data validation
+                and will not give auto-complete for available fields.
+            headers: Custom headers for localhost connections.
+            mute_progress_bars: Whether to disable progress bars.
+            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database
+                than what is currently deployed. The Materials Project cannot guarantee that all
+                features will still work.
+            local_dataset_cache: Target directory for downloading full datasets. Defaults
+                to 'mp_datasets' in the user's home directory
+            force_renew: Option to overwrite existing local dataset
+            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+                NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
+            s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
+            timeout: Time in seconds to wait until a request timeout error is thrown
+            **kwargs: access to legacy kwargs that may be in the process of being deprecated
+        """
+        super().__init__(
+            api_key=api_key,
+            endpoint=endpoint,
+            include_user_agent=include_user_agent,
+            use_document_model=use_document_model,
+            session=session,
+            headers=headers,
+            mute_progress_bars=mute_progress_bars,
+            db_version=db_version,
+            local_dataset_cache=local_dataset_cache,
+            force_renew=force_renew,
+            query_builder=query_builder,
+            **kwargs,
+        )
+
+        self.base_endpoint = validate_endpoint(endpoint)
+        self.endpoint = validate_endpoint(endpoint, suffix=self.suffix)
+
+        (
+            hb_db_version,
+            self.access_controlled_batch_ids,
+        ) = self._get_heartbeat_info(self.base_endpoint)
+        if not self.db_version:
+            self.db_version = hb_db_version
+
+        self.timeout = timeout
+        self._s3_client = s3_client
+
+    @property
+    def s3_client(self):
+        if not self._s3_client:
+            self._s3_client = boto3.client(
+                "s3",
+                config=Config(signature_version=UNSIGNED),  # type: ignore
+            )
+        return self._s3_client
 
     def _post_resource(
         self,
@@ -440,22 +587,129 @@ class BaseRester:
 
         return decoded_data, len(decoded_data)  # type: ignore
 
+    def _get_delta_table(
+        self,
+        bucket: str,
+        prefix: str,
+        connector: str = "s3a",
+        label: str | None = None,
+    ) -> tuple[str, DeltaTable]:
+        """Either create a new DeltaTable, or retrieve a cached one.
+
+        If creating a new DeltaTable, will also register in self.query_builder
+
+        Args:
+            bucket (str) : name of the bucket in S3
+            prefix (str) : name of the prefix in S3
+            connector (str) : s3, s3n, s3a (default), or other
+                valid Hadoop connector string.
+            label (str or None) : optional label for the table in the
+                cached query builder
+                If `None`, will be gleaned from the URI
+
+        Returns:
+            str : the table name in the stored query builder
+            DeltaTable : If one exists at the specified bucket / prefix,
+                will retrieve the cached instance.
+        """
+        delta_timeout = f"{self.timeout}s"
+        full_key = f"{bucket}/{prefix}"
+        qb_label = label or full_key.replace("/", "_").replace("-", "_")
+
+        uri = f"{connector}://{full_key}"
+        if not uri.endswith("/"):
+            uri += "/"
+
+        try:
+            stored_label, delta_table = next(
+                (_label, _table)
+                for _label, _table in self.query_builder._delta_tables.items()
+                if _table.table_uri == uri
+            )
+        except StopIteration:
+            stored_label = None
+
+        if stored_label is None:
+            delta_table = DeltaTable(
+                uri,
+                storage_options={
+                    "AWS_SKIP_SIGNATURE": "true",
+                    "AWS_REGION": "us-east-1",
+                    "timeout": delta_timeout,
+                    "connect_timeout": delta_timeout,
+                    "retry_delay": "3",
+                    "max_retries": f"{MAPI_CLIENT_SETTINGS.MAX_RETRIES}",
+                },
+            )
+            self.query_builder.register(qb_label, delta_table)
+
+        elif stored_label != qb_label:
+            warnings.warn(
+                f"DeltaTable with URI {uri} already found with different label: "
+                f"Stored label = {stored_label}; submitted label {qb_label}. "
+                "Using stored DeltaTable.",
+                category=MPRestWarning,
+                stacklevel=2,
+            )
+            return stored_label, delta_table
+
+        return qb_label, delta_table
+
+    def _query_delta_single(self, query: str) -> pa.Table:
+        """Execute a SQL query against a registered Delta table.
+
+        Wraps the query execution in a try/except to provide a more
+        actionable error message when the underlying Delta query engine
+        fails (e.g., due to network timeouts, missing tables, or
+        malformed queries).
+
+        Args:
+            query (str): A SQL query string compatible with the
+                QueryBuilder engine.
+
+        Returns:
+            pa.Table: The query result as a PyArrow Table.
+
+        Raises:
+            MPRestError: If query execution fails for any reason,
+                including network timeouts, connectivity issues, or
+                invalid queries. Inspect the chained exception for
+                the underlying cause.
+        """
+        try:
+            return pa.table(self.query_builder.execute(query).read_all())
+        except Exception as e:
+            raise MPRestError(
+                f"Failed to retrieve object due to: {e}. "
+                f"If this is a timeout error, try increasing the 'timeout' "
+                f"parameter on MPRester (current value: {self.timeout}s)."
+            ) from e
+
     def _query_delta_backed(
         self,
         bucket: str,
         prefix: str,
+        access_controlled: bool = True,
+        versioned: bool = False,
         timeout: int | None = None,
+        label: str | None = None,
     ) -> dict[str, Any]:
         """Retrieve data from S3 backed by a DeltaTable.
 
         Args:
             bucket (str) : S3 OpenData bucket
             prefix (str) : S3 object prefix
+            access_controlled (bool): whether or not table has access controlled data
+            versioned (bool): whether or not table is partitioned on db version
             timeout (int or None) : timeout on getting access-controlled groups
+            label (str or None) : label of the table in QueryBuilder
 
         Returns:
             dict of str to Any
         """
+        # just in case
+        prefix = prefix.rstrip("/")
+
         # Check if user has access to GNoMe
         # temp suppress tqdm
         re_enable = not self.mute_progress_bars
@@ -508,33 +762,38 @@ class BaseRester:
                     )
                 }
 
-        tbl = DeltaTable(
-            f"s3a://{bucket}/{prefix}",
-            storage_options={
-                "AWS_SKIP_SIGNATURE": "true",
-                "AWS_REGION": "us-east-1",
-            },
-        )
+        tbl_lbl, tbl = self._get_delta_table(bucket, prefix, label=label)
 
         controlled_batch_str = ",".join(
             [f"'{tag}'" for tag in self.access_controlled_batch_ids]
         )
+        _coll = prefix.split("/")[-1]
+
+        if _coll == "tasks":
+            condition = f"batch_id NOT IN ({controlled_batch_str})"
+        else:
+            condition = "builder_meta.license != 'BY-NC'"
 
         predicate = (
-            f"WHERE batch_id NOT IN ({controlled_batch_str})"
-            if not has_gnome_access
-            else ""
+            f"WHERE {condition}" if not has_gnome_access and access_controlled else ""
         )
-
-        builder = QueryBuilder().register("tbl", tbl)
+        # TODO: do we need something like this?
+        # predicate += f"{' AND ' if predicate else 'WHERE '}version='{self.db_version}'"
 
         # Setup progress bar
         num_docs_needed: int = tbl.count()
 
         if not has_gnome_access:
-            num_docs_needed = self.count(
+            mongo_predicate = (
                 {"batch_id_neq_any": self.access_controlled_batch_ids}
+                if _coll == "tasks"
+                else {"license": "BY-NC"}
             )
+            try:
+                num_docs_needed = self.count(mongo_predicate)
+            except MPRestError:
+                # batch_id isn't a valid field
+                num_docs_needed = self.count()
 
         pbar = (
             tqdm(
@@ -549,11 +808,16 @@ class BaseRester:
             else None
         )
 
-        iterator = builder.execute(f"SELECT * FROM tbl {predicate}")
+        iterator = self.query_builder.execute(f"SELECT * FROM {tbl_lbl} {predicate}")
 
         file_options = ds.ParquetFileFormat().make_write_options(compression="zstd")
 
-        def _flush(accumulator: list[pa.RecordBatch], group: int, schema: pa.Schema):
+        def _flush(
+            accumulator: list[pa.RecordBatch],
+            group: int,
+            schema: pa.Schema,
+            partitioning: pa.dataset.Partitioning,
+        ):
             # somewhere post datafusion 51.0.0 and arrow-rs 57.0.0
             # casts to *View types began, need to cast back to base schema
             # -> pyarrow is behind on implementation support for *View types
@@ -567,6 +831,7 @@ class BaseRester:
                 tbl,
                 base_dir=target_path,
                 format="parquet",
+                partitioning=partitioning,
                 basename_template=f"group-{group}-" + "part-{i}.zstd.parquet",
                 existing_data_behavior="overwrite_or_ignore",
                 max_rows_per_group=1024,
@@ -576,7 +841,18 @@ class BaseRester:
         group = 1
         size = 0
         accumulator = []
-        schema = pa.schema(arrowize(self.document_model))
+        _schema = pa.schema(arrowize(self.document_model))
+        schema = (
+            _schema.insert(0, pa.field("version", pa.string()))
+            if versioned
+            else _schema
+        )
+        partitioning_schema = pa.schema([pa.field("version", pa.string())])
+        partitioning = (
+            pa.dataset.partitioning(partitioning_schema, flavor="hive")
+            if versioned
+            else None
+        )
         for page in iterator:
             # arro3 rb to pyarrow rb for compat w/ pyarrow ds writer
             rg = pa.record_batch(page)
@@ -588,13 +864,13 @@ class BaseRester:
                 pbar.update(page_size)
 
             if size >= MAPI_CLIENT_SETTINGS.DATASET_FLUSH_THRESHOLD:
-                _flush(accumulator, group, schema)
+                _flush(accumulator, group, schema, partitioning)
                 group += 1
                 size = 0
                 accumulator.clear()
 
         if accumulator:
-            _flush(accumulator, group + 1, schema)
+            _flush(accumulator, group + 1, schema, partitioning)
 
         if pbar is not None:
             pbar.close()
@@ -602,7 +878,13 @@ class BaseRester:
         logger.info(f"Dataset for {suffix} written to {target_path}")
         logger.info("Converting to DeltaTable...")
 
-        convert_to_deltalake(target_path)
+        delta_paritioning = Schema.from_arrow(partitioning_schema)
+
+        convert_to_deltalake(
+            target_path,
+            partition_by=delta_paritioning if versioned else None,
+            partition_strategy="hive" if versioned else None,
+        )
 
         logger.info(
             "Consult the delta-rs and pyarrow documentation for advanced usage: "
@@ -688,21 +970,35 @@ class BaseRester:
                     suffix = self.suffix
                 elif self.suffix == "molecules/summary":
                     suffix = "molecules"
+                elif self.suffix == "molecules/jcesr":
+                    suffix = "jcesr"
                 else:
                     infix, suffix = self.suffix.split("/", 1)
                     suffix = infix if suffix == "core" else suffix
                     suffix = suffix.replace("_", "-")
 
                 if "tasks" in suffix:
-                    bucket_suffix, prefix = ("parsed", "core/tasks/")
-                else:
+                    bucket_suffix, prefix = ("parsed", "core/tasks")
+                elif suffix in STATIC_COLLECTIONS:
                     bucket_suffix = "build"
-                    prefix = f"collections/{self.db_version.replace('.', '-')}/{suffix}"
+                    prefix = f"static-collections/{suffix}"
+                else:
+                    # TODO: remove once all collections are migrated to delta-backed format
+                    bucket_suffix = "build"
+                    prefix = f"collections/{suffix}"
 
                 bucket = f"materialsproject-{bucket_suffix}"
 
                 if self.delta_backed:
-                    return self._query_delta_backed(bucket, prefix, timeout=timeout)
+                    access_controlled = suffix in CONTROLLED_COLLECTIONS
+                    versioned = suffix != "tasks" and suffix not in STATIC_COLLECTIONS
+                    return self._query_delta_backed(
+                        bucket=bucket,
+                        prefix=prefix,
+                        access_controlled=access_controlled,
+                        versioned=versioned,
+                        timeout=timeout,
+                    )
 
                 # Paginate over all entries in the bucket.
                 # TODO: change when a subset of entries needed from DB
@@ -1448,8 +1744,10 @@ class CoreRester(BaseRester):
                     use_document_model=self.use_document_model,
                     headers=self.headers,
                     mute_progress_bars=self.mute_progress_bars,
+                    db_version=self.db_version,
                     local_dataset_cache=self.local_dataset_cache,
                     force_renew=self.force_renew,
+                    query_builder=self._query_builder,
                 )
             return self.sub_resters[v]
         raise AttributeError(f"{self.__class__} has no attribute {v}")

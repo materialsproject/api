@@ -102,7 +102,7 @@ class MaterialsRester(CoreRester):
         Returns:
             ([MaterialsDoc], [dict]) List of material documents or dictionaries.
         """
-        query_params: dict = {"deprecated": deprecated}
+        query_params: dict = dict()
 
         if material_ids:
             if isinstance(material_ids, str):
@@ -162,6 +162,9 @@ class MaterialsRester(CoreRester):
             for entry in query_params
             if query_params[entry] is not None
         }
+
+        if query_params:
+            query_params.update({"deprecated": deprecated})
 
         return super()._search(  # type: ignore[return-value]
             num_chunks=num_chunks,

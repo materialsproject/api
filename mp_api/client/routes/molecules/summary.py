@@ -12,6 +12,7 @@ class MoleculesSummaryRester(BaseRester):
     suffix = "molecules/summary"
     document_model = MoleculeSummaryDoc  # type: ignore
     primary_key = "molecule_id"
+    delta_backed = False
 
     def search(
         self,

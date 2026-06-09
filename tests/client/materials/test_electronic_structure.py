@@ -1,9 +1,9 @@
-import pytest
-from pymatgen.analysis.magnetism import Ordering
 from typing import Any
 
-from mp_api._test_utils import client_search_testing, requires_api_key
+import pytest
+from pymatgen.analysis.magnetism import Ordering
 
+from mp_api._test_utils import client_search_testing, requires_api_key
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.routes.materials.electronic_structure import (
     BandStructureRester,
@@ -104,7 +104,7 @@ def test_bs_client():
         with pytest.raises(MPRestError, match="No electronic structure data found."):
             _ = bs_rester.get_bandstructure_from_material_id("mp-0")
 
-        with pytest.raises(MPRestError, match="No object found"):
+        with pytest.raises(MPRestError, match="No bandstructure data found"):
             _ = bs_rester.get_bandstructure_from_task_id("mp-0")
 
 
@@ -157,6 +157,8 @@ def test_dos_client():
         with pytest.raises(MPRestError, match="To query orbital-projected DOS"):
             _ = dos_rester.search(projection_type="orbital")
 
-        assert dos_rester.get_dos_from_material_id("mp-0") is None
-        with pytest.raises(MPRestError, match="No object found"):
+        with pytest.raises(MPRestError, match="No electronic structure data found"):
+            _ = dos_rester.get_dos_from_material_id("mp-0")
+
+        with pytest.raises(MPRestError, match="No DOS data found for task_id"):
             _ = dos_rester.get_dos_from_task_id("mp-0")

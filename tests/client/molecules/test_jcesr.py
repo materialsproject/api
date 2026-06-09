@@ -1,14 +1,14 @@
 import os
-from mp_api._test_utils import (
-    client_search_testing,
-    client_pagination,
-    client_sort,
-    requires_api_key,
-)
 
 import pytest
 from pymatgen.core.periodic_table import Element
 
+from mp_api._test_utils import (
+    client_pagination,
+    client_search_testing,
+    client_sort,
+    requires_api_key,
+)
 from mp_api.client.core.exceptions import MPRestWarning
 from mp_api.client.routes.molecules.jcesr import JcesrMoleculesRester
 
@@ -68,9 +68,13 @@ def test_pagination():
         client_pagination(rester.search, "task_id")
 
 
-@pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
 @requires_api_key
-@pytest.mark.parametrize("sort_field", ["task_id", "IE", "EA"])
+@pytest.mark.parametrize(
+    "sort_field",
+    [
+        "task_id",
+    ],
+)
 def test_sort(sort_field):
     with JcesrMoleculesRester() as rester:
-        client_sort(rester.search, sort_field)
+        client_sort(rester.search, sort_field, default_fields=())

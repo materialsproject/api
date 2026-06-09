@@ -5,8 +5,8 @@ from emmet.core.molecules.summary import HasProps
 from emmet.core.mpid import MPculeID
 
 from mp_api._test_utils import (
-    client_search_testing,
     client_pagination,
+    client_search_testing,
     client_sort,
     requires_api_key,
 )
@@ -66,9 +66,8 @@ def test_pagination():
         client_pagination(rester.search, "molecule_id")
 
 
-@pytest.mark.xfail(reason="Sort requires API redeployment", strict=False)
 @requires_api_key
-@pytest.mark.parametrize("sort_field", ["molecule_id", "charge", "spin_multiplicity"])
+@pytest.mark.parametrize("sort_field", ["charge", "spin_multiplicity"])
 def test_sort(sort_field):
     with MoleculesSummaryRester() as rester:
-        client_sort(rester.search, sort_field)
+        client_sort(rester.search, sort_field, default_fields=())

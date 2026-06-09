@@ -5,7 +5,6 @@ from emmet.core.types.enums import ThermoType
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 
 from mp_api._test_utils import client_search_testing, requires_api_key
-
 from mp_api.client.routes.materials.thermo import ThermoRester
 
 
@@ -30,7 +29,7 @@ sub_doc_fields: list = []
 alt_name_dict: dict = {
     "formula": "formula_pretty",
     "material_ids": "material_id",
-    "thermo_ids": "thermo_id",
+    "thermo_ids": "material_id",
     "thermo_types": "thermo_type",
     "total_energy": "energy_per_atom",
     "formation_energy": "formation_energy_per_atom",
@@ -65,7 +64,8 @@ def test_client(rester):
 def test_get_phase_diagram_from_chemsys():
     # Test that a phase diagram is returned
 
+    pd = ThermoRester().get_phase_diagram_from_chemsys("Hf-Pm", thermo_type="GGA_GGA+U")
     assert isinstance(
-        ThermoRester().get_phase_diagram_from_chemsys("Hf-Pm", thermo_type="GGA_GGA+U"),
+        pd,
         PhaseDiagram,
     )

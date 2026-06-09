@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 from importlib import import_module
 from itertools import chain
 from typing import TYPE_CHECKING, ForwardRef, get_args
@@ -165,6 +166,12 @@ def _generate_returned_model(
     data_model.__str__ = new_str
     data_model.__getattr__ = new_getattr
     data_model.dict = new_dict
+
+    for attr in dir(document_model):
+        if isinstance(
+            prop_method := getattr(document_model, attr), property | cached_property
+        ):
+            setattr(data_model, attr, prop_method)
 
     return data_model, set_fields, fields_not_requested
 

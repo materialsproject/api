@@ -11,6 +11,7 @@ class SubstratesRester(BaseRester):
     suffix = "materials/substrates"
     document_model = SubstratesDoc  # type: ignore
     primary_key = "film_id"
+    delta_backed = False
 
     def search(
         self,

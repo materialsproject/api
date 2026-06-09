@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from enum import Enum
+
 try:
     import pytest
 except ImportError as exc:
@@ -86,19 +88,64 @@ def client_search_testing(
             assert doc[alt_name_dict.get(param, param)] is not None
 
 
-def client_pagination(search_method: Callable, id_name: str):
-    page_1 = search_method(_page=1, chunk_size=NUM_DOCS, fields=[id_name])
-    page_2 = search_method(_page=2, chunk_size=NUM_DOCS, fields=[id_name])
+def client_pagination(
+    search_method: Callable, id_name: str, additional_fields: list[str] | None = None
+) -> None:
+    """Test pagination on an endpoint.
+
+    Args:
+    search_method (Callable) : Client search method to use
+    id_name (str) : the name of a field which uniquely indexes a series of documents
+    additional_fields (list of str) : Optional other fields to retrieve.
+
+    Raises:
+    AssertionError if pagination does not result in unique sets of documents
+    """
+    fields = [id_name, *(additional_fields or [])]
+    page_1 = search_method(_page=1, chunk_size=NUM_DOCS, fields=fields)
+    page_2 = search_method(_page=2, chunk_size=NUM_DOCS, fields=fields)
     assert all(len(results) == NUM_DOCS for results in (page_1, page_2))
     assert {str(getattr(doc, id_name)) for doc in page_1}.intersection(
         {str(getattr(doc, id_name)) for doc in page_2}
     ) == set()
 
 
-def client_sort(search_method: Callable, sort_fields: str | Sequence[str]):
+def client_sort(
+    search_method: Callable,
+    sort_fields: str | Sequence[str],
+    aux_query: dict[str, Any] | None = None,
+    default_fields: tuple[str, ...] = ("deprecated", "material_id"),
+):
+    """Test sorting on an endpoint.
+
+    Args:
+    search_method (Callable) : Client search method to use
+    sort_fields (str or Sequence of str) : fields to sort on
+    aux_query (dict) : auxiliary query needed to filter documents
+    default_fields (list): default fields to return
+
+    Raises:
+    AssertionError if sorting in ascending or descending order does not work.
+    """
+
+    def _normalize(doc, field: str):
+        v = getattr(doc, field)
+        # serialize enums
+        return v.value if isinstance(v, Enum) else v
+
+    user_query = {
+        k: v
+        for k, v in (aux_query or {}).items()
+        if k not in ("_page", "_sort_fields", "chunk_size", "fields")
+    }
     for sort_field in [sort_fields] if isinstance(sort_fields, str) else sort_fields:
+
         asc = search_method(
-            _page=1, _sort_fields=sort_field, chunk_size=NUM_DOCS, fields=[sort_field]
+            _page=1,
+            _sort_fields=sort_field,
+            chunk_size=NUM_DOCS,
+            fields=[sort_field, *default_fields],
+            **user_query,
         )
         desc = search_method(
             _page=1,
@@ -108,12 +155,12 @@ def client_sort(search_method: Callable, sort_fields: str | Sequence[str]):
         )
 
         idxs = list(range(NUM_DOCS))
-        assert sorted(idxs, key=lambda idx: getattr(asc[idx], sort_field)) == idxs
+        assert sorted(idxs, key=lambda idx: _normalize(asc[idx], sort_field)) == idxs
 
         assert (
             sorted(
                 idxs,
-                key=lambda idx: getattr(desc[idx], sort_field),
+                key=lambda idx: _normalize(desc[idx], sort_field),
                 reverse=True,
             )
             == idxs

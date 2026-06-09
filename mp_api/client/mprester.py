@@ -10,8 +10,12 @@ from typing import TYPE_CHECKING
 from emmet.core.band_theory import BSPathType
 from emmet.core.mpid import MPID, AlphaID
 from emmet.core.types.enums import ThermoType
+from emmet.core.types.pymatgen_types.computed_entries_adapter import (
+    ComputedStructureEntryType,
+)
 from emmet.core.vasp.calc_types import CalcType
 from packaging import version
+from pydantic import BaseModel, TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.analysis.pourbaix_diagram import IonEntry
 from pymatgen.core import Composition, Element, Structure
@@ -21,21 +25,19 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
-from mp_api.client.core import BaseRester
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
+from mp_api.client.core.client import _Rester
 from mp_api.client.core.exceptions import (
     MPRestError,
     MPRestWarning,
     _emit_status_warning,
 )
-from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
-from mp_api.client.core.utils import (
-    LazyImport,
-    load_json,
-    validate_endpoint,
-    validate_ids,
+from mp_api.client.core.settings import (
+    DEFAULT_THERMOTYPE,
+    DEFAULT_THERMOTYPE_CRITERIA,
+    MAPI_CLIENT_SETTINGS,
 )
+from mp_api.client.core.utils import LazyImport, load_json, validate_ids
 from mp_api.client.routes import GENERIC_RESTERS
 from mp_api.client.routes.materials import MATERIALS_RESTERS
 from mp_api.client.routes.molecules import MOLECULES_RESTERS
@@ -49,6 +51,7 @@ if TYPE_CHECKING:
     from packaging.version import Version
     from pymatgen.analysis.phase_diagram import PDEntry
     from pymatgen.analysis.pourbaix_diagram import PourbaixEntry
+    from pymatgen.electronic_structure.dos import Dos
     from pymatgen.entries.compatibility import Compatibility
     from pymatgen.entries.computed_entries import (
         ComputedEntry,
@@ -56,9 +59,9 @@ if TYPE_CHECKING:
     )
     from pymatgen.util.typing import SpeciesLike
 
+    from mp_api.client.core.client import QueryBuilderWithCache
     from mp_api.client.core.schemas import _DictLikeAccess
 
-DEFAULT_THERMOTYPE_CRITERIA = {"thermo_types": ["GGA_GGA+U_R2SCAN"]}
 
 RESTER_LAYOUT = {
     "molecules/core": LazyImport(
@@ -85,23 +88,25 @@ TOP_LEVEL_RESTERS = [
 ]
 
 
-class MPRester:
+class MPRester(_Rester):
     """Access the new Materials Project API."""
 
     def __init__(
         self,
         api_key: str | None = None,
         endpoint: str | None = None,
-        notify_db_version: bool = False,
         include_user_agent: bool = True,
         use_document_model: bool = True,
         session: Session | None = None,
         headers: dict | None = None,
         mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
+        db_version: str | None = None,
         local_dataset_cache: (
             str | os.PathLike
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
+        query_builder: QueryBuilderWithCache | None = None,
+        notify_db_version: bool = False,
         **kwargs,
     ):
         """Initialize the MPRester.
@@ -118,13 +123,6 @@ class MPRester:
                 interface. Defaults to the standard Materials Project REST
                 address at "https://api.materialsproject.org", but
                 can be changed to other URLs implementing a similar interface.
-            notify_db_version (bool): If True, the current MP database version will
-                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
-                version changes, you will be notified. The current database version is
-                also printed on instantiation. These local logs are not sent to
-                materialsproject.org and are not associated with your API key, so be
-                aware that a notification may not be presented if you run MPRester
-                from multiple computing environments.
             include_user_agent (bool): If True, will include a user agent with the
                 HTTP request including information on pymatgen and system version
                 making the API request. This helps MP support pymatgen users, and
@@ -136,28 +134,38 @@ class MPRester:
             session: Session object to use. By default (None), the client will create one.
             headers: Custom headers for localhost connections.
             mute_progress_bars:  Whether to mute progress bars.
+            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database
+                than what is currently deployed. The Materials Project cannot guarantee that all
+                features will still work.
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
-            **kwargs: access to ContribsClient kwargs or (possibly-deprecated) legacy kwargs
+            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+                NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
+            notify_db_version (bool): If True, the current MP database version will
+                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
+                version changes, you will be notified. The current database version is
+                also printed on instantiation. These local logs are not sent to
+                materialsproject.org and are not associated with your API key, so be
+                aware that a notification may not be presented if you run MPRester
+                from multiple computing environments.
+            **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
-        self.api_key = get_user_api_key(api_key=api_key)
-
-        self.endpoint = validate_endpoint(endpoint)
-
-        self.headers = headers or get_consumer()
-        self.session = session or BaseRester._create_session(
-            api_key=self.api_key,
+        super().__init__(
+            api_key=api_key,
+            endpoint=endpoint,
             include_user_agent=include_user_agent,
-            headers=self.headers,
+            use_document_model=use_document_model,
+            session=session,
+            headers=headers,
+            mute_progress_bars=mute_progress_bars,
+            db_version=db_version,
+            local_dataset_cache=local_dataset_cache,
+            force_renew=force_renew,
+            query_builder=query_builder,
+            **kwargs,
         )
-        if is_dev_env():
-            self.session.headers["x-api-key"] = self.api_key or ""
-        self._include_user_agent = include_user_agent
-        self.use_document_model = use_document_model
-        self.mute_progress_bars = mute_progress_bars
-        self.local_dataset_cache = local_dataset_cache
-        self.force_renew = force_renew
+
         self._contribs = None
         self._contribs_kwargs = {
             k: kwargs[k]
@@ -198,14 +206,6 @@ class MPRester:
             "chemenv",
         ]
 
-        if "monty_decode" in kwargs:
-            warnings.warn(
-                "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
-                "The client by default returns results consistent with `monty_decode=True`.",
-                stacklevel=2,
-                category=MPRestWarning,
-            )
-
         # Check if emmet version of server is compatible
         if (emmet_version := MPRester.get_emmet_version(self.endpoint)) and (
             version.parse(emmet_version.base_version)
@@ -217,6 +217,17 @@ class MPRester:
                 category=MPRestWarning,
                 stacklevel=2,
             )
+
+        if self.db_version:
+            warnings.warn(
+                "Specifying an explicit database version is an experimental "
+                "feature. The Materials Project cannot guarantee "
+                "functionality at this time, use at your own risk!",
+                stacklevel=2,
+                category=MPRestWarning,
+            )
+        else:
+            self.db_version = self._get_heartbeat_info(self.endpoint)[0]
 
         if notify_db_version:
             self._db_version_check()
@@ -236,13 +247,15 @@ class MPRester:
                     lazy_rester(
                         api_key=self.api_key,
                         endpoint=self.endpoint,
-                        include_user_agent=self._include_user_agent,
+                        include_user_agent=self.include_user_agent,
                         session=self.session,
                         use_document_model=self.use_document_model,
                         headers=self.headers,
                         mute_progress_bars=self.mute_progress_bars,
+                        db_version=self.db_version,
                         local_dataset_cache=self.local_dataset_cache,
                         force_renew=self.force_renew,
+                        query_builder=self._query_builder,
                     ),
                 )
 
@@ -285,14 +298,6 @@ class MPRester:
                 )
         return self._contribs
 
-    def __enter__(self):
-        """Support for "with" context."""
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Support for "with" context."""
-        self.session.close()
-
     def __getattr__(self, attr):
         if attr in self._deprecated_attributes:
             warnings.warn(
@@ -315,8 +320,7 @@ class MPRester:
         )
 
     def __repr__(self) -> str:
-        db_version = self.get_database_version()
-        return f"MPRester({'v' + db_version if db_version else 'unknown version'})"
+        return f"MPRester({'v' + self.db_version if self.db_version else 'unknown version'})"
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None
@@ -379,7 +383,9 @@ class MPRester:
         return structure_data
 
     def get_database_version(self) -> str | None:
-        """The Materials Project database is periodically updated and has a
+        """DEPRECATED: use `self.db_version` instead.
+
+        The Materials Project database is periodically updated and has a
         database version associated with it. When the database is updated,
         consolidated data (information about "a material") may and does
         change, while calculation data about a specific calculation task
@@ -391,10 +397,13 @@ class MPRester:
 
         Returns: database version as a string if accessible, None otherwise
         """
-        if (get_resp := get(url=self.endpoint + "heartbeat")).status_code == 403:
-            _emit_status_warning()
-            return None
-        return get_resp.json()["db_version"]
+        warnings.warn(
+            "`get_database_version` has been deprecated in favor of "
+            "MPRester().db_version.",
+            stacklevel=2,
+            category=MPRestWarning,
+        )
+        return self.db_version
 
     @staticmethod
     @cache
@@ -639,17 +648,17 @@ class MPRester:
         )
 
         for doc in docs:
-            entry_list = doc["entries"].values()
-            for entry in entry_list:
-                entry_dict: dict = entry.as_dict() if hasattr(entry, "as_dict") else entry  # type: ignore
+            entry_list = (doc.model_dump() if isinstance(doc, BaseModel) else doc)[
+                "entries"
+            ].values()
+
+            for entry_dict in entry_list:
                 if not compatible_only:
                     entry_dict["correction"] = 0.0
                     entry_dict["energy_adjustments"] = []
 
                 if property_data:
-                    entry_dict["data"] = {
-                        property: doc[property] for property in property_data
-                    }
+                    entry_dict["data"] = {prop: doc[prop] for prop in property_data}
 
                 if conventional_unit_cell:
                     entry_struct = Structure.from_dict(entry_dict["structure"])
@@ -671,7 +680,9 @@ class MPRester:
                             correction["n_atoms"] *= site_ratio
 
                 # Need to store object to permit de-duplication
-                entries.add(ComputedStructureEntry.from_dict(entry_dict))
+                entries.add(
+                    TypeAdapter(ComputedStructureEntryType).validate_python(entry_dict)
+                )
 
         return list(entries)
 
@@ -1059,8 +1070,8 @@ class MPRester:
         (i.e., all LixOy, FexOy, LixFey, LixFeyOz, Li, Fe and O phases). Extremely
         useful for creating phase diagrams of entire chemical systems.
 
-        Note that by default this returns mixed GGA/GGA+U entries. For others,
-        pass GGA/GGA+U/R2SCAN, or R2SCAN as thermo_types in additional_criteria.
+        Note that by default this returns mixed GGA/GGA+U/r2SCAN entries. For others,
+        pass GGA/GGA+U, or R2SCAN as thermo_types in additional_criteria.
 
         Args:
             elements (str or [str]): Parent chemical system string comprising element
@@ -1142,6 +1153,7 @@ class MPRester:
         material_id: str,
         path_type: BSPathType = BSPathType.setyawan_curtarolo,
         line_mode=True,
+        load_projections: bool = False,
     ):
         """Get the band structure pymatgen object associated with a Materials Project ID.
 
@@ -1149,26 +1161,36 @@ class MPRester:
             material_id (str): Materials Project ID for a material
             path_type (BSPathType): k-point path selection convention
             line_mode (bool): Whether to return data for a line-mode calculation
+            load_projections (bool) : Optionally load atom- and spin-projected
+                bandstructure, if available.
 
         Returns:
             bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
         """
         return self.materials.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
-            material_id=material_id, path_type=path_type, line_mode=line_mode
+            material_id=material_id,
+            path_type=path_type,
+            line_mode=line_mode,
+            load_projections=load_projections,
         )
 
-    def get_dos_by_material_id(self, material_id: str):
-        """Get the complete density of states pymatgen object associated with a Materials Project ID.
+    def get_dos_by_material_id(
+        self, material_id: str, load_projections: bool = False
+    ) -> Dos:
+        """Get the density of states pymatgen object associated with a Materials Project ID.
 
         Arguments:
             material_id (str): Materials Project ID for a material
+            load_projections (bool) : Optionally load atom- and spin-orbital-projected
+                DOS, if available.
 
         Returns:
-            dos (CompleteDos): CompleteDos object
+            pymatgen Dos
         """
         return self.materials.electronic_structure_dos.get_dos_from_material_id(
-            material_id=material_id
-        )  # type: ignore
+            material_id,
+            load_projections=load_projections,
+        )
 
     def get_phonon_dos_by_material_id(self, material_id: str):
         """Get phonon density of states data corresponding to a material_id.
@@ -1568,31 +1590,51 @@ class MPRester:
     def get_stability(
         self,
         entries: list[ComputedEntry | ComputedStructureEntry | PDEntry],
-        thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
+        thermo_type: ThermoType | str = DEFAULT_THERMOTYPE,
     ) -> list[dict[str, Any]] | None:
+        """Get the energy above hull of a list of entries.
+
+        Args:
+        entries (list of ComputedEntry or ComputedStructureEntry or PDEntry) :
+            List of entries with energy and composition information to compute
+            hull energies.
+        thermo_type (str or ThermoType) : The hull type to use.
+            Defaults to ThermoType.GGA_GGA_U_R2SCAN.
+
+        Returns:
+        list of dict:
+            {
+                "e_above_hull": float, # energy above the hull
+                "composition": dict[str,float], # composition as dict
+                "energy": float, # energy with mixing / corrections
+                "entry_id": str, # optional identifier
+            }
+        """
         chemsys: set[SpeciesLike] = {
             ele for entry in entries for ele in entry.composition.elements
         }
         chemsys_str = "-".join(sorted(str(ele) for ele in chemsys))
 
-        thermo_type = (
-            ThermoType(thermo_type) if isinstance(thermo_type, str) else thermo_type
+        thermo_type_valid_str: str = (
+            ThermoType(thermo_type).value
+            if (isinstance(thermo_type, str) and thermo_type != "r2SCAN")
+            else str(thermo_type)
         )
 
         corrector: Compatibility | None = None
-        if thermo_type == ThermoType.GGA_GGA_U:
+        if thermo_type_valid_str == ThermoType.GGA_GGA_U.value:
             from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
 
             corrector = MaterialsProject2020Compatibility()
 
-        elif thermo_type == ThermoType.GGA_GGA_U_R2SCAN:
+        elif thermo_type_valid_str == ThermoType.GGA_GGA_U_R2SCAN.value:
             from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 
             corrector = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
 
         try:
             pd = self.materials.thermo.get_phase_diagram_from_chemsys(
-                chemsys_str, thermo_type=thermo_type
+                chemsys_str, thermo_type=thermo_type_valid_str
             )
         except MPRestError:
             pd = None
@@ -1600,7 +1642,7 @@ class MPRester:
         if not pd:
             warnings.warn(
                 f"No phase diagram data available for chemical system {chemsys_str} "
-                f"and thermo type {thermo_type}.",
+                f"and thermo type {thermo_type_valid_str}.",
                 category=MPRestWarning,
                 stacklevel=2,
             )
@@ -1631,8 +1673,29 @@ class MPRester:
         self,
         material_id: str | MPID | AlphaID,
         working_ion: str | Element,
-        thermo_type: str | ThermoType = ThermoType.GGA_GGA_U,
+        thermo_type: str | ThermoType = DEFAULT_THERMOTYPE,
     ) -> dict[str, np.ndarray]:
+        """Get the amount of O2 evolved at a range of temperatures.
+
+        Args:
+        material_id (str, MPID, or AlphaID) : identifier of the material to compute
+        working_ion (str or Element) : The working ion of the battery material
+        thermo_type (str or ThermoType) : The hull type to use.
+            Defaults to ThermoType.GGA_GGA_U_R2SCAN.
+
+        Returns:
+        dict of str to np.ndarray :
+        {
+            "mu": np.ndarray[float], # the chemical potential in eV/atom
+            "reaction": np.ndarray[str], # the redox reaction
+            "evolution": np.ndarray[float], # the number of O2 evolved in the redox, per formula unit
+            "temperature": np.ndarray[float], # the temperature in K
+        }
+
+        Raises:
+        ValueError : If no insertion electrode data for the combination of material_id
+            and working_ion could be found, or if the entry contains no oxygen.
+        """
         working_ion = (
             Element[working_ion] if isinstance(working_ion, str) else working_ion
         )
@@ -1674,7 +1737,6 @@ class MPRester:
         """Check if the database version has drifted."""
         import yaml  # type: ignore[import-untyped]
 
-        db_version = self.get_database_version()
         old_db_version = None
         if MAPI_CLIENT_SETTINGS.LOG_FILE.exists():
             old_db_version = (
@@ -1685,15 +1747,15 @@ class MPRester:
             if not isinstance(old_db_version, str):
                 old_db_version = None
 
-        if old_db_version != db_version:
+        if old_db_version != self.db_version:
             MAPI_CLIENT_SETTINGS.LOG_FILE.write_text(
-                yaml.safe_dump({"MAPI_DB_VERSION": db_version})
+                yaml.safe_dump({"MAPI_DB_VERSION": self.db_version})
             )
 
             if old_db_version:
                 warnings.warn(
                     "Materials Project database version has changed "
-                    f"from v{old_db_version} to v{db_version}.",
+                    f"from v{old_db_version} to v{self.db_version}.",
                     category=MPRestWarning,
                     stacklevel=2,
                 )

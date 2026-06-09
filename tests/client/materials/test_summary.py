@@ -161,4 +161,4 @@ summary_sort_fields = [
 @pytest.mark.parametrize("sort_field", summary_sort_fields)
 def test_sort(sort_field: str):
     with SummaryRester() as rester:
-        client_sort(rester.search, sort_field)
+        client_sort(rester.search, sort_field, aux_query={sort_field: (0, 10)})

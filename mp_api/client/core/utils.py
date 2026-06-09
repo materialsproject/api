@@ -13,7 +13,7 @@ import orjson
 import pyarrow.dataset as ds
 from deltalake import DeltaTable
 from emmet.core import __version__ as _EMMET_CORE_VER
-from emmet.core.mpid_ext import validate_identifier
+from emmet.core.mpid import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
@@ -27,6 +27,7 @@ from mp_api.client.core.exceptions import (
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from typing import Any, Literal
 
     from pydantic._internal._model_construction import ModelMetaclass
@@ -116,10 +117,8 @@ def validate_ids(id_list: list[str]) -> list[str]:
             " data for all IDs and filter locally."
         )
 
-    # TODO: after the transition to AlphaID in the document models,
-    # The following line should be changed to
-    # return [validate_identifier(idx,serialize=True) for idx in id_list]
-    return [str(validate_identifier(idx)) for idx in id_list]
+    validated = [validate_identifier(idx, serialize=False) for idx in id_list]
+    return [getattr(idx, "string", str(idx)) for idx in validated]
 
 
 def validate_endpoint(endpoint: str | None, suffix: str | None = None) -> str:
@@ -242,6 +241,14 @@ class LazyImport:
             self._load()
         if hasattr(self._imported, v):
             return getattr(self._imported, v)
+
+        raise AttributeError(
+            f"{self._module_name}{'.' + self._class_name if self._class_name else ''} "
+            f"has no attribute {v}"
+        )
+
+    def __dir__(self) -> Iterable[str]:
+        return self._obj.__dir__() if hasattr(self._obj, "__dir__") else []
 
 
 class MPDataset:

@@ -4,7 +4,7 @@
 #
 #    pip-compile --all-extras --output-file=requirements/requirements-ubuntu-latest_py3.14_extras.txt pyproject.toml
 #
-aiofile==3.9.0
+aiofile==3.11.1
     # via py-key-value-aio
 alabaster==1.0.0
     # via sphinx
@@ -24,15 +24,18 @@ arrow==1.4.0
     # via isoduration
 ase==3.28.0
     # via pymatgen-analysis-diffusion
+ast-serialize==0.5.0
+    # via mypy
 asttokens==3.0.1
     # via stack-data
 attrs==26.1.0
     # via
     #   cyclopts
     #   jsonschema
+    #   jsonschema-path
     #   referencing
 authlib==1.7.2
-    # via fastmcp
+    # via fastmcp-slim
 babel==2.18.0
     # via sphinx
 beartype==0.22.9
@@ -45,23 +48,23 @@ blinker==1.9.0
     # via flask
 boltons==25.0.0
     # via mp-api (pyproject.toml)
-boto3==1.43.4
+boto3==1.43.25
     # via mp-api (pyproject.toml)
-botocore==1.43.4
+botocore==1.43.25
     # via
     #   boto3
     #   s3transfer
 bravado==12.0.1
     # via mp-api (pyproject.toml)
-bravado-core==6.3.1
+bravado-core==6.4.1
     # via bravado
-cachetools==7.1.1
+cachetools==7.1.4
     # via
     #   mp-api (pyproject.toml)
     #   py-key-value-aio
 caio==0.9.25
     # via aiofile
-certifi==2026.4.22
+certifi==2026.5.20
     # via
     #   httpcore
     #   httpx
@@ -72,13 +75,13 @@ cfgv==3.5.0
     # via pre-commit
 charset-normalizer==3.4.7
     # via requests
-click==8.3.3
+click==8.4.1
     # via
     #   flask
     #   uvicorn
 contourpy==1.3.3
     # via matplotlib
-coverage[toml]==7.13.5
+coverage[toml]==7.14.1
     # via pytest-cov
 cryptography==48.0.0
     # via
@@ -90,15 +93,15 @@ custodian==2025.12.14
     # via mp-api (pyproject.toml)
 cycler==0.12.1
     # via matplotlib
-cyclopts==4.11.2
-    # via fastmcp
-decorator==5.2.1
+cyclopts==4.16.1
+    # via fastmcp-slim
+decorator==5.3.1
     # via ipython
 deltalake==1.5.1
     # via mp-api (pyproject.toml)
 deprecated==1.3.1
     # via deltalake
-distlib==0.4.0
+distlib==0.4.2
     # via virtualenv
 dnspython==2.8.0
     # via
@@ -108,22 +111,22 @@ dnspython==2.8.0
 docstring-parser==0.18.0
     # via cyclopts
 docutils==0.22.4
-    # via
-    #   rich-rst
-    #   sphinx
+    # via sphinx
 email-validator==2.3.0
     # via pydantic
-emmet-core[all]==0.86.4
+emmet-core[all]==0.87.0
     # via mp-api (pyproject.toml)
 exceptiongroup==1.3.1
-    # via fastmcp
+    # via fastmcp-slim
 execnet==2.1.2
     # via pytest-xdist
 executing==2.2.1
     # via stack-data
-fastmcp==3.2.4
+fastmcp==3.4.2
     # via mp-api (pyproject.toml)
-filelock==3.29.0
+fastmcp-slim[client,server]==3.4.2
+    # via fastmcp
+filelock==3.29.1
     # via
     #   python-discovery
     #   virtualenv
@@ -137,27 +140,29 @@ flexcache==0.3
     # via pint
 flexparser==0.4
     # via pint
-fonttools==4.62.1
+fonttools==4.63.0
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
 griffelib==2.0.2
-    # via fastmcp
+    # via fastmcp-slim
 h11==0.16.0
     # via
     #   httpcore
     #   uvicorn
+h5py==3.16.0
+    # via phonopy
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via
-    #   fastmcp
+    #   fastmcp-slim
     #   mcp
 httpx-sse==0.4.3
     # via mcp
 identify==2.6.19
     # via pre-commit
-idna==3.13
+idna==3.18
     # via
     #   anyio
     #   email-validator
@@ -168,15 +173,13 @@ imageio==2.37.3
     # via scikit-image
 imagesize==2.0.0
     # via sphinx
-importlib-metadata==8.7.1
-    # via opentelemetry-api
 importlib-resources==7.1.0
     # via swagger-spec-validator
 inflect==7.5.0
     # via emmet-core
 iniconfig==2.3.0
     # via pytest
-ipython==9.13.0
+ipython==9.14.1
     # via mp-api (pyproject.toml)
 ipython-pygments-lexers==1.1.1
     # via ipython
@@ -188,7 +191,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.1.2
     # via keyring
-jaraco-functools==4.4.0
+jaraco-functools==4.5.0
     # via keyring
 jedi==0.20.0
     # via ipython
@@ -208,8 +211,10 @@ joblib==1.5.3
     # via
     #   pymatgen-analysis-diffusion
     #   pymatgen-core
-joserfc==1.6.5
-    # via authlib
+joserfc==1.7.1
+    # via
+    #   authlib
+    #   fastmcp-slim
 json2html==1.3.0
     # via mp-api (pyproject.toml)
 jsonpointer==3.1.1
@@ -217,14 +222,14 @@ jsonpointer==3.1.1
 jsonref==1.1.0
     # via
     #   bravado-core
-    #   fastmcp
+    #   fastmcp-slim
 jsonschema[format-nongpl]==4.26.0
     # via
     #   bravado-core
     #   mcp
     #   swagger-spec-validator
-jsonschema-path==0.4.6
-    # via fastmcp
+jsonschema-path==0.5.0
+    # via fastmcp-slim
 jsonschema-specifications==2025.9.1
     # via jsonschema
 keyring==25.7.0
@@ -237,11 +242,13 @@ latexcodec==3.0.1
     # via pybtex
 lazy-loader==0.5
     # via scikit-image
-librt==0.10.0
+librt==0.11.0
     # via mypy
-lxml==6.1.0
+lobsterpy==0.6.1
+    # via emmet-core
+lxml==6.1.1
     # via pymatgen-core
-markdown-it-py==4.0.0
+markdown-it-py==4.2.0
     # via rich
 markupsafe==3.0.3
     # via
@@ -251,25 +258,26 @@ markupsafe==3.0.3
 matplotlib==3.10.9
     # via
     #   ase
+    #   phonopy
     #   pymatgen-core
     #   seaborn
-matplotlib-inline==0.2.1
+matplotlib-inline==0.2.2
     # via ipython
 mccabe==0.7.0
     # via flake8
-mcp==1.27.0
-    # via fastmcp
+mcp==1.27.2
+    # via fastmcp-slim
 mdurl==0.1.2
     # via markdown-it-py
 monotonic==1.6
     # via bravado
-monty==2026.2.18
+monty==2026.5.18
     # via
     #   custodian
     #   emmet-core
     #   mp-api (pyproject.toml)
     #   pymatgen-core
-more-itertools==11.0.2
+more-itertools==11.1.0
     # via
     #   inflect
     #   jaraco-classes
@@ -282,13 +290,13 @@ msgpack==1.1.2
     # via
     #   bravado
     #   bravado-core
-mypy==1.20.2
+mypy==2.1.0
     # via mp-api (pyproject.toml)
 mypy-extensions==1.1.0
     # via
     #   mp-api (pyproject.toml)
     #   mypy
-narwhals==2.20.0
+narwhals==2.22.1
     # via plotly
 networkx==3.6.1
     # via
@@ -296,14 +304,17 @@ networkx==3.6.1
     #   scikit-image
 nodeenv==1.10.0
     # via pre-commit
-numpy==2.4.4
+numpy==2.4.6
     # via
     #   ase
     #   contourpy
+    #   h5py
     #   imageio
+    #   lobsterpy
     #   matplotlib
     #   monty
     #   pandas
+    #   phonopy
     #   pymatgen-analysis-defects
     #   pymatgen-analysis-diffusion
     #   pymatgen-core
@@ -314,18 +325,19 @@ numpy==2.4.4
     #   seekpath
     #   shapely
     #   spglib
+    #   symfc
     #   tifffile
 openapi-pydantic==0.5.1
-    # via fastmcp
-opentelemetry-api==1.41.1
-    # via fastmcp
+    # via fastmcp-slim
+opentelemetry-api==1.42.1
+    # via fastmcp-slim
 orjson==3.11.9
     # via
     #   mp-api (pyproject.toml)
     #   pymatgen-core
 packaging==26.2
     # via
-    #   fastmcp
+    #   fastmcp-slim
     #   lazy-loader
     #   matplotlib
     #   plotly
@@ -334,18 +346,22 @@ packaging==26.2
     #   sphinx
 palettable==3.3.3
     # via pymatgen-core
-pandas==3.0.2
+pandas==3.0.3
     # via
     #   pymatgen-core
     #   seaborn
 parso==0.8.7
     # via jedi
-pathable==0.5.0
+pathable==0.6.0
     # via jsonschema-path
 pathspec==1.1.1
     # via mypy
 pexpect==4.9.0
     # via ipython
+phonopy==4.1.0
+    # via emmet-core
+phonors==0.2.0
+    # via phonopy
 pillow==12.2.0
     # via
     #   imageio
@@ -353,13 +369,13 @@ pillow==12.2.0
     #   scikit-image
 pint==0.25.3
     # via mp-api (pyproject.toml)
-platformdirs==4.9.6
+platformdirs==4.10.0
     # via
-    #   fastmcp
+    #   fastmcp-slim
     #   pint
     #   python-discovery
     #   virtualenv
-plotly==6.7.0
+plotly==6.8.0
     # via pymatgen-core
 pluggy==1.6.0
     # via
@@ -379,13 +395,15 @@ pubchempy==1.0.5
     # via emmet-core
 pure-eval==0.2.3
     # via stack-data
-py-key-value-aio[filetree,keyring,memory]==0.4.4
-    # via fastmcp
+py-key-value-aio[filetree,keyring,memory]==0.4.5
+    # via fastmcp-slim
 pyarrow==24.0.0
     # via
     #   emmet-core
     #   mp-api (pyproject.toml)
 pybtex==0.26.1
+    # via emmet-core
+pycodcif==3.0.1
     # via emmet-core
 pycodestyle==2.14.0
     # via
@@ -396,16 +414,17 @@ pycparser==3.0
 pydantic[email]==2.13.4
     # via
     #   emmet-core
-    #   fastmcp
+    #   fastmcp-slim
     #   mcp
     #   openapi-pydantic
     #   pydantic-settings
     #   pymatgen-io-validation
 pydantic-core==2.46.4
     # via pydantic
-pydantic-settings==2.14.0
+pydantic-settings==2.14.1
     # via
     #   emmet-core
+    #   fastmcp-slim
     #   mcp
     #   pymatgen-io-validation
 pyflakes==3.4.0
@@ -416,14 +435,16 @@ pygments==2.20.0
     #   ipython-pygments-lexers
     #   pytest
     #   rich
+    #   rich-rst
     #   sphinx
 pyisemail==2.0.1
     # via mp-api (pyproject.toml)
-pyjwt[crypto]==2.12.1
+pyjwt[crypto]==2.13.0
     # via mcp
 pymatgen==2026.5.4
     # via
     #   emmet-core
+    #   lobsterpy
     #   mp-api (pyproject.toml)
     #   mp-pyrho
     #   pymatgen-analysis-alloys
@@ -436,18 +457,20 @@ pymatgen-analysis-defects==2026.3.20
     # via emmet-core
 pymatgen-analysis-diffusion==2025.11.15
     # via emmet-core
-pymatgen-core==2026.4.16
+pymatgen-core==2026.5.18
     # via pymatgen
 pymatgen-io-validation==0.1.2
     # via emmet-core
 pymongo==4.17.0
-    # via emmet-core
+    # via
+    #   emmet-core
+    #   mp-api (pyproject.toml)
 pyparsing==3.3.2
     # via
     #   bibtexparser
     #   matplotlib
 pyperclip==1.11.0
-    # via fastmcp
+    # via fastmcp-slim
 pytest==9.0.3
     # via
     #   mp-api (pyproject.toml)
@@ -455,7 +478,7 @@ pytest==9.0.3
     #   pytest-cov
     #   pytest-mock
     #   pytest-xdist
-pytest-asyncio==1.3.0
+pytest-asyncio==1.4.0
     # via mp-api (pyproject.toml)
 pytest-cov==7.1.0
     # via mp-api (pyproject.toml)
@@ -471,22 +494,25 @@ python-dateutil==2.9.0.post0
     #   bravado-core
     #   matplotlib
     #   pandas
-python-discovery==1.3.0
+python-discovery==1.4.0
     # via virtualenv
 python-dotenv==1.2.2
     # via
-    #   fastmcp
+    #   fastmcp-slim
     #   pydantic-settings
-python-multipart==0.0.27
-    # via mcp
+python-multipart==0.0.32
+    # via
+    #   fastmcp-slim
+    #   mcp
 pytz==2026.2
     # via bravado-core
 pyyaml==6.0.3
     # via
     #   bravado
     #   bravado-core
-    #   fastmcp
+    #   fastmcp-slim
     #   jsonschema-path
+    #   phonopy
     #   pre-commit
     #   pybtex
     #   swagger-spec-validator
@@ -495,7 +521,7 @@ referencing==0.37.0
     #   jsonschema
     #   jsonschema-path
     #   jsonschema-specifications
-requests==2.33.1
+requests==2.34.2
     # via
     #   bravado
     #   bravado-core
@@ -515,13 +541,13 @@ rfc3987-syntax==1.1.0
 rich==15.0.0
     # via
     #   cyclopts
-    #   fastmcp
+    #   fastmcp-slim
     #   rich-rst
-rich-rst==1.3.2
+rich-rst==2.0.1
     # via cyclopts
 roman-numerals==4.1.0
     # via sphinx
-rpds-py==0.30.0
+rpds-py==2026.5.1
     # via
     #   jsonschema
     #   referencing
@@ -529,7 +555,7 @@ ruamel-yaml==0.19.1
     # via
     #   custodian
     #   monty
-s3transfer==0.17.0
+s3transfer==0.18.0
     # via boto3
 scikit-image==0.26.0
     # via pymatgen-analysis-defects
@@ -538,6 +564,7 @@ scipy==1.17.1
     #   ase
     #   pymatgen-core
     #   scikit-image
+    #   symfc
 seaborn==0.13.2
     # via pymatgen-analysis-diffusion
 secretstorage==3.5.0
@@ -556,12 +583,14 @@ six==1.17.0
     #   bravado-core
     #   python-dateutil
     #   rfc3339-validator
-snowballstemmer==3.0.1
+snowballstemmer==3.1.1
     # via sphinx
 spglib==2.7.0
     # via
+    #   phonopy
     #   pymatgen-core
     #   seekpath
+    #   symfc
 sphinx==9.1.0
     # via mp-api (pyproject.toml)
 sphinxcontrib-applehelp==2.0.0
@@ -576,44 +605,48 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-sse-starlette==3.4.1
+sse-starlette==3.4.4
     # via mcp
 stack-data==0.6.3
     # via ipython
-starlette==1.0.0
+starlette==1.2.1
     # via
+    #   fastmcp-slim
     #   mcp
     #   sse-starlette
 swagger-spec-validator==3.0.4
     # via
     #   bravado-core
     #   mp-api (pyproject.toml)
+symfc==1.7.2
+    # via phonopy
 sympy==1.14.0
     # via pymatgen-core
 tabulate==0.10.0
     # via pymatgen-core
-tifffile==2026.5.2
+tifffile==2026.6.1
     # via scikit-image
-tqdm==4.67.3
+tqdm==4.68.1
     # via pymatgen-core
-traitlets==5.15.0
+traitlets==5.15.1
     # via
     #   ipython
     #   matplotlib-inline
-typeguard==4.5.1
+typeguard==4.5.2
     # via inflect
-types-requests==2.33.0.20260503
+types-requests==2.33.0.20260518
     # via
     #   mp-api (pyproject.toml)
     #   types-tqdm
-types-setuptools==82.0.0.20260408
+types-setuptools==82.0.0.20260518
     # via mp-api (pyproject.toml)
-types-tqdm==4.67.3.20260408
+types-tqdm==4.68.0.20260608
     # via mp-api (pyproject.toml)
 typing-extensions==4.15.0
     # via
     #   bravado
     #   emmet-core
+    #   fastmcp-slim
     #   flexcache
     #   flexparser
     #   mcp
@@ -635,33 +668,31 @@ typing-inspection==0.4.2
 tzdata==2026.2
     # via arrow
 uncalled-for==0.3.2
-    # via fastmcp
+    # via fastmcp-slim
 uncertainties==3.2.3
     # via pymatgen-core
 uri-template==1.3.0
     # via jsonschema
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   botocore
     #   requests
     #   types-requests
-uvicorn==0.46.0
+uvicorn==0.49.0
     # via
-    #   fastmcp
+    #   fastmcp-slim
     #   mcp
-virtualenv==21.3.1
+virtualenv==21.4.2
     # via pre-commit
-watchfiles==1.1.1
-    # via fastmcp
-wcwidth==0.7.0
+watchfiles==1.2.0
+    # via fastmcp-slim
+wcwidth==0.8.1
     # via prompt-toolkit
 webcolors==25.10.0
     # via jsonschema
 websockets==16.0
-    # via fastmcp
+    # via fastmcp-slim
 werkzeug==3.1.8
     # via flask
-wrapt==2.1.2
+wrapt==2.2.1
     # via deprecated
-zipp==3.23.1
-    # via importlib-metadata

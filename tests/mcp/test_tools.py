@@ -33,7 +33,7 @@ def test_core_search_tools():
         and doc.metadata is None
         and doc.title.startswith("mp-")
         and doc.text == robo_descs[doc.id]
-        and doc.url == f"https://next-gen.materialsproject.org/materials/{doc.id}"
+        and doc.url == f"https://next-gen.materialsproject.org/materials/{doc.title}"
         for doc in search_results.results
     )
 
