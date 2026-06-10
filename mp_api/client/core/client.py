@@ -612,7 +612,7 @@ class BaseRester(_Rester):
             DeltaTable : If one exists at the specified bucket / prefix,
                 will retrieve the cached instance.
         """
-        delta_timeout = f"{self.timeout}s"
+        delta_timeout = f"{self.timeout * 3}s"
         full_key = f"{bucket}/{prefix}"
         qb_label = label or full_key.replace("/", "_").replace("-", "_")
 
@@ -637,6 +637,7 @@ class BaseRester(_Rester):
                     "AWS_REGION": "us-east-1",
                     "timeout": delta_timeout,
                     "connect_timeout": delta_timeout,
+                    "pool_idle_timeout": delta_timeout,
                     "retry_delay": "3",
                     "max_retries": f"{MAPI_CLIENT_SETTINGS.MAX_RETRIES}",
                 },
