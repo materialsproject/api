@@ -84,6 +84,7 @@ CONTROLLED_COLLECTIONS = [
     "materials",
     "oxidation-states",
     "summary",
+    "tasks",
     "thermo",
 ]
 
