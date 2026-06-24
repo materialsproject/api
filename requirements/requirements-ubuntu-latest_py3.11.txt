@@ -104,7 +104,7 @@ pydantic==2.13.4
     #   pymatgen-io-validation
 pydantic-core==2.46.4
     # via pydantic
-pydantic-settings==2.14.1
+pydantic-settings==2.14.2
     # via
     #   emmet-core
     #   pymatgen-io-validation
