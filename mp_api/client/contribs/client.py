@@ -1913,9 +1913,13 @@ class ContribsClient(SwaggerClient):
         updating. Set list entries to `None` for components that are to be left untouched
         during an update.
 
+        It is possible to quickly run Out Of Memory in the case of large/many contributions.
+        It is recommended to chunk your uploads to a reasonable size based on your machine capabilties
+        and contribution size.
+
         Args:
             contributions (list): list of contribution dicts to submit
-            ignore_dupes (bool): force duplicate components to be submitted
+            ignore_dupes (bool): force duplicate components to be submitted. If your contributions intentionally share components, set this to True.
             timeout (int): cancel remaining requests if timeout exceeded (in seconds)
             skip_dupe_check (bool): skip duplicate check for contribution identifiers
 
@@ -1925,9 +1929,14 @@ class ContribsClient(SwaggerClient):
         Raises:
             MPContribsClientError on malformed submitted data.
         """
-        if not contributions or not isinstance(contributions, list):
+        if not contributions:
             raise MPContribsClientError(
                 "Please provide list of contributions to submit."
+            )
+        many_contribs_flag = 5000
+        if len(contributions) > many_contribs_flag:
+            MPCC_LOGGER.warning(
+                msg=f"Large number of contributions detected (>{many_contribs_flag}). OOM may occur. Batching recommended."
             )
 
         # get existing contributions
