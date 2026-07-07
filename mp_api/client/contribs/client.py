@@ -1914,7 +1914,7 @@ class ContribsClient(SwaggerClient):
         during an update.
 
         It is possible to quickly run Out Of Memory in the case of large/many contributions.
-        It is recommended to chunk your uploads to a reasonable size based on your machine capabilties
+        It is recommended to chunk your uploads to a reasonable size based on your machine capabilities
         and contribution size.
 
         Args:
