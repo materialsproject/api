@@ -269,7 +269,7 @@ matplotlib-inline==0.2.2
     # via ipython
 mccabe==0.7.0
     # via flake8
-mcp==1.27.2
+mcp==1.28.1
     # via fastmcp-slim
 mdurl==0.1.2
     # via markdown-it-py
