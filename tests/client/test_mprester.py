@@ -2,6 +2,7 @@ import importlib
 import itertools
 import os
 import random
+from collections import defaultdict
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -295,6 +296,48 @@ loop_
             MPRestError, match="Please specify fewer elements to query by"
         ):
             mpr.get_entries_in_chemsys([Element.from_Z(1 + i).name for i in range(10)])
+
+    def test_get_entries_in_chemsys_mixed_hull(self, mpr):
+        """Mixed GGA(+U)/r2SCAN entries must all sit on one energy scale (issue #1104).
+
+        The mixing correction served with an entry is referenced to the hull of the single
+        chemical system that entry's thermo doc was built for, so pooling the served entries
+        across subsystems put Cs2TiI6 ~4.6 eV/atom above the hull instead of on it.
+        """
+        entries = mpr.get_entries_in_chemsys("Cs-Ti-I")
+        phase_diagram = PhaseDiagram(entries)
+        host = next(e for e in entries if e.composition.reduced_formula == "Cs2TiI6")
+        assert phase_diagram.get_e_above_hull(host) == pytest.approx(0.0, abs=1e-6)
+
+        # hull distances must match the ones MP serves, and no material may go missing --
+        # both fail if this silently falls through to re-applying the mixing scheme here
+        docs = mpr.materials.thermo.search(
+            chemsys=["H-O"],
+            thermo_types=[ThermoType.GGA_GGA_U_R2SCAN],
+            all_fields=False,
+            fields=["material_id", "energy_above_hull"],
+        )
+        entries = mpr.get_entries_in_chemsys("H-O")
+        phase_diagram = PhaseDiagram(entries)
+        by_mpid = defaultdict(list)
+        for entry in entries:
+            by_mpid[str(entry.data["material_id"])].append(entry)
+        for doc in docs:
+            hull_entries = by_mpid[str(doc.material_id)]
+            assert hull_entries, f"{doc.material_id} missing from the returned entries"
+            # a material can have one entry per run type; the served hull distance is the one
+            # for whichever entry MP blessed
+            assert any(
+                phase_diagram.get_e_above_hull(e)
+                == pytest.approx(doc.energy_above_hull, abs=1e-4)
+                for e in hull_entries
+            )
+
+        # a narrowed query cannot be placed on a common scale, so it must say so
+        with pytest.warns(MPRestWarning, match="common energy scale"):
+            mpr.get_entries_in_chemsys(
+                "Cs-Ti-I", additional_criteria={"is_stable": True}
+            )
 
     @pytest.mark.skipif(
         contribs_client is None,
