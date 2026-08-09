@@ -667,7 +667,9 @@ class MPRester(_Rester):
                     entry_dict["correction"] = 0.0
                     entry_dict["energy_adjustments"] = []
 
-                if property_data:  # merge property_data, retaining entry data (e.g. `oxidation_states`)
+                if (
+                    property_data
+                ):  # merge property_data, retaining entry data (e.g. `oxidation_states`)
                     entry_dict["data"] |= {prop: doc[prop] for prop in property_data}
 
                 if conventional_unit_cell:
@@ -1176,7 +1178,9 @@ class MPRester(_Rester):
         # (issue #1104). Thus we serve MP's phase diagram; built with mixing applied across the
         # full system, thus self-consistent by construction and identical to the MP website:
         mixed = set(additional_criteria["thermo_types"]) == {"GGA_GGA+U_R2SCAN"}
-        consistent = mixed and compatible_only and set(additional_criteria) == {"thermo_types"}
+        consistent = (
+            mixed and compatible_only and set(additional_criteria) == {"thermo_types"}
+        )
 
         entries: list[ComputedStructureEntry] | None = None
         if consistent:
