@@ -1133,12 +1133,18 @@ class MPRester(_Rester):
                 stacklevel=2,
             )
 
+        # the thermo type default applies unless the caller overrides it explicitly
+        additional_criteria = {
+            **DEFAULT_THERMOTYPE_CRITERIA,
+            **(additional_criteria or {}),
+        }
+
         entries = self.get_entries(
             all_chemsyses,
             compatible_only=compatible_only,
             property_data=property_data,
             conventional_unit_cell=conventional_unit_cell,
-            additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
+            additional_criteria=additional_criteria,
             **kwargs,
         )
 
