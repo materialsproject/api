@@ -1746,8 +1746,14 @@ class MPRester(_Rester):
 
         joint_entries: Sequence[ComputedEntry | ComputedStructureEntry | PDEntry] = [
             *entries,
-            *pd.all_entries,
-        ]
+            *(
+                self._get_unmixed_entries(_all_subchemsyses(str(el) for el in chemsys))
+                if thermo_type_valid_str == ThermoType.GGA_GGA_U_R2SCAN.value
+                else pd.all_entries
+            ),  # `pd.all_entries` for a mixed hull hold one already-mixed entry per material,
+        ]  # which the mixing scheme cannot re-process (needs the GGA(+U) and r2SCAN entries
+        # side by side), and silently drops every entry it cannot pair up -- so we fetch
+        # separately in the mixed case
 
         new_pd = PhaseDiagram(
             corrector.process_entries(joint_entries)  # type: ignore[arg-type]
