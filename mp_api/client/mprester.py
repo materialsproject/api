@@ -43,7 +43,7 @@ from mp_api.client.routes.materials import MATERIALS_RESTERS
 from mp_api.client.routes.molecules import MOLECULES_RESTERS
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Iterable, Sequence
     from typing import Any, Literal
 
     import numpy as np
@@ -86,6 +86,16 @@ TOP_LEVEL_RESTERS = [
     "_user_settings",
     "doi",
 ]
+
+
+def _all_subchemsyses(elements: Iterable[str]) -> list[str]:
+    """Every chemical (sub)system spanned by `elements`, as sorted dash-joined strings."""
+    element_set = set(elements)
+    return [
+        "-".join(sorted(els))
+        for n in range(1, len(element_set) + 1)
+        for els in itertools.combinations(element_set, n)
+    ]
 
 
 class MPRester(_Rester):
@@ -657,8 +667,10 @@ class MPRester(_Rester):
                     entry_dict["correction"] = 0.0
                     entry_dict["energy_adjustments"] = []
 
-                if property_data:
-                    entry_dict["data"] = {prop: doc[prop] for prop in property_data}
+                if (
+                    property_data
+                ):  # merge property_data, retaining entry data (e.g. `oxidation_states`)
+                    entry_dict["data"] |= {prop: doc[prop] for prop in property_data}
 
                 if conventional_unit_cell:
                     entry_struct = Structure.from_dict(entry_dict["structure"])
@@ -1054,6 +1066,26 @@ class MPRester(_Rester):
             **kwargs,
         )
 
+    def _get_unmixed_entries(
+        self, chemsyses: list[str], **kwargs
+    ) -> list[ComputedStructureEntry]:
+        """Get the GGA(+U) and r2SCAN entries for `chemsyses` as separate, un-mixed entries.
+
+        `MaterialsProjectDFTMixingScheme` needs both functionals side by side, as returned
+        by this helper function, while entries returned by the mixed thermo type cannot be
+        used with it.
+        """
+        return [
+            entry
+            for thermo_type in (ThermoType.GGA_GGA_U, ThermoType.R2SCAN)
+            for entry in self.get_entries(
+                chemsyses,
+                compatible_only=True,
+                additional_criteria={"thermo_types": [thermo_type.value]},
+                **kwargs,
+            )
+        ]
+
     def get_entries_in_chemsys(
         self,
         elements: str | list[str],
@@ -1072,6 +1104,14 @@ class MPRester(_Rester):
 
         Note that by default this returns mixed GGA/GGA+U/r2SCAN entries. For others,
         pass GGA/GGA+U, or R2SCAN as thermo_types in additional_criteria.
+
+        Mixed entries are taken from the MP-built phase diagram for the whole chemical
+        system, so they share one energy scale and reproduce the hull shown on
+        https://materialsproject.org. Narrowing the query with `additional_criteria`,
+        or passing ``compatible_only = False``, cannot be served that way and returns
+        entries that are *not* immediately suitable for constructing a phase diagram;
+        ``property_data`` and ``conventional_unit_cell`` re-apply the mixing scheme here
+        instead, which can differ slightly from MP. Warnings are thrown for these cases.
 
         Args:
             elements (str or [str]): Parent chemical system string comprising element
@@ -1114,11 +1154,7 @@ class MPRester(_Rester):
                 "or identify a subset of relevant chemical systems to query first."
             )
 
-        all_chemsyses = [
-            "-".join(sorted(els))
-            for i in range(len(elements_set))
-            for els in itertools.combinations(elements_set, i + 1)
-        ]
+        all_chemsyses = _all_subchemsyses(elements_set)
 
         if additional_criteria is None:
             warnings.warn(
@@ -1131,14 +1167,78 @@ class MPRester(_Rester):
                 stacklevel=2,
             )
 
-        entries = self.get_entries(
-            all_chemsyses,
-            compatible_only=compatible_only,
-            property_data=property_data,
-            conventional_unit_cell=conventional_unit_cell,
-            additional_criteria=additional_criteria or DEFAULT_THERMOTYPE_CRITERIA,
-            **kwargs,
+        additional_criteria = {
+            **DEFAULT_THERMOTYPE_CRITERIA,
+            **(additional_criteria or {}),
+        }  # default thermo type unless the caller explicitly overrides
+
+        # The mixing correction stored on a mixed GGA(+U)/r2SCAN entry is referenced to the hull
+        # of the one chemical system that entry's thermo doc was built for, so the served entries
+        # cannot be pooled _across subsystems_ -- they end up on different absolute energy scales
+        # (issue #1104). Thus we serve MP's phase diagram; built with mixing applied across the
+        # full system, thus self-consistent by construction and identical to the MP website:
+        mixed = set(additional_criteria["thermo_types"]) == {"GGA_GGA+U_R2SCAN"}
+        consistent = (
+            mixed and compatible_only and set(additional_criteria) == {"thermo_types"}
         )
+
+        entries: list[ComputedStructureEntry] | None = None
+        if consistent:
+            if not (property_data or conventional_unit_cell):
+                phase_diagram = self.materials.thermo.get_phase_diagram_from_chemsys(
+                    "-".join(sorted(elements_set)),
+                    thermo_type=additional_criteria["thermo_types"][0],
+                )  # default, mixed thermotype; takes a single type, not a list
+                if phase_diagram is not None:
+                    entries = list(phase_diagram.all_entries)
+
+            if entries is None:
+                # MP has no pre-built diagram for this system, or the entries need reshaping
+                # first, so redo the mixing here as MP does when building PDs. Mixing scheme
+                # is chemical-system dependent, so this can anchor on a different hull than
+                # MP did/would, and it drops entries it cannot place:
+                from pymatgen.entries.mixing_scheme import (
+                    MaterialsProjectDFTMixingScheme,
+                )
+
+                warnings.warn(
+                    "Reconstructing a common energy scale for these entries with the "
+                    "GGA(+U)/r2SCAN mixing scheme, as the Materials Project has no pre-built "
+                    "phase diagram to serve for this query. Energies and hull distances may "
+                    "differ slightly from https://materialsproject.org, and entries the mixing "
+                    "scheme cannot place are dropped.",
+                    category=MPRestWarning,
+                    stacklevel=2,
+                )
+                entries = MaterialsProjectDFTMixingScheme().process_entries(
+                    self._get_unmixed_entries(
+                        all_chemsyses,
+                        property_data=property_data,
+                        conventional_unit_cell=conventional_unit_cell,
+                        **kwargs,
+                    )
+                )
+        else:  # non-consistent
+            if mixed:
+                warnings.warn(
+                    "Mixed GGA(+U)/r2SCAN entries can only be placed on a common energy scale "
+                    "when the whole chemical system is retrieved with `compatible_only = True`, "
+                    "so these entries are not suitable for constructing a phase diagram. Either "
+                    "drop the extra `additional_criteria` (and filter the returned entries "
+                    "instead), or request a single functional with "
+                    '`additional_criteria = {"thermo_types": ["GGA_GGA+U"]}`.',
+                    category=MPRestWarning,
+                    stacklevel=2,
+                )
+
+            entries = self.get_entries(
+                all_chemsyses,
+                compatible_only=compatible_only,
+                property_data=property_data,
+                conventional_unit_cell=conventional_unit_cell,
+                additional_criteria=additional_criteria,
+                **kwargs,
+            )
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
@@ -1650,8 +1750,14 @@ class MPRester(_Rester):
 
         joint_entries: Sequence[ComputedEntry | ComputedStructureEntry | PDEntry] = [
             *entries,
-            *pd.all_entries,
-        ]
+            *(
+                self._get_unmixed_entries(_all_subchemsyses(str(el) for el in chemsys))
+                if thermo_type_valid_str == ThermoType.GGA_GGA_U_R2SCAN.value
+                else pd.all_entries
+            ),  # `pd.all_entries` for a mixed hull hold one already-mixed entry per material,
+        ]  # which the mixing scheme cannot re-process (needs the GGA(+U) and r2SCAN entries
+        # side by side), and silently drops every entry it cannot pair up -- so we fetch
+        # separately in the mixed case
 
         new_pd = PhaseDiagram(
             corrector.process_entries(joint_entries)  # type: ignore[arg-type]
