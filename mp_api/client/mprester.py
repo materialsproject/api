@@ -1488,7 +1488,7 @@ class MPRester(_Rester):
         nomad_download_endpoint = "https://nomad-lab.eu/prod/v1/api/v1/entries/raw"
 
         task_ids = [t["task_id"] for tl in meta.values() for t in tl]
-        task_id_query_params = [
+        task_id_query_params: list[tuple[str, dict]] = [
             (tid, {"json_query": json.dumps({"external_id": tid})}) for tid in task_ids
         ]
 
@@ -1521,7 +1521,9 @@ class MPRester(_Rester):
 
         return meta, urls
 
-    def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> list[str]:
+    def _check_get_download_info_url_by_task_id(
+        self, prefix, task_ids
+    ) -> list[tuple[str, dict]]:
         return [
             pair
             for pair in task_ids
