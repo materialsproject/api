@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import itertools
+import json
 import os
+import re
 import warnings
 from collections import defaultdict
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
 from emmet.core.band_theory import BSPathType
 from emmet.core.mpid import MPID, AlphaID
@@ -1465,45 +1468,64 @@ class MPRester(_Rester):
                 if calc_types and calc_type not in calc_types:
                     continue
                 mp_id = doc["material_id"]
-                meta[mp_id].append({"task_id": task_id, "calc_type": calc_type})
+                meta[mp_id].append(
+                    {
+                        "task_id": str(AlphaID(task_id, prefix="mp").formatted),
+                        "task_id_as_alpha": task_id,
+                        "calc_type": calc_type,
+                    }
+                )
 
         if not meta:
             raise ValueError(f"No tasks found for material id {material_ids}.")
 
         # return a list of URLs for NoMaD Downloads containing the list of files
         # for every external_id in `task_ids`
-        # For reference, please visit https://nomad-lab.eu/prod/rae/api/
+        # For reference, please visit https://nomad-lab.eu/prod/v1/api/v1/extensions/docs#/entries/raw
 
         # check if these task ids exist on NOMAD
-        prefix = "https://nomad-lab.eu/prod/rae/api/repo/?"
-        if file_patterns is not None:
-            for file_pattern in file_patterns:
-                prefix += f"file_pattern={file_pattern}&"
-        prefix += "external_id="
+        nomad_check_endpoint = "https://nomad-lab.eu/prod/v1/api/v1/entries/rawdir"
+        nomad_download_endpoint = "https://nomad-lab.eu/prod/v1/api/v1/entries/raw"
 
         task_ids = [t["task_id"] for tl in meta.values() for t in tl]
+        task_id_query_params = [
+            (tid, {"json_query": json.dumps({"external_id": tid})}) for tid in task_ids
+        ]
+
         nomad_exist_task_ids = self._check_get_download_info_url_by_task_id(
-            prefix=prefix, task_ids=task_ids
+            prefix=nomad_check_endpoint, task_ids=task_id_query_params
         )
+
         if len(nomad_exist_task_ids) != len(task_ids):
             self._print_help_message(
-                nomad_exist_task_ids, task_ids, file_patterns, calc_types
+                [pair[0] for pair in nomad_exist_task_ids],
+                task_ids,
+                file_patterns,
+                calc_types,
             )
 
         # generate download links for those that exist
-        prefix = "https://nomad-lab.eu/prod/rae/api/raw/query?"
         if file_patterns is not None:
-            for file_pattern in file_patterns:
-                prefix += f"file_pattern={file_pattern}&"
-        prefix += "external_id="
+            if len(file_patterns) == 1:
+                for _, json_query in nomad_exist_task_ids:
+                    json_query["glob_pattern"] = file_patterns[0]
+            else:
+                re_pattern = "|".join(re.escape(pattern) for pattern in file_patterns)
+                for _, json_query in nomad_exist_task_ids:
+                    json_query["re_pattern"] = re_pattern
 
-        urls = [prefix + tids for tids in nomad_exist_task_ids]
+        urls = [
+            f"{nomad_download_endpoint}?{urlencode(json_query)}"
+            for _, json_query in nomad_exist_task_ids
+        ]
+
         return meta, urls
 
     def _check_get_download_info_url_by_task_id(self, prefix, task_ids) -> list[str]:
-        prefix = prefix.replace("/raw/query", "/repo/")
         return [
-            task_id for task_id in task_ids if self._check_nomad_exist(prefix + task_id)
+            pair
+            for pair in task_ids
+            if self._check_nomad_exist(url=f"{prefix}?{urlencode(pair[1])}")
         ]
 
     @staticmethod
@@ -1511,7 +1533,7 @@ class MPRester(_Rester):
         response = get(url=url)
         if response.status_code != 200:
             return False
-        return load_json(response.text)["pagination"]["total"] != 0
+        return response.json()["pagination"]["total"] != 0
 
     @staticmethod
     def _print_help_message(nomad_exist_task_ids, task_ids, file_patterns, calc_types):
