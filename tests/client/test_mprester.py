@@ -727,6 +727,10 @@ loop_
         with pytest.raises(ValueError, match="No available insertion electrode data"):
             _ = mpr.get_oxygen_evolution("mp-2207", "Al")
 
+    @pytest.mark.skipif(
+        os.environ.get("GITHUB_ACTIONS") != "true",
+        reason="Slow - don't want to impede local dev",
+    )
     def test_nomad_integration(self, mpr):
         # No particular reason for this MPID other than that it exists in NOMAD.
         target_mpid = "mp-10018"
@@ -739,30 +743,44 @@ loop_
             ),
         ):
             calc_type_map, nomad_urls = mpr.get_download_info(
-                target_mpid, file_patterns=["some_pattern"]
+                target_mpid, file_patterns=["POSCAR"]
             )
             assert all(
-                isinstance(entry["task_id"], AlphaID)
+                isinstance(entry["task_id_as_alpha"], AlphaID)
                 and isinstance(entry["calc_type"], CalcType)
                 for entry in calc_type_map[target_mpid]
             )
             assert all(
-                url.startswith("https://nomad-lab.eu/prod/rae/api/raw/query")
-                and "file_pattern=some_pattern" in url
+                url.startswith("https://nomad-lab.eu/prod/v1/api/v1/entries/raw")
+                and "glob_pattern=POSCAR" in url
                 for url in nomad_urls
             )
 
             calc_type_map, nomad_urls = mpr.get_download_info(
-                [MPID(target_mpid)], calc_types=["GGA Deformation"]
+                target_mpid, file_patterns=["POSCAR", "OUTCAR"]
             )
             assert all(
-                isinstance(entry["task_id"], AlphaID)
-                and entry["calc_type"].value == "GGA Deformation"
+                isinstance(entry["task_id_as_alpha"], AlphaID)
+                and isinstance(entry["calc_type"], CalcType)
+                for entry in calc_type_map[target_mpid]
+            )
+            assert all(
+                url.startswith("https://nomad-lab.eu/prod/v1/api/v1/entries/raw")
+                and "re_pattern=POSCAR%7COUTCAR" in url
+                for url in nomad_urls
+            )
+
+            calc_type_map, nomad_urls = mpr.get_download_info(
+                [MPID(target_mpid)], calc_types=["GGA Static"]
+            )
+            assert all(
+                isinstance(entry["task_id_as_alpha"], AlphaID)
+                and entry["calc_type"].value == "GGA Static"
                 for entry in calc_type_map[target_mpid]
             )
             assert all(
                 url.startswith(
-                    "https://nomad-lab.eu/prod/rae/api/raw/query?external_id="
+                    "https://nomad-lab.eu/prod/v1/api/v1/entries/raw?json_query="
                 )
                 for url in nomad_urls
             )
