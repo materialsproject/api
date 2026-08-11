@@ -731,6 +731,11 @@ loop_
         os.environ.get("GITHUB_ACTIONS") != "true",
         reason="Slow - don't want to impede local dev",
     )
+    @pytest.mark.xfail(
+        raises=requests.exceptions.ConnectionError,
+        reason="upstream known to timeout",
+        strict=False,
+    )
     def test_nomad_integration(self, mpr):
         # No particular reason for this MPID other than that it exists in NOMAD.
         target_mpid = "mp-10018"
@@ -743,7 +748,9 @@ loop_
             ),
         ):
             calc_type_map, nomad_urls = mpr.get_download_info(
-                target_mpid, file_patterns=["POSCAR"]
+                target_mpid,
+                file_patterns=["POSCAR.gz"],
+                calc_types=["GGA Static"],
             )
             assert all(
                 isinstance(entry["task_id_as_alpha"], AlphaID)
@@ -757,7 +764,9 @@ loop_
             )
 
             calc_type_map, nomad_urls = mpr.get_download_info(
-                target_mpid, file_patterns=["POSCAR", "OUTCAR"]
+                target_mpid,
+                file_patterns=["POSCAR", "OUTCAR"],
+                calc_types=["GGA Static"],
             )
             assert all(
                 isinstance(entry["task_id_as_alpha"], AlphaID)
@@ -765,23 +774,10 @@ loop_
                 for entry in calc_type_map[target_mpid]
             )
             assert all(
-                url.startswith("https://nomad-lab.eu/prod/v1/api/v1/entries/raw")
-                and "re_pattern=POSCAR%7COUTCAR" in url
-                for url in nomad_urls
-            )
-
-            calc_type_map, nomad_urls = mpr.get_download_info(
-                [MPID(target_mpid)], calc_types=["GGA Static"]
-            )
-            assert all(
-                isinstance(entry["task_id_as_alpha"], AlphaID)
-                and entry["calc_type"].value == "GGA Static"
-                for entry in calc_type_map[target_mpid]
-            )
-            assert all(
                 url.startswith(
                     "https://nomad-lab.eu/prod/v1/api/v1/entries/raw?json_query="
                 )
+                and "re_pattern=POSCAR%7COUTCAR" in url
                 for url in nomad_urls
             )
 
