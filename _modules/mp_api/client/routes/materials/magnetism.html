@@ -45,9 +45,9 @@
 <div class="viewcode-block" id="MagnetismRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.magnetism.MagnetismRester.html#mp_api.client.routes.materials.magnetism.MagnetismRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MagnetismRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/magnetism&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/magnetism"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">MagnetismDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"material_id"</span>
 
 <div class="viewcode-block" id="MagnetismRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.magnetism.MagnetismRester.html#mp_api.client.routes.materials.magnetism.MagnetismRester.search">[docs]</a>
@@ -65,7 +65,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">MagnetismDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query magnetism docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">"""Query magnetism docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings (e.g., mp-149, [mp-149, mp-13]).</span>
@@ -86,30 +86,30 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([MagnetismDoc], [dict]) List of magnetism documents or dictionaries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"material_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">total_magnetization</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;total_magnetization_min&quot;</span><span class="p">:</span> <span class="n">total_magnetization</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;total_magnetization_max&quot;</span><span class="p">:</span> <span class="n">total_magnetization</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"total_magnetization_min"</span><span class="p">:</span> <span class="n">total_magnetization</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"total_magnetization_max"</span><span class="p">:</span> <span class="n">total_magnetization</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">total_magnetization_normalized_vol</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;total_magnetization_normalized_vol_min&quot;</span><span class="p">:</span> <span class="n">total_magnetization_normalized_vol</span><span class="p">[</span>
+                    <span class="s2">"total_magnetization_normalized_vol_min"</span><span class="p">:</span> <span class="n">total_magnetization_normalized_vol</span><span class="p">[</span>
                         <span class="mi">0</span>
                     <span class="p">],</span>
-                    <span class="s2">&quot;total_magnetization_normalized_vol_max&quot;</span><span class="p">:</span> <span class="n">total_magnetization_normalized_vol</span><span class="p">[</span>
+                    <span class="s2">"total_magnetization_normalized_vol_max"</span><span class="p">:</span> <span class="n">total_magnetization_normalized_vol</span><span class="p">[</span>
                         <span class="mi">1</span>
                     <span class="p">],</span>
                 <span class="p">}</span>
@@ -118,10 +118,10 @@
         <span class="k">if</span> <span class="n">total_magnetization_normalized_formula_units</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;total_magnetization_normalized_formula_units_min&quot;</span><span class="p">:</span> <span class="n">total_magnetization_normalized_formula_units</span><span class="p">[</span>
+                    <span class="s2">"total_magnetization_normalized_formula_units_min"</span><span class="p">:</span> <span class="n">total_magnetization_normalized_formula_units</span><span class="p">[</span>
                         <span class="mi">0</span>
                     <span class="p">],</span>
-                    <span class="s2">&quot;total_magnetization_normalized_formula_units_max&quot;</span><span class="p">:</span> <span class="n">total_magnetization_normalized_formula_units</span><span class="p">[</span>
+                    <span class="s2">"total_magnetization_normalized_formula_units_max"</span><span class="p">:</span> <span class="n">total_magnetization_normalized_formula_units</span><span class="p">[</span>
                         <span class="mi">1</span>
                     <span class="p">],</span>
                 <span class="p">}</span>
@@ -130,21 +130,21 @@
         <span class="k">if</span> <span class="n">num_magnetic_sites</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;num_magnetic_sites_min&quot;</span><span class="p">:</span> <span class="n">num_magnetic_sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;num_magnetic_sites_max&quot;</span><span class="p">:</span> <span class="n">num_magnetic_sites</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"num_magnetic_sites_min"</span><span class="p">:</span> <span class="n">num_magnetic_sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"num_magnetic_sites_max"</span><span class="p">:</span> <span class="n">num_magnetic_sites</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">num_unique_magnetic_sites</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;num_unique_magnetic_sites_min&quot;</span><span class="p">:</span> <span class="n">num_unique_magnetic_sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;num_unique_magnetic_sites_max&quot;</span><span class="p">:</span> <span class="n">num_unique_magnetic_sites</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"num_unique_magnetic_sites_min"</span><span class="p">:</span> <span class="n">num_unique_magnetic_sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"num_unique_magnetic_sites_max"</span><span class="p">:</span> <span class="n">num_unique_magnetic_sites</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">ordering</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;ordering&quot;</span><span class="p">:</span> <span class="n">ordering</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"ordering"</span><span class="p">:</span> <span class="n">ordering</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>

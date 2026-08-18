@@ -31,12 +31,12 @@
           <div class="body" role="main">
             
   <h1>Source code for mp_api.client.routes.molecules.molecules</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Define core molecules functionality.</span>
+<span></span><span class="sd">"""Define core molecules functionality.</span>
 
 <span class="sd">Note that the `MoleculeRester`, unlike the `MaterialsRester`,</span>
 <span class="sd">has no API functionality beyond serving as an access point for</span>
 <span class="sd">the JCESR and summary resters.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -49,11 +49,11 @@
 <div class="viewcode-block" id="MoleculeRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.molecules.MoleculeRester.html#mp_api.client.routes.molecules.molecules.MoleculeRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MoleculeRester</span><span class="p">(</span><span class="n">CoreRester</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Define molecules stub for accessing JCESR and summary data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Define molecules stub for accessing JCESR and summary data."""</span>
 
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">MoleculeDoc</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;molecule_id&quot;</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/core&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"molecule_id"</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"molecules/core"</span>
     <span class="n">_sub_resters</span> <span class="o">=</span> <span class="n">MOLECULES_RESTERS</span>
     <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span></div>
 

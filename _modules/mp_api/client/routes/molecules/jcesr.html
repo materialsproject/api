@@ -47,18 +47,18 @@
 <div class="viewcode-block" id="JcesrMoleculesRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.jcesr.JcesrMoleculesRester.html#mp_api.client.routes.molecules.jcesr.JcesrMoleculesRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">JcesrMoleculesRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;molecules/jcesr&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"molecules/jcesr"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">MoleculesDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;task_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"task_id"</span>
     <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="JcesrMoleculesRester.__init__">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.jcesr.JcesrMoleculesRester.html#mp_api.client.routes.molecules.jcesr.JcesrMoleculesRester.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Throw deprecation warning when JCESR client is initialized.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Throw deprecation warning when JCESR client is initialized."""</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;NOTE: You are accessing the unmaintained legacy molecules data, &quot;</span>
-            <span class="s2">&quot;please use MPRester.molecules.summary.&quot;</span><span class="p">,</span>
+            <span class="s2">"NOTE: You are accessing the unmaintained legacy molecules data, "</span>
+            <span class="s2">"please use MPRester.molecules.summary."</span><span class="p">,</span>
             <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
@@ -84,7 +84,7 @@
         <span class="n">_page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">_sort_fields</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query legacy molecule docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">"""Query legacy molecule docs using a variety of search criteria.</span>
 
 <span class="sd">        JCESR = Joint Center for Energy Storage Research</span>
 
@@ -105,30 +105,30 @@
 <span class="sd">            fields (List[str]): List of fields in MoleculesDoc to return data for.</span>
 <span class="sd">                Default is the material_id only if all_fields is False.</span>
 <span class="sd">            _page (int or None) : Page of the results to skip to.</span>
-<span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading &quot;-&quot; sign will reverse sort order.</span>
+<span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([MoleculesDoc]) List of molecule documents</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">task_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">task_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">task_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;task_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">task_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"task_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">task_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">])})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"elements"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">])})</span>
 
         <span class="n">_locals</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;pointgroup&quot;</span><span class="p">,</span> <span class="s2">&quot;smiles&quot;</span><span class="p">,</span> <span class="s2">&quot;_page&quot;</span><span class="p">,</span> <span class="s2">&quot;_sort_fields&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pointgroup"</span><span class="p">,</span> <span class="s2">"smiles"</span><span class="p">,</span> <span class="s2">"_page"</span><span class="p">,</span> <span class="s2">"_sort_fields"</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">v</span> <span class="o">:=</span> <span class="n">_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">query_params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;nelements&quot;</span><span class="p">,</span> <span class="s2">&quot;EA&quot;</span><span class="p">,</span> <span class="s2">&quot;IE&quot;</span><span class="p">,</span> <span class="s2">&quot;charge&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"nelements"</span><span class="p">,</span> <span class="s2">"EA"</span><span class="p">,</span> <span class="s2">"IE"</span><span class="p">,</span> <span class="s2">"charge"</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">vals</span> <span class="o">:=</span> <span class="n">_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_min&quot;</span><span class="p">:</span> <span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_max&quot;</span><span class="p">:</span> <span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+                <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_min"</span><span class="p">:</span> <span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_max"</span><span class="p">:</span> <span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>

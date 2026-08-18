@@ -44,9 +44,9 @@
 <div class="viewcode-block" id="GrainBoundaryRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.grain_boundaries.GrainBoundaryRester.html#mp_api.client.routes.materials.grain_boundaries.GrainBoundaryRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GrainBoundaryRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/grain_boundaries&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/grain_boundaries"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">GrainBoundaryDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"material_id"</span>
     <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="GrainBoundaryRester.search">
@@ -68,7 +68,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">GrainBoundaryDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query grain boundary docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">"""Query grain boundary docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">             material_ids (str, List[str]): Search for grain boundary data associated with the specified Material IDs</span>
@@ -93,57 +93,57 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">             ([GrainBoundaryDoc], [dict]) List of grain boundary documents or dictionaries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"material_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">gb_plane</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;gb_plane&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">gb_plane</span><span class="p">])})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"gb_plane"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">gb_plane</span><span class="p">])})</span>
 
         <span class="k">if</span> <span class="n">gb_energy</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;gb_energy_min&quot;</span><span class="p">:</span> <span class="n">gb_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;gb_energy_max&quot;</span><span class="p">:</span> <span class="n">gb_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                <span class="p">{</span><span class="s2">"gb_energy_min"</span><span class="p">:</span> <span class="n">gb_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"gb_energy_max"</span><span class="p">:</span> <span class="n">gb_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">separation_energy</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;w_sep_min&quot;</span><span class="p">:</span> <span class="n">separation_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;w_sep_max&quot;</span><span class="p">:</span> <span class="n">separation_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                <span class="p">{</span><span class="s2">"w_sep_min"</span><span class="p">:</span> <span class="n">separation_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"w_sep_max"</span><span class="p">:</span> <span class="n">separation_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">rotation_angle</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;rotation_angle_min&quot;</span><span class="p">:</span> <span class="n">rotation_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;rotation_angle_max&quot;</span><span class="p">:</span> <span class="n">rotation_angle</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"rotation_angle_min"</span><span class="p">:</span> <span class="n">rotation_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"rotation_angle_max"</span><span class="p">:</span> <span class="n">rotation_angle</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">rotation_axis</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rotation_axis</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">}:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;`rotation_axis` should be a tuple of either &quot;</span>
-                    <span class="s2">&quot;3 or 4 int values, ex: (0, 0, 0, 1) or (1, 0, 0)&quot;</span>
+                    <span class="s2">"`rotation_axis` should be a tuple of either "</span>
+                    <span class="s2">"3 or 4 int values, ex: (0, 0, 0, 1) or (1, 0, 0)"</span>
                 <span class="p">)</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;rotation_axis&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rotation_axis</span><span class="p">])}</span>
+                <span class="p">{</span><span class="s2">"rotation_axis"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rotation_axis</span><span class="p">])}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sigma</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="n">sigma</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"sigma"</span><span class="p">:</span> <span class="n">sigma</span><span class="p">})</span>
 
         <span class="k">if</span> <span class="nb">type</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"type"</span><span class="p">:</span> <span class="nb">type</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
 
         <span class="k">if</span> <span class="n">chemsys</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;chemsys&quot;</span><span class="p">:</span> <span class="n">chemsys</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"chemsys"</span><span class="p">:</span> <span class="n">chemsys</span><span class="p">})</span>
 
         <span class="k">if</span> <span class="n">pretty_formula</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;pretty_formula&quot;</span><span class="p">:</span> <span class="n">pretty_formula</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"pretty_formula"</span><span class="p">:</span> <span class="n">pretty_formula</span><span class="p">})</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>

@@ -50,9 +50,9 @@
 <div class="viewcode-block" id="ChemenvRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.chemenv.ChemenvRester.html#mp_api.client.routes.materials.chemenv.ChemenvRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ChemenvRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/chemenv&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/chemenv"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">ChemEnvDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"material_id"</span>
 
 <div class="viewcode-block" id="ChemenvRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.chemenv.ChemenvRester.html#mp_api.client.routes.materials.chemenv.ChemenvRester.search">[docs]</a>
@@ -84,20 +84,20 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ChemEnvDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query for chemical environment data.</span>
+<span class="w">        </span><span class="sd">"""Query for chemical environment data.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_ids (str, List[str]): Search forchemical environment associated with the specified Material IDs.</span>
 <span class="sd">            chemenv_iucr (COORDINATION_GEOMETRIES_IUCR, List[COORDINATION_GEOMETRIES_IUCR]): Unique cationic species in</span>
-<span class="sd">                IUCR format, e.g. &quot;[3n]&quot;.</span>
+<span class="sd">                IUCR format, e.g. "[3n]".</span>
 <span class="sd">            chemenv_iupac (COORDINATION_GEOMETRIES_IUPAC, List[COORDINATION_GEOMETRIES_IUPAC]): Unique cationic species</span>
-<span class="sd">                in IUPAC format, e.g., &quot;T-4&quot;.</span>
+<span class="sd">                in IUPAC format, e.g., "T-4".</span>
 <span class="sd">            chemenv_name (COORDINATION_GEOMETRIES_NAMES, List[COORDINATION_GEOMETRIES_NAMES]): Coordination environment</span>
-<span class="sd">                descriptions in text form for unique cationic species, e.g. &quot;Tetrahedron&quot;.</span>
+<span class="sd">                descriptions in text form for unique cationic species, e.g. "Tetrahedron".</span>
 <span class="sd">            chemenv_symbol (COORDINATION_GEOMETRIES, List[COORDINATION_GEOMETRIES]): Coordination environment</span>
-<span class="sd">                descriptions as used in ChemEnv package for unique cationic species, e.g. &quot;T:4&quot;.</span>
-<span class="sd">            species (str, List[str]): Cationic species in the crystal structure, e.g. &quot;Ti4+&quot;.</span>
-<span class="sd">            elements (str, List[str]): Element names in the crystal structure, e.g., &quot;Ti&quot;.</span>
+<span class="sd">                descriptions as used in ChemEnv package for unique cationic species, e.g. "T:4".</span>
+<span class="sd">            species (str, List[str]): Cationic species in the crystal structure, e.g. "Ti4+".</span>
+<span class="sd">            elements (str, List[str]): Element names in the crystal structure, e.g., "Ti".</span>
 <span class="sd">            exclude_elements (List[str]): A list of elements to exclude.</span>
 <span class="sd">            csm (Tuple[float,float]): Minimum and maximum value of continuous symmetry measure to consider.</span>
 <span class="sd">            density (Tuple[float,float]): Minimum and maximum density to consider.</span>
@@ -111,47 +111,47 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([ChemEnvDoc], [dict]) List of chemenv documents or dictionaries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">csm</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;csm_min&quot;</span><span class="p">:</span> <span class="n">csm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;csm_max&quot;</span><span class="p">:</span> <span class="n">csm</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"csm_min"</span><span class="p">:</span> <span class="n">csm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"csm_max"</span><span class="p">:</span> <span class="n">csm</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
 
         <span class="k">if</span> <span class="n">volume</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;volume_min&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;volume_max&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"volume_min"</span><span class="p">:</span> <span class="n">volume</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"volume_max"</span><span class="p">:</span> <span class="n">volume</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
 
         <span class="k">if</span> <span class="n">density</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;density_min&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;density_max&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"density_min"</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"density_max"</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
 
         <span class="k">if</span> <span class="n">num_sites</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;nsites_min&quot;</span><span class="p">:</span> <span class="n">num_sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;nsites_max&quot;</span><span class="p">:</span> <span class="n">num_sites</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                <span class="p">{</span><span class="s2">"nsites_min"</span><span class="p">:</span> <span class="n">num_sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"nsites_max"</span><span class="p">:</span> <span class="n">num_sites</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">)})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"elements"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">exclude_elements</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;exclude_elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_elements</span><span class="p">)})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"exclude_elements"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_elements</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">num_elements</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_elements</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="n">num_elements</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_elements</span><span class="p">,</span> <span class="n">num_elements</span><span class="p">)</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;nelements_min&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;nelements_max&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                <span class="p">{</span><span class="s2">"nelements_min"</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"nelements_max"</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"material_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="n">chemenv_literals</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;chemenv_iucr&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">chemenv_iucr</span><span class="p">,</span> <span class="n">COORDINATION_GEOMETRIES_IUCR</span><span class="p">),</span>
-            <span class="s2">&quot;chemenv_iupac&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">chemenv_iupac</span><span class="p">,</span> <span class="n">COORDINATION_GEOMETRIES_IUPAC</span><span class="p">),</span>
-            <span class="s2">&quot;chemenv_name&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">chemenv_name</span><span class="p">,</span> <span class="n">COORDINATION_GEOMETRIES_NAMES</span><span class="p">),</span>
-            <span class="s2">&quot;chemenv_symbol&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">chemenv_symbol</span><span class="p">,</span> <span class="n">COORDINATION_GEOMETRIES</span><span class="p">),</span>
+            <span class="s2">"chemenv_iucr"</span><span class="p">:</span> <span class="p">(</span><span class="n">chemenv_iucr</span><span class="p">,</span> <span class="n">COORDINATION_GEOMETRIES_IUCR</span><span class="p">),</span>
+            <span class="s2">"chemenv_iupac"</span><span class="p">:</span> <span class="p">(</span><span class="n">chemenv_iupac</span><span class="p">,</span> <span class="n">COORDINATION_GEOMETRIES_IUPAC</span><span class="p">),</span>
+            <span class="s2">"chemenv_name"</span><span class="p">:</span> <span class="p">(</span><span class="n">chemenv_name</span><span class="p">,</span> <span class="n">COORDINATION_GEOMETRIES_NAMES</span><span class="p">),</span>
+            <span class="s2">"chemenv_symbol"</span><span class="p">:</span> <span class="p">(</span><span class="n">chemenv_symbol</span><span class="p">,</span> <span class="n">COORDINATION_GEOMETRIES</span><span class="p">),</span>
         <span class="p">}</span>
 
         <span class="k">for</span> <span class="n">chemenv_var_name</span><span class="p">,</span> <span class="p">(</span><span class="n">chemenv_var</span><span class="p">,</span> <span class="n">literals</span><span class="p">)</span> <span class="ow">in</span> <span class="n">chemenv_literals</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -160,16 +160,16 @@
                 <span class="n">valid_types</span> <span class="o">=</span> <span class="p">{</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">literals</span><span class="o">.</span><span class="n">__args__</span><span class="p">)}</span>  <span class="c1"># type: ignore[attr-defined]</span>
                 <span class="k">if</span> <span class="n">invalid_types</span> <span class="o">:=</span> <span class="n">t_types</span> <span class="o">-</span> <span class="n">valid_types</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Invalid type(s) passed for </span><span class="si">{</span><span class="n">chemenv_var_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">invalid_types</span><span class="si">}</span><span class="s2">, valid types are: </span><span class="si">{</span><span class="n">valid_types</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">"Invalid type(s) passed for </span><span class="si">{</span><span class="n">chemenv_var_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">invalid_types</span><span class="si">}</span><span class="s2">, valid types are: </span><span class="si">{</span><span class="n">valid_types</span><span class="si">}</span><span class="s2">"</span>
                     <span class="p">)</span>
 
-                <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">chemenv_var_name</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t_types</span><span class="p">)})</span>
+                <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">chemenv_var_name</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t_types</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">species</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">species</span> <span class="o">=</span> <span class="p">[</span><span class="n">species</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;species&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species</span><span class="p">)})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"species"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species</span><span class="p">)})</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>

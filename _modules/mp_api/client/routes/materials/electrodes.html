@@ -50,7 +50,7 @@
 <div class="viewcode-block" id="BaseElectrodeRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electrodes.BaseElectrodeRester.html#mp_api.client.routes.materials.electrodes.BaseElectrodeRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseElectrodeRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;battery_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"battery_id"</span>
     <span class="n">_exclude_search_fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="BaseElectrodeRester.search">
@@ -82,7 +82,7 @@
         <span class="n">_page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">_sort_fields</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">InsertionElectrodeDoc</span> <span class="o">|</span> <span class="n">ConversionElectrodeDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">"""Query using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            battery_ids (str, List[str]): A single battery ID string or list of strings</span>
@@ -120,52 +120,52 @@
 <span class="sd">            fields (List[str]): List of fields in InsertionElectrodeDoc or ConversionElectrodeDoc to return data for.</span>
 <span class="sd">                Default is battery_id and last_updated if all_fields is False.</span>
 <span class="sd">            _page (int or None) : Page of the results to skip to.</span>
-<span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading &quot;-&quot; sign will reverse sort order.</span>
+<span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([InsertionElectrodeDoc or ConversionElectrodeDoc], [dict]) List of insertion/conversion electrode documents or dictionaries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;__class__&quot;</span><span class="p">,</span> <span class="s2">&quot;self&quot;</span><span class="p">,</span> <span class="s2">&quot;query_params&quot;</span><span class="p">}</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">param</span> <span class="o">==</span> <span class="s2">&quot;num_elements&quot;</span><span class="p">:</span>  <span class="c1"># this must come first</span>
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"__class__"</span><span class="p">,</span> <span class="s2">"self"</span><span class="p">,</span> <span class="s2">"query_params"</span><span class="p">}</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">param</span> <span class="o">==</span> <span class="s2">"num_elements"</span><span class="p">:</span>  <span class="c1"># this must come first</span>
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_elements</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                         <span class="n">num_elements</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_elements</span><span class="p">,</span> <span class="n">num_elements</span><span class="p">)</span>
                     <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                         <span class="p">{</span>
-                            <span class="s2">&quot;nelements_min&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># type: ignore[index]</span>
-                            <span class="s2">&quot;nelements_max&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># type: ignore[index]</span>
+                            <span class="s2">"nelements_min"</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># type: ignore[index]</span>
+                            <span class="s2">"nelements_max"</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># type: ignore[index]</span>
                         <span class="p">}</span>
                     <span class="p">)</span>
 
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                     <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                        <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_min&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_max&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                        <span class="p">{</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_min"</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_max"</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
                     <span class="p">)</span>
-                <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s2">&quot;battery_ids&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s2">"battery_ids"</span><span class="p">:</span>
                     <span class="n">_battery_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="k">for</span> <span class="n">battery_id</span> <span class="ow">in</span> <span class="n">_battery_ids</span><span class="p">:</span>
                             <span class="n">validate_battery_id</span><span class="p">(</span><span class="n">battery_id</span><span class="p">)</span>
-                        <span class="n">query_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_battery_ids</span><span class="p">)</span>
+                        <span class="n">query_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_battery_ids</span><span class="p">)</span>
 
                     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;At least one battery_id in: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> is invalid.&quot;</span>
-                            <span class="s2">&quot; Try using the validate_battery_id function from emmet.core.electrode&quot;</span>
-                            <span class="s2">&quot; to test your inputs.&quot;</span>
+                            <span class="sa">f</span><span class="s2">"At least one battery_id in: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> is invalid."</span>
+                            <span class="s2">" Try using the validate_battery_id function from emmet.core.electrode"</span>
+                            <span class="s2">" to test your inputs."</span>
                         <span class="p">)</span>
 
-                <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s2">&quot;working_ion&quot;</span><span class="p">:</span>
-                    <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;working_ion&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="k">elif</span> <span class="n">param</span> <span class="o">==</span> <span class="s2">"working_ion"</span><span class="p">:</span>
+                    <span class="n">query_params</span><span class="p">[</span><span class="s2">"working_ion"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                         <span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="p">(</span>
                             <span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Element</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
                         <span class="p">)</span>
                     <span class="p">)</span>
-                <span class="k">elif</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="s2">&quot;elements&quot;</span><span class="p">,</span> <span class="s2">&quot;exclude_elements&quot;</span><span class="p">):</span>
-                    <span class="n">query_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="k">elif</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"formula"</span><span class="p">,</span> <span class="s2">"elements"</span><span class="p">,</span> <span class="s2">"exclude_elements"</span><span class="p">):</span>
+                    <span class="n">query_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                         <span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -179,7 +179,7 @@
         <span class="p">}</span>
         <span class="k">if</span> <span class="n">ignored_fields</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Ignoring fields </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ignored_fields</span><span class="p">)</span><span class="si">}</span><span class="s2"> which are not valid options for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"Ignoring fields </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ignored_fields</span><span class="p">)</span><span class="si">}</span><span class="s2"> which are not valid options for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                 <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
@@ -198,9 +198,9 @@
 <div class="viewcode-block" id="ElectrodeRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electrodes.ElectrodeRester.html#mp_api.client.routes.materials.electrodes.ElectrodeRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ElectrodeRester</span><span class="p">(</span><span class="n">BaseElectrodeRester</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Search insertion electrode documents.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Search insertion electrode documents."""</span>
 
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/insertion_electrodes&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/insertion_electrodes"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">InsertionElectrodeDoc</span>  <span class="c1"># type: ignore</span></div>
 
 
@@ -208,20 +208,20 @@
 <div class="viewcode-block" id="ConversionElectrodeRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.electrodes.ConversionElectrodeRester.html#mp_api.client.routes.materials.electrodes.ConversionElectrodeRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConversionElectrodeRester</span><span class="p">(</span><span class="n">BaseElectrodeRester</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Search conversion electrode documents.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Search conversion electrode documents."""</span>
 
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/conversion_electrodes&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/conversion_electrodes"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">ConversionElectrodeDoc</span>  <span class="c1"># type: ignore</span>
     <span class="c1"># TODO: formula, chemsys, and elements do not appear to work in the API</span>
     <span class="n">_exclude_search_fields</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;formula&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;chemsys&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;elements&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;stability_charge&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;stability_discharge&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;exclude_elements&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;_page&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;_sort_fields&quot;</span><span class="p">,</span>
+        <span class="s2">"formula"</span><span class="p">,</span>
+        <span class="s2">"chemsys"</span><span class="p">,</span>
+        <span class="s2">"elements"</span><span class="p">,</span>
+        <span class="s2">"stability_charge"</span><span class="p">,</span>
+        <span class="s2">"stability_discharge"</span><span class="p">,</span>
+        <span class="s2">"exclude_elements"</span><span class="p">,</span>
+        <span class="s2">"_page"</span><span class="p">,</span>
+        <span class="s2">"_sort_fields"</span><span class="p">,</span>
     <span class="p">]</span></div>
 
 </pre></div>

@@ -44,9 +44,9 @@
 <div class="viewcode-block" id="SurfacePropertiesRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.surface_properties.SurfacePropertiesRester.html#mp_api.client.routes.materials.surface_properties.SurfacePropertiesRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SurfacePropertiesRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/surface_properties&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/surface_properties"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">SurfacePropDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"material_id"</span>
     <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="SurfacePropertiesRester.search">
@@ -64,7 +64,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SurfacePropDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query surface properties docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">"""Query surface properties docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
@@ -84,49 +84,49 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([SurfacePropDoc], [dict]) List of surface properties documents</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"material_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">weighted_surface_energy</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;weighted_surface_energy_min&quot;</span><span class="p">:</span> <span class="n">weighted_surface_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;weighted_surface_energy_max&quot;</span><span class="p">:</span> <span class="n">weighted_surface_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"weighted_surface_energy_min"</span><span class="p">:</span> <span class="n">weighted_surface_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"weighted_surface_energy_max"</span><span class="p">:</span> <span class="n">weighted_surface_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">weighted_work_function</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;weighted_work_function_min&quot;</span><span class="p">:</span> <span class="n">weighted_work_function</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;weighted_work_function_max&quot;</span><span class="p">:</span> <span class="n">weighted_work_function</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"weighted_work_function_min"</span><span class="p">:</span> <span class="n">weighted_work_function</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"weighted_work_function_max"</span><span class="p">:</span> <span class="n">weighted_work_function</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">surface_energy_anisotropy</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;surface_anisotropy_min&quot;</span><span class="p">:</span> <span class="n">surface_energy_anisotropy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;surface_anisotropy_max&quot;</span><span class="p">:</span> <span class="n">surface_energy_anisotropy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"surface_anisotropy_min"</span><span class="p">:</span> <span class="n">surface_energy_anisotropy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"surface_anisotropy_max"</span><span class="p">:</span> <span class="n">surface_energy_anisotropy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">shape_factor</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;shape_factor_min&quot;</span><span class="p">:</span> <span class="n">shape_factor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;shape_factor_max&quot;</span><span class="p">:</span> <span class="n">shape_factor</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"shape_factor_min"</span><span class="p">:</span> <span class="n">shape_factor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"shape_factor_max"</span><span class="p">:</span> <span class="n">shape_factor</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">has_reconstructed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;has_reconstructed&quot;</span><span class="p">:</span> <span class="n">has_reconstructed</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"has_reconstructed"</span><span class="p">:</span> <span class="n">has_reconstructed</span><span class="p">})</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>

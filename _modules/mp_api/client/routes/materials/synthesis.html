@@ -45,7 +45,7 @@
 <div class="viewcode-block" id="SynthesisRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.synthesis.SynthesisRester.html#mp_api.client.routes.materials.synthesis.SynthesisRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SynthesisRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/synthesis&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/synthesis"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">SynthesisSearchResultModel</span>  <span class="c1"># type: ignore</span>
     <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -68,7 +68,7 @@
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SynthesisSearchResultModel</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Search synthesis recipe text.</span>
+<span class="w">        </span><span class="sd">"""Search synthesis recipe text.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            keywords (Optional[List[str]]): List of string keywords to search synthesis paragraph text with</span>
@@ -80,16 +80,16 @@
 <span class="sd">            condition_heating_temperature_max (Optional[float]): Maximal heating temperature</span>
 <span class="sd">            condition_heating_time_min (Optional[float]): Minimal heating time</span>
 <span class="sd">            condition_heating_time_max (Optional[float]): Maximal heating time</span>
-<span class="sd">            condition_heating_atmosphere (Optional[List[str]]): Required heating atmosphere, such as &quot;air&quot;, &quot;argon&quot;</span>
-<span class="sd">            condition_mixing_device (Optional[List[str]]): Required mixing device, such as &quot;zirconia&quot;, &quot;Al2O3&quot;.</span>
-<span class="sd">            condition_mixing_media (Optional[List[str]]): Required mixing media, such as &quot;alcohol&quot;, &quot;water&quot;</span>
+<span class="sd">            condition_heating_atmosphere (Optional[List[str]]): Required heating atmosphere, such as "air", "argon"</span>
+<span class="sd">            condition_mixing_device (Optional[List[str]]): Required mixing device, such as "zirconia", "Al2O3".</span>
+<span class="sd">            condition_mixing_media (Optional[List[str]]): Required mixing media, such as "alcohol", "water"</span>
 <span class="sd">            num_chunks (Optional[int]): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (Optional[int]): Number of data entries per chunk.</span>
 
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([SynthesisSearchResultModel], [dict]): List of synthesis documents or dictionaries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Turn None and empty list into None</span>
         <span class="n">keywords</span> <span class="o">=</span> <span class="n">keywords</span> <span class="ow">or</span> <span class="kc">None</span>
         <span class="n">synthesis_type</span> <span class="o">=</span> <span class="n">synthesis_type</span> <span class="ow">or</span> <span class="kc">None</span>
@@ -99,30 +99,30 @@
         <span class="n">condition_mixing_media</span> <span class="o">=</span> <span class="n">condition_mixing_media</span> <span class="ow">or</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">keywords</span><span class="p">:</span>
-            <span class="n">keywords</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">word</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
+            <span class="n">keywords</span> <span class="o">=</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">word</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
 
         <span class="n">synthesis_docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_resource</span><span class="p">(</span>
             <span class="n">criteria</span><span class="o">=</span><span class="p">{</span>
-                <span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="n">keywords</span><span class="p">,</span>
-                <span class="s2">&quot;synthesis_type&quot;</span><span class="p">:</span> <span class="n">synthesis_type</span><span class="p">,</span>
-                <span class="s2">&quot;target_formula&quot;</span><span class="p">:</span> <span class="n">target_formula</span><span class="p">,</span>
-                <span class="s2">&quot;precursor_formula&quot;</span><span class="p">:</span> <span class="n">precursor_formula</span><span class="p">,</span>
-                <span class="s2">&quot;operations&quot;</span><span class="p">:</span> <span class="n">operations</span><span class="p">,</span>
-                <span class="s2">&quot;condition_heating_temperature_min&quot;</span><span class="p">:</span> <span class="n">condition_heating_temperature_min</span><span class="p">,</span>
-                <span class="s2">&quot;condition_heating_temperature_max&quot;</span><span class="p">:</span> <span class="n">condition_heating_temperature_max</span><span class="p">,</span>
-                <span class="s2">&quot;condition_heating_time_min&quot;</span><span class="p">:</span> <span class="n">condition_heating_time_min</span><span class="p">,</span>
-                <span class="s2">&quot;condition_heating_time_max&quot;</span><span class="p">:</span> <span class="n">condition_heating_time_max</span><span class="p">,</span>
-                <span class="s2">&quot;condition_heating_atmosphere&quot;</span><span class="p">:</span> <span class="n">condition_heating_atmosphere</span><span class="p">,</span>
-                <span class="s2">&quot;condition_mixing_device&quot;</span><span class="p">:</span> <span class="n">condition_mixing_device</span><span class="p">,</span>
-                <span class="s2">&quot;condition_mixing_media&quot;</span><span class="p">:</span> <span class="n">condition_mixing_media</span><span class="p">,</span>
-                <span class="s2">&quot;_limit&quot;</span><span class="p">:</span> <span class="n">chunk_size</span><span class="p">,</span>
+                <span class="s2">"keywords"</span><span class="p">:</span> <span class="n">keywords</span><span class="p">,</span>
+                <span class="s2">"synthesis_type"</span><span class="p">:</span> <span class="n">synthesis_type</span><span class="p">,</span>
+                <span class="s2">"target_formula"</span><span class="p">:</span> <span class="n">target_formula</span><span class="p">,</span>
+                <span class="s2">"precursor_formula"</span><span class="p">:</span> <span class="n">precursor_formula</span><span class="p">,</span>
+                <span class="s2">"operations"</span><span class="p">:</span> <span class="n">operations</span><span class="p">,</span>
+                <span class="s2">"condition_heating_temperature_min"</span><span class="p">:</span> <span class="n">condition_heating_temperature_min</span><span class="p">,</span>
+                <span class="s2">"condition_heating_temperature_max"</span><span class="p">:</span> <span class="n">condition_heating_temperature_max</span><span class="p">,</span>
+                <span class="s2">"condition_heating_time_min"</span><span class="p">:</span> <span class="n">condition_heating_time_min</span><span class="p">,</span>
+                <span class="s2">"condition_heating_time_max"</span><span class="p">:</span> <span class="n">condition_heating_time_max</span><span class="p">,</span>
+                <span class="s2">"condition_heating_atmosphere"</span><span class="p">:</span> <span class="n">condition_heating_atmosphere</span><span class="p">,</span>
+                <span class="s2">"condition_mixing_device"</span><span class="p">:</span> <span class="n">condition_mixing_device</span><span class="p">,</span>
+                <span class="s2">"condition_mixing_media"</span><span class="p">:</span> <span class="n">condition_mixing_media</span><span class="p">,</span>
+                <span class="s2">"_limit"</span><span class="p">:</span> <span class="n">chunk_size</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
             <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">synthesis_docs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;Cannot find any matches.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">"Cannot find any matches."</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">synthesis_docs</span></div>
 </div>

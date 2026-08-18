@@ -650,6 +650,13 @@ entries in the parent Li-Fe-O chemical system, as well as all subsystems
 useful for creating phase diagrams of entire chemical systems.</p>
 <p>Note that by default this returns mixed GGA/GGA+U/r2SCAN entries. For others,
 pass GGA/GGA+U, or R2SCAN as thermo_types in additional_criteria.</p>
+<p>Mixed entries are taken from the MP-built phase diagram for the whole chemical
+system, so they share one energy scale and reproduce the hull shown on
+<a class="reference external" href="https://materialsproject.org">https://materialsproject.org</a>. Narrowing the query with <cite>additional_criteria</cite>,
+or passing <code class="docutils literal notranslate"><span class="pre">compatible_only</span> <span class="pre">=</span> <span class="pre">False</span></code>, cannot be served that way and returns
+entries that are <em>not</em> immediately suitable for constructing a phase diagram;
+<code class="docutils literal notranslate"><span class="pre">property_data</span></code> and <code class="docutils literal notranslate"><span class="pre">conventional_unit_cell</span></code> re-apply the mixing scheme here
+instead, which can differ slightly from MP. Warnings are thrown for these cases.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

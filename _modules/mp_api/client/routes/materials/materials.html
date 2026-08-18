@@ -53,9 +53,9 @@
 <div class="viewcode-block" id="MaterialsRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.materials.MaterialsRester.html#mp_api.client.routes.materials.materials.MaterialsRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MaterialsRester</span><span class="p">(</span><span class="n">CoreRester</span><span class="p">):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/core&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/core"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">MaterialsDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"material_id"</span>
     <span class="n">_sub_resters</span> <span class="o">=</span> <span class="n">MATERIALS_RESTERS</span>
 
 <div class="viewcode-block" id="MaterialsRester.get_structure_by_material_id">
@@ -63,7 +63,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_structure_by_material_id</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">final</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Structure</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Structure</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a structure for a given Materials Project ID.</span>
+<span class="w">        </span><span class="sd">"""Get a structure for a given Materials Project ID.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_id (str): Materials project ID</span>
@@ -73,8 +73,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            structure (Union[Structure, List[Structure]]): Pymatgen structure object or list of</span>
 <span class="sd">                pymatgen structure objects.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">field</span> <span class="o">=</span> <span class="s2">&quot;structure&quot;</span> <span class="k">if</span> <span class="n">final</span> <span class="k">else</span> <span class="s2">&quot;initial_structures&quot;</span>
+<span class="sd">        """</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="s2">"structure"</span> <span class="k">if</span> <span class="n">final</span> <span class="k">else</span> <span class="s2">"initial_structures"</span>
 
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
 
@@ -112,7 +112,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">MaterialsDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query core material docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">"""Query core material docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
@@ -141,61 +141,61 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([MaterialsDoc], [dict]) List of material documents or dictionaries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"material_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">formula</span> <span class="o">=</span> <span class="p">[</span><span class="n">formula</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">formula</span><span class="p">)})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"formula"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">formula</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">chemsys</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">chemsys</span> <span class="o">=</span> <span class="p">[</span><span class="n">chemsys</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;chemsys&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chemsys</span><span class="p">)})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"chemsys"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chemsys</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">)})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"elements"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">exclude_elements</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;exclude_elements&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_elements</span><span class="p">)})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"exclude_elements"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_elements</span><span class="p">)})</span>
 
         <span class="k">if</span> <span class="n">task_ids</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;task_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">task_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"task_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">task_ids</span><span class="p">))})</span>
 
         <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
             <span class="p">{</span>
-                <span class="s2">&quot;crystal_system&quot;</span><span class="p">:</span> <span class="n">crystal_system</span><span class="p">,</span>
-                <span class="s2">&quot;spacegroup_number&quot;</span><span class="p">:</span> <span class="n">spacegroup_number</span><span class="p">,</span>
-                <span class="s2">&quot;spacegroup_symbol&quot;</span><span class="p">:</span> <span class="n">spacegroup_symbol</span><span class="p">,</span>
+                <span class="s2">"crystal_system"</span><span class="p">:</span> <span class="n">crystal_system</span><span class="p">,</span>
+                <span class="s2">"spacegroup_number"</span><span class="p">:</span> <span class="n">spacegroup_number</span><span class="p">,</span>
+                <span class="s2">"spacegroup_symbol"</span><span class="p">:</span> <span class="n">spacegroup_symbol</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">num_sites</span><span class="p">:</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;nsites_min&quot;</span><span class="p">:</span> <span class="n">num_sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;nsites_max&quot;</span><span class="p">:</span> <span class="n">num_sites</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                <span class="p">{</span><span class="s2">"nsites_min"</span><span class="p">:</span> <span class="n">num_sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"nsites_max"</span><span class="p">:</span> <span class="n">num_sites</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">num_elements</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_elements</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="n">num_elements</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_elements</span><span class="p">,</span> <span class="n">num_elements</span><span class="p">)</span>
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;nelements_min&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;nelements_max&quot;</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                <span class="p">{</span><span class="s2">"nelements_min"</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"nelements_max"</span><span class="p">:</span> <span class="n">num_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">volume</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;volume_min&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;volume_max&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"volume_min"</span><span class="p">:</span> <span class="n">volume</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"volume_max"</span><span class="p">:</span> <span class="n">volume</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
 
         <span class="k">if</span> <span class="n">density</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;density_min&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;density_max&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"density_min"</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"density_max"</span><span class="p">:</span> <span class="n">density</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
@@ -204,7 +204,7 @@
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="n">query_params</span><span class="p">:</span>
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"deprecated"</span><span class="p">:</span> <span class="n">deprecated</span><span class="p">})</span>
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span>  <span class="c1"># type: ignore[return-value]</span>
             <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
@@ -225,9 +225,9 @@
         <span class="n">angle_tol</span><span class="o">=</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">ANGLE_TOL</span><span class="p">,</span>
         <span class="n">allow_multiple_results</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds matching structures from the Materials Project database.</span>
+<span class="w">        </span><span class="sd">"""Finds matching structures from the Materials Project database.</span>
 
-<span class="sd">        Multiple results may be returned of &quot;similar&quot; structures based on</span>
+<span class="sd">        Multiple results may be returned of "similar" structures based on</span>
 <span class="sd">        distance using the pymatgen StructureMatcher algorithm, however only</span>
 <span class="sd">        a single result should match with the same spacegroup, calculated to the</span>
 <span class="sd">        default tolerances.</span>
@@ -247,7 +247,7 @@
 <span class="sd">            is True</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            MPRestError</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.structure_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
             <span class="n">ElementComparator</span><span class="p">,</span>
             <span class="n">StructureMatcher</span><span class="p">,</span>
@@ -261,10 +261,10 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename_or_structure</span><span class="p">,</span> <span class="n">Structure</span><span class="p">):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">filename_or_structure</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">&quot;Provide filename or Structure object.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">"Provide filename or Structure object."</span><span class="p">)</span>
 
         <span class="n">mat_docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
-            <span class="n">formula</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span><span class="p">]</span>
+            <span class="n">formula</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">,</span> <span class="s2">"structure"</span><span class="p">]</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">mat_docs</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
@@ -275,7 +275,7 @@
             <span class="n">max_matches</span> <span class="o">=</span> <span class="n">allow_multiple_results</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;`allow_multiple_results` must be a bool or int, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">allow_multiple_results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"`allow_multiple_results` must be a bool or int, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">allow_multiple_results</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
 
         <span class="n">matcher</span> <span class="o">=</span> <span class="n">StructureMatcher</span><span class="p">(</span>
@@ -292,9 +292,9 @@
         <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">mat_docs</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">matcher</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
                 <span class="n">s</span><span class="p">,</span>
-                <span class="n">doc</span><span class="o">.</span><span class="n">structure</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]),</span>  <span class="c1"># type: ignore</span>
+                <span class="n">doc</span><span class="o">.</span><span class="n">structure</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">"structure"</span><span class="p">]),</span>  <span class="c1"># type: ignore</span>
             <span class="p">):</span>
-                <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">material_id</span><span class="o">.</span><span class="n">string</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
+                <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">material_id</span><span class="o">.</span><span class="n">string</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_matches</span><span class="p">:</span>
                     <span class="k">break</span>
 
@@ -314,7 +314,7 @@
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get blessed calculation entries for a given material and run type.</span>
+<span class="w">        </span><span class="sd">"""Get blessed calculation entries for a given material and run type.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            run_type (str or RunType): Calculation run type (e.g. GGA, GGA+U, r2SCAN, PBESol)</span>
@@ -327,16 +327,16 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            list of dict, of the form:</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;material_id&quot;: MPID,</span>
-<span class="sd">                    &quot;blessed_entry&quot;: ComputedStructureEntry</span>
+<span class="sd">                    "material_id": MPID,</span>
+<span class="sd">                    "blessed_entry": ComputedStructureEntry</span>
 <span class="sd">                }</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;run_type&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">run_type</span><span class="p">)}</span>
+<span class="sd">        """</span>
+        <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"run_type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">run_type</span><span class="p">)}</span>
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"material_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="k">if</span> <span class="n">uncorrected_energy</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uncorrected_energy</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
@@ -344,37 +344,37 @@
 
             <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">&quot;energy_min&quot;</span><span class="p">:</span> <span class="n">uncorrected_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="s2">&quot;energy_max&quot;</span><span class="p">:</span> <span class="n">uncorrected_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"energy_min"</span><span class="p">:</span> <span class="n">uncorrected_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"energy_max"</span><span class="p">:</span> <span class="n">uncorrected_energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="p">}</span>
             <span class="p">)</span>
 
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_resource</span><span class="p">(</span>
             <span class="n">query_params</span><span class="p">,</span>
-            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">,</span> <span class="s2">&quot;entries&quot;</span><span class="p">],</span>
-            <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;blessed_tasks&quot;</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">,</span> <span class="s2">"entries"</span><span class="p">],</span>
+            <span class="n">suburl</span><span class="o">=</span><span class="s2">"blessed_tasks"</span><span class="p">,</span>
             <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
             <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="p">[</span>
             <span class="p">{</span>
-                <span class="s2">&quot;material_id&quot;</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;blessed_entry&quot;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="s2">"material_id"</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">],</span>
+                <span class="s2">"blessed_entry"</span><span class="p">:</span> <span class="p">(</span>
                     <span class="nb">next</span><span class="p">(</span>
-                        <span class="nb">getattr</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                        <span class="nb">getattr</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">"entries"</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">BlessedCalcs</span><span class="o">.</span><span class="n">model_fields</span>
-                        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">"entries"</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                     <span class="p">)</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span>
                     <span class="k">else</span> <span class="nb">next</span><span class="p">(</span>
-                        <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+                        <span class="n">doc</span><span class="p">[</span><span class="s2">"entries"</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
                         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">BlessedCalcs</span><span class="o">.</span><span class="n">model_fields</span>
-                        <span class="k">if</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"entries"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="p">),</span>
             <span class="p">}</span>
-            <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+            <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
         <span class="p">]</span></div>
 </div>
 

@@ -58,9 +58,9 @@
 <div class="viewcode-block" id="SimilarityRester">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.similarity.SimilarityRester.html#mp_api.client.routes.materials.similarity.SimilarityRester">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SimilarityRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;materials/similarity&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/similarity"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">SimilarityDoc</span>  <span class="c1"># type: ignore</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">&quot;material_id&quot;</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"material_id"</span>
     <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="n">_fingerprinter</span><span class="p">:</span> <span class="n">SimilarityScorer</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -68,7 +68,7 @@
 <div class="viewcode-block" id="SimilarityRester.fingerprint_structure">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.similarity.SimilarityRester.html#mp_api.client.routes.materials.similarity.SimilarityRester.fingerprint_structure">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fingerprint_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the fingerprint of a user-submitted structures.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Get the fingerprint of a user-submitted structures."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fingerprinter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_fingerprinter</span> <span class="o">=</span> <span class="n">CrystalNNSimilarity</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fingerprinter</span><span class="o">.</span><span class="n">_featurize_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span></div>
@@ -84,7 +84,7 @@
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SimilarityDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query similarity docs using a variety of search criteria.</span>
+<span class="w">        </span><span class="sd">"""Query similarity docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
@@ -97,14 +97,14 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([SimilarityDoc], [dict]) List of similarity documents or dictionaries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">material_ids</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">material_ids</span><span class="p">]</span>
 
-            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;material_ids&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
+            <span class="n">query_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"material_ids"</span><span class="p">:</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validate_ids</span><span class="p">(</span><span class="n">material_ids</span><span class="p">))})</span>
 
         <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">entry</span><span class="p">:</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
@@ -129,7 +129,7 @@
         <span class="n">num_chunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SimilarityEntry</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find structures most similar to a user-submitted structure.</span>
+<span class="w">        </span><span class="sd">"""Find structures most similar to a user-submitted structure.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            structure_or_mpid : pymatgen .Structure, or str, MPID, AlphaID</span>
@@ -148,55 +148,55 @@
 <span class="sd">            ([SimilarityEntry] | [dict]) List of SimilarityEntry documents</span>
 <span class="sd">            (if `use_document_model`) or dict (otherwise) listing</span>
 <span class="sd">            structures most similar to the input structure.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">structure_or_mpid</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MPID</span> <span class="o">|</span> <span class="n">AlphaID</span><span class="p">):</span>
             <span class="n">fmt_idx</span> <span class="o">=</span> <span class="n">AlphaID</span><span class="p">(</span><span class="n">structure_or_mpid</span><span class="p">)</span><span class="o">.</span><span class="n">string</span>
 
-            <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="p">[</span><span class="n">fmt_idx</span><span class="p">],</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;feature_vector&quot;</span><span class="p">])</span>
+            <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="p">[</span><span class="n">fmt_idx</span><span class="p">],</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"feature_vector"</span><span class="p">])</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">docs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No similarity data available for </span><span class="si">{</span><span class="n">fmt_idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">feature_vector</span> <span class="o">=</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;feature_vector&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore[index]</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No similarity data available for </span><span class="si">{</span><span class="n">fmt_idx</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">feature_vector</span> <span class="o">=</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"feature_vector"</span><span class="p">]</span>  <span class="c1"># type: ignore[index]</span>
 
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">structure_or_mpid</span><span class="p">,</span> <span class="n">Structure</span><span class="p">):</span>
             <span class="n">feature_vector</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fingerprint_structure</span><span class="p">(</span><span class="n">structure_or_mpid</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                <span class="s2">&quot;Please submit a pymatgen Structure or MP ID, found .&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;structure_or_mpid = </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">structure_or_mpid</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="s2">"Please submit a pymatgen Structure or MP ID, found ."</span>
+                <span class="sa">f</span><span class="s2">"structure_or_mpid = </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">structure_or_mpid</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
             <span class="p">)</span>
 
         <span class="n">top</span> <span class="o">=</span> <span class="n">top</span> <span class="ow">or</span> <span class="n">MAX_VECTOR_SEARCH_RESULTS</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">top</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Invalid number of possible top matches specified = </span><span class="si">{</span><span class="n">top</span><span class="si">}</span><span class="s2">.&quot;</span>
-                <span class="s2">&quot;Please specify a positive integer or `None` to return all results.&quot;</span>
+                <span class="sa">f</span><span class="s2">"Invalid number of possible top matches specified = </span><span class="si">{</span><span class="n">top</span><span class="si">}</span><span class="s2">."</span>
+                <span class="s2">"Please specify a positive integer or `None` to return all results."</span>
             <span class="p">)</span>
 
         <span class="n">vector_hex</span><span class="p">,</span> <span class="n">vector_norm</span> <span class="o">=</span> <span class="n">_vector_to_hex_and_norm</span><span class="p">(</span><span class="n">feature_vector</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_resource</span><span class="p">(</span>
             <span class="n">criteria</span><span class="o">=</span><span class="p">{</span>
-                <span class="s2">&quot;feature_vector_hex&quot;</span><span class="p">:</span> <span class="n">vector_hex</span><span class="p">,</span>
-                <span class="s2">&quot;feature_vector_norm&quot;</span><span class="p">:</span> <span class="n">vector_norm</span><span class="p">,</span>
-                <span class="s2">&quot;_limit&quot;</span><span class="p">:</span> <span class="n">top</span><span class="p">,</span>
+                <span class="s2">"feature_vector_hex"</span><span class="p">:</span> <span class="n">vector_hex</span><span class="p">,</span>
+                <span class="s2">"feature_vector_norm"</span><span class="p">:</span> <span class="n">vector_norm</span><span class="p">,</span>
+                <span class="s2">"_limit"</span><span class="p">:</span> <span class="n">top</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="n">suburl</span><span class="o">=</span><span class="s2">&quot;match&quot;</span><span class="p">,</span>
+            <span class="n">suburl</span><span class="o">=</span><span class="s2">"match"</span><span class="p">,</span>
             <span class="n">use_document_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># Return type is not exactly a SimilarityDoc, closer to SimilarityEntry</span>
             <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
             <span class="n">num_chunks</span><span class="o">=</span><span class="n">num_chunks</span><span class="p">,</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                <span class="s2">&quot;Could not find any structures similar to the input structure.&quot;</span>
+                <span class="s2">"Could not find any structures similar to the input structure."</span>
             <span class="p">)</span>
 
         <span class="n">sim_docs</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">{</span>
-                <span class="s2">&quot;formula&quot;</span><span class="p">:</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;formula_pretty&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;nelements&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">Composition</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;formula_pretty&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">elements</span><span class="p">),</span>
-                <span class="s2">&quot;dissimilarity&quot;</span><span class="p">:</span> <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">]),</span>
+                <span class="s2">"formula"</span><span class="p">:</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"formula_pretty"</span><span class="p">],</span>
+                <span class="s2">"task_id"</span><span class="p">:</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">],</span>
+                <span class="s2">"nelements"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">Composition</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"formula_pretty"</span><span class="p">])</span><span class="o">.</span><span class="n">elements</span><span class="p">),</span>
+                <span class="s2">"dissimilarity"</span><span class="p">:</span> <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"score"</span><span class="p">]),</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">result</span>
         <span class="p">]</span>
