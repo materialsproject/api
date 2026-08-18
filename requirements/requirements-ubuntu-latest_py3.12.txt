@@ -87,7 +87,7 @@ palettable==3.3.3
     # via pymatgen-core
 pandas==3.0.3
     # via pymatgen-core
-pillow==12.2.0
+pillow==12.3.0
     # via matplotlib
 plotly==6.8.0
     # via pymatgen-core
