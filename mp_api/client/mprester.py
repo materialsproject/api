@@ -6,6 +6,7 @@ import os
 import re
 import warnings
 from collections import defaultdict
+from copy import deepcopy
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 from urllib.parse import urlencode
@@ -675,29 +676,13 @@ class MPRester(_Rester):
                 ):  # merge property_data, retaining entry data (e.g. `oxidation_states`)
                     entry_dict["data"] |= {prop: doc[prop] for prop in property_data}
 
-                if conventional_unit_cell:
-                    entry_struct = Structure.from_dict(entry_dict["structure"])
-                    s = SpacegroupAnalyzer(
-                        entry_struct
-                    ).get_conventional_standard_structure()
-                    site_ratio = len(s) / len(entry_struct)
-                    new_energy = entry_dict["energy"] * site_ratio
-
-                    entry_dict["energy"] = new_energy
-                    entry_dict["structure"] = s.as_dict()
-                    entry_dict["correction"] = 0.0
-
-                    for element in entry_dict["composition"]:
-                        entry_dict["composition"][element] *= site_ratio
-
-                    for correction in entry_dict["energy_adjustments"]:
-                        if "n_atoms" in correction:
-                            correction["n_atoms"] *= site_ratio
-
-                # Need to store object to permit de-duplication
-                entries.add(
-                    TypeAdapter(ComputedStructureEntryType).validate_python(entry_dict)
+                entry = TypeAdapter(ComputedStructureEntryType).validate_python(
+                    entry_dict
                 )
+                if conventional_unit_cell:
+                    entry = self._get_conventional_cell_entry(entry)
+
+                entries.add(entry)  # object permits de-duplication
 
         return list(entries)
 
@@ -1089,6 +1074,31 @@ class MPRester(_Rester):
             )
         ]
 
+    @staticmethod
+    def _get_conventional_cell_entry(
+        entry: ComputedStructureEntry,
+    ) -> ComputedStructureEntry:
+        """Rebuild ``entry`` on the standard conventional unit cell, scaling the energy
+        and energy adjustments accordingly.
+        """
+        conventional_structure = SpacegroupAnalyzer(
+            entry.structure
+        ).get_conventional_standard_structure()
+        site_ratio = len(conventional_structure) / len(entry.structure)
+
+        energy_adjustments = deepcopy(entry.energy_adjustments)
+        for adjustment in energy_adjustments:  # adjustment values are extensive
+            adjustment.normalize(1 / site_ratio)
+
+        return ComputedStructureEntry(
+            conventional_structure,
+            entry.uncorrected_energy * site_ratio,
+            energy_adjustments=energy_adjustments,
+            parameters=entry.parameters,
+            data=entry.data,
+            entry_id=entry.entry_id,
+        )
+
     def get_entries_in_chemsys(
         self,
         elements: str | list[str],
@@ -1110,11 +1120,11 @@ class MPRester(_Rester):
 
         Mixed entries are taken from the MP-built phase diagram for the whole chemical
         system, so they share one energy scale and reproduce the hull shown on
-        https://materialsproject.org. Narrowing the query with `additional_criteria`,
+        https://materialsproject.org; ``property_data`` fields are attached to the
+        served entries after the fact. Narrowing the query with `additional_criteria`,
         or passing ``compatible_only = False``, cannot be served that way and returns
-        entries that are *not* immediately suitable for constructing a phase diagram;
-        ``property_data`` and ``conventional_unit_cell`` re-apply the mixing scheme here
-        instead, which can differ slightly from MP. Warnings are thrown for these cases.
+        entries that are *not* immediately suitable for constructing a phase diagram.
+        Warnings are thrown for these cases.
 
         Args:
             elements (str or [str]): Parent chemical system string comprising element
@@ -1187,19 +1197,31 @@ class MPRester(_Rester):
 
         entries: list[ComputedStructureEntry] | None = None
         if consistent:
-            if not (property_data or conventional_unit_cell):
-                phase_diagram = self.materials.thermo.get_phase_diagram_from_chemsys(
-                    "-".join(sorted(elements_set)),
-                    thermo_type=additional_criteria["thermo_types"][0],
-                )  # default, mixed thermotype; takes a single type, not a list
-                if phase_diagram is not None:
-                    entries = list(phase_diagram.all_entries)
+            phase_diagram = self.materials.thermo.get_phase_diagram_from_chemsys(
+                "-".join(sorted(elements_set)),
+                thermo_type=additional_criteria["thermo_types"][0],
+            )  # default, mixed thermotype; takes a single type, not a list
+            if phase_diagram is not None:
+                entries = list(phase_diagram.all_entries)
+
+                if property_data:  # decorate the served entries post-hoc
+                    docs = self.materials.thermo.search(
+                        chemsys=all_chemsyses,
+                        thermo_types=additional_criteria["thermo_types"],
+                        all_fields=False,
+                        fields=["material_id", *property_data],
+                    )
+                    props = {
+                        str(doc["material_id"]): {p: doc[p] for p in property_data}
+                        for doc in docs
+                    }
+                    for entry in entries:  # served entries carry `material_id`
+                        entry.data |= props[str(entry.data["material_id"])]
 
             if entries is None:
-                # MP has no pre-built diagram for this system, or the entries need reshaping
-                # first, so redo the mixing here as MP does when building PDs. Mixing scheme
-                # is chemical-system dependent, so this can anchor on a different hull than
-                # MP did/would, and it drops entries it cannot place:
+                # MP has no pre-built diagram for this system, so redo the mixing here as MP does when
+                # building PDs. Mixing scheme is chemical-system dependent, so this can anchor on a
+                # different hull than MP did/would, and it drops entries it cannot place:
                 from pymatgen.entries.mixing_scheme import (
                     MaterialsProjectDFTMixingScheme,
                 )
@@ -1217,7 +1239,6 @@ class MPRester(_Rester):
                     self._get_unmixed_entries(
                         all_chemsyses,
                         property_data=property_data,
-                        conventional_unit_cell=conventional_unit_cell,
                         **kwargs,
                     )
                 )
@@ -1238,10 +1259,14 @@ class MPRester(_Rester):
                 all_chemsyses,
                 compatible_only=compatible_only,
                 property_data=property_data,
-                conventional_unit_cell=conventional_unit_cell,
                 additional_criteria=additional_criteria,
                 **kwargs,
             )
+
+        if conventional_unit_cell:
+            # reshaped here rather than in the queries above, so that structure matching in the mixing
+            # scheme sees the original cells, and so that every energy adjustment is scaled appropriately:
+            entries = [self._get_conventional_cell_entry(entry) for entry in entries]
 
         if use_gibbs:
             # replace the entries with GibbsComputedStructureEntry
