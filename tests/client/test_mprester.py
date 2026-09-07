@@ -2,6 +2,7 @@ import importlib
 import itertools
 import os
 import random
+import warnings
 from collections import defaultdict
 from tempfile import NamedTemporaryFile
 
@@ -312,6 +313,19 @@ loop_
         host = next(e for e in entries if e.composition.reduced_formula == "Cs2TiI6")
         assert phase_diagram.get_e_above_hull(host) == pytest.approx(0.0, abs=1e-6)
 
+        # extra criteria narrow the served (common-scale) entries, with MP's own semantics
+        with warnings.catch_warnings(record=True) as record:
+            stable = mpr.get_entries_in_chemsys(
+                "Cs-Ti-I", additional_criteria={"is_stable": True}
+            )
+        assert not [w for w in record if issubclass(w.category, MPRestWarning)]
+        assert 0 < len(stable) < len(entries)
+        assert {str(e.data["material_id"]) for e in stable} == {
+            str(e.data["material_id"])
+            for e in entries
+            if phase_diagram.get_e_above_hull(e) == pytest.approx(0.0, abs=1e-6)
+        }
+
         # hull distances must match the ones MP serves, and no material may go missing --
         # both fail if this silently falls through to re-applying the mixing scheme here
         docs = mpr.materials.thermo.search(
@@ -336,11 +350,9 @@ loop_
                 for e in hull_entries
             )
 
-        # a narrowed query cannot be placed on a common scale, so it must say so
+        # uncorrected mixed entries cannot be placed on a common scale, so a warning is thrown:
         with pytest.warns(MPRestWarning, match="common energy scale"):
-            mpr.get_entries_in_chemsys(
-                "Cs-Ti-I", additional_criteria={"is_stable": True}
-            )
+            mpr.get_entries_in_chemsys("Cs-Ti-I", compatible_only=False)
 
     def test_get_entries_in_chemsys_decorated_served_pd(self, mpr):
         """

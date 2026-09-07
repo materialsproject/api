@@ -1121,10 +1121,12 @@ class MPRester(_Rester):
         Mixed entries are taken from the MP-built phase diagram for the whole chemical
         system, so they share one energy scale and reproduce the hull shown on
         https://materialsproject.org; ``property_data`` fields are attached to the
-        served entries after the fact. Narrowing the query with `additional_criteria`,
-        or passing ``compatible_only = False``, cannot be served that way and returns
-        entries that are *not* immediately suitable for constructing a phase diagram.
-        Warnings are thrown for these cases.
+        served entries after the fact, and any further ``additional_criteria`` narrow
+        the served entries to the materials matching them (with MP's own semantics,
+        i.e. ``is_stable`` / ``energy_above_hull`` refer to each material's own thermo
+        doc). Passing ``compatible_only = False`` cannot be served that way and returns
+        entries that are *not* immediately suitable for constructing a phase diagram,
+        with a warning.
 
         Args:
             elements (str or [str]): Parent chemical system string comprising element
@@ -1191,9 +1193,10 @@ class MPRester(_Rester):
         # (issue #1104). Thus we serve MP's phase diagram; built with mixing applied across the
         # full system, thus self-consistent by construction and identical to the MP website:
         mixed = set(additional_criteria["thermo_types"]) == {"GGA_GGA+U_R2SCAN"}
-        consistent = (
-            mixed and compatible_only and set(additional_criteria) == {"thermo_types"}
-        )
+        consistent = mixed and compatible_only
+        extra_criteria = {
+            k: v for k, v in additional_criteria.items() if k != "thermo_types"
+        }
 
         entries: list[ComputedStructureEntry] | None = None
         if consistent:
@@ -1242,14 +1245,33 @@ class MPRester(_Rester):
                         **kwargs,
                     )
                 )
+
+            if extra_criteria:
+                # narrow the common-scale entries post-hoc, with MP's own criteria semantics
+                # (querying with the criteria directly returns per-material corrected entries
+                # which do not share a common energy scale):
+                matching_ids = {
+                    str(doc["material_id"])
+                    for doc in self.materials.thermo.search(
+                        chemsys=all_chemsyses,
+                        thermo_types=additional_criteria["thermo_types"],
+                        all_fields=False,
+                        fields=["material_id"],
+                        **extra_criteria,
+                    )
+                }
+                entries = [
+                    entry
+                    for entry in entries
+                    if str(entry.data["material_id"]) in matching_ids
+                ]
         else:  # non-consistent
             if mixed:
                 warnings.warn(
                     "Mixed GGA(+U)/r2SCAN entries can only be placed on a common energy scale "
-                    "when the whole chemical system is retrieved with `compatible_only = True`, "
-                    "so these entries are not suitable for constructing a phase diagram. Either "
-                    "drop the extra `additional_criteria` (and filter the returned entries "
-                    "instead), or request a single functional with "
+                    "with `compatible_only = True`, so these uncorrected entries are not "
+                    "suitable for constructing a phase diagram. Either use "
+                    "`compatible_only = True`, or request a single functional with "
                     '`additional_criteria = {"thermo_types": ["GGA_GGA+U"]}`.',
                     category=MPRestWarning,
                     stacklevel=2,
