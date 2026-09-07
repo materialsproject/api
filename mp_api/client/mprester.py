@@ -1123,8 +1123,10 @@ class MPRester(_Rester):
         https://materialsproject.org; ``property_data`` fields are attached to the
         served entries after the fact, and any further ``additional_criteria`` narrow
         the served entries to the materials matching them (with MP's own semantics,
-        i.e. ``is_stable`` / ``energy_above_hull`` refer to each material's own thermo
-        doc). Passing ``compatible_only = False`` cannot be served that way and returns
+        i.e. ``is_stable`` / ``energy_above_hull`` refer to each material's `own` thermo
+        doc; entries with no mixed-type thermo doc, which can occur when the mixing
+        scheme is re-applied locally when MP has no pre-built diagram, are then dropped).
+        Passing ``compatible_only = False`` cannot be served that way and returns
         entries that are *not* immediately suitable for constructing a phase diagram,
         with a warning.
 
