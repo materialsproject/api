@@ -2,6 +2,7 @@ import importlib
 import itertools
 import os
 import random
+import warnings
 from collections import defaultdict
 from tempfile import NamedTemporaryFile
 
@@ -29,7 +30,11 @@ from pymatgen.entries.compatibility import (
     MaterialsProject2020Compatibility,
     MaterialsProjectAqueousCompatibility,
 )
-from pymatgen.entries.computed_entries import ComputedEntry, GibbsComputedStructureEntry
+from pymatgen.entries.computed_entries import (
+    ComputedEntry,
+    ConstantEnergyAdjustment,
+    GibbsComputedStructureEntry,
+)
 from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
@@ -236,15 +241,14 @@ loop_
         non_standardized = mpr.get_entry_by_material_id(
             thermo_docs[3].material_id, conventional_unit_cell=False
         )
-        assert all(
-            e.uncorrected_energy_per_atom
-            == pytest.approx(
-                next(
-                    f for f in non_standardized if f.entry_id == e.entry_id
-                ).uncorrected_energy_per_atom
+        for e in as_conv:
+            ref = next(f for f in non_standardized if f.entry_id == e.entry_id)
+            assert e.uncorrected_energy_per_atom == pytest.approx(
+                ref.uncorrected_energy_per_atom
             )
-            for e in as_conv
-        )
+            # corrected too: every adjustment must scale with the cell, including
+            # extensive ones with no ``n_atoms``, e.g. the r2SCAN mixing correction
+            assert e.energy_per_atom == pytest.approx(ref.energy_per_atom)
 
         # Additional criteria
         entry = mpr.get_entries(
@@ -309,6 +313,19 @@ loop_
         host = next(e for e in entries if e.composition.reduced_formula == "Cs2TiI6")
         assert phase_diagram.get_e_above_hull(host) == pytest.approx(0.0, abs=1e-6)
 
+        # extra criteria narrow the served (common-scale) entries, with MP's own semantics
+        with warnings.catch_warnings(record=True) as record:
+            stable = mpr.get_entries_in_chemsys(
+                "Cs-Ti-I", additional_criteria={"is_stable": True}
+            )
+        assert not [w for w in record if issubclass(w.category, MPRestWarning)]
+        assert 0 < len(stable) < len(entries)
+        assert {str(e.data["material_id"]) for e in stable} == {
+            str(e.data["material_id"])
+            for e in entries
+            if phase_diagram.get_e_above_hull(e) == pytest.approx(0.0, abs=1e-6)
+        }
+
         # hull distances must match the ones MP serves, and no material may go missing --
         # both fail if this silently falls through to re-applying the mixing scheme here
         docs = mpr.materials.thermo.search(
@@ -333,11 +350,47 @@ loop_
                 for e in hull_entries
             )
 
-        # a narrowed query cannot be placed on a common scale, so it must say so
+        # uncorrected mixed entries cannot be placed on a common scale, so a warning is thrown:
         with pytest.warns(MPRestWarning, match="common energy scale"):
-            mpr.get_entries_in_chemsys(
-                "Cs-Ti-I", additional_criteria={"is_stable": True}
+            mpr.get_entries_in_chemsys("Cs-Ti-I", compatible_only=False)
+
+    def test_get_entries_in_chemsys_decorated_served_pd(self, mpr):
+        """
+        ``property_data`` / ``conventional_unit_cell`` requests are also served from
+        the pre-built phase diagram (and decorated post-hoc), rather than falling back
+        to re-applying the mixing scheme locally (which can differ from MP's hull).
+        """
+        entries = mpr.get_entries_in_chemsys("H-O")
+        decorated = mpr.get_entries_in_chemsys(
+            "H-O", property_data=["energy_above_hull"], conventional_unit_cell=True
+        )
+        served = {
+            str(e.entry_id): (
+                e.energy_per_atom,
+                len(e.structure),
+                e.composition.reduced_formula,
             )
+            for e in entries
+        }
+
+        # same served entry set, same energy scale, and the reshaping is not a no-op
+        assert {str(e.entry_id) for e in decorated} == set(served)
+        assert any(len(e.structure) != served[str(e.entry_id)][1] for e in decorated)
+        # not vacuous: served r2SCAN entries carry their mixing correction as an
+        # extensive ``ConstantEnergyAdjustment``, which has no ``n_atoms`` to scale
+        assert any(
+            isinstance(adj, ConstantEnergyAdjustment)
+            for e in entries
+            for adj in e.energy_adjustments
+        )
+
+        for entry in decorated:
+            energy, _, formula = served[str(entry.entry_id)]
+            assert entry.data["energy_above_hull"] >= 0
+            # conventional reshaping must preserve per-atom corrected energies (including
+            # the extensive mixing-scheme adjustments on r2SCAN entries) and stoichiometry:
+            assert entry.energy_per_atom == pytest.approx(energy, abs=1e-8)
+            assert entry.composition.reduced_formula == formula
 
     @pytest.mark.skipif(
         contribs_client is None,
