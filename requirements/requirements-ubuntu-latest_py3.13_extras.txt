@@ -436,7 +436,7 @@ pygments==2.21.0
     #   sphinx
 pyisemail==2.0.1
     # via mp-api (pyproject.toml)
-pyjwt[crypto]==2.13.0
+pyjwt[crypto]==2.15.0
     # via mcp
 pymatgen==2026.5.4
     # via
