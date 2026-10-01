@@ -169,7 +169,7 @@ typing-inspection==0.4.4
     #   pydantic-settings
 uncertainties==3.2.3
     # via pymatgen-core
-urllib3==2.7.0
+urllib3==2.8.0
     # via
     #   botocore
     #   requests
