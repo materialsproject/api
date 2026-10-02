@@ -7,22 +7,22 @@ import pytest
 from mp_api.client.core.schemas import _DictLikeAccess, _convert_to_model
 
 
-class TestClass(_DictLikeAccess):
+class DummyClass(_DictLikeAccess):
     a: int
     b: float
     c: list[str]
 
 
 def test_dict_like_access():
-    instance = TestClass(a=1, b=2.0, c=["a", "b", "c"])
+    instance = DummyClass(a=1, b=2.0, c=["a", "b", "c"])
     assert isinstance(instance, BaseModel)
     assert all(
         getattr(instance, field_name) == instance[field_name]
         and instance[field_name] == instance.get(field_name)
-        for field_name in TestClass.model_fields
+        for field_name in DummyClass.model_fields
     )
 
-    as_str = """TestClass(
+    as_str = """DummyClass(
   a (int) : 1
   b (float) : 2.0
   c (list) : ['a', 'b', 'c']
@@ -30,7 +30,9 @@ def test_dict_like_access():
     assert str(instance) == as_str
     assert repr(instance) == as_str
 
-    with pytest.raises(AttributeError, match="'TestClass' object has no attribute 'd'"):
+    with pytest.raises(
+        AttributeError, match="'DummyClass' object has no attribute 'd'"
+    ):
         instance.d
     assert instance.get("d", None) == None
 
@@ -53,7 +55,7 @@ def test_model_generation():
             {k: v for k, v in doc.items() if k != "b"} for doc in get_data()
         ),
     }.items():
-        as_models = _convert_to_model(trial_data, TestClass, model_name=test_type)
+        as_models = _convert_to_model(trial_data, DummyClass, model_name=test_type)
         assert all(isinstance(doc, BaseModel) for doc in as_models)
         assert all(doc.__class__.__name__ == test_type for doc in as_models)
 
@@ -73,20 +75,20 @@ def test_model_generation():
         else:
             assert all(
                 getattr(doc, k) and doc.get(k)
-                for k in TestClass.model_fields
+                for k in DummyClass.model_fields
                 for doc in as_models
             )
 
         assert all(
             substr in str(doc)
-            for substr in ("Fields not requested", "TestClass", test_type)
+            for substr in ("Fields not requested", "DummyClass", test_type)
             for doc in as_models
         )
 
     # Test requesting unavailable fields
     as_models = _convert_to_model(
         [{k: v for k, v in doc.items() if k != "b"} for doc in get_data()],
-        TestClass,
+        DummyClass,
         requested_fields=["b"],
     )
 
@@ -96,7 +98,7 @@ def test_model_generation():
     # Test accessing fields that weren't requested
     as_models = _convert_to_model(
         [{k: v for k, v in doc.items() if k == "b"} for doc in get_data()],
-        TestClass,
+        DummyClass,
         requested_fields=["b"],
     )
     with pytest.raises(
@@ -105,4 +107,4 @@ def test_model_generation():
         as_models[0].a
 
     # Ensure graceful handling of empty iterator input (no docs returned)
-    assert _convert_to_model(iter([]), TestClass) == []
+    assert _convert_to_model(iter([]), DummyClass) == []
