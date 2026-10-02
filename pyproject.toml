@@ -1,16 +1,31 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["mp_api"]
+dev-mode-dirs = ["."]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "mp_api",
+  "tests",
+  "pyproject.toml",
+]
 
 [project]
 name = "mp-api"
+dynamic = ["version"]
+requires-python = ">=3.12"
+description = "API Client for the Materials Project"
+license = "BSD-3-Clause-LBNL"
 authors = [
   { name = "The Materials Project", email = "feedback@materialsproject.org" },
 ]
-description = "API Client for the Materials Project"
-readme = "README.md"
-requires-python = ">=3.12"
-license = "BSD-3-Clause-LBNL"
+
 classifiers = [
   "Programming Language :: Python :: 3",
   "Development Status :: 4 - Beta",
@@ -19,6 +34,7 @@ classifiers = [
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering",
 ]
+
 dependencies = [
   "pymatgen>2024.2.20",
   "typing-extensions>=3.7.4.1",
@@ -30,7 +46,6 @@ dependencies = [
   "pyarrow >= 20.0.0",
   "deltalake>=1.4.0,<1.6.0",
 ]
-dynamic = ["version"]
 
 [project.optional-dependencies]
 mcp = ["fastmcp"]
@@ -74,12 +89,6 @@ docs = ["sphinx"]
 
 [project.scripts]
 mpmcp = "mp_api.mcp.server:_run_mp_mcp_server"
-
-[tool.setuptools.packages.find]
-include = ["mp_api*"]
-namespaces = true
-
-[tool.setuptools_scm]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
