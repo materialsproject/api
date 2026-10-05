@@ -2,19 +2,33 @@
 
 from __future__ import annotations
 
-from functools import cached_property
+import logging
+from functools import cached_property, lru_cache
 from importlib import import_module
+from importlib.metadata import version
 from itertools import chain
 from typing import TYPE_CHECKING, ForwardRef, get_args
 
 from emmet.core.utils import jsanitize
-from pydantic import BaseModel, create_model
+from pydantic import (
+    BaseModel,
+    ValidationError,
+    create_model,
+    field_validator,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Any
 
     from pydantic.fields import FieldInfo
+
+logger = logging.getLogger(__name__)
+
+
+@lru_cache(20)
+def _warn_failed_field_validation(logger: logging.Logger, msg: str):
+    logger.warning(msg)
 
 
 class _DictLikeAccess(BaseModel):
@@ -47,7 +61,7 @@ class _DictLikeAccess(BaseModel):
         return (
             f"{self.__class__.__name__}(\n"
             + "\n".join(
-                f"  {k} ({annos[k]}) : {getattr(self,k)}" for k in populated_fields
+                f"  {k} ({annos[k]}) : {getattr(self, k)}" for k in populated_fields
             )
             + "\n)"
         )
@@ -55,6 +69,24 @@ class _DictLikeAccess(BaseModel):
     def __repr__(self) -> str:
         """Match output of str()."""
         return self.__str__()
+
+    @field_validator("*", mode="wrap")
+    @classmethod
+    def ignore_invalid(cls, value, default_validator, info) -> Any:
+        try:
+            return default_validator(value)
+        except ValidationError:
+            emmet_version = version("emmet-core")
+            annotation = cls.model_fields[info.field_name].annotation
+            _warn_failed_field_validation(
+                logger,
+                f"Failed validation on field: '{info.field_name}', received type: '{type(value)}', expected type: '{annotation}'. "
+                "Field value set to 'None', re-run query with 'document_model=False' to skip validation. "
+                f"Local 'emmet-core' version is: '{emmet_version}', run 'mpr = MPRester(); mpr.get_emmet_version(mpr.endpoint)' to "
+                "check the live API server for schema version mismatches and upgrade 'emmet-core' if needed.",
+            )
+
+            return None
 
 
 def _generate_returned_model(

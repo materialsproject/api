@@ -139,7 +139,6 @@ def client_sort(
         if k not in ("_page", "_sort_fields", "chunk_size", "fields")
     }
     for sort_field in [sort_fields] if isinstance(sort_fields, str) else sort_fields:
-
         asc = search_method(
             _page=1,
             _sort_fields=sort_field,
