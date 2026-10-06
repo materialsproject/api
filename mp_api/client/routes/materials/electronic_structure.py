@@ -164,6 +164,7 @@ class BaseESPropertyRester(BaseRester):
                 use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
+                delta_catalog=self.delta_catalog,
             )
         return self._es_rester
 
@@ -298,7 +299,7 @@ class BandStructureRester(BaseESPropertyRester):
         if path_type:
             query += f"\nAND path_convention='{path_type}'"
 
-        table = self._query_delta_single(query)
+        table = self._query_delta_single(query, label=bs_lbl)
         if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
             if load_projections:
                 proj_bs_label, _ = self._get_delta_table(
@@ -307,7 +308,7 @@ class BandStructureRester(BaseESPropertyRester):
                     label="bandstructure_projections",
                 )
                 proj_table = self._query_delta_single(
-                    query.replace(bs_lbl, proj_bs_label)
+                    query.replace(bs_lbl, proj_bs_label), label=proj_bs_label
                 )
                 if (
                     len(deser_proj := proj_table.to_pylist(maps_as_pydicts="strict"))
@@ -553,7 +554,7 @@ class DosRester(BaseESPropertyRester):
             rt = RunType(run_type) if isinstance(run_type, str) else run_type
             query += f"\nAND run_type='{rt.value}'"
 
-        table = self._query_delta_single(query)
+        table = self._query_delta_single(query, label=dos_lbl)
         if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
             if load_projections:
                 proj_dos_label, _ = self._get_delta_table(
@@ -562,7 +563,7 @@ class DosRester(BaseESPropertyRester):
                     label="dos_projections",
                 )
                 proj_table = self._query_delta_single(
-                    query.replace(dos_lbl, proj_dos_label)
+                    query.replace(dos_lbl, proj_dos_label), label=proj_dos_label
                 )
                 if (
                     len(deser_proj := proj_table.to_pylist(maps_as_pydicts="strict"))

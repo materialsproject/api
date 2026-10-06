@@ -64,6 +64,7 @@ if TYPE_CHECKING:
     from pymatgen.util.typing import SpeciesLike
 
     from mp_api.client.core.client import QueryBuilderWithCache
+    from mp_api.client.core.delta import DeltaCatalog
     from mp_api.client.core.schemas import _DictLikeAccess
 
 
@@ -120,6 +121,7 @@ class MPRester(_Rester):
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
         query_builder: QueryBuilderWithCache | None = None,
+        delta_catalog: DeltaCatalog | None = None,
         notify_db_version: bool = False,
         **kwargs,
     ):
@@ -154,8 +156,13 @@ class MPRester(_Rester):
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
-            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+            query_builder : DEPRECATED, use `delta_catalog`. Instance of QueryBuilderWithCache
+                whose catalog is used for querying delta tables.
                 NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
+            delta_catalog : Instance of DeltaCatalog to use for querying delta tables.
+                Share one instance across MPRester instances (e.g. one per web-server
+                worker) to reuse loaded table snapshots. If None, one is created and
+                shared by all resters under this MPRester.
             notify_db_version (bool): If True, the current MP database version will
                 be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
                 version changes, you will be notified. The current database version is
@@ -177,6 +184,7 @@ class MPRester(_Rester):
             local_dataset_cache=local_dataset_cache,
             force_renew=force_renew,
             query_builder=query_builder,
+            delta_catalog=delta_catalog,
             **kwargs,
         )
 
@@ -269,7 +277,7 @@ class MPRester(_Rester):
                         db_version=self.db_version,
                         local_dataset_cache=self.local_dataset_cache,
                         force_renew=self.force_renew,
-                        query_builder=self._query_builder,
+                        delta_catalog=self.delta_catalog,
                     ),
                 )
 

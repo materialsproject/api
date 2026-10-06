@@ -54,7 +54,9 @@ class TaskRester(BaseRester):
             {predicate};
         """
 
-        traj_data = self._query_delta_single(query).to_pylist(maps_as_pydicts="strict")
+        traj_data = self._query_delta_single(query, label=traj_lbl).to_pylist(
+            maps_as_pydicts="strict"
+        )
 
         if not traj_data:
             raise MPRestError(f"No trajectory data for {task_id} found")

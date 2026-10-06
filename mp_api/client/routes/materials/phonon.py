@@ -34,6 +34,7 @@ class PhononRester(BaseRester):
                 use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
+                delta_catalog=self.delta_catalog,
             )
         return self._summary_rester
 
@@ -175,7 +176,7 @@ class PhononRester(BaseRester):
         if path_type:
             query += f"\nAND path_convention='{path_type}'"
 
-        table = self._query_delta_single(query)
+        table = self._query_delta_single(query, label=ph_bs_lbl)
         deser = table.to_pylist(maps_as_pydicts="strict")
         if deser and deser[0].get("bandstructure") is not None:
             bs = deser[0]["bandstructure"]
@@ -249,7 +250,7 @@ class PhononRester(BaseRester):
             AND    phonon_method='{phonon_method}'
         """
 
-        table = self._query_delta_single(query)
+        table = self._query_delta_single(query, label=ph_dos_lbl)
         deser = table.to_pylist(maps_as_pydicts="strict")
         if deser and deser[0].get("dos") is not None:
             dos = deser[0]["dos"]
@@ -314,7 +315,7 @@ class PhononRester(BaseRester):
             AND    phonon_method='{phonon_method}'
         """
 
-        table = self._query_delta_single(query)
+        table = self._query_delta_single(query, label=ph_fc_lbl)
         deser = table.to_pylist(maps_as_pydicts="strict")
         if deser and deser[0].get("force_constants") is not None:
             return deser[0]["force_constants"]

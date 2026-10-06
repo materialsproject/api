@@ -43,6 +43,7 @@ from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
 from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
+from mp_api.client.core.delta import DeltaCatalog
 from mp_api.client.core.exceptions import (
     MPRestError,
     MPRestWarning,
@@ -60,6 +61,8 @@ from mp_api.client.core.utils import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
     from typing import Any
+
+    from arro3.core import RecordBatchReader
 
     from mp_api.client.core.utils import LazyImport
 
@@ -100,28 +103,42 @@ def _batched(iterable: Iterable, n: int) -> Iterator:
 
 
 class QueryBuilderWithCache(QueryBuilder):
+    def __init__(self, catalog: DeltaCatalog | None = None, _warn: bool = True) -> None:
+        """Deprecated: use `mp_api.client.core.delta.DeltaCatalog`.
 
-    def __init__(self) -> None:
-        """Extend deltalake.QueryBuilder with stored DeltaTables.
+        Kept for backwards compatibility. Tables registered here, and
+        queries run through it, are delegated to a `DeltaCatalog`. Resters
+        given this object via `query_builder=` share its catalog.
 
-        The deltalake.QueryBuilder class does not permit introspection
-        of registered DeltaTables through the python API.
-
-        Re-registering a DeltaTable
-        (1) wastes time by reading its metadata
-        (2) raises an exception because a table is already registered
-
-        This class simply allows for caching the DeltaTable instances
-        and table names on the QueryBuilder class.
+        Args:
+            catalog (DeltaCatalog or None) : catalog to delegate to.
+                A new one is created if None.
+            _warn (bool) : internal, whether to emit a DeprecationWarning
         """
-        # Dict of table names (labels) to DeltaTable instances
-        self._delta_tables: dict[str, DeltaTable] = {}
+        if _warn:
+            warnings.warn(
+                "QueryBuilderWithCache is deprecated and will be removed in a future "
+                "release. Pass `delta_catalog=DeltaCatalog()` "
+                "(from mp_api.client.core.delta) to MPRester instead.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+        self.catalog: DeltaCatalog = catalog if catalog is not None else DeltaCatalog()
         super().__init__()
 
+    @property
+    def _delta_tables(self) -> dict[str, DeltaTable]:
+        """Map of table names (labels) to DeltaTable instances."""
+        return self.catalog.tables
+
     def register(self, table_name: str, delta_table: DeltaTable) -> QueryBuilder:
-        """Register and cache a DeltaTable."""
-        self._delta_tables[table_name] = delta_table
-        return super().register(table_name, delta_table)
+        """Register a DeltaTable in the underlying catalog."""
+        self.catalog.add(table_name, delta_table)
+        return self
+
+    def execute(self, sql: str) -> RecordBatchReader:
+        """Execute SQL against the tables in the underlying catalog."""
+        return self.catalog.execute_stream(sql)
 
 
 class _Rester:
@@ -142,6 +159,7 @@ class _Rester:
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
         query_builder: QueryBuilderWithCache | None = None,
+        delta_catalog: DeltaCatalog | None = None,
         **kwargs,
     ) -> None:
         """Initialize a RESTer.
@@ -176,8 +194,12 @@ class _Rester:
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to 'mp_datasets' in the user's home directory
             force_renew: Option to overwrite existing local dataset
-            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+            query_builder : DEPRECATED, use `delta_catalog`. Instance of QueryBuilderWithCache
+                whose catalog is used for querying delta tables.
                 NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
+            delta_catalog : Instance of DeltaCatalog to use for querying delta tables.
+                Share one instance across resters (e.g. one per web-server worker) to
+                reuse loaded table snapshots. Takes precedence over `query_builder`.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
         self.api_key = get_user_api_key(api_key=api_key)
@@ -204,6 +226,9 @@ class _Rester:
         self._query_builder = (
             query_builder if isinstance(query_builder, QueryBuilderWithCache) else None
         )
+        if self._query_builder is not None and delta_catalog is None:
+            delta_catalog = self._query_builder.catalog
+        self._delta_catalog: DeltaCatalog | None = delta_catalog
 
         if "monty_decode" in kwargs:
             # Pop to not repeatedly trigger warning to the user
@@ -224,9 +249,24 @@ class _Rester:
         return self._session
 
     @property
-    def query_builder(self):
-        if not self._query_builder:
-            self._query_builder = QueryBuilderWithCache()
+    def delta_catalog(self) -> DeltaCatalog:
+        """The DeltaCatalog used for delta-backed queries, created on first use."""
+        if self._delta_catalog is None:
+            self._delta_catalog = DeltaCatalog()
+        return self._delta_catalog
+
+    @property
+    def query_builder(self) -> QueryBuilderWithCache:
+        """Deprecated: use `delta_catalog`."""
+        warnings.warn(
+            "`query_builder` is deprecated, use `delta_catalog` instead.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        if self._query_builder is None:
+            self._query_builder = QueryBuilderWithCache(
+                catalog=self.delta_catalog, _warn=False
+            )
         return self._query_builder
 
     @staticmethod
@@ -330,6 +370,7 @@ class BaseRester(_Rester):
         ) = MAPI_CLIENT_SETTINGS.LOCAL_DATASET_CACHE,
         force_renew: bool = False,
         query_builder: QueryBuilderWithCache | None = None,
+        delta_catalog: DeltaCatalog | None = None,
         s3_client: Any | None = None,
         timeout: int = 20,
         **kwargs,
@@ -369,9 +410,11 @@ class BaseRester(_Rester):
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to 'mp_datasets' in the user's home directory
             force_renew: Option to overwrite existing local dataset
-            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables
+            query_builder : DEPRECATED, use `delta_catalog`. Instance of QueryBuilderWithCache
+                whose catalog is used for querying delta tables.
                 NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.
-            s3_client: boto3 S3 client object with which to connect to the object stores.ct to the object stores.ct to the object stores.
+            delta_catalog : Instance of DeltaCatalog to use for querying delta tables.
+            s3_client: boto3 S3 client object with which to connect to the object stores.
             timeout: Time in seconds to wait until a request timeout error is thrown
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
@@ -387,6 +430,7 @@ class BaseRester(_Rester):
             local_dataset_cache=local_dataset_cache,
             force_renew=force_renew,
             query_builder=query_builder,
+            delta_catalog=delta_catalog,
             **kwargs,
         )
 
@@ -588,22 +632,24 @@ class BaseRester(_Rester):
         prefix: str,
         connector: str = "s3a",
         label: str | None = None,
+        refresh: bool = False,
     ) -> tuple[str, DeltaTable]:
         """Either create a new DeltaTable, or retrieve a cached one.
 
-        If creating a new DeltaTable, will also register in self.query_builder
+        If creating a new DeltaTable, will also register it in self.delta_catalog
 
         Args:
             bucket (str) : name of the bucket in S3
             prefix (str) : name of the prefix in S3
             connector (str) : s3, s3n, s3a (default), or other
                 valid Hadoop connector string.
-            label (str or None) : optional label for the table in the
-                cached query builder
-                If `None`, will be gleaned from the URI
+            label (str or None) : optional label (SQL table name) for the
+                table in the catalog. If `None`, will be gleaned from the URI
+            refresh (bool) : if the table is already cached, reload its
+                snapshot to the latest version first
 
         Returns:
-            str : the table name in the stored query builder
+            str : the table name in the catalog
             DeltaTable : If one exists at the specified bucket / prefix,
                 will retrieve the cached instance.
         """
@@ -615,31 +661,22 @@ class BaseRester(_Rester):
         if not uri.endswith("/"):
             uri += "/"
 
-        try:
-            stored_label, delta_table = next(
-                (_label, _table)
-                for _label, _table in self.query_builder._delta_tables.items()
-                if _table.table_uri == uri
-            )
-        except StopIteration:
-            stored_label = None
+        stored_label, delta_table = self.delta_catalog.get_table(
+            uri,
+            qb_label,
+            storage_options={
+                "AWS_SKIP_SIGNATURE": "true",
+                "AWS_REGION": "us-east-1",
+                "timeout": delta_timeout,
+                "connect_timeout": delta_timeout,
+                "pool_idle_timeout": delta_timeout,
+                "retry_delay": "3",
+                "max_retries": f"{MAPI_CLIENT_SETTINGS.MAX_RETRIES}",
+            },
+            refresh=refresh,
+        )
 
-        if stored_label is None:
-            delta_table = DeltaTable(
-                uri,
-                storage_options={
-                    "AWS_SKIP_SIGNATURE": "true",
-                    "AWS_REGION": "us-east-1",
-                    "timeout": delta_timeout,
-                    "connect_timeout": delta_timeout,
-                    "pool_idle_timeout": delta_timeout,
-                    "retry_delay": "3",
-                    "max_retries": f"{MAPI_CLIENT_SETTINGS.MAX_RETRIES}",
-                },
-            )
-            self.query_builder.register(qb_label, delta_table)
-
-        elif stored_label != qb_label:
+        if stored_label != qb_label:
             warnings.warn(
                 f"DeltaTable with URI {uri} already found with different label: "
                 f"Stored label = {stored_label}; submitted label {qb_label}. "
@@ -647,12 +684,15 @@ class BaseRester(_Rester):
                 category=MPRestWarning,
                 stacklevel=2,
             )
-            return stored_label, delta_table
 
-        return qb_label, delta_table
+        return stored_label, delta_table
 
-    def _query_delta_single(self, query: str) -> pa.Table:
+    def _query_delta_single(self, query: str, label: str | None = None) -> pa.Table:
         """Execute a SQL query against a registered Delta table.
+
+        If `label` is given and the query fails because a file in the cached
+        snapshot no longer exists (e.g. the remote table was vacuumed), only
+        that table is reloaded and the query is retried once.
 
         Wraps the query execution in a try/except to provide a more
         actionable error message when the underlying Delta query engine
@@ -662,6 +702,8 @@ class BaseRester(_Rester):
         Args:
             query (str): A SQL query string compatible with the
                 QueryBuilder engine.
+            label (str or None): The registered table the query reads from,
+                as returned by `_get_delta_table`. Required for retries.
 
         Returns:
             pa.Table: The query result as a PyArrow Table.
@@ -673,13 +715,20 @@ class BaseRester(_Rester):
                 the underlying cause.
         """
         try:
-            return pa.table(self.query_builder.execute(query).read_all())
+            return self.delta_catalog.execute(query, label=label)
         except Exception as e:
-            raise MPRestError(
-                f"Failed to retrieve object due to: {e}. "
-                f"If this is a timeout error, try increasing the 'timeout' "
-                f"parameter on MPRester (current value: {self.timeout}s)."
-            ) from e
+            refreshed = any(
+                "after refreshing" in note for note in getattr(e, "__notes__", [])
+            )
+            hint = (
+                f"The DeltaTable '{label}' was refreshed and the query retried once."
+                if refreshed
+                else (
+                    "If this is a timeout error, try increasing the 'timeout' "
+                    f"parameter on MPRester (current value: {self.timeout}s)."
+                )
+            )
+            raise MPRestError(f"Failed to retrieve object due to: {e}. {hint}") from e
 
     def _query_delta_backed(
         self,
@@ -758,7 +807,8 @@ class BaseRester(_Rester):
                     )
                 }
 
-        tbl_lbl, tbl = self._get_delta_table(bucket, prefix, label=label)
+        # Full downloads are one-off, always start from the latest snapshot
+        tbl_lbl, tbl = self._get_delta_table(bucket, prefix, label=label, refresh=True)
 
         controlled_batch_str = ",".join(
             [f"'{tag}'" for tag in self.access_controlled_batch_ids]
@@ -804,7 +854,9 @@ class BaseRester(_Rester):
             else None
         )
 
-        iterator = self.query_builder.execute(f"SELECT * FROM {tbl_lbl} {predicate}")
+        iterator = self.delta_catalog.execute_stream(
+            f"SELECT * FROM {tbl_lbl} {predicate}"
+        )
 
         file_options = ds.ParquetFileFormat().make_write_options(compression="zstd")
 
@@ -1743,7 +1795,7 @@ class CoreRester(BaseRester):
                     db_version=self.db_version,
                     local_dataset_cache=self.local_dataset_cache,
                     force_renew=self.force_renew,
-                    query_builder=self._query_builder,
+                    delta_catalog=self.delta_catalog,
                 )
             return self.sub_resters[v]
         raise AttributeError(f"{self.__class__} has no attribute {v}")

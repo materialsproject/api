@@ -214,7 +214,7 @@ class ThermoRester(BaseRester):
               AND  version='{version}'
               AND  thermo_type='{validated_thermo_type}'
         """
-        table = self._query_delta_single(query)
+        table = self._query_delta_single(query, label=pd_lbl)
         as_py = table["phase_diagram"].to_pylist(maps_as_pydicts="strict")
 
         pd: PhaseDiagram | None = None
