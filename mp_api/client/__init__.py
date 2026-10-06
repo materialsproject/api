@@ -16,4 +16,5 @@ try:
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION", "")
 
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())

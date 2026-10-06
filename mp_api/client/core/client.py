@@ -88,13 +88,7 @@ CONTROLLED_COLLECTIONS = [
     "thermo",
 ]
 
-hdlr = logging.StreamHandler()
-fmt = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-hdlr.setFormatter(fmt)
-
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(hdlr)
 
 
 def _batched(iterable: Iterable, n: int) -> Iterator:
