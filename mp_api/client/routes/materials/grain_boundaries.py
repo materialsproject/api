@@ -34,24 +34,24 @@ class GrainBoundaryRester(BaseRester):
         """Query grain boundary docs using a variety of search criteria.
 
         Arguments:
-             material_ids (str, List[str]): Search for grain boundary data associated with the specified Material IDs
+             material_ids (str | list[str]): Search for grain boundary data associated with the specified Material IDs
              chemsys (str): Dash-delimited string of elements in the material.
-             gb_plane(List[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]
-             gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.
-             material_ids (List[str]): List of Materials Project IDs to query with.
+             gb_plane(list[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]
+             gb_energy (tuple[float, float]): Minimum and maximum grain boundary energy in J/m³ to consider.
+             material_ids (list[str]): List of Materials Project IDs to query with.
              pretty_formula (str): Formula of the material.
-             rotation_angle (Tuple[float,float]): Minimum and maximum rotation angle in degrees to consider.
+             rotation_angle (tuple[float, float]): Minimum and maximum rotation angle in degrees to consider.
              rotation_axis (tuple of 3 int or of 4 int): The Miller index of rotation axis.
                 A 3- or 4-tuple of int or str: e.g.,
                 (0, 0, 0, 1), (1, 0, 0), (1, 1, 0), or (1, 1, 1)
              sigma (int): Sigma value of grain boundary.
-             separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.
+             separation_energy (tuple[float, float]): Minimum and maximum work of separation energy in J/m³ to consider.
              sigma (int): Sigma value of the boundary.
              type (GBTypeEnum): Grain boundary type.
              num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
              chunk_size (int): Number of data entries per chunk.
              all_fields (bool): Whether to return all fields in the document. Defaults to True.
-             fields (List[str]): List of fields in GrainBoundaryDoc to return data for.
+             fields (list[str]): List of fields in GrainBoundaryDoc to return data for.
                  Default is material_id and last_updated if all_fields is False.
 
         Returns:

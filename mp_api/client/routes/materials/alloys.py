@@ -30,12 +30,12 @@ class AlloysRester(BaseRester):
         endpoint is useful.
 
         Arguments:
-            material_ids (str, List[str]): Search for alloys containing the specified Material IDs
-            formulae (List[str]): Search for alloys containing the specified formulae
+            material_ids (str | list[str]): Search for alloys containing the specified Material IDs
+            formulae (list[str]): Search for alloys containing the specified formulae
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in AlloyPairDoc to return data for.
+            fields (list[str]): List of fields in AlloyPairDoc to return data for.
 
         Returns:
             ([AlloyPairDoc], [dict]) List of alloy pair documents or dictionaries.

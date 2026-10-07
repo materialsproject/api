@@ -103,7 +103,7 @@ def validate_ids(id_list: list[str]) -> list[str]:
     """Function to validate material and task IDs.
 
     Args:
-        id_list (List[str]): List of material or task IDs.
+        id_list (list[str]): List of material or task IDs.
 
     Raises:
         MPRestError: If at least one ID is not formatted correctly.

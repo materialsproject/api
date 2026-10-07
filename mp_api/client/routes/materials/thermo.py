@@ -77,30 +77,30 @@ class ThermoRester(BaseRester):
         """Query core thermo docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            chemsys (str, List[str]): A chemical system or list of chemical systems
+            chemsys (str | list[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
-            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
+            energy_above_hull (tuple[float, float]): Minimum and maximum energy above the hull in eV/atom to consider.
+            equilibrium_reaction_energy (tuple[float, float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
-            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
-            formula (str, List[str]): A formula including anonymized formula
+            formation_energy (tuple[float, float]): Minimum and maximum formation energy in eV/atom to consider.
+            formula (str | list[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             is_stable (bool): Whether the material is stable.
-            material_ids (List[str]): List of Materials Project IDs to return data for.
-            thermo_ids (List[str]): List of thermo IDs to return data for. This is a combination of the Materials
+            material_ids (list[str]): List of Materials Project IDs to return data for.
+            thermo_ids (list[str]): List of thermo IDs to return data for. This is a combination of the Materials
                 Project ID and thermo type (e.g. mp-149_GGA_GGA+U).
-            thermo_types (List[ThermoType or str]): List of thermo/run types to return data for (e.g. ThermoType.GGA_GGA_U).
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
-            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
-            uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
+            thermo_types (list[ThermoType | str]): List of thermo/run types to return data for (e.g. ThermoType.GGA_GGA_U).
+            num_elements (tuple[int, int]): Minimum and maximum number of elements in the material to consider.
+            total_energy (tuple[float, float]): Minimum and maximum corrected total energy in eV/atom to consider.
+            uncorrected_energy (tuple[float, float]): Minimum and maximum uncorrected total
                 energy in eV/atom to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ThermoDoc to return data for.
+            fields (list[str]): List of fields in ThermoDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:

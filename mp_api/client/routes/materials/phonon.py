@@ -57,15 +57,15 @@ class PhononRester(BaseRester):
         phonon IDs are then used to query the phonon endpoint.
 
         Arguments:
-            identifiers (str, List[str]): A single Phonon Task ID string or list of strings
+            identifiers (str | list[str]): A single Phonon Task ID string or list of strings
                 (e.g., aaaaaaft, [aaaaaaft, aaaeguxu]).
-            material_ids (str, List[str]): A single Materials Project ID or list of IDs
+            material_ids (str | list[str]): A single Materials Project ID or list of IDs
                 (e.g., mp-149, [mp-149, mp-13]).
             phonon_method (str): phonon method to search (dfpt, phonopy, pheasy)
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in PhononBSDOSTask to return data for.
+            fields (list[str]): List of fields in PhononBSDOSTask to return data for.
                 Default is identifier, last_updated, and formula_pretty if all_fields is False.
 
         Returns:

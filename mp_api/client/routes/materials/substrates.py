@@ -30,18 +30,18 @@ class SubstratesRester(BaseRester):
         """Query substrate docs using a variety of search criteria.
 
         Arguments:
-            area (Tuple[float,float]): Minimum and maximum volume in Å² to consider for the minimum coincident
+            area (tuple[float, float]): Minimum and maximum volume in Å² to consider for the minimum coincident
                 interface area range.
-            energy (Tuple[float,float]): Minimum and maximum energy in meV to consider for the elastic energy range.
+            energy (tuple[float, float]): Minimum and maximum energy in meV to consider for the elastic energy range.
             film_id (str): Materials Project ID of the film material.
-            film_orientation (List[int]): Vector indicating the surface orientation of the film material.
+            film_orientation (list[int]): Vector indicating the surface orientation of the film material.
             substrate_id (str): Materials Project ID of the substrate material.
             substrate_formula (str): Reduced formula of the substrate material.
-            substrate_orientation (List[int]): Vector indicating the surface orientation of the substrate material.
+            substrate_orientation (list[int]): Vector indicating the surface orientation of the substrate material.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in SubstratesDoc to return data for.
+            fields (list[str]): List of fields in SubstratesDoc to return data for.
                 Default is the film_id and substrate_id only if all_fields is False.
 
         Returns:

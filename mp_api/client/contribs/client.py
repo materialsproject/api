@@ -69,7 +69,7 @@ from mp_api.client.core.exceptions import MPContribsClientError
 from mp_api.client.core.schemas import _convert_to_model
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Iterable, Sequence
+    from collections.abc import Iterable, Sequence
     from typing import Any
 
     from mp_api.client.contribs._types import (
@@ -163,25 +163,6 @@ bravado_config = bravado_config_from_config_dict(bravado_config_dict)
 for key in set(bravado_config._fields).intersection(set(bravado_config_dict)):
     del bravado_config_dict[key]
 bravado_config_dict["bravado"] = bravado_config
-
-
-# https://stackoverflow.com/a/8991553
-def grouper(n: int, iterable: Iterable) -> Generator:
-    """Collect data into non-overlapping fixed-length chunks or blocks.
-
-    Args:
-        n (int) : Maximum number of elements per block
-        iterable (Iterable) : object to divide into blocks
-
-    Returns:
-        Generator of input iterable divided into blocks
-    """
-    it = iter(iterable)
-    while True:
-        chunk = tuple(itertools.islice(it, n))
-        if not chunk:
-            return
-        yield chunk
 
 
 def get_session(session: requests.Session | None = None) -> FuturesSession:
@@ -647,7 +628,7 @@ class ContribsClient(SwaggerClient):
                     line_len = len(",".join(vv).encode("utf-8"))
 
                 if len(v) > per_page:
-                    for chunk in grouper(per_page, v):
+                    for chunk in itertools.batched(v, per_page):
                         queries.append({k: list(chunk)})
 
         query["per_page"] = per_page

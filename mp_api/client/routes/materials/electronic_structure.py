@@ -60,25 +60,25 @@ class ElectronicStructureRester(BaseRester):
         """Query electronic structure docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            chemsys (str, List[str]): A chemical system or list of chemical systems
+            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.
+            chemsys (str | list[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
-            elements (List[str]): A list of elements.
-            exclude_elements (List[str]): A list of elements to exclude.
-            formula (str, List[str]): A formula including anonymized formula
+            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.
+            elements (list[str]): A list of elements.
+            exclude_elements (list[str]): A list of elements to exclude.
+            formula (str | list[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            num_elements (tuple[int, int]): Minimum and maximum number of elements to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
+            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
@@ -200,8 +200,8 @@ class BandStructureRester(BaseESPropertyRester):
         """Query band structure summary data in electronic structure docs using a variety of search criteria.
 
         Arguments:
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
+            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.
+            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
             magnetic_ordering (Ordering or str): Magnetic ordering of the material.
@@ -209,7 +209,7 @@ class BandStructureRester(BaseESPropertyRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
+            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
@@ -341,7 +341,7 @@ class BandStructureRester(BaseESPropertyRester):
                 bandstructure, if available.
 
         Returns:
-            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
+            bandstructure (BandStructure | BandStructureSymmLine): BandStructure or BandStructureSymmLine object
         """
         pt: BSPathType = (
             BSPathType(path_type) if isinstance(path_type, str) else path_type
@@ -436,8 +436,8 @@ class DosRester(BaseESPropertyRester):
         """Query density of states summary data in electronic structure docs using a variety of search criteria.
 
         Arguments:
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
+            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.
+            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.
             element (Element or str): Element for element-projected dos data.
             magnetic_ordering (Ordering or str): Magnetic ordering of the material.
             orbital (OrbitalType or str): Orbital for orbital-projected dos data.
@@ -446,7 +446,7 @@ class DosRester(BaseESPropertyRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
+            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:

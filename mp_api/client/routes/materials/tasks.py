@@ -78,17 +78,17 @@ class TaskRester(BaseRester):
         """Query core task docs using a variety of search criteria.
 
         Arguments:
-            task_ids (str, List[str]): List of Materials Project IDs to return data for.
-            elements (List[str]): A list of elements.
-            exclude_elements (List[str]): A list of elements to exclude.
-            formula (str, List[str]): A formula including anonymized formula
+            task_ids (str | list[str]): List of Materials Project IDs to return data for.
+            elements (list[str]): A list of elements.
+            exclude_elements (list[str]): A list of elements to exclude.
+            formula (str | list[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             last_updated (tuple[datetime, datetime]): A tuple of min and max UTC formatted datetimes.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk. Max size is 100.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in CoreTaskDoc to return data for.
+            fields (list[str]): List of fields in CoreTaskDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
 
         Returns:

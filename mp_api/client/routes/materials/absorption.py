@@ -29,7 +29,7 @@ class AbsorptionRester(BaseRester):
         """Query for optical absorption spectra data.
 
         Arguments:
-            material_ids (str, List[str]):
+            material_ids (str | list[str]):
                 Search for optical absorption data associated with the
                 specified Material ID(s)
             num_sites (int, tuple[int, int]):
@@ -52,7 +52,7 @@ class AbsorptionRester(BaseRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in AbsorptionDoc to return data for.
+            fields (list[str]): List of fields in AbsorptionDoc to return data for.
 
         Returns:
             ([AbsorptionDoc], [dict]) List of optical absorption documents or dictionaries.

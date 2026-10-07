@@ -25,14 +25,14 @@ class PiezoRester(BaseRester):
         """Query piezoelectric data using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            piezoelectric_modulus (Tuple[float,float]): Minimum and maximum of the
+            piezoelectric_modulus (tuple[float, float]): Minimum and maximum of the
                 piezoelectric modulus in C/m² to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in PiezoDoc to return data for.
+            fields (list[str]): List of fields in PiezoDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:

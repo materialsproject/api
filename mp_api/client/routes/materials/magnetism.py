@@ -31,20 +31,20 @@ class MagnetismRester(BaseRester):
         """Query magnetism docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings (e.g., mp-149, [mp-149, mp-13]).
-            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
-            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites
+            material_ids (str | list[str]): A single Material ID string or list of strings (e.g., mp-149, [mp-149, mp-13]).
+            num_magnetic_sites (tuple[int, int]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (tuple[int, int]): Minimum and maximum number of unique magnetic sites
                 to consider.
             ordering (Ordering]): The magnetic ordering of the material.
-            total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.
-            total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values
+            total_magnetization (tuple[float, float]): Minimum and maximum total magnetization values to consider.
+            total_magnetization_normalized_vol (tuple[float, float]): Minimum and maximum total magnetization values
                 normalized by volume to consider.
-            total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
+            total_magnetization_normalized_formula_units (tuple[float, float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in MagnetismDoc to return data for.
+            fields (list[str]): List of fields in MagnetismDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:

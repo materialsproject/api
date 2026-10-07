@@ -50,27 +50,27 @@ class ChemenvRester(BaseRester):
         """Query for chemical environment data.
 
         Arguments:
-            material_ids (str, List[str]): Search forchemical environment associated with the specified Material IDs.
-            chemenv_iucr (COORDINATION_GEOMETRIES_IUCR, List[COORDINATION_GEOMETRIES_IUCR]): Unique cationic species in
+            material_ids (str | list[str]): Search forchemical environment associated with the specified Material IDs.
+            chemenv_iucr (COORDINATION_GEOMETRIES_IUCR | list[COORDINATION_GEOMETRIES_IUCR]): Unique cationic species in
                 IUCR format, e.g. "[3n]".
-            chemenv_iupac (COORDINATION_GEOMETRIES_IUPAC, List[COORDINATION_GEOMETRIES_IUPAC]): Unique cationic species
+            chemenv_iupac (COORDINATION_GEOMETRIES_IUPAC | list[COORDINATION_GEOMETRIES_IUPAC]): Unique cationic species
                 in IUPAC format, e.g., "T-4".
-            chemenv_name (COORDINATION_GEOMETRIES_NAMES, List[COORDINATION_GEOMETRIES_NAMES]): Coordination environment
+            chemenv_name (COORDINATION_GEOMETRIES_NAMES | list[COORDINATION_GEOMETRIES_NAMES]): Coordination environment
                 descriptions in text form for unique cationic species, e.g. "Tetrahedron".
-            chemenv_symbol (COORDINATION_GEOMETRIES, List[COORDINATION_GEOMETRIES]): Coordination environment
+            chemenv_symbol (COORDINATION_GEOMETRIES | list[COORDINATION_GEOMETRIES]): Coordination environment
                 descriptions as used in ChemEnv package for unique cationic species, e.g. "T:4".
-            species (str, List[str]): Cationic species in the crystal structure, e.g. "Ti4+".
-            elements (str, List[str]): Element names in the crystal structure, e.g., "Ti".
-            exclude_elements (List[str]): A list of elements to exclude.
-            csm (Tuple[float,float]): Minimum and maximum value of continuous symmetry measure to consider.
-            density (Tuple[float,float]): Minimum and maximum density to consider.
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
-            num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
-            volume (Tuple[float,float]): Minimum and maximum volume to consider.
+            species (str | list[str]): Cationic species in the crystal structure, e.g. "Ti4+".
+            elements (str | list[str]): Element names in the crystal structure, e.g., "Ti".
+            exclude_elements (list[str]): A list of elements to exclude.
+            csm (tuple[float, float]): Minimum and maximum value of continuous symmetry measure to consider.
+            density (tuple[float, float]): Minimum and maximum density to consider.
+            num_elements (tuple[int, int]): Minimum and maximum number of elements to consider.
+            num_sites (tuple[int, int]): Minimum and maximum number of sites to consider.
+            volume (tuple[float, float]): Minimum and maximum volume to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ChemEnvDoc to return data for.
+            fields (list[str]): List of fields in ChemEnvDoc to return data for.
 
         Returns:
             ([ChemEnvDoc], [dict]) List of chemenv documents or dictionaries.

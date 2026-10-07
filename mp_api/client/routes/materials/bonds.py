@@ -29,20 +29,20 @@ class BondsRester(BaseRester):
         """Query bonding docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): Search for bonding data for the specified Material IDs
-            coordination_envs (List[str]): List of coordination environments to consider (e.g. ['Mo-S(6)', 'S-Mo(3)']).
-            coordination_envs_anonymous (List[str]): List of anonymous coordination environments to consider
+            material_ids (str | list[str]): Search for bonding data for the specified Material IDs
+            coordination_envs (list[str]): List of coordination environments to consider (e.g. ['Mo-S(6)', 'S-Mo(3)']).
+            coordination_envs_anonymous (list[str]): List of anonymous coordination environments to consider
                  (e.g. ['A-B(6)', 'A-B(3)']).
-            max_bond_length (Tuple[float,float]): Minimum and maximum value for the maximum bond length
+            max_bond_length (tuple[float, float]): Minimum and maximum value for the maximum bond length
                 in the structure to consider.
-            mean_bond_length (Tuple[float,float]):  Minimum and maximum value for the mean bond length
+            mean_bond_length (tuple[float, float]):  Minimum and maximum value for the mean bond length
                 in the structure to consider.
-            min_bond_length (Tuple[float,float]): Minimum and maximum value for the minimum bond length
+            min_bond_length (tuple[float, float]): Minimum and maximum value for the minimum bond length
                 in the structure to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in DielectricDoc to return data for.
+            fields (list[str]): List of fields in DielectricDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:

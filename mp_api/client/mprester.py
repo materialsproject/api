@@ -494,7 +494,7 @@ class MPRester(_Rester):
         """Get all materials ids for a formula or chemsys.
 
         Args:
-            chemsys_formula (str, List[str]): A chemical system, list of chemical systems
+            chemsys_formula (str | list[str]): A chemical system, list of chemical systems
             (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
 
         Returns:
@@ -521,7 +521,7 @@ class MPRester(_Rester):
         """Get a list of Structures corresponding to a chemical system or formula.
 
         Args:
-            chemsys_formula (str, List[str]): A chemical system, list of chemical systems
+            chemsys_formula (str | list[str]): A chemical system, list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).
             final (bool): Whether to get the final structure, or the list of initial
                 (pre-relaxation) structures. Defaults to True.
@@ -609,7 +609,7 @@ class MPRester(_Rester):
         entry is also returned.
 
         Args:
-            chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems
+            chemsys_formula_mpids (str | list[str]): A chemical system, list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas
                 (e.g., Fe2O3, Si*, [SiO2, BiFeO3]), Materials Project ID, or list of Materials
                 Project IDs (e.g., mp-22526, [mp-22526, mp-149]).
@@ -1325,7 +1325,7 @@ class MPRester(_Rester):
                 bandstructure, if available.
 
         Returns:
-            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
+            bandstructure (BandStructure | BandStructureSymmLine): BandStructure or BandStructureSymmLine object
         """
         return self.materials.electronic_structure_bandstructure.get_bandstructure_from_material_id(  # type: ignore
             material_id=material_id,

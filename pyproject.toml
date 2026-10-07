@@ -28,6 +28,10 @@ authors = [
 
 classifiers = [
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "Intended Audience :: Information Technology",
@@ -37,7 +41,6 @@ classifiers = [
 
 dependencies = [
   "pymatgen>2024.2.20",
-  "typing-extensions>=3.7.4.1",
   "requests>=2.23.0",
   "monty>=2024.12.10",
   "emmet-core>=0.87.3rc2,<0.87.4",
@@ -76,11 +79,7 @@ test = [
   "pytest-cov",
   "pytest-mock",
   "pytest-xdist",
-  "flake8",
-  "pycodestyle",
   "mypy",
-  "mypy-extensions",
-  "typing-extensions",
   "types-setuptools",
   "types-requests",
   "types-tqdm"

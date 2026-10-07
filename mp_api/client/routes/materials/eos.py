@@ -28,13 +28,13 @@ class EOSRester(BaseRester):
         """Query equations of state docs using a variety of search criteria.
 
         Arguments:
-            task_ids (str, List[str]): Search for equation of states associated with the specified task IDs
-            energies (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
-            volumes (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
+            task_ids (str | list[str]): Search for equation of states associated with the specified task IDs
+            energies (tuple[float, float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
+            volumes (tuple[float, float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (list[str]): List of fields in EOSDoc to return data for.
                 Default is material_id only if all_fields is False.
             **kwargs : used for handling deprecated kwargs
 

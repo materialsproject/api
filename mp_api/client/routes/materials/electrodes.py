@@ -48,39 +48,39 @@ class BaseElectrodeRester(BaseRester):
         """Query using a variety of search criteria.
 
         Arguments:
-            battery_ids (str, List[str]): A single battery ID string or list of strings
+            battery_ids (str | list[str]): A single battery ID string or list of strings
                 (e.g., mp-22526_Li, [mp-22526_Li, mp-22526_Ca]).
-            average_voltage (Tuple[float,float]): Minimum and maximum value of the average voltage for a particular
+            average_voltage (tuple[float, float]): Minimum and maximum value of the average voltage for a particular
                 voltage step in V.
-            capacity_grav (Tuple[float,float]): Minimum and maximum value of the gravimetric capacity in maH/g.
-            capacity_vol (Tuple[float,float]): Minimum and maximum value of the volumetric capacity in maH/cc.
-            elements (List[str]): A list of elements for the framework material.
-            energy_grav (Tuple[float,float]): Minimum and maximum value of the gravimetric energy (specific energy)
+            capacity_grav (tuple[float, float]): Minimum and maximum value of the gravimetric capacity in maH/g.
+            capacity_vol (tuple[float, float]): Minimum and maximum value of the volumetric capacity in maH/cc.
+            elements (list[str]): A list of elements for the framework material.
+            energy_grav (tuple[float, float]): Minimum and maximum value of the gravimetric energy (specific energy)
                 in Wh/kg.
-            energy_vol (Tuple[float,float]): Minimum and maximum value of the volumetric energy (energy density)
+            energy_vol (tuple[float, float]): Minimum and maximum value of the volumetric energy (energy density)
                 in Wh/l.
-            exclude_elements (List[str]): A list of elements to exclude for the framework material.
-            formula (str, List[str]): Chemical formula or list of chemical formulas of any of the materials
+            exclude_elements (list[str]): A list of elements to exclude for the framework material.
+            formula (str | list[str]): Chemical formula or list of chemical formulas of any of the materials
                 associated with the electrode system. This includes materials partially along the charge-discharge path.
-            fracA_charge (Tuple[float,float]): Minimum and maximum value of the atomic fraction of the working ion
+            fracA_charge (tuple[float, float]): Minimum and maximum value of the atomic fraction of the working ion
                 in the charged state.
-            fracA_discharge (Tuple[float,float]): Minimum and maximum value of the atomic fraction of the working ion
+            fracA_discharge (tuple[float, float]): Minimum and maximum value of the atomic fraction of the working ion
                 in the discharged state.
-            max_delta_volume (Tuple[float,float]): Minimum and maximum value of the max volume change in percent for a
+            max_delta_volume (tuple[float, float]): Minimum and maximum value of the max volume change in percent for a
                 particular voltage step.
-            max_voltage_step (Tuple[float,float]): Minimum and maximum value of the maximum voltage for a particular
+            max_voltage_step (tuple[float, float]): Minimum and maximum value of the maximum voltage for a particular
                 voltage step in V.
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            num_elements (tuple[int, int]): Minimum and maximum number of elements to consider.
             num_steps (int): Number of distinct voltage steps from charged to discharged based on stable intermediates.
-            stability_charge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the charged
+            stability_charge (tuple[float, float]): Minimum and maximum value of the energy above hull of the charged
                 material.
-            stability_discharge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the
+            stability_discharge (tuple[float, float]): Minimum and maximum value of the energy above hull of the
                 discharged material.
-            working_ion (Element, List[Element]): Element or list of elements of the working ion.
+            working_ion (Element | list[Element]): Element or list of elements of the working ion.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in InsertionElectrodeDoc or ConversionElectrodeDoc to return data for.
+            fields (list[str]): List of fields in InsertionElectrodeDoc or ConversionElectrodeDoc to return data for.
                 Default is battery_id and last_updated if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.

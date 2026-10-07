@@ -19,7 +19,7 @@ from copy import copy
 from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 from io import BytesIO
-from itertools import chain, islice
+from itertools import batched, chain
 from json import JSONDecodeError
 from math import ceil
 from pathlib import Path
@@ -59,7 +59,7 @@ from mp_api.client.core.utils import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Iterator
+    from collections.abc import Callable
     from typing import Any
 
     from arro3.core import RecordBatchReader
@@ -92,14 +92,6 @@ CONTROLLED_COLLECTIONS = [
 ]
 
 logger = logging.getLogger(__name__)
-
-
-def _batched(iterable: Iterable, n: int) -> Iterator:
-    if n < 1:
-        raise ValueError("n must be at least one")
-    iterator = iter(iterable)
-    while batch := tuple(islice(iterator, n)):
-        yield batch
 
 
 class QueryBuilderWithCache(QueryBuilder):
@@ -1255,7 +1247,7 @@ class BaseRester(_Rester):
                         else None
                     )
 
-                    for batch in _batched(split_values, batch_size):
+                    for batch in batched(split_values, batch_size):
                         split_criteria = copy(criteria)
                         split_criteria[split_param] = ",".join(batch)
 
@@ -1613,7 +1605,7 @@ class BaseRester(_Rester):
                 significantly speed up data retrieval for large queries and help us by reducing
                 load on the Materials Project servers. Set to True by default to reduce confusion,
                 unless "fields" are set, in which case all_fields will be set to False.
-            fields (List[str]): List of fields to project. When searching, it is better to only ask for
+            fields (list[str]): List of fields to project. When searching, it is better to only ask for
                 the specific fields of interest to reduce the time taken to retrieve the documents. See
                  the available_fields property to see a list of fields to choose from.
             kwargs: Supported search terms, e.g. nelements_max=3 for the "materials" search API.

@@ -34,20 +34,20 @@ class SynthesisRester(BaseRester):
         """Search synthesis recipe text.
 
         Arguments:
-            keywords (Optional[List[str]]): List of string keywords to search synthesis paragraph text with
-            synthesis_type (Optional[List[SynthesisTypeEnum]]): Type of synthesis to include
-            target_formula (Optional[str]): Chemical formula of the target material
-            precursor_formula (Optional[str]): Chemical formula of the precursor material
-            operations (Optional[List[OperationTypeEnum]]): List of operations that syntheses must have
-            condition_heating_temperature_min (Optional[float]): Minimal heating temperature
-            condition_heating_temperature_max (Optional[float]): Maximal heating temperature
-            condition_heating_time_min (Optional[float]): Minimal heating time
-            condition_heating_time_max (Optional[float]): Maximal heating time
-            condition_heating_atmosphere (Optional[List[str]]): Required heating atmosphere, such as "air", "argon"
-            condition_mixing_device (Optional[List[str]]): Required mixing device, such as "zirconia", "Al2O3".
-            condition_mixing_media (Optional[List[str]]): Required mixing media, such as "alcohol", "water"
-            num_chunks (Optional[int]): Maximum number of chunks of data to yield. None will yield all possible.
-            chunk_size (Optional[int]): Number of data entries per chunk.
+            keywords (list[str] | None): List of string keywords to search synthesis paragraph text with
+            synthesis_type (list[SynthesisTypeEnum] | None): Type of synthesis to include
+            target_formula (str | None): Chemical formula of the target material
+            precursor_formula (str | None): Chemical formula of the precursor material
+            operations (list[OperationTypeEnum] | None): List of operations that syntheses must have
+            condition_heating_temperature_min (float | None): Minimal heating temperature
+            condition_heating_temperature_max (float | None): Maximal heating temperature
+            condition_heating_time_min (float | None): Minimal heating time
+            condition_heating_time_max (float | None): Maximal heating time
+            condition_heating_atmosphere (list[str] | None): Required heating atmosphere, such as "air", "argon"
+            condition_mixing_device (list[str] | None): Required mixing device, such as "zirconia", "Al2O3".
+            condition_mixing_media (list[str] | None): Required mixing media, such as "alcohol", "water"
+            num_chunks (int | None): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int | None): Number of data entries per chunk.
 
 
         Returns:

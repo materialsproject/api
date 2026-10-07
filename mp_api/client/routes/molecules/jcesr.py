@@ -49,20 +49,19 @@ class JcesrMoleculesRester(BaseRester):
         JCESR = Joint Center for Energy Storage Research
 
         Arguments:
-            task_ids (str, List[str]): A single molecule task ID string or list of strings.
+            task_ids (str | list[str]): A single molecule task ID string or list of strings.
                 (e.g., mol-45004, [mol-45004, mol-45228]).
-            charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
-            elements (List[Element]): A list of elements.
-            film_orientation (List[Elements]): List of elements that are in the molecule.
-            EA (Tuple[float,float]): Minimum and maximum value of the electron affinity in eV to consider.
-            IE (Tuple[float,float]): Minimum and maximum value of the ionization energy in eV to consider.
-            nelements (Tuple[float,float]): Minimum and maximum number of elements in the molecule to consider.
+            charge (tuple[float, float]): Minimum and maximum value of the charge in +e to consider.
+            elements (list[Element]): A list of elements.
+            EA (tuple[float, float]): Minimum and maximum value of the electron affinity in eV to consider.
+            IE (tuple[float, float]): Minimum and maximum value of the ionization energy in eV to consider.
+            nelements (tuple[float, float]): Minimum and maximum number of elements in the molecule to consider.
             pointgroup (str): Point group of the molecule in Schoenflies notation.
             smiles (str): The simplified molecular input line-entry system (SMILES) representation of the molecule.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in MoleculesDoc to return data for.
+            fields (list[str]): List of fields in MoleculesDoc to return data for.
                 Default is the material_id only if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
