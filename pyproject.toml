@@ -43,7 +43,7 @@ dependencies = [
   "pymatgen>2024.2.20",
   "requests>=2.23.0",
   "monty>=2024.12.10",
-  "emmet-core>=0.87.3rc2,<0.87.4",
+  "emmet-core>=0.88.0rc,<0.88.1",
   "boto3",
   "orjson >= 3.10,<4",
   "pyarrow >= 20.0.0",
@@ -70,7 +70,7 @@ contribs = [
 ]
 all = [
   "custodian",
-  "emmet-core[all]>=0.87.3rc2,<0.87.4",
+  "emmet-core[all]>=0.88.0rc,<0.88.1",
   "fastmcp",
   "flask",
   "ipywidgets",
