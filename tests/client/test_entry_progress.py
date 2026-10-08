@@ -45,7 +45,11 @@ def term():
     buf = io.StringIO()
     display.set_console(
         Console(
-            file=buf, force_terminal=True, force_jupyter=False, width=140, theme=MP_THEME
+            file=buf,
+            force_terminal=True,
+            force_jupyter=False,
+            width=140,
+            theme=MP_THEME,
         )
     )
     yield buf
@@ -382,8 +386,9 @@ def test_remix_without_prebuilt_pd(mpr, thermo, monkeypatch, term, caplog):
         real_init(self, check_potcar=False, **kw)
 
     monkeypatch.setattr(MaterialsProjectDFTMixingScheme, "__init__", init)
-    with warnings.catch_warnings(record=True) as record, caplog.at_level(
-        logging.INFO, logger=CLIENT
+    with (
+        warnings.catch_warnings(record=True) as record,
+        caplog.at_level(logging.INFO, logger=CLIENT),
     ):
         warnings.simplefilter("always")
         entries = mpr.get_entries_in_chemsys(

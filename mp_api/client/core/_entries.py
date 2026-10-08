@@ -217,9 +217,7 @@ def apply_corrections(
             stack.enter_context(
                 _track_calls(corrector.solid_compat, "get_adjustments", handle, 0.5)
             )
-            stack.enter_context(
-                _track_calls(corrector, "get_adjustments", handle, 0.5)
-            )
+            stack.enter_context(_track_calls(corrector, "get_adjustments", handle, 0.5))
         else:
             stack.enter_context(_track_calls(corrector, "get_adjustments", handle))
 
