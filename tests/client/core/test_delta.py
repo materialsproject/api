@@ -4,6 +4,7 @@ deltalake's DeltaTable and QueryBuilder are replaced with in-memory fakes, so
 these tests need no network access, API key, or files on disk.
 """
 
+import logging
 import threading
 import warnings
 
@@ -445,7 +446,7 @@ def test_rester_uses_provided_catalog():
 
 
 def test_query_builder_with_cache_is_deprecated_but_shared():
-    with pytest.warns(DeprecationWarning, match="QueryBuilderWithCache"):
+    with pytest.warns(FutureWarning, match="QueryBuilderWithCache"):
         qb = QueryBuilderWithCache()
     r1 = _Rester(api_key="a" * 32, query_builder=qb)
     r2 = _Rester(api_key="a" * 32, query_builder=qb)
@@ -454,7 +455,7 @@ def test_query_builder_with_cache_is_deprecated_but_shared():
 
 def test_query_builder_with_cache_register_and_introspect():
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
+        warnings.simplefilter("ignore", FutureWarning)
         qb = QueryBuilderWithCache()
     table = FakeDeltaTable("s3a://bucket/x/")
     assert qb.register("x", table) is qb
@@ -464,7 +465,7 @@ def test_query_builder_with_cache_register_and_introspect():
 
 def test_query_builder_property_is_deprecated():
     rester = _Rester(api_key="a" * 32)
-    with pytest.warns(DeprecationWarning, match="delta_catalog"):
+    with pytest.warns(FutureWarning, match="delta_catalog"):
         qb = rester.query_builder
     assert qb.catalog is rester.delta_catalog
 
@@ -479,14 +480,15 @@ def test_sub_resters_share_parent_catalog(no_heartbeat):
     assert materials.phonon.summary_rester.delta_catalog is cat
 
 
-def test_get_delta_table_warns_on_label_mismatch(no_heartbeat):
+def test_get_delta_table_logs_label_mismatch(no_heartbeat, caplog):
     rester = BaseRester(api_key="a" * 32)
     lbl, _ = rester._get_delta_table("bucket", "some/prefix", label="first")
     assert lbl == "first"
     assert rester.delta_catalog.tables["first"].table_uri == "s3a://bucket/some/prefix/"
-    with pytest.warns(MPRestWarning, match="different label"):
+    with caplog.at_level(logging.DEBUG, logger="mp_api.client.core.client"):
         lbl, _ = rester._get_delta_table("bucket", "some/prefix/", label="second")
     assert lbl == "first"
+    assert "different label" in caplog.text
 
 
 def test_query_delta_single_retries_and_wraps_errors(no_heartbeat):

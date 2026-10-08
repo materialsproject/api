@@ -53,14 +53,17 @@ class MAPIClientSettings(BaseSettings):
         description="Whether to mute progress bars when data is retrieved.",
     )
 
-    LOGGING: bool = Field(
-        True,
-        description="Whether the client shows its log messages on stderr by default. "
-        "If the application configures logging, messages go to its handlers instead.",
+    LOG_LEVEL: str = Field(
+        "INFO",
+        description="Minimum level of client log messages to show, for the whole "
+        "client (including MPContribs). If the application configures logging, "
+        "messages go to its handlers instead.",
     )
 
-    LOG_LEVEL: str = Field(
-        "INFO", description="Minimum level of client log messages to show."
+    QUIET: bool = Field(
+        False,
+        description="Silence all client output: log messages, progress bars, "
+        "notices and MPRestWarnings. Deprecation warnings and errors are still raised.",
     )
 
     MIN_EMMET_VERSION: str = Field(

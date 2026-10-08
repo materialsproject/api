@@ -31,7 +31,8 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client.core._display import print_notice, status
+from mp_api.client.core._display import mp_warning, print_notice, status
+from mp_api.client.core._display import quiet as set_quiet
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.client import (
     LATEST_DB_VERSION,
@@ -42,7 +43,6 @@ from mp_api.client.core.client import (
 )
 from mp_api.client.core.exceptions import (
     MPRestError,
-    MPRestWarning,
     _emit_status_warning,
 )
 from mp_api.client.core.settings import (
@@ -138,6 +138,7 @@ class MPRester(_Rester):
         query_builder: QueryBuilderWithCache | None = None,
         delta_catalog: DeltaCatalog | None = None,
         notify_db_version: bool = False,
+        quiet: bool | None = None,
         **kwargs,
     ):
         """Initialize the MPRester.
@@ -186,8 +187,15 @@ class MPRester(_Rester):
                 materialsproject.org and are not associated with your API key, so be
                 aware that a notification may not be presented if you run MPRester
                 from multiple computing environments.
+            quiet (bool or None): If True, silence all client output for the whole
+                process: log messages, progress bars, notices and MPRestWarnings, see
+                `mp_api.client.quiet()`. False or None leave the current setting
+                (`MPRESTER_QUIET`, or an earlier `quiet()` call) unchanged.
             **kwargs: access to legacy kwargs that may be in the process of being deprecated
         """
+        if quiet:
+            # Before anything else, so nothing is printed while connecting
+            set_quiet(True)
         super().__init__(
             api_key=api_key,
             endpoint=endpoint,
@@ -249,11 +257,9 @@ class MPRester(_Rester):
             version.parse(emmet_version.base_version)
             < version.parse(MAPI_CLIENT_SETTINGS.MIN_EMMET_VERSION)
         ):
-            warnings.warn(
+            logger.warning(
                 "The installed version of the mp-api client may not be compatible with the API server. "
-                "Please install a previous version if any problems occur.",
-                category=MPRestWarning,
-                stacklevel=2,
+                "Please install a previous version if any problems occur."
             )
 
         current_db_version = self._get_heartbeat_info(self.endpoint)[0]
@@ -334,18 +340,13 @@ class MPRester(_Rester):
 
             except ImportError:
                 self._contribs = None
-                warnings.warn(
+                mp_warning(
                     "Run `pip install 'mp-api[contribs]'` to make use of the MPContribs client.",
-                    category=MPRestWarning,
                     stacklevel=2,
                 )
             except Exception as error:
                 self._contribs = None
-                warnings.warn(
-                    f"Problem loading MPContribs client: {error}",
-                    category=MPRestWarning,
-                    stacklevel=2,
-                )
+                logger.warning(f"Problem loading MPContribs client: {error}")
         return self._contribs
 
     def __getattr__(self, attr):
@@ -353,7 +354,7 @@ class MPRester(_Rester):
             warnings.warn(
                 f"Accessing {attr} data through MPRester.{attr} is deprecated. "
                 f"Please use MPRester.materials.{attr} instead.",
-                DeprecationWarning,
+                FutureWarning,
                 stacklevel=2,
             )
             return getattr(super().__getattribute__("materials"), attr)
@@ -439,13 +440,14 @@ class MPRester(_Rester):
                 logger.debug(f"No database versions for {route}: {exc}")
                 return route, None
 
-        with status(
-            f"Fetching available database versions for {len(resters)} datasets...",
-            enabled=not self.mute_progress_bars,
-            logger=logger,
+        with (
+            status(
+                f"Fetching available database versions for {len(resters)} datasets...",
+                enabled=not self.mute_progress_bars,
+            ),
+            ThreadPoolExecutor(max_workers=min(8, len(resters) or 1)) as pool,
         ):
-            with ThreadPoolExecutor(max_workers=min(8, len(resters) or 1)) as pool:
-                found = list(pool.map(_list, sorted(resters)))
+            found = list(pool.map(_list, sorted(resters)))
         return {route: versions for route, versions in found if versions}
 
     def get_task_ids_associated_with_material_id(
@@ -526,8 +528,8 @@ class MPRester(_Rester):
         warnings.warn(
             "`get_database_version` has been deprecated in favor of "
             "MPRester().db_version.",
+            FutureWarning,
             stacklevel=2,
-            category=MPRestWarning,
         )
         return self.db_version
 
@@ -571,11 +573,9 @@ class MPRester(_Rester):
             raise ValueError(
                 f"Multiple documents return for {task_id}, this should not happen, please report it!"
             )
-        warnings.warn(
+        logger.warning(
             f"No material found containing task {task_id}. "
-            "Please report it if you suspect a task has gone missing.",
-            category=MPRestWarning,
-            stacklevel=2,
+            "Please report it if you suspect a task has gone missing."
         )
         return None
 
@@ -741,7 +741,7 @@ class MPRester(_Rester):
             warnings.warn(
                 "The `inc_structure` argument is deprecated as final structures "
                 "are always included in all returned ComputedStructureEntry objects.",
-                category=DeprecationWarning,
+                FutureWarning,
                 stacklevel=2,
             )
 
@@ -1286,13 +1286,12 @@ class MPRester(_Rester):
         all_chemsyses = _all_subchemsyses(elements_set)
 
         if additional_criteria is None:
-            warnings.warn(
+            mp_warning(
                 "The default thermo type when retrieving entries has been changed from "
                 "the mixed/corrected PBE GGA and GGA+U hull (`thermo_type = GGA_GGA+U`) "
                 "to the joint PBE GGA / GGA+U / r2SCAN hull (`thermo_type = GGA_GGA+U_R2SCAN`). "
                 "To use the older behavior, call `get_entries_in_chemsys` with "
                 '`additional_criteria = {"thermo_types": ["GGA_GGA+U"]}`',
-                category=MPRestWarning,
                 stacklevel=2,
             )
 
@@ -1343,13 +1342,12 @@ class MPRester(_Rester):
                     MaterialsProjectDFTMixingScheme,
                 )
 
-                warnings.warn(
+                mp_warning(
                     "Reconstructing a common energy scale for these entries with the "
                     "GGA(+U)/r2SCAN mixing scheme, as the Materials Project has no pre-built "
                     "phase diagram to serve for this query. Energies and hull distances may "
                     "differ slightly from https://materialsproject.org, and entries the mixing "
                     "scheme cannot place are dropped.",
-                    category=MPRestWarning,
                     stacklevel=2,
                 )
                 entries = MaterialsProjectDFTMixingScheme().process_entries(
@@ -1381,13 +1379,12 @@ class MPRester(_Rester):
                 ]
         else:  # non-consistent
             if mixed:
-                warnings.warn(
+                mp_warning(
                     "Mixed GGA(+U)/r2SCAN entries can only be placed on a common energy scale "
                     "with `compatible_only = True`, so these uncorrected entries are not "
                     "suitable for constructing a phase diagram. Either use "
                     "`compatible_only = True`, or request a single functional with "
                     '`additional_criteria = {"thermo_types": ["GGA_GGA+U"]}`.',
-                    category=MPRestWarning,
                     stacklevel=2,
                 )
 
@@ -1598,12 +1595,11 @@ class MPRester(_Rester):
             NoMaD repository. Each zip archive will contain a manifest.json with
             metadata info, e.g. the task/external_ids that belong to a directory.
         """
-        warnings.warn(
+        mp_warning(
             "Full downloads of raw data are being transitioned to "
             "Materials Project's AWS S3 OpenData buckets. "
             "These features for accessing legacy raw data via NOMAD "
             "are maintained but may not be supported in the future.",
-            category=MPRestWarning,
             stacklevel=2,
         )
 
@@ -1701,12 +1697,10 @@ class MPRester(_Rester):
     @staticmethod
     def _print_help_message(nomad_exist_task_ids, task_ids, file_patterns, calc_types):
         non_exist_ids = set(task_ids) - set(nomad_exist_task_ids)
-        warnings.warn(
+        logger.warning(
             f"For file patterns [{file_patterns}] and calc_types [{calc_types}], \n"
             f"the following ids are not found on NOMAD [{list(non_exist_ids)}]. \n"
-            f"If you need to upload them, please contact Patrick Huck at phuck@lbl.gov",
-            category=MPRestWarning,
-            stacklevel=2,
+            f"If you need to upload them, please contact Patrick Huck at phuck@lbl.gov"
         )
 
     def query(*args, **kwargs):
@@ -1925,11 +1919,9 @@ class MPRester(_Rester):
             pd = None
 
         if not pd:
-            warnings.warn(
+            logger.warning(
                 f"No phase diagram data available for chemical system {chemsys_str} "
-                f"and thermo type {thermo_type_valid_str}.",
-                category=MPRestWarning,
-                stacklevel=2,
+                f"and thermo type {thermo_type_valid_str}."
             )
             return None
 
@@ -2053,9 +2045,8 @@ class MPRester(_Rester):
             )
 
             if old_db_version:
-                warnings.warn(
+                mp_warning(
                     "Materials Project database version has changed "
                     f"from v{old_db_version} to v{self.db_version}.",
-                    category=MPRestWarning,
                     stacklevel=2,
                 )

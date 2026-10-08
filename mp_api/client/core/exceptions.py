@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-import warnings
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MPRestError(Exception):
@@ -26,12 +28,10 @@ class MPContribsClientError(ValueError):
 
 
 def _emit_status_warning() -> None:
-    """Emit a warning if client can't hear a heartbeat."""
-    warnings.warn(
+    """Log a warning if client can't hear a heartbeat."""
+    logger.warning(
         "Cannot listen to heartbeat, check Materials Project "
-        "status page: https://status.materialsproject.org/",
-        category=MPRestWarning,
-        stacklevel=2,
+        "status page: https://status.materialsproject.org/"
     )
 
 

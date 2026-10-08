@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.electrode import (
@@ -11,7 +10,8 @@ from emmet.core.electrode import (
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.exceptions import MPRestError, MPRestWarning
+from mp_api.client.core._display import mp_warning
+from mp_api.client.core.exceptions import MPRestError
 
 
 class BaseElectrodeRester(BaseRester):
@@ -145,9 +145,8 @@ class BaseElectrodeRester(BaseRester):
             if query_params.pop(entry, None) is not None
         }
         if ignored_fields:
-            warnings.warn(
+            mp_warning(
                 f"Ignoring fields {', '.join(ignored_fields)} which are not valid options for {self.__class__.__name__}",
-                category=MPRestWarning,
                 stacklevel=2,
             )
 

@@ -6,18 +6,19 @@ import os
 from importlib.metadata import PackageNotFoundError, version
 
 from mp_api.client.core._display import (
-    _install_default_logging,
-    disable_logging,
+    _configure_from_settings,
     enable_logging,
+    is_quiet,
+    quiet,
 )
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.mprester import MPRester
 
-__all__ = ["MPRestError", "MPRester", "disable_logging", "enable_logging"]
+__all__ = ["MPRestError", "MPRester", "enable_logging", "is_quiet", "quiet"]
 
 try:
     __version__ = version("mp_api")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = os.getenv("SETUPTOOLS_SCM_PRETEND_VERSION", "")
 
-_install_default_logging()
+_configure_from_settings()

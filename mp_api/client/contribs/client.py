@@ -86,8 +86,6 @@ if TYPE_CHECKING:
 VALID_OPS = {"query", "create", "update", "delete", "download"}
 VALID_OPS_T = Literal[*VALID_OPS]  # type: ignore[valid-type]
 
-warnings.filterwarnings("default", category=DeprecationWarning, module=__name__)
-
 
 def validate_email(email_string: str) -> None:
     """Validate user email address.
@@ -484,7 +482,7 @@ class ContribsClient(SwaggerClient):
                 )
             else:
                 api_key = kwargs.pop("apikey")
-            MPCC_LOGGER.warning(api_key_warn)
+            warnings.warn(api_key_warn, FutureWarning, stacklevel=2)
 
         if api_key and len(api_key) != 32:
             raise MPContribsClientError(f"Invalid API key: {api_key}")
@@ -534,9 +532,11 @@ class ContribsClient(SwaggerClient):
     @property
     def apikey(self) -> str | None:
         """Handle deprecated `apikey` attr."""
-        MPCC_LOGGER.warning(
+        warnings.warn(
             "`apikey` has been deprecated in favor of `api_key` for "
-            " consistency with the Materials Project API client."
+            "consistency with the Materials Project API client.",
+            FutureWarning,
+            stacklevel=2,
         )
         return self.api_key
 

@@ -47,11 +47,10 @@ from requests.exceptions import RequestException
 from urllib3.util.retry import Retry
 
 from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
-from mp_api.client.core._display import ProgressHandle, progress_bar, status
+from mp_api.client.core._display import ProgressHandle, mp_warning, progress_bar, status
 from mp_api.client.core.delta import DeltaCatalog
 from mp_api.client.core.exceptions import (
     MPRestError,
-    MPRestWarning,
     _emit_status_warning,
 )
 from mp_api.client.core.schemas import _convert_to_model, _DictLikeAccess
@@ -139,7 +138,7 @@ class QueryBuilderWithCache(QueryBuilder):
                 "QueryBuilderWithCache is deprecated and will be removed in a future "
                 "release. Pass `delta_catalog=DeltaCatalog()` "
                 "(from mp_api.client.core.delta) to MPRester instead.",
-                category=DeprecationWarning,
+                FutureWarning,
                 stacklevel=2,
             )
         self.catalog: DeltaCatalog = catalog if catalog is not None else DeltaCatalog()
@@ -256,8 +255,8 @@ class _Rester:
             warnings.warn(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
                 "The client by default returns results consistent with `monty_decode=True`.",
+                FutureWarning,
                 stacklevel=2,
-                category=MPRestWarning,
             )
 
     @property
@@ -286,7 +285,7 @@ class _Rester:
         """Deprecated: use `delta_catalog`."""
         warnings.warn(
             "`query_builder` is deprecated, use `delta_catalog` instead.",
-            category=DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         if self._query_builder is None:
@@ -706,12 +705,10 @@ class BaseRester(_Rester):
         )
 
         if stored_label != qb_label:
-            warnings.warn(
+            logger.debug(
                 f"DeltaTable with URI {uri} already found with different label: "
                 f"Stored label = {stored_label}; submitted label {qb_label}. "
-                "Using stored DeltaTable.",
-                category=MPRestWarning,
-                stacklevel=2,
+                "Using stored DeltaTable."
             )
 
         return stored_label, delta_table
@@ -1231,7 +1228,6 @@ class BaseRester(_Rester):
                 f"Counting {description} documents (excluding access-controlled "
                 "entries), this can take a while...",
                 enabled=not self.mute_progress_bars,
-                logger=logger,
             ):
                 result = self.delta_catalog.execute(
                     f"SELECT COUNT(*) AS n FROM {tbl_lbl} {predicate}", label=tbl_lbl
@@ -1423,9 +1419,8 @@ class BaseRester(_Rester):
                     )
 
                 if fields:
-                    warnings.warn(
+                    mp_warning(
                         "Ignoring `fields` argument: All fields are always included when no query is provided.",
-                        category=MPRestWarning,
                         stacklevel=2,
                     )
 
@@ -1739,11 +1734,10 @@ class BaseRester(_Rester):
 
         # Warning to select specific fields only for many results
         if criteria.get("_all_fields", False) and (total_num_docs / chunk_size > 10):
-            warnings.warn(
+            mp_warning(
                 f"Use the 'fields' argument to select only fields of interest to speed "
                 f"up data retrieval for large queries. "
                 f"Choose from: {self.available_fields}",
-                category=MPRestWarning,
                 stacklevel=2,
             )
 
@@ -2020,7 +2014,7 @@ class BaseRester(_Rester):
     ) -> BaseModel | dict[str, Any] | None:
         warnings.warn(
             "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
 
@@ -2107,10 +2101,9 @@ class BaseRester(_Rester):
                 criteria["deprecated"] = True
                 results = self._query_resource(criteria=criteria, **query_kwargs)
                 cnt += results["meta"]["total_doc"]
-                warnings.warn(
+                mp_warning(
                     "Omitting a query also includes deprecated documents in the results. "
                     "Make sure to post-filter them out.",
-                    category=MPRestWarning,
                     stacklevel=2,
                 )
 

@@ -19,12 +19,12 @@ from emmet.core.mpid import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
+from mp_api.client.core._display import mp_warning
 from mp_api.client.core.exceptions import (
     MPDatasetIndexingWarning,
     MPDatasetIterationWarning,
     MPDatasetSlicingWarning,
     MPRestError,
-    MPRestWarning,
 )
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
@@ -114,10 +114,9 @@ def validate_api_key(api_key: str | None = None) -> str | None:
         # The web server requires the client to initialize without an API key.
         # Only warn the user if the API key cannot be identified to permit
         # the web server to run.
-        warnings.warn(
+        mp_warning(
             "No API key found, please set explicitly or in "
             "the `MP_API_KEY` environment variable.",
-            category=MPRestWarning,
             stacklevel=2,
         )
 
@@ -346,9 +345,7 @@ class MPDataset:
                 )
             )
         # Paths in the log are relative to the table root and URL-encoded
-        files = [
-            str(self._path / unquote(rel)) for rel in actions["path"].to_pylist()
-        ]
+        files = [str(self._path / unquote(rel)) for rel in actions["path"].to_pylist()]
         return ds.dataset(
             files, schema=self._file_schema(table, files), format="parquet"
         )

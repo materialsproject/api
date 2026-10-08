@@ -428,14 +428,48 @@ def test_count_shows_status_then_removes_it(make_rester, term, monkeypatch):
     assert "✓ Downloaded 5 Doc documents (v2026.09.28)" in plain(term.getvalue())
 
 
-def test_count_logs_once_without_live_display(make_rester, caplog):
-    r = make_rester(gnome=False)  # muted progress bars -> no live display
-    with caplog.at_level(logging.WARNING, logger="mp_api.client.core.client"):
+def test_count_silent_when_muted(make_rester, caplog):
+    r = make_rester(gnome=False)  # muted progress bars: no status, no log line
+    with caplog.at_level(logging.DEBUG, logger="mp_api.client"):
+        download(r)
+    assert not any("Counting chemenv" in rec.message for rec in caplog.records)
+
+
+def test_count_logged_once_at_info_without_live_display(make_rester, caplog):
+    r = make_rester(gnome=False)
+    r.mute_progress_bars = False  # enabled, but the test console isn't a terminal
+    with caplog.at_level(logging.INFO, logger="mp_api.client"):
         download(r)
     # (caplog may see a record twice: pytest's handler is on both the root
     # and, via the default handler's forwarding, mp_api.client)
-    messages = {id(rec) for rec in caplog.records if "Counting chemenv" in rec.message}
-    assert len(messages) == 1
+    records = {
+        id(rec): rec for rec in caplog.records if "Counting chemenv" in rec.message
+    }
+    assert len(records) == 1
+    assert next(iter(records.values())).levelno == logging.INFO
+
+
+def test_warning_level_app_sees_no_progress_notes(make_rester, monkeypatch):
+    """A WARNING-level application (e.g. a web server, no terminal) with progress
+    bars enabled gets real warnings only, not progress notes like 'Counting...'."""
+    records: list[logging.LogRecord] = []
+
+    class Recorder(logging.Handler):
+        def emit(self, record):
+            records.append(record)
+
+    root = logging.getLogger()
+    handler = Recorder()
+    monkeypatch.setattr(root, "handlers", [handler])
+    monkeypatch.setattr(root, "level", logging.WARNING)
+
+    r = make_rester(gnome=False)
+    r.mute_progress_bars = False
+    download(r)
+    logging.getLogger("mp_api.client.core.client").warning("a real problem")
+
+    messages = [rec.getMessage() for rec in records]
+    assert messages == ["a real problem"]
 
 
 def test_no_count_query_with_full_access(make_rester, monkeypatch):
@@ -705,8 +739,11 @@ def test_db_version_only_on_versioned_routes():
         versioned = cls.delta_backed and _location(cls)[2].startswith("collections/")
         for name in ("search", "search_docs"):
             method = cls.__dict__.get(name) or next(
-                (b.__dict__[name] for b in cls.__mro__[1:-1] if name in b.__dict__
-                 and b is not BaseRester),
+                (
+                    b.__dict__[name]
+                    for b in cls.__mro__[1:-1]
+                    if name in b.__dict__ and b is not BaseRester
+                ),
                 None,
             )
             if method is None:
@@ -728,7 +765,8 @@ def test_phase_diagram_version(make_rester, monkeypatch):
     monkeypatch.setattr(
         BaseRester,
         "_query_delta_single",
-        lambda self, q, label=None: queries.append(q) or pa.table({"phase_diagram": []}),
+        lambda self, q, label=None: queries.append(q)
+        or pa.table({"phase_diagram": []}),
     )
     from mp_api.client.routes.materials.thermo import ThermoRester
 
@@ -754,7 +792,9 @@ def mpr(make_rester, tmp_path, remote, monkeypatch):
     flat = str(tmp_path / "flat")
     write_deltalake(flat, pa.table({"x": [1]}))
 
-    def get_delta_table(self, bucket, prefix, connector="s3a", label=None, refresh=False):
+    def get_delta_table(
+        self, bucket, prefix, connector="s3a", label=None, refresh=False
+    ):
         if prefix.endswith("chemenv") or prefix.endswith("summary"):
             name = prefix.rsplit("/", 1)[-1]
             return self.delta_catalog.get_table(remote, name, refresh=refresh)
@@ -896,7 +936,9 @@ def test_synthesis_downloads_recipes(make_rester, tmp_path, monkeypatch):
     assert calls[0]["prefix"] == "static-collections/synth-descriptions"
 
     monkeypatch.setattr(
-        BaseRester, "_submit_requests", lambda self, **kw: {"data": ["rest"], "meta": {}}
+        BaseRester,
+        "_submit_requests",
+        lambda self, **kw: {"data": ["rest"], "meta": {}},
     )
     assert r.search(keywords=["silicon"]) == ["rest"]  # text search stays on REST
     assert len(calls) == 1

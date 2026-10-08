@@ -33,7 +33,7 @@ class ElectronicStructureRester(BaseRester):
         warnings.warn(
             "MPRester.electronic_structure.search_electronic_structure_docs is deprecated. "
             "Please use MPRester.electronic_structure.search instead.",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
 
@@ -183,7 +183,7 @@ class BandStructureRester(BaseESPropertyRester):
         warnings.warn(
             "MPRester.electronic_structure_bandstructure.search_bandstructure_summary is deprecated. "
             "Please use MPRester.electronic_structure_bandstructure.search instead.",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
 
@@ -418,7 +418,7 @@ class DosRester(BaseESPropertyRester):
         warnings.warn(
             "MPRester.electronic_structure_dos.search_dos_summary is deprecated. "
             "Please use MPRester.electronic_structure_dos.search instead.",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
 

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from emmet.core.xas import XASDoc, validate_xas_spectrum_id
 from pymatgen.core.periodic_table import Element
 
-from mp_api.client.core import BaseRester, MPRestWarning
+from mp_api.client.core import BaseRester
 from mp_api.client.core.exceptions import MPRestError
 
 if TYPE_CHECKING:
@@ -76,8 +76,8 @@ class XASRester(BaseRester):
                 "`material_id` has been replaced by `task_id` in the xas endpoint. "
                 "Please migrate to using the newer field name and the `task_ids` kwarg "
                 "for searching.",
+                FutureWarning,
                 stacklevel=2,
-                category=MPRestWarning,
             )
 
         _locals = locals()

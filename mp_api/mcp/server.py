@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, get_args
 from fastmcp import FastMCP
 from fastmcp.server.server import Transport
 
+from mp_api.client.core._display import quiet
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.mcp.tools import MPCoreMCP
 
@@ -79,6 +80,9 @@ mcp = get_core_mcp()
 
 
 def _run_mp_mcp_server() -> None:
+    # The server must not write client output (stdio transport): silence the
+    # client here, when serving, rather than on import or client creation.
+    quiet()
     mcp.run(**parse_server_args())
 
 

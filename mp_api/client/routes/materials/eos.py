@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from emmet.core.eos import EOSDoc
 
-from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
+from mp_api.client.core import BaseRester, MPRestError
 from mp_api.client.core.utils import validate_ids
 
 
@@ -53,8 +53,8 @@ class EOSRester(BaseRester):
             warnings.warn(
                 "`material_id` has been replaced by `task_id` in the EOS endpoint. "
                 "Please migrate to using the newer field name.",
+                FutureWarning,
                 stacklevel=2,
-                category=MPRestWarning,
             )
 
         if task_ids:

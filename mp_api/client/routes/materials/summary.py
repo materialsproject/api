@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 from itertools import chain, product
 
@@ -8,7 +7,8 @@ from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from pymatgen.analysis.magnetism import Ordering
 
-from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
+from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core._display import mp_warning
 from mp_api.client.core.utils import validate_ids
 
 
@@ -282,11 +282,7 @@ class SummaryRester(BaseRester):
             if exc_strs:
                 raise MPRestError("\n".join([*warning_strs, *exc_strs, *warn_ref_strs]))
             if warn_ref_strs:
-                warnings.warn(
-                    "\n".join([*warning_strs, *warn_ref_strs]),
-                    category=MPRestWarning,
-                    stacklevel=2,
-                )
+                mp_warning("\n".join([*warning_strs, *warn_ref_strs]), stacklevel=2)
 
         for param, value in user_settings.items():
             if param in {"_page", "_sort_fields"}:

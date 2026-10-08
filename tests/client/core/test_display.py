@@ -15,7 +15,6 @@ from rich.console import Console
 import mp_api.client.core._display as display
 from mp_api.client.core._display import (
     MP_THEME,
-    disable_logging,
     enable_logging,
     get_console,
     print_notice,
@@ -231,17 +230,14 @@ def test_enable_logging_is_idempotent():
         enable_logging()
 
 
-def test_disable_and_reenable_logging():
-    disable_logging()
+def test_enable_logging_rejects_unknown_level():
+    with pytest.raises(ValueError, match="Unknown log level 'LOUD'"):
+        enable_logging("LOUD")
+    enable_logging("warning")  # case-insensitive
     try:
-        assert _installed() == []
-        assert _client_logger().propagate
-        assert any(
-            isinstance(h, logging.NullHandler) for h in _client_logger().handlers
-        )
+        assert _client_logger().level == logging.WARNING
     finally:
         enable_logging()
-    assert len(_installed()) == 1
 
 
 def test_logging_plain_when_not_a_terminal(pipe, no_root_handlers):
@@ -290,18 +286,6 @@ def test_contribs_logger_uses_shared_handler(pipe, no_root_handlers, capsys):
     out, _ = capsys.readouterr()
     assert out == ""  # never stdout
     assert "mp_api.client.contribs - INFO - project created" in pipe.getvalue()
-
-
-def test_logging_setting_off(monkeypatch):
-    from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
-
-    disable_logging()
-    monkeypatch.setattr(MAPI_CLIENT_SETTINGS, "LOGGING", False)
-    try:
-        display._install_default_logging()
-        assert _installed() == []
-    finally:
-        enable_logging()
 
 
 def test_logging_from_threads_during_progress(term, no_root_handlers):

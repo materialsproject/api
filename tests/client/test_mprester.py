@@ -219,7 +219,7 @@ loop_
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
         with pytest.warns(
-            DeprecationWarning, match="The `inc_structure` argument is deprecated"
+            FutureWarning, match="The `inc_structure` argument is deprecated"
         ):
             entries = mpr.get_entries(thermo_docs[0].chemsys, inc_structure=False)
 
@@ -896,7 +896,7 @@ loop_
 
             for attr in mpr._deprecated_attributes:
                 with pytest.warns(
-                    DeprecationWarning, match=r"Accessing.*data through MPRester\..*"
+                    FutureWarning, match=r"Accessing.*data through MPRester\..*"
                 ):
                     getattr(mpr, attr, None)
 

@@ -1,4 +1,4 @@
-"""Terminal / notebook output for the client: theme, progress bars and logging.
+"""Terminal / notebook output for the client: theme, progress bars, logging, quiet mode.
 
 All output goes to a single `rich.console.Console` writing to **stderr**,
 so stdout stays clean (required by e.g. the MCP server's stdio transport).
@@ -24,7 +24,55 @@ If the application has configured logging (handlers on the root logger, or on
 any ancestor of `mp_api.client`), records are passed to those handlers
 instead, honouring the application's levels, so nothing is printed twice.
 
-Opt out with `MPRESTER_LOGGING=false` or `mp_api.client.disable_logging()`.
+Configuration has a single owner: only the `mp_api.client` logger is given a
+level, handler or propagation setting, here. Child loggers (`mp_api.client.*`,
+including contribs) never set their own level, so one setting controls all of
+them. Use `MPRESTER_LOG_LEVEL` or `enable_logging(level)`.
+
+Quiet mode
+----------
+`quiet()` (or `MPRESTER_QUIET=true`, or `MPRester(quiet=True)`) silences the
+client for the whole process: no log records, progress bars, status lines,
+notices or `MPRestWarning`s. Deprecation warnings (`FutureWarning`) and
+exceptions are still raised. It can be used as a context manager.
+
+Which channel to use
+--------------------
+- The operation failed: raise an exception.
+- A deprecated API was used: `warnings.warn(..., FutureWarning)`, which is
+  shown by default, also when called from other libraries.
+- Something the caller can change in their call (an ignored argument, misuse,
+  a caveat about what the data means): `mp_warning(...)` (an `MPRestWarning`).
+- A runtime or data event the caller can't change in code (server
+  unreachable, data missing, a local dataset reused): `logger.warning/info`.
+- Diagnostics: `logger.debug`.
+- Transient progress: `progress_bar` / `status`, interactive output only.
+- Output the user explicitly asked for (`notify_db_version`): `print_notice`.
+
+So WARNING-level log records always mean something went wrong, and
+`MPRestWarning` / `FutureWarning` always mean the caller can fix something.
+
+Using mp-api in an application
+------------------------------
+E.g. a web server that wants to know about problems and misuse, but no
+progress output:
+
+```python
+import logging
+
+logging.basicConfig(level=logging.WARNING)  # or the app's own logging config
+logging.captureWarnings(True)  # MPRestWarning / FutureWarning into the logs
+
+from mp_api.client import MPRester
+
+mpr = MPRester(mute_progress_bars=True)  # or MPRESTER_MUTE_PROGRESS_BARS=true
+```
+
+Client log records go to the application's handlers, at its levels. Without
+an application logging config, set `MPRESTER_LOG_LEVEL=WARNING` instead.
+Python shows a given warning once per code location; use
+`warnings.simplefilter("always", MPRestWarning)` to see every occurrence, or
+`"error"` (e.g. in the application's tests) to fail on misuse.
 """
 
 from __future__ import annotations
@@ -32,8 +80,9 @@ from __future__ import annotations
 import logging
 import threading
 import time
+import warnings
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -61,11 +110,13 @@ if TYPE_CHECKING:
 
 __all__ = [
     "MP_THEME",
-    "disable_logging",
     "enable_logging",
     "get_console",
+    "is_quiet",
+    "mp_warning",
     "print_notice",
     "progress_bar",
+    "quiet",
     "set_console",
     "status",
 ]
@@ -150,6 +201,8 @@ def print_notice(message: str, style: str | None = None) -> None:
         message (str) : text to print
         style (str or None) : theme style, e.g. "mp.warning"
     """
+    if is_quiet():
+        return
     get_console().print(Text(message, style=style or ""))
 
 
@@ -343,7 +396,7 @@ def progress_bar(
         ProgressHandle
     """
     console = get_console()
-    if not enabled or not _is_interactive(console):
+    if not enabled or is_quiet() or not _is_interactive(console):
         yield ProgressHandle(total)
         return
 
@@ -389,29 +442,26 @@ _PLAIN_FORMAT = "%(name)s - %(levelname)s - %(message)s"
 
 
 @contextmanager
-def status(
-    message: str,
-    *,
-    enabled: bool = True,
-    logger: logging.Logger | None = None,
-) -> Iterator[None]:
+def status(message: str, *, enabled: bool = True) -> Iterator[None]:
     """Show a transient status line while a slow step runs.
 
     In a terminal or notebook with a live display, an amber spinner line is
-    shown and removed when the block exits. Otherwise (logs, CI, or
-    `enabled=False`), `message` is logged once as a warning via `logger`,
-    since a log line can't be taken back.
+    shown and removed when the block exits. If progress output is enabled but
+    can't be drawn live (logs, CI, Jupyter without ipywidgets), `message` is
+    logged once at INFO instead (it's progress, not a problem, so it stays out
+    of WARNING-level logs). If disabled (muted progress bars) or in quiet mode,
+    nothing is shown or logged.
 
     Args:
         message (str) : what is happening, e.g. "Counting documents..."
-        enabled (bool) : if False, skip the spinner and only log
-        logger (logging.Logger or None) : logger for the fallback warning.
-            Nothing is logged if None.
+        enabled (bool) : if False, show nothing
     """
     console = get_console()
-    if not (enabled and _is_interactive(console) and _can_draw_live(console)):
-        if logger is not None:
-            logger.warning(message)
+    if not enabled or is_quiet():
+        yield
+        return
+    if not (_is_interactive(console) and _can_draw_live(console)):
+        logging.getLogger(LOGGER_NAME).info(message)
         yield
         return
 
@@ -493,10 +543,21 @@ def _installed_handler(logger: logging.Logger) -> _MPDefaultHandler | None:
     return next((h for h in logger.handlers if isinstance(h, _MPDefaultHandler)), None)
 
 
-def enable_logging(level: int | str | None = None) -> None:
-    """Show messages from the client on stderr (the default).
+def _parse_level(level: int | str) -> int:
+    """Log level as an int, from an int or a name like "warning"."""
+    if isinstance(level, int):
+        return level
+    try:
+        return logging.getLevelNamesMapping()[level.strip().upper()]
+    except KeyError:
+        raise ValueError(f"Unknown log level {level!r}") from None
 
-    Safe to call repeatedly; only one handler is ever installed.
+
+def enable_logging(level: int | str | None = None) -> None:
+    """Show messages from the client on stderr (the default), at `level`.
+
+    Safe to call repeatedly; only one handler is ever installed. In quiet
+    mode the level is remembered and applied when quiet mode ends.
 
     Args:
         level (int, str or None) : minimum level to show, e.g. "WARNING".
@@ -505,34 +566,117 @@ def enable_logging(level: int | str | None = None) -> None:
     from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
     logger = logging.getLogger(LOGGER_NAME)
+    level = _parse_level(level or MAPI_CLIENT_SETTINGS.LOG_LEVEL)
     with _handler_lock:
         if _installed_handler(logger) is None:
-            # Remove the placeholder NullHandler, if any
-            for h in [h for h in logger.handlers if type(h) is logging.NullHandler]:
-                logger.removeHandler(h)
             logger.addHandler(_MPDefaultHandler(logger))
             # The handler forwards to the application's handlers itself
             logger.propagate = False
-        logger.setLevel(level or MAPI_CLIENT_SETTINGS.LOG_LEVEL)
+        if _QUIET.enabled:
+            _QUIET.saved_level = level
+        else:
+            logger.setLevel(level)
 
 
-def disable_logging() -> None:
-    """Stop the client printing messages; standard logging propagation resumes."""
+# --------------------------------------------------------------------------
+# Quiet mode
+# --------------------------------------------------------------------------
+
+# Above CRITICAL: every record from mp_api.client (and its children, which
+# never set their own level) is dropped before reaching any handler.
+_SILENT = logging.CRITICAL + 1
+
+
+class _QuietState:
+    """Process-wide quiet flag. `saved_level` is the log level to restore."""
+
+    def __init__(self) -> None:
+        self.enabled = False
+        self.saved_level: int = logging.NOTSET
+
+
+_QUIET = _QuietState()
+
+
+class _QuietContext:
+    """Returned by `quiet()`; restores the previous state when used with `with`."""
+
+    def __init__(self, previous: bool) -> None:
+        self._previous = previous
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *exc_info: object) -> None:
+        _set_quiet(self._previous)
+
+
+def _set_quiet(enabled: bool) -> bool:
+    """Turn quiet mode on or off, returning the previous state."""
     logger = logging.getLogger(LOGGER_NAME)
     with _handler_lock:
-        if (handler := _installed_handler(logger)) is not None:
-            logger.removeHandler(handler)
-        if not logger.handlers:
-            logger.addHandler(logging.NullHandler())
-        logger.propagate = True
-        logger.setLevel(logging.NOTSET)
+        previous = _QUIET.enabled
+        if enabled and not previous:
+            _QUIET.saved_level = logger.level
+            logger.setLevel(_SILENT)
+        elif previous and not enabled:
+            logger.setLevel(_QUIET.saved_level)
+        _QUIET.enabled = enabled
+    return previous
 
 
-def _install_default_logging() -> None:
-    """Install the default handler on import, unless disabled by settings."""
+def quiet(enabled: bool = True) -> _QuietContext:
+    """Silence all output from the client in this process.
+
+    While quiet, the client emits no log records (they don't reach the
+    application's handlers either), progress bars, status lines, notices or
+    `MPRestWarning`s. Deprecation warnings and exceptions are unaffected.
+
+    Takes effect immediately; as a context manager, the previous state is
+    restored on exit:
+
+    ```python
+    from mp_api.client import quiet
+
+    quiet()  # for the rest of the process
+    with quiet():  # only within the block
+        ...
+    ```
+
+    Args:
+        enabled (bool) : True to silence the client, False to restore output.
+
+    Returns:
+        a context manager that restores the previous state on exit
+    """
+    return _QuietContext(_set_quiet(enabled))
+
+
+def is_quiet() -> bool:
+    """Whether quiet mode is on, see `quiet()`."""
+    return _QUIET.enabled
+
+
+def mp_warning(message: str, stacklevel: int = 1) -> None:
+    """Emit an `MPRestWarning`, unless in quiet mode.
+
+    For things the caller can change in their call, see the module docstring.
+
+    Args:
+        message (str) : warning text
+        stacklevel (int) : as for `warnings.warn`, relative to the caller
+    """
+    if _QUIET.enabled:
+        return
+    from mp_api.client.core.exceptions import MPRestWarning
+
+    warnings.warn(message, MPRestWarning, stacklevel=stacklevel + 1)
+
+
+def _configure_from_settings() -> None:
+    """Configure client output from settings, on import of `mp_api.client`."""
     from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
-    if MAPI_CLIENT_SETTINGS.LOGGING:
-        enable_logging()
-    else:
-        logging.getLogger(LOGGER_NAME).addHandler(logging.NullHandler())
+    enable_logging()
+    if MAPI_CLIENT_SETTINGS.QUIET:
+        quiet(True)
