@@ -31,7 +31,12 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client.core._display import mp_warning, print_notice, status
+from mp_api.client.core._display import (
+    DatabaseVersions,
+    mp_warning,
+    print_notice,
+    status,
+)
 from mp_api.client.core._display import quiet as set_quiet
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.client import (
@@ -402,7 +407,7 @@ class MPRester(_Rester):
 
     def available_db_versions(
         self, collection: str | None = None
-    ) -> dict[str, list[str]] | list[str]:
+    ) -> DatabaseVersions | list[str]:
         """Database versions available for full dataset downloads on S3.
 
         Read from the DeltaTable logs, no data is downloaded. Pass any of these
@@ -417,8 +422,9 @@ class MPRester(_Rester):
 
         Returns:
             list of str for one collection, e.g. ["2026.04.13", "2026.09.28"],
-            otherwise dict of collection to list of str. Collections that
-            couldn't be loaded, or have a single version, are left out.
+            otherwise a dict of collection to list of str, which displays as a
+            table in a REPL or notebook. Collections that couldn't be loaded, or
+            have a single version, are left out.
 
         Raises:
             MPRestError: if `collection` is unknown or has a single version.
@@ -448,7 +454,10 @@ class MPRester(_Rester):
             ThreadPoolExecutor(max_workers=min(8, len(resters) or 1)) as pool,
         ):
             found = list(pool.map(_list, sorted(resters)))
-        return {route: versions for route, versions in found if versions}
+        return DatabaseVersions(
+            {route: versions for route, versions in found if versions},
+            current=self.current_db_version,
+        )
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None

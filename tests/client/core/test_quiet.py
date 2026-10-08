@@ -248,3 +248,106 @@ def _env() -> dict[str, str]:
     import os
 
     return {k: v for k, v in os.environ.items() if not k.startswith("MPRESTER_")}
+
+
+# --------------------------------------------------------------------------
+# DatabaseVersions display
+# --------------------------------------------------------------------------
+
+
+def test_database_versions_is_a_plain_dict():
+    import json
+
+    from mp_api.client.core._display import DatabaseVersions
+
+    data = {"summary": ["2026.04.13", "2026.09.28"], "thermo": ["2026.04.13"]}
+    v = DatabaseVersions(data, current="2026.04.13")
+    assert v == data and isinstance(v, dict)
+    assert json.loads(json.dumps(v)) == data
+    assert v["thermo"] == ["2026.04.13"] and list(v) == ["summary", "thermo"]
+
+
+def test_database_versions_repr_is_a_table():
+    from mp_api.client.core._display import DatabaseVersions
+
+    v = DatabaseVersions(
+        {"summary": ["2026.04.13", "2026.09.28"], "thermo": ["2026.09.28"]},
+        current="2026.04.13",
+    )
+    text = repr(v)  # not an interactive colour terminal: plain text
+    assert "Database versions available on S3" in text
+    assert "│ summary │ 2026.04.13*, 2026.09.28 │" in text
+    assert "│ thermo  │ 2026.09.28              │" in text
+    assert "2026.04.13* served by the API" in text
+    assert "newer" not in text  # colour legend only shown with colours
+    assert "\x1b[" not in text
+    assert str(v) == text
+    assert repr(DatabaseVersions({})) == "DatabaseVersions({})"
+
+
+def test_database_versions_no_marker_without_current():
+    from mp_api.client.core._display import DatabaseVersions
+
+    text = repr(DatabaseVersions({"summary": ["2026.09.28"]}, current="2026.04.13"))
+    assert "*" not in text and "served by the API" not in text
+
+
+def test_database_versions_colours(monkeypatch):
+    from mp_api.client.core._display import MP_THEME, DatabaseVersions
+
+    v = DatabaseVersions(
+        {"chemenv": ["2025.09.25", "2026.04.13", "2026.09.28"]}, current="2026.04.13"
+    )
+    assert [v._style(x) for x in v["chemenv"]] == [
+        "mp.version.older",
+        "mp.version.current",
+        "mp.version.newer",
+    ]
+    assert DatabaseVersions(v, current=None)._style("2026.04.13") == ""
+
+    def rgb(style):
+        c = MP_THEME.styles[style].color.triplet
+        return f"38;2;{c.red};{c.green};{c.blue}"
+
+    monkeypatch.setattr(display, "_interactive_color", lambda: True)
+    monkeypatch.setattr(display, "_color_system", lambda: "truecolor")
+    coloured = repr(v)
+    for style in ("mp.version.current", "mp.version.newer", "mp.version.older"):
+        assert rgb(style) in coloured
+    assert "newer" in coloured and "older" in coloured  # legend
+    assert "\x1b[" not in str(v)  # str() is always plain
+
+
+def test_database_versions_colour_only_when_interactive(monkeypatch):
+    import sys
+
+    from mp_api.client.core._display import _interactive_color
+
+    monkeypatch.delattr(sys, "ps1", raising=False)
+    assert not _interactive_color()  # a script, or pytest
+    monkeypatch.setattr(sys, "ps1", ">>> ", raising=False)
+
+    class TTY(io.StringIO):
+        def isatty(self):
+            return True
+
+    monkeypatch.setattr(sys, "stdout", TTY())
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.setenv("TERM", "xterm-256color")
+    assert _interactive_color()
+    monkeypatch.setenv("NO_COLOR", "1")
+    assert not _interactive_color()
+
+
+def test_database_versions_notebook_and_ipython():
+    pytest.importorskip("IPython")
+    from IPython.core.formatters import DisplayFormatter
+
+    from mp_api.client.core._display import DatabaseVersions
+
+    v = DatabaseVersions({"summary": ["2026.04.13"]}, current="2026.04.13")
+    data, _ = DisplayFormatter().format(v)
+    assert data["text/plain"] == repr(v)  # IPython terminal: the table, not a dict
+    assert data["text/html"].startswith("<pre>")
+    assert "summary" in data["text/html"]
+    assert "color: #48c78e" in data["text/html"]  # current version, green

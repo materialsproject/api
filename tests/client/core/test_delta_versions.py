@@ -807,7 +807,12 @@ def mpr(make_rester, tmp_path, remote, monkeypatch):
 
 
 def test_mprester_lists_all_versioned_collections(mpr):
-    assert mpr.available_db_versions() == {
+    from mp_api.client.core._display import DatabaseVersions
+
+    versions = mpr.available_db_versions()
+    assert isinstance(versions, DatabaseVersions)
+    assert versions.current == mpr.current_db_version
+    assert versions == {
         # same remote table used for both; bonds (unversioned) and
         # collections that fail to load are left out
         "chemenv": ["2026.04.13", "2026.09.28"],

@@ -77,6 +77,7 @@ Python shows a given warning once per code location; use
 
 from __future__ import annotations
 
+import io
 import logging
 import threading
 import time
@@ -98,18 +99,20 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 from rich.spinner import Spinner
-from rich.table import Column
+from rich.table import Column, Table
 from rich.text import Text
 from rich.theme import Theme
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
+    from typing import Any, Literal
 
     from rich.console import RenderableType
     from rich.progress import Task
 
 __all__ = [
     "MP_THEME",
+    "DatabaseVersions",
     "enable_logging",
     "get_console",
     "is_quiet",
@@ -135,6 +138,11 @@ MP_THEME = Theme(
         "mp.muted": "#7A7A7A",  # Bulma .has-text-grey
         "mp.title": "bold underline",
         "mp.field": "bold",
+        "mp.table.header": "bold #008F83",  # brand dark
+        # database versions, relative to the one the API serves
+        "mp.version.current": "bold #48C78E",  # success green
+        "mp.version.newer": "#3960E3",  # accent blue
+        "mp.version.older": "#7A7A7A",  # muted grey
         # rich built-ins used by progress bars / logging
         "progress.description": "default",
         "progress.download": "#939FC8",
@@ -432,6 +440,161 @@ def progress_bar(
                 (f" in {handle.elapsed:.1f}s", "mp.muted"),
             )
         )
+
+
+# --------------------------------------------------------------------------
+# Tables
+# --------------------------------------------------------------------------
+
+
+class DatabaseVersions(dict[str, list[str]]):
+    """Database versions per dataset: a plain `dict` that displays as a table.
+
+    Behaves exactly like `dict[str, list[str]]` (indexing, iteration,
+    equality, JSON). Only its representation differs: evaluating it in a REPL
+    or notebook shows a table. Versions are coloured relative to the one the
+    API serves: that one green and marked `*`, newer ones blue, older ones grey.
+    """
+
+    def __init__(
+        self, versions: dict[str, list[str]], current: str | None = None
+    ) -> None:
+        """Create the mapping.
+
+        Args:
+            versions (dict of str to list of str) : dataset name to versions
+            current (str or None) : version the API serves, marked in the table
+        """
+        super().__init__(versions)
+        self.current = current
+
+    def _style(self, version: str) -> str:
+        """Theme style for a version, relative to the version the API serves."""
+        if not self.current:
+            return ""
+        if version == self.current:
+            return "mp.version.current"
+        # Versions are dates (with optional -postN suffixes), so they sort as text
+        return "mp.version.newer" if version > self.current else "mp.version.older"
+
+    def _legend(self, styled: bool) -> Text | None:
+        """Caption explaining the markers / colours present in the table."""
+        if not self.current:
+            return None
+        seen = {self._style(v) for versions in self.values() for v in versions}
+        parts: list[str | tuple[str, str]] = []
+        if "mp.version.current" in seen:
+            parts += [(f"{self.current}*", "mp.version.current"), " served by the API"]
+        if styled and "mp.version.newer" in seen:
+            parts += ["  ", ("newer", "mp.version.newer")]
+        if styled and "mp.version.older" in seen:
+            parts += ["  ", ("older", "mp.version.older")]
+        return Text.assemble(*parts) if parts else None
+
+    def _table(self, styled: bool) -> Table:
+        def st(style: str) -> str:
+            return style if styled else ""
+
+        table = Table(
+            title="Database versions available on S3",
+            title_style=st("bold"),
+            header_style=st("mp.table.header"),
+            border_style=st("mp.muted"),
+            caption=self._legend(styled),
+            caption_style=st("mp.muted"),
+        )
+        # default foreground: white on dark terminals, still readable on light ones
+        table.add_column("Dataset", no_wrap=True)
+        table.add_column("Versions")
+        for name, versions in self.items():
+            cells = [
+                Text(
+                    f"{v}*" if v == self.current else v,
+                    style=st(self._style(v)),
+                )
+                for v in versions
+            ]
+            table.add_row(name, Text(", ").join(cells))
+        return table
+
+    def _render(self, color: bool, width: int = 200) -> str:
+        """The table as text, with ANSI colours if `color`."""
+        buf = io.StringIO()
+        Console(
+            file=buf,
+            width=width,
+            theme=MP_THEME,
+            force_terminal=color,
+            color_system=_color_system() if color else None,
+            force_jupyter=False,
+        ).print(self._table(styled=color))
+        return buf.getvalue().rstrip("\n")
+
+    def __rich__(self) -> Table:
+        return self._table(styled=True)
+
+    def __repr__(self) -> str:
+        """The table. Coloured only in an interactive session on a colour
+        terminal, so a repr in logs or files never contains ANSI codes.
+        """
+        if not self:
+            return "DatabaseVersions({})"
+        if _interactive_color():
+            return self._render(color=True, width=get_console().width)
+        return self._render(color=False)
+
+    def __str__(self) -> str:
+        return self._render(color=False) if self else "DatabaseVersions({})"
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """IPython terminal: the table (IPython would otherwise pretty-print a dict)."""
+        p.text(self.__repr__())
+
+    def _repr_html_(self) -> str:
+        """Jupyter: the styled table."""
+        console = Console(
+            file=io.StringIO(),
+            record=True,
+            width=200,
+            theme=MP_THEME,
+            force_jupyter=False,
+        )
+        console.print(self._table(styled=True))
+        return console.export_html(inline_styles=True, code_format="<pre>{code}</pre>")
+
+
+def _color_system() -> Literal["standard", "256", "truecolor"]:
+    """Colour depth of the user's terminal, for reprs rendered to a string."""
+    detected = get_console().color_system
+    if detected == "truecolor":
+        return "truecolor"
+    return "256" if detected == "256" else "standard"
+
+
+def _interactive_color() -> bool:
+    """Whether a repr may contain colours: an interactive Python/IPython session
+    whose stdout is a colour terminal, and NO_COLOR isn't set.
+    """
+    import os
+    import sys
+
+    interactive = hasattr(sys, "ps1") or bool(sys.flags.interactive)
+    try:
+        from IPython import get_ipython  # type: ignore[attr-defined]
+
+        shell = get_ipython()
+        interactive = interactive or (
+            shell is not None and type(shell).__name__ == "TerminalInteractiveShell"
+        )
+    except ImportError:
+        pass
+    return (
+        interactive
+        and sys.stdout is not None
+        and sys.stdout.isatty()
+        and "NO_COLOR" not in os.environ
+        and os.environ.get("TERM") != "dumb"
+    )
 
 
 # --------------------------------------------------------------------------
