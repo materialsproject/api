@@ -12,6 +12,7 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core._display import status
 from mp_api.client.core.client import LATEST_DB_VERSION, _normalize_db_version
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.settings import DEFAULT_THERMOTYPE
@@ -213,24 +214,32 @@ class ThermoRester(BaseRester):
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
 
-        pd_lbl, _ = self._get_delta_table(
-            "materialsproject-build", "objects/phase-diagrams", label="phase_diagrams"
-        )
-        requested = _normalize_db_version(db_version) or self.db_version
-        if requested == LATEST_DB_VERSION:
-            counts = self.delta_catalog.partition_row_counts(pd_lbl) or {}
-            version = self._resolve_db_version(requested, counts, "phase-diagrams")
-        else:
-            version = to_partition_version(requested)
+        # Loading the (large) table and scanning it for one system takes seconds,
+        # so show what's happening rather than blocking silently:
+        with status(
+            f"Fetching the {validated_thermo_type} phase diagram for {sorted_chemsys}...",
+            enabled=not self.mute_progress_bars,
+        ):
+            pd_lbl, _ = self._get_delta_table(
+                "materialsproject-build",
+                "objects/phase-diagrams",
+                label="phase_diagrams",
+            )
+            requested = _normalize_db_version(db_version) or self.db_version
+            if requested == LATEST_DB_VERSION:
+                counts = self.delta_catalog.partition_row_counts(pd_lbl) or {}
+                version = self._resolve_db_version(requested, counts, "phase-diagrams")
+            else:
+                version = to_partition_version(requested)
 
-        query = f"""
-            SELECT phase_diagram
-            FROM   {pd_lbl}
-            WHERE  chemsys='{sorted_chemsys}'
-              AND  version='{version}'
-              AND  thermo_type='{validated_thermo_type}'
-        """
-        table = self._query_delta_single(query, label=pd_lbl)
+            query = f"""
+                SELECT phase_diagram
+                FROM   {pd_lbl}
+                WHERE  chemsys='{sorted_chemsys}'
+                  AND  version='{version}'
+                  AND  thermo_type='{validated_thermo_type}'
+            """
+            table = self._query_delta_single(query, label=pd_lbl)
         as_py = table["phase_diagram"].to_pylist(maps_as_pydicts="strict")
 
         pd: PhaseDiagram | None = None

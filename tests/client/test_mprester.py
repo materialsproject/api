@@ -1,5 +1,6 @@
 import importlib
 import itertools
+import logging
 import os
 import random
 import warnings
@@ -81,7 +82,7 @@ class TestMPRester:
         assert db_version is not None
 
         with pytest.warns(
-            MPRestWarning, match="`get_database_version` has been deprecated"
+            FutureWarning, match="`get_database_version` has been deprecated"
         ):
             assert db_version == mpr.get_database_version()
 
@@ -287,10 +288,10 @@ loop_
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
         syms2 = "Li-Fe-O"
-        with pytest.warns(
-            MPRestWarning, match="The default thermo type when retrieving entries"
-        ):
-            entries = mpr.get_entries_in_chemsys(syms)
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            entries = mpr.get_entries_in_chemsys(syms)  # default thermo type
+        assert not [w for w in record if issubclass(w.category, MPRestWarning)]
         entries2 = mpr.get_entries_in_chemsys(
             syms2, additional_criteria={"thermo_types": [ThermoType.GGA_GGA_U_R2SCAN]}
         )
@@ -694,7 +695,7 @@ loop_
     @pytest.mark.parametrize(
         "thermo_type", ["GGA_GGA+U", ThermoType.GGA_GGA_U_R2SCAN, "r2SCAN"]
     )
-    def test_get_stability(self, thermo_type):
+    def test_get_stability(self, thermo_type, caplog):
         """
         This test is adapted from the pymatgen one - the scope is broadened
         to include more diverse chemical environments and thermo types which
@@ -742,10 +743,15 @@ loop_
                     ):
                         # For a multi-element chemsys with no multinaries, only elementals,
                         # there should be no phase diagram data available.
-                        with pytest.warns(
-                            MPRestWarning, match="No phase diagram data available"
-                        ):
-                            mpr.get_stability(modified_entries, thermo_type=thermo_type)
+                        # a data event, so a log record rather than a warning
+                        with caplog.at_level(logging.WARNING, logger="mp_api.client"):
+                            assert (
+                                mpr.get_stability(
+                                    modified_entries, thermo_type=thermo_type
+                                )
+                                is None
+                            )
+                        assert "No phase diagram data available" in caplog.text
                         return
 
                     else:
@@ -877,9 +883,9 @@ loop_
             assert parsed_db_ver == db_version
             assert isinstance(parsed_db_ver, str)
 
-    def test_warnings_exceptions(self):
-        # Generic warnings/exceptions tests, nothji
-        with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
+    def test_warnings_exceptions(self, caplog):
+        # Generic warnings/exceptions tests
+        with pytest.warns(FutureWarning, match="Ignoring `monty_decode`"):
             MPRester(monty_decode=False)
 
         with MPRester() as mpr:
@@ -889,10 +895,10 @@ loop_
             ):
                 mpr.query(some_field=1.0)
 
-            with pytest.warns(
-                MPRestWarning, match="No material found containing task mp-0"
-            ):
+            # a data event, so a log record rather than a warning
+            with caplog.at_level(logging.WARNING, logger="mp_api.client"):
                 assert mpr.get_material_id_from_task_id("mp-0") is None
+            assert "No material found containing task mp-0" in caplog.text
 
             for attr in mpr._deprecated_attributes:
                 with pytest.warns(
@@ -900,7 +906,7 @@ loop_
                 ):
                     getattr(mpr, attr, None)
 
-    def test_min_emmet_warning(self, monkeypatch: pytest.MonkeyPatch):
+    def test_min_emmet_warning(self, monkeypatch: pytest.MonkeyPatch, caplog):
         from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
         with MPRester() as mpr:
@@ -908,7 +914,6 @@ loop_
             monkeypatch.setattr(
                 MAPI_CLIENT_SETTINGS, "MIN_EMMET_VERSION", f"{emmet_ver.major + 1}.0.0"
             )
-            with pytest.warns(
-                MPRestWarning, match="The installed version of the mp-api"
-            ):
+            with caplog.at_level(logging.WARNING, logger="mp_api.client"):
                 MPRester()
+            assert "The installed version of the mp-api" in caplog.text

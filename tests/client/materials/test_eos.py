@@ -3,7 +3,7 @@ import os
 import pytest
 
 from mp_api._test_utils import client_search_testing, requires_api_key
-from mp_api.client.core.exceptions import MPRestError, MPRestWarning
+from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.routes.materials.eos import EOSRester
 
 
@@ -48,7 +48,7 @@ def test_client(rester):
 def test_warnings_errors(rester):
 
     with pytest.warns(
-        MPRestWarning, match="`material_id` has been replaced by `task_id`"
+        FutureWarning, match="`material_id` has been replaced by `task_id`"
     ):
         rester.search(material_ids=["mp-149"], num_chunks=1, chunk_size=1)
 

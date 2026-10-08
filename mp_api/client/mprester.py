@@ -8,7 +8,6 @@ import re
 import warnings
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from copy import deepcopy
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
 from urllib.parse import urlencode
@@ -38,6 +37,11 @@ from mp_api.client.core._display import (
     status,
 )
 from mp_api.client.core._display import quiet as set_quiet
+from mp_api.client.core._entries import (
+    apply_corrections,
+    get_conventional_cell_entry,
+    rescale_to_conventional,
+)
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.client import (
     LATEST_DB_VERSION,
@@ -329,11 +333,23 @@ class MPRester(_Rester):
             - use_document_model
             - mute_progress_bars
 
+        Raises:
+            ImportError: if the optional MPContribs dependencies aren't installed.
+            MPRestError: if the client can't be created, e.g. the server is
+                unreachable. Nothing is cached, so a later access retries.
         """
         if self._contribs is None:
             try:
                 from mp_api.client.contribs.client import ContribsClient
+            except ImportError as error:
+                raise ImportError(
+                    "The MPContribs client needs optional dependencies: run "
+                    "`pip install 'mp-api[contribs]'`. It provides user-contributed "
+                    "data, also used by e.g. `get_pourbaix_entries` and "
+                    "`get_cohesive_energy`."
+                ) from error
 
+            try:
                 self._contribs = ContribsClient(
                     api_key=self.api_key,
                     headers=self.headers,
@@ -342,16 +358,10 @@ class MPRester(_Rester):
                     mute_progress_bars=self.mute_progress_bars,
                     **self._contribs_kwargs,
                 )
-
-            except ImportError:
-                self._contribs = None
-                mp_warning(
-                    "Run `pip install 'mp-api[contribs]'` to make use of the MPContribs client.",
-                    stacklevel=2,
-                )
             except Exception as error:
-                self._contribs = None
-                logger.warning(f"Problem loading MPContribs client: {error}")
+                raise MPRestError(
+                    f"Problem loading the MPContribs client: {error}"
+                ) from error
         return self._contribs
 
     def __getattr__(self, attr):
@@ -797,14 +807,15 @@ class MPRester(_Rester):
                 ):  # merge property_data, retaining entry data (e.g. `oxidation_states`)
                     entry_dict["data"] |= {prop: doc[prop] for prop in property_data}
 
-                entry = TypeAdapter(ComputedStructureEntryType).validate_python(
-                    entry_dict
+                # Need to store object to permit de-duplication
+                entries.add(
+                    TypeAdapter(ComputedStructureEntryType).validate_python(entry_dict)
                 )
-                if conventional_unit_cell:
-                    entry = self._get_conventional_cell_entry(entry)
 
-                entries.add(entry)  # object permits de-duplication
-
+        if conventional_unit_cell:
+            return rescale_to_conventional(
+                list(entries), enabled=not self.mute_progress_bars
+            )
         return list(entries)
 
     def get_pourbaix_entries(
@@ -935,20 +946,23 @@ class MPRester(_Rester):
             )
             compat = MaterialsProjectAqueousCompatibility(solid_compat=solid_compat)
         # suppress the warning about missing oxidation states
+        n = len(ion_ref_entries)
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore", message="Failed to guess oxidation states.*"
             )
-            ion_ref_entries = compat.process_entries(ion_ref_entries)  # type: ignore
+            ion_ref_entries = apply_corrections(
+                compat,
+                ion_ref_entries,
+                description="Applying aqueous corrections",
+                log=f"Applying aqueous corrections to {n:,} ion reference entries",
+                summary=f"Applied aqueous corrections to {n:,} entries ({{kept:,}} kept)",
+                enabled=not self.mute_progress_bars,
+            )
         # TODO - if the commented line above would work, this conditional block
         # could be removed
         if use_gibbs:
-            # replace the entries with GibbsComputedStructureEntry
-            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
-
-            ion_ref_entries = GibbsComputedStructureEntry.from_entries(
-                ion_ref_entries, temp=use_gibbs
-            )
+            ion_ref_entries = self._to_gibbs_entries(ion_ref_entries, use_gibbs)  # type: ignore[arg-type]
         ion_ref_pd = PhaseDiagram(ion_ref_entries)  # type: ignore
 
         ion_entries = self.get_ion_entries(ion_ref_pd, ion_ref_data=ion_data)
@@ -1195,30 +1209,21 @@ class MPRester(_Rester):
             )
         ]
 
-    @staticmethod
-    def _get_conventional_cell_entry(
-        entry: ComputedStructureEntry,
-    ) -> ComputedStructureEntry:
-        """Rebuild ``entry`` on the standard conventional unit cell, scaling the energy
-        and energy adjustments accordingly.
-        """
-        conventional_structure = SpacegroupAnalyzer(
-            entry.structure
-        ).get_conventional_standard_structure()
-        site_ratio = len(conventional_structure) / len(entry.structure)
+    _get_conventional_cell_entry = staticmethod(get_conventional_cell_entry)
 
-        energy_adjustments = deepcopy(entry.energy_adjustments)
-        for adjustment in energy_adjustments:  # adjustment values are extensive
-            adjustment.normalize(1 / site_ratio)
+    def _to_gibbs_entries(
+        self, entries: Sequence[ComputedStructureEntry], temp: float
+    ) -> list[GibbsComputedStructureEntry]:
+        """Replace `entries` with GibbsComputedStructureEntry estimates at `temp` K."""
+        from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
 
-        return ComputedStructureEntry(
-            conventional_structure,
-            entry.uncorrected_energy * site_ratio,
-            energy_adjustments=energy_adjustments,
-            parameters=entry.parameters,
-            data=entry.data,
-            entry_id=entry.entry_id,
-        )
+        # pymatgen builds a phase diagram and converts each entry internally,
+        # with no hook to count progress, so this is a status line:
+        with status(
+            f"Estimating Gibbs free energies at {temp:g} K for {len(entries):,} entries...",
+            enabled=not self.mute_progress_bars,
+        ):
+            return GibbsComputedStructureEntry.from_entries(list(entries), temp=temp)
 
     def get_entries_in_chemsys(
         self,
@@ -1249,7 +1254,8 @@ class MPRester(_Rester):
         scheme is re-applied locally when MP has no pre-built diagram, are then dropped).
         Passing ``compatible_only = False`` cannot be served that way and returns
         entries that are *not* immediately suitable for constructing a phase diagram,
-        with a warning.
+        with a warning. When MP has no pre-built diagram for the system, the mixing
+        scheme is re-applied locally (logged as a warning, with a progress bar).
 
         Args:
             elements (str or [str]): Parent chemical system string comprising element
@@ -1294,16 +1300,6 @@ class MPRester(_Rester):
 
         all_chemsyses = _all_subchemsyses(elements_set)
 
-        if additional_criteria is None:
-            mp_warning(
-                "The default thermo type when retrieving entries has been changed from "
-                "the mixed/corrected PBE GGA and GGA+U hull (`thermo_type = GGA_GGA+U`) "
-                "to the joint PBE GGA / GGA+U / r2SCAN hull (`thermo_type = GGA_GGA+U_R2SCAN`). "
-                "To use the older behavior, call `get_entries_in_chemsys` with "
-                '`additional_criteria = {"thermo_types": ["GGA_GGA+U"]}`',
-                stacklevel=2,
-            )
-
         additional_criteria = {
             **DEFAULT_THERMOTYPE_CRITERIA,
             **(additional_criteria or {}),
@@ -1346,25 +1342,32 @@ class MPRester(_Rester):
             if entries is None:
                 # MP has no pre-built diagram for this system, so redo the mixing here as MP does when
                 # building PDs. Mixing scheme is chemical-system dependent, so this can anchor on a
-                # different hull than MP did/would, and it drops entries it cannot place:
+                # different hull than MP did/would, and it drops entries it cannot place.
+                # A data event the caller can't change, so a log record (not a warning):
                 from pymatgen.entries.mixing_scheme import (
                     MaterialsProjectDFTMixingScheme,
                 )
 
-                mp_warning(
-                    "Reconstructing a common energy scale for these entries with the "
-                    "GGA(+U)/r2SCAN mixing scheme, as the Materials Project has no pre-built "
-                    "phase diagram to serve for this query. Energies and hull distances may "
-                    "differ slightly from https://materialsproject.org, and entries the mixing "
-                    "scheme cannot place are dropped.",
-                    stacklevel=2,
+                chemsys = "-".join(sorted(elements_set))
+                logger.warning(
+                    f"The Materials Project has no pre-built phase diagram for {chemsys}, "
+                    "so a common energy scale is being reconstructed locally with the "
+                    "GGA(+U)/r2SCAN mixing scheme. Energies and hull distances may differ "
+                    "slightly from https://materialsproject.org, and entries the mixing "
+                    "scheme cannot place are dropped."
                 )
-                entries = MaterialsProjectDFTMixingScheme().process_entries(
-                    self._get_unmixed_entries(
-                        all_chemsyses,
-                        property_data=property_data,
-                        **kwargs,
-                    )
+                unmixed = self._get_unmixed_entries(
+                    all_chemsyses, property_data=property_data, **kwargs
+                )
+                n = len(unmixed)
+                entries = apply_corrections(
+                    MaterialsProjectDFTMixingScheme(),
+                    unmixed,
+                    description="Re-mixing GGA(+U)/r2SCAN entries",
+                    log=f"Re-mixing {n:,} GGA(+U)/r2SCAN entries onto a common energy scale",
+                    summary=f"Re-mixed {n:,} entries onto a common energy scale "
+                    "({kept:,} kept)",
+                    enabled=not self.mute_progress_bars,
                 )
 
             if extra_criteria:
@@ -1408,13 +1411,12 @@ class MPRester(_Rester):
         if conventional_unit_cell:
             # reshaped here rather than in the queries above, so that structure matching in the mixing
             # scheme sees the original cells, and so that every energy adjustment is scaled appropriately:
-            entries = [self._get_conventional_cell_entry(entry) for entry in entries]
+            entries = rescale_to_conventional(
+                entries, enabled=not self.mute_progress_bars
+            )
 
         if use_gibbs:
-            # replace the entries with GibbsComputedStructureEntry
-            from pymatgen.entries.computed_entries import GibbsComputedStructureEntry
-
-            return GibbsComputedStructureEntry.from_entries(entries, temp=use_gibbs)
+            return self._to_gibbs_entries(entries, use_gibbs)
 
         return entries
 
@@ -1945,11 +1947,31 @@ class MPRester(_Rester):
         # side by side), and silently drops every entry it cannot pair up -- so we fetch
         # separately in the mixed case
 
-        new_pd = PhaseDiagram(
-            corrector.process_entries(joint_entries)  # type: ignore[arg-type]
-            if corrector
-            else joint_entries  # type: ignore[list-item]
-        )
+        if corrector is None:
+            processed = list(joint_entries)
+        else:
+            n_mp = len(joint_entries) - len(entries)
+            mixing = thermo_type_valid_str == ThermoType.GGA_GGA_U_R2SCAN.value
+            action = "Re-mixing" if mixing else "Correcting"
+            processed = apply_corrections(
+                corrector,
+                joint_entries,
+                description=f"{action} your entries with MP's",
+                log=(
+                    f"{action} {len(entries):,} of your entries with {n_mp:,} MP entries "
+                    + (
+                        "onto a common GGA(+U)/r2SCAN energy scale"
+                        if mixing
+                        else f"using {type(corrector).__name__}"
+                    )
+                ),
+                summary=(
+                    f"{'Re-mixed' if mixing else 'Corrected'} {len(joint_entries):,} "
+                    "entries ({kept:,} kept)"
+                ),
+                enabled=not self.mute_progress_bars,
+            )
+        new_pd = PhaseDiagram(processed)  # type: ignore[arg-type]
 
         return [
             {

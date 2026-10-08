@@ -9,7 +9,7 @@ import warnings
 import pytest
 from swagger_spec_validator.common import SwaggerValidationError
 
-from mp_api.client.core.exceptions import MPContribsClientError
+from mp_api.client.core.exceptions import MPContribsClientError, MPRestError
 
 
 def test_import_has_no_global_side_effects():
@@ -122,3 +122,42 @@ def test_logging_does_not_go_to_stdout(capsys):
     MPCC_LOGGER.info("Nothing to submit.")
     out, _ = capsys.readouterr()
     assert out == ""
+
+
+def _offline_mprester(monkeypatch):
+    from mp_api.client import MPRester
+
+    monkeypatch.setattr(
+        MPRester, "_get_heartbeat_info", staticmethod(lambda endpoint: ("v", []))
+    )
+    monkeypatch.setattr(MPRester, "get_emmet_version", staticmethod(lambda ep: None))
+    return MPRester(api_key="a" * 32)
+
+
+def test_missing_contribs_extra_raises(monkeypatch):
+    """Without the extra, `contribs` (and everything using it) raises ImportError."""
+    mpr = _offline_mprester(monkeypatch)
+    monkeypatch.setitem(sys.modules, "mp_api.client.contribs.client", None)
+    with pytest.raises(ImportError, match=r"pip install 'mp-api\[contribs\]'"):
+        mpr.contribs
+    with pytest.raises(ImportError, match="MPContribs client needs"):
+        mpr.get_pourbaix_entries("Li-Mn-O")
+
+
+def test_contribs_load_failure_raises_and_is_not_cached(monkeypatch):
+    from mp_api.client.contribs import client as contribs_client
+
+    mpr = _offline_mprester(monkeypatch)
+    calls = []
+
+    class Flaky:
+        def __init__(self, **kwargs):
+            calls.append(1)
+            if len(calls) == 1:
+                raise ConnectionError("server unreachable")
+
+    monkeypatch.setattr(contribs_client, "ContribsClient", Flaky)
+    with pytest.raises(MPRestError, match="server unreachable"):
+        mpr.contribs
+    assert isinstance(mpr.contribs, Flaky)  # retried, not cached as None
+    assert mpr.contribs is mpr.contribs and len(calls) == 2

@@ -58,7 +58,8 @@ def client_search_testing(
     for entry in param_tuples:
         param = entry[0]
 
-        if param not in excluded_params + ["return"]:
+        # `db_version` selects a dataset version rather than filtering docs
+        if param not in excluded_params + ["return", "db_version"]:
             param_type = entry[1]
             q: dict[str, Any] = {"chunk_size": 1, "num_chunks": 1}
 

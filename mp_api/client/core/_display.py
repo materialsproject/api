@@ -325,8 +325,12 @@ class ProgressHandle:
         progress: Progress | None = None,
         task_id: TaskID | None = None,
         delay: float = 0.0,
+        summary: str | None = None,
     ) -> None:
         self.completed: float = 0
+        #: completion line, formatted as in `progress_bar`; can be changed while the
+        #: bar runs, e.g. to report results that are only known at the end
+        self.summary = summary
         self._total = total
         self._progress = progress
         self._task_id = task_id
@@ -385,6 +389,7 @@ def progress_bar(
     delay: float = 0.0,
     unit: str = "docs",
     summary: str | None = None,
+    log: str | None = None,
 ) -> Iterator[ProgressHandle]:
     """Show a progress bar for the duration of a `with` block.
 
@@ -399,13 +404,23 @@ def progress_bar(
             the outermost bar on this thread finishes without error, was
             shown, and completed at least one unit. Formatted with `completed` and `total`, and followed by
             the elapsed time, e.g. "Retrieved {completed:,} documents".
+            Can be replaced through `ProgressHandle.summary` inside the block.
+        log (str or None) : if given, logged once at INFO when progress is
+            enabled but no live bar can be drawn (scripts, servers, CI, Jupyter
+            without ipywidgets), as `status` does. Not logged when disabled or
+            in quiet mode.
 
     Yields:
         ProgressHandle
     """
     console = get_console()
-    if not enabled or is_quiet() or not _is_interactive(console):
-        yield ProgressHandle(total)
+    if not enabled or is_quiet():
+        yield ProgressHandle(total, summary=summary)
+        return
+    if not _is_interactive(console):
+        if log:
+            logging.getLogger(LOGGER_NAME).info(log)
+        yield ProgressHandle(total, summary=summary)
         return
 
     outermost = _STATE.depth() == 0
@@ -413,7 +428,9 @@ def progress_bar(
     try:
         if not _can_draw_live(console):
             # e.g. Jupyter without ipywidgets: no live bar, still summarize
-            handle = ProgressHandle(total)
+            if log:
+                logging.getLogger(LOGGER_NAME).info(log)
+            handle = ProgressHandle(total, summary=summary)
             handle.shown = delay <= 0
             yield handle
         else:
@@ -421,7 +438,7 @@ def progress_bar(
             task_id = progress.add_task(
                 description, total=total, visible=delay <= 0, unit=unit
             )
-            handle = ProgressHandle(total, progress, task_id, delay)
+            handle = ProgressHandle(total, progress, task_id, delay, summary)
             try:
                 yield handle
             finally:
@@ -429,8 +446,8 @@ def progress_bar(
     finally:
         _STATE.local.depth -= 1
 
-    if summary and outermost and handle.shown and handle.completed:
-        message = summary.format(
+    if handle.summary and outermost and handle.shown and handle.completed:
+        message = handle.summary.format(
             completed=_as_int(handle.completed), total=_as_int(handle.total)
         )
         console.print(
