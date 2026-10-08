@@ -42,6 +42,7 @@ class BaseElectrodeRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
         _page: int | None = None,
         _sort_fields: str | None = None,
     ) -> list[InsertionElectrodeDoc | ConversionElectrodeDoc] | list[dict]:
@@ -84,6 +85,9 @@ class BaseElectrodeRester(BaseRester):
                 Default is battery_id and last_updated if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([InsertionElectrodeDoc or ConversionElectrodeDoc], [dict]) List of insertion/conversion electrode documents or dictionaries.
@@ -153,7 +157,7 @@ class BaseElectrodeRester(BaseRester):
             if query_params[entry] is not None
         }
 
-        return super()._search(**query_params)  # type: ignore[return-value]
+        return super()._search(**query_params, db_version=db_version)  # type: ignore[return-value]
 
 
 class ElectrodeRester(BaseElectrodeRester):

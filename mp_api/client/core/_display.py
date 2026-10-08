@@ -48,13 +48,15 @@ from rich.progress import (
     TimeElapsedColumn,
     TimeRemainingColumn,
 )
+from rich.spinner import Spinner
 from rich.table import Column
 from rich.text import Text
 from rich.theme import Theme
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
 
+    from rich.console import RenderableType
     from rich.progress import Task
 
 __all__ = [
@@ -65,6 +67,7 @@ __all__ = [
     "print_notice",
     "progress_bar",
     "set_console",
+    "status",
 ]
 
 LOGGER_NAME = "mp_api.client"
@@ -173,6 +176,32 @@ class _RateColumn(ProgressColumn):
         return Text(f"{speed:.0f} {unit}/s", style="mp.secondary")
 
 
+class _MPProgress(Progress):
+    """Progress that draws status tasks (see `status`) as full-width lines.
+
+    Status lines are shown above the bars, so long messages aren't cut to
+    the width of the bar table's description column.
+    """
+
+    _spinner = Spinner("dots", style="progress.spinner")
+
+    def get_renderables(self) -> Iterable[RenderableType]:
+        statuses = [t for t in self.tasks if t.fields.get("status") and t.visible]
+        bars = [t for t in self.tasks if not t.fields.get("status")]
+        for task in statuses:
+            spinner = self._spinner.render(self.get_time())
+            yield Text.assemble(
+                spinner if isinstance(spinner, Text) else Text(str(spinner)),
+                " ",
+                Text(task.description, style="mp.warning"),
+                " ",
+                Text(f"({int(task.elapsed or 0)}s)", style="progress.elapsed"),
+                overflow="fold",
+            )
+        if bars:
+            yield self.make_tasks_table(bars)
+
+
 class _ProgressState:
     """The process-wide Progress and its reference count. Guarded by `lock`."""
 
@@ -188,7 +217,7 @@ class _ProgressState:
     def acquire(self, console: Console) -> Progress:
         with self.lock:
             if self.progress is None:
-                self.progress = Progress(
+                self.progress = _MPProgress(
                     SpinnerColumn(),
                     # The description is truncated (with an ellipsis) to leave
                     # room for the numbers on narrow terminals.
@@ -257,6 +286,16 @@ class ProgressHandle:
     @property
     def elapsed(self) -> float:
         return time.monotonic() - self._start
+
+    def hide(self) -> None:
+        """Remove the bar from the display, e.g. before a final slow step.
+
+        The summary (if any) is still printed when the `progress_bar`
+        block exits, and later updates are counted but not drawn.
+        """
+        if self._progress is not None and self._task_id is not None:
+            self._progress.update(self._task_id, visible=False)
+        self._delay = float("inf")  # don't show it again on update
 
     def update(self, advance: float = 1) -> None:
         """Advance the bar by `advance` units."""
@@ -347,6 +386,41 @@ def progress_bar(
 # --------------------------------------------------------------------------
 
 _PLAIN_FORMAT = "%(name)s - %(levelname)s - %(message)s"
+
+
+@contextmanager
+def status(
+    message: str,
+    *,
+    enabled: bool = True,
+    logger: logging.Logger | None = None,
+) -> Iterator[None]:
+    """Show a transient status line while a slow step runs.
+
+    In a terminal or notebook with a live display, an amber spinner line is
+    shown and removed when the block exits. Otherwise (logs, CI, or
+    `enabled=False`), `message` is logged once as a warning via `logger`,
+    since a log line can't be taken back.
+
+    Args:
+        message (str) : what is happening, e.g. "Counting documents..."
+        enabled (bool) : if False, skip the spinner and only log
+        logger (logging.Logger or None) : logger for the fallback warning.
+            Nothing is logged if None.
+    """
+    console = get_console()
+    if not (enabled and _is_interactive(console) and _can_draw_live(console)):
+        if logger is not None:
+            logger.warning(message)
+        yield
+        return
+
+    progress = _STATE.acquire(console)
+    task_id = progress.add_task(message, total=None, status=True)
+    try:
+        yield
+    finally:
+        _STATE.release(task_id)
 
 
 def _app_handlers(logger: logging.Logger) -> list[logging.Handler]:

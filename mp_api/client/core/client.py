@@ -8,11 +8,14 @@ from __future__ import annotations
 import gzip
 import inspect
 import itertools
+import json
 import logging
 import os
 import platform
 import shutil
 import sys
+import time
+import uuid
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from contextlib import ExitStack
@@ -25,7 +28,7 @@ from json import JSONDecodeError
 from math import ceil
 from pathlib import Path
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin
+from urllib.parse import quote, unquote, urljoin
 
 import boto3
 import pyarrow as pa
@@ -34,7 +37,8 @@ import requests
 from botocore import UNSIGNED
 from botocore.config import Config
 from botocore.exceptions import ClientError
-from deltalake import DeltaTable, QueryBuilder, Schema, convert_to_deltalake
+from deltalake import DeltaTable, QueryBuilder, Schema
+from deltalake.transaction import AddAction, create_table_with_add_actions
 from emmet.core.arrow import arrowize
 from emmet.core.utils import jsanitize
 from pydantic import BaseModel
@@ -43,7 +47,7 @@ from requests.exceptions import RequestException
 from urllib3.util.retry import Retry
 
 from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
-from mp_api.client.core._display import ProgressHandle, progress_bar
+from mp_api.client.core._display import ProgressHandle, progress_bar, status
 from mp_api.client.core.delta import DeltaCatalog
 from mp_api.client.core.exceptions import (
     MPRestError,
@@ -55,12 +59,14 @@ from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 from mp_api.client.core.utils import (
     MPDataset,
     load_json,
+    to_db_version,
+    to_partition_version,
     validate_endpoint,
     validate_ids,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
     from typing import Any
 
     from arro3.core import RecordBatchReader
@@ -74,7 +80,7 @@ except PackageNotFoundError:  # pragma: no cover
 
 STATIC_COLLECTIONS = [
     "eos",
-    "grain_boundaries",
+    "grain-boundaries",
     "jcesr",
     "molecules",
     "phonon",
@@ -83,6 +89,12 @@ STATIC_COLLECTIONS = [
     "synth-descriptions",
     "xas",
 ]
+# Routes whose S3 dataset name differs from the route name
+S3_COLLECTION_NAMES = {
+    "molecules/summary": "molecules",
+    "molecules/jcesr": "jcesr",
+    "materials/synthesis": "synth-descriptions",
+}
 CONTROLLED_COLLECTIONS = [
     "chemenv",
     "materials",
@@ -93,6 +105,20 @@ CONTROLLED_COLLECTIONS = [
 ]
 
 logger = logging.getLogger(__name__)
+
+LATEST_DB_VERSION = "latest"
+
+
+def _normalize_db_version(db_version: str | None) -> str:
+    """Normalize a user-given database version, e.g. "2026-04-13" -> "2026.04.13".
+
+    "latest" (any case) is kept as "latest", and None becomes "".
+    """
+    if not db_version:
+        return ""
+    if db_version.strip().lower() == LATEST_DB_VERSION:
+        return LATEST_DB_VERSION
+    return to_db_version(db_version)
 
 
 class QueryBuilderWithCache(QueryBuilder):
@@ -181,9 +207,10 @@ class _Rester:
                 advanced usage only.
             headers: Custom headers for localhost connections.
             mute_progress_bars: Whether to disable progress bars.
-            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database
-                than what is currently deployed. The Materials Project cannot guarantee that all
-                features will still work.
+            db_version (str) : Database version to use for data read from S3 (full dataset
+                downloads, phase diagrams), e.g. "2026.04.13". Defaults to the version
+                currently served by the API. REST queries always use the current database.
+                See `available_db_versions()` on a rester for the versions available.
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to 'mp_datasets' in the user's home directory
             force_renew: Option to overwrite existing local dataset
@@ -213,7 +240,7 @@ class _Rester:
 
         self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars
-        self.db_version: str = db_version or ""
+        self.db_version: str = _normalize_db_version(db_version)
         self.local_dataset_cache = Path(local_dataset_cache)
         self.force_renew = force_renew
         self._query_builder = (
@@ -403,9 +430,10 @@ class BaseRester(_Rester):
                 and will not give auto-complete for available fields.
             headers: Custom headers for localhost connections.
             mute_progress_bars: Whether to disable progress bars.
-            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database
-                than what is currently deployed. The Materials Project cannot guarantee that all
-                features will still work.
+            db_version (str) : Database version to use for data read from S3 (full dataset
+                downloads, phase diagrams), e.g. "2026.04.13". Defaults to the version
+                currently served by the API. REST queries always use the current database.
+                See `available_db_versions()` on a rester for the versions available.
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to 'mp_datasets' in the user's home directory
             force_renew: Option to overwrite existing local dataset
@@ -440,6 +468,8 @@ class BaseRester(_Rester):
             hb_db_version,
             self.access_controlled_batch_ids,
         ) = self._get_heartbeat_info(self.base_endpoint)
+        # The version the REST API serves, may differ from self.db_version
+        self.current_db_version: str = hb_db_version
         if not self.db_version:
             self.db_version = hb_db_version
 
@@ -729,30 +759,230 @@ class BaseRester(_Rester):
             )
             raise MPRestError(f"Failed to retrieve object due to: {e}. {hint}") from e
 
+    def _s3_location(self) -> tuple[str, str, str]:
+        """Where this rester's full dataset lives on S3.
+
+        Returns:
+            tuple of the collection name (e.g. "chemenv"), the bucket
+            (e.g. "materialsproject-build") and the prefix
+            (e.g. "collections/chemenv")
+        """
+        if self.suffix in S3_COLLECTION_NAMES:
+            suffix = S3_COLLECTION_NAMES[self.suffix]
+        elif "/" not in self.suffix:
+            suffix = self.suffix
+        else:
+            infix, suffix = self.suffix.split("/", 1)
+            suffix = infix if suffix == "core" else suffix
+            suffix = suffix.replace("_", "-")
+
+        if "tasks" in suffix:
+            bucket_suffix, prefix = ("parsed", "core/tasks")
+        elif suffix in STATIC_COLLECTIONS:
+            bucket_suffix = "build"
+            prefix = f"static-collections/{suffix}"
+        else:
+            # TODO: remove once all collections are migrated to delta-backed format
+            bucket_suffix = "build"
+            prefix = f"collections/{suffix}"
+
+        return suffix, f"materialsproject-{bucket_suffix}", prefix
+
+    def available_db_versions(self) -> list[str]:
+        """Database versions available for this collection's full dataset on S3.
+
+        Read from the DeltaTable's log, no data is downloaded. Any of these
+        can be pinned with `MPRester(db_version=...)` to download that
+        version of the dataset.
+
+        Returns:
+            list of str : sorted database versions, e.g. ["2026.04.13", "2026.09.28"]
+
+        Raises:
+            MPRestError: if this collection isn't delta-backed, or its
+                dataset isn't partitioned by database version.
+        """
+        if not self.delta_backed:
+            raise MPRestError(
+                f"{self.suffix} is not backed by a DeltaTable on S3, "
+                "so it has no database versions to list."
+            )
+        _, bucket, prefix = self._s3_location()
+        label, _ = self._get_delta_table(bucket, prefix, refresh=True)
+        counts = self.delta_catalog.partition_row_counts(label)
+        if counts is None:
+            raise MPRestError(
+                f"The {self.suffix} dataset is not partitioned by database version, "
+                "it always contains the latest data."
+            )
+        return sorted(to_db_version(v) for v in counts)
+
+    @staticmethod
+    def _resolve_db_version(
+        requested: str, available: dict[str, int] | Iterable[str], collection: str
+    ) -> str:
+        """Turn a requested database version into a partition value of a table.
+
+        Args:
+            requested (str) : normalized database version, or "latest"
+            available (dict or iterable of str) : partition values in the table
+            collection (str) : collection name, for messages
+
+        Returns:
+            str : partition value, e.g. "2026-04-13"
+
+        Raises:
+            MPRestError: if no version is requested, the table has no versions,
+                or the requested version isn't in the table.
+        """
+        versions = sorted(available)
+        if not requested:
+            raise MPRestError(
+                f"The {collection} dataset is partitioned by database version, "
+                "but no database version is set. Pass `db_version` to MPRester."
+            )
+        if not versions:
+            raise MPRestError(f"The {collection} dataset has no published versions.")
+        if requested == LATEST_DB_VERSION:
+            # Versions are dates (with optional -postN suffixes), so they sort as text
+            return versions[-1]
+        version = to_partition_version(requested)
+        if version not in versions:
+            raise MPRestError(
+                f"Database version {to_db_version(version)} is not available "
+                f"for the {collection} dataset. Available versions: "
+                f"{', '.join(to_db_version(v) for v in versions)}."
+            )
+        return version
+
+    def _check_rest_db_version(self, db_version: str) -> None:
+        """Raise if a per-call db_version can't be served by the REST API.
+
+        Filtered queries go to the REST API, which only serves the current
+        database version.
+
+        Args:
+            db_version (str) : database version requested for this call
+
+        Raises:
+            MPRestError: if `db_version` isn't the version the API serves
+        """
+        requested = _normalize_db_version(db_version)
+        current = self.current_db_version
+        if requested == LATEST_DB_VERSION:
+            # Compare with the newest version on S3
+            try:
+                requested = self.available_db_versions()[-1]
+            except Exception:
+                return  # single-version dataset: "latest" is the current data
+        if current and requested != current:
+            raise MPRestError(
+                f"db_version={db_version!r} only applies to full dataset downloads "
+                "(a search with no filters). Filtered queries are answered by the "
+                f"API, which serves database version {current}. Remove the filters "
+                "to download that version, then filter it locally."
+            )
+
     def _query_delta_backed(
         self,
         bucket: str,
         prefix: str,
         access_controlled: bool = True,
-        versioned: bool = False,
         timeout: int | None = None,
         label: str | None = None,
+        db_version: str | None = None,
     ) -> dict[str, Any]:
-        """Retrieve data from S3 backed by a DeltaTable.
+        """Download a full dataset from a DeltaTable on S3 into the local cache.
+
+        Tables partitioned by `version` hold one partition per database
+        build. Only the partition for `db_version` (default `self.db_version`)
+        is downloaded, and it
+        is added to a local DeltaTable with the same partitioning, so several
+        versions can be kept side by side. If the local table already has
+        that version, it is returned without any network access, unless
+        `self.force_renew` is set, in which case only that version is
+        downloaded again and replaced.
+
+        Data is written in chunks (see `DATASET_FLUSH_THRESHOLD`) to bound
+        memory, and the chunks are committed to the local table in one
+        transaction at the end, so an interrupted download never leaves a
+        partial version visible.
 
         Args:
             bucket (str) : S3 OpenData bucket
             prefix (str) : S3 object prefix
             access_controlled (bool): whether or not table has access controlled data
-            versioned (bool): whether or not table is partitioned on db version
             timeout (int or None) : timeout on getting access-controlled groups
             label (str or None) : label of the table in QueryBuilder
+            db_version (str or None) : database version to download for this
+                call, e.g. "2026.04.13" or "latest". Defaults to `self.db_version`.
 
         Returns:
             dict of str to Any
         """
+        override = _normalize_db_version(db_version)
+        requested = override or self.db_version
         # just in case
         prefix = prefix.rstrip("/")
+        collection = prefix.split("/")[-1]
+
+        target_path = str(
+            self.local_dataset_cache.joinpath(
+                f"{bucket.split('materialsproject-')[1]}/{prefix}"
+            )
+        )
+
+        # Load the remote table to learn its partitioning and versions.
+        # Full downloads are one-off, always start from the latest snapshot.
+        tbl_lbl, tbl = self._get_delta_table(bucket, prefix, label=label, refresh=True)
+        version_counts = self.delta_catalog.partition_row_counts(tbl_lbl)
+        versioned = version_counts is not None
+
+        version: str | None = None
+        if versioned:
+            version = self._resolve_db_version(
+                requested, version_counts, collection  # type: ignore[arg-type]
+            )
+        elif override:
+            logger.warning(
+                f"The {collection} dataset has a single version, ignoring "
+                f"db_version={db_version!r}."
+            )
+
+        def _dataset() -> dict[str, Any]:
+            return {
+                "data": MPDataset(
+                    path=target_path,
+                    document_model=self.document_model,
+                    use_document_model=self.use_document_model,
+                    version=version,
+                )
+            }
+
+        version_note = f" (v{to_db_version(version)})" if version else ""
+        local = self._local_delta_table(target_path, versioned, collection)
+        if local is not None and not self.force_renew:
+            local_versions = {
+                p.get("version") for p in local.partitions() if p.get("version")
+            }
+            if not versioned or version in local_versions:
+                logger.warning(
+                    f"Dataset for {collection}{version_note} already exists at "
+                    f"{target_path}, returning existing dataset."
+                )
+                logger.info(
+                    "Delete or move existing dataset or re-run search query with "
+                    "MPRester(force_renew=True) to refresh local dataset.",
+                )
+                return _dataset()
+            logger.info(
+                f"Adding {collection}{version_note} to the existing local dataset at "
+                f"{target_path}."
+            )
+        elif local is not None:
+            logger.warning(
+                f"Regenerating {collection}{version_note} at {target_path}..."
+            )
 
         # Check if user has access to GNoMe
         has_gnome_access = bool(
@@ -772,164 +1002,308 @@ class BaseRester(_Rester):
             .get("total_doc", 0)
         )
 
-        suffix = prefix.rsplit("/")[1]
-
-        target_path = str(
-            self.local_dataset_cache.joinpath(
-                f"{bucket.split('materialsproject-')[1]}/{prefix}"
-            )
-        )
-        os.makedirs(target_path, exist_ok=True)
-
-        if DeltaTable.is_deltatable(target_path):
-            if self.force_renew:
-                shutil.rmtree(target_path)
-                logger.warning(f"Regenerating {suffix} dataset at {target_path}...")
-                os.makedirs(target_path, exist_ok=True)
+        conditions = []
+        if versioned:
+            conditions.append(f"version = '{version}'")
+        filter_access = access_controlled and not has_gnome_access
+        if filter_access:
+            if collection == "tasks":
+                controlled_batch_str = ",".join(
+                    [f"'{tag}'" for tag in self.access_controlled_batch_ids]
+                )
+                conditions.append(f"batch_id NOT IN ({controlled_batch_str})")
             else:
-                logger.warning(
-                    f"Dataset for {suffix} already exists at {target_path}, returning existing dataset."
-                )
-                logger.info(
-                    "Delete or move existing dataset or re-run search query with MPRester(force_renew=True) "
-                    "to refresh local dataset.",
-                )
+                conditions.append("builder_meta.license != 'BY-NC'")
+        predicate = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
-                return {
-                    "data": MPDataset(
-                        path=target_path,
-                        document_model=self.document_model,
-                        use_document_model=self.use_document_model,
-                    )
-                }
-
-        # Full downloads are one-off, always start from the latest snapshot
-        tbl_lbl, tbl = self._get_delta_table(bucket, prefix, label=label, refresh=True)
-
-        controlled_batch_str = ",".join(
-            [f"'{tag}'" for tag in self.access_controlled_batch_ids]
+        num_docs_needed = self._count_delta_docs(
+            tbl_lbl,
+            tbl,
+            predicate,
+            version_counts[version] if versioned else None,  # type: ignore[index]
+            filter_access,
+            f"{collection}{version_note}",
         )
-        _coll = prefix.split("/")[-1]
-
-        if _coll == "tasks":
-            condition = f"batch_id NOT IN ({controlled_batch_str})"
-        else:
-            condition = "builder_meta.license != 'BY-NC'"
-
-        predicate = (
-            f"WHERE {condition}" if not has_gnome_access and access_controlled else ""
-        )
-        # TODO: do we need something like this?
-        # predicate += f"{' AND ' if predicate else 'WHERE '}version='{self.db_version}'"
-
-        # Setup progress bar
-        num_docs_needed: int = tbl.count()
-
-        if not has_gnome_access:
-            mongo_predicate = (
-                {"batch_id_neq_any": self.access_controlled_batch_ids}
-                if _coll == "tasks"
-                else {"license": "BY-NC"}
-            )
-            try:
-                num_docs_needed = self.count(mongo_predicate)
-            except MPRestError:
-                # batch_id isn't a valid field
-                num_docs_needed = self.count()
 
         iterator = self.delta_catalog.execute_stream(
             f"SELECT * FROM {tbl_lbl} {predicate}"
         )
 
+        # Every column except the partition column, in the document model's
+        # order. The partition value goes in the directory name.
+        schema = self._download_schema()
+        if "version" in schema.names:
+            schema = schema.remove(schema.get_field_index("version"))
         file_options = ds.ParquetFileFormat().make_write_options(compression="zstd")
+        data_dir = (
+            os.path.join(target_path, f"version={version}")
+            if versioned
+            else target_path
+        )
+        os.makedirs(data_dir, exist_ok=True)
+        # Unique per download, so a retry never overwrites files the table uses
+        run_tag = uuid.uuid4().hex[:8]
+        added: list[AddAction] = []
+        partition_values = {"version": version} if versioned else {}
 
-        def _flush(
-            accumulator: list[pa.RecordBatch],
-            group: int,
-            schema: pa.Schema,
-            partitioning: pa.dataset.Partitioning,
-        ):
+        def _record(written_file: Any) -> None:
+            added.append(
+                AddAction(
+                    path=quote(
+                        os.path.relpath(written_file.path, target_path), safe="/="
+                    ),
+                    size=os.path.getsize(written_file.path),
+                    partition_values=partition_values,
+                    modification_time=int(time.time() * 1000),
+                    data_change=True,
+                    stats=json.dumps({"numRecords": written_file.metadata.num_rows}),
+                )
+            )
+
+        def _flush(accumulator: list[pa.RecordBatch], group: int) -> None:
             # somewhere post datafusion 51.0.0 and arrow-rs 57.0.0
             # casts to *View types began, need to cast back to base schema
             # -> pyarrow is behind on implementation support for *View types
-            tbl = (
+            chunk = (
                 pa.Table.from_batches(accumulator)
                 .select(schema.names)
                 .cast(target_schema=schema)
             )
-
             ds.write_dataset(
-                tbl,
-                base_dir=target_path,
+                chunk,
+                base_dir=data_dir,
                 format="parquet",
-                partitioning=partitioning,
-                basename_template=f"group-{group}-" + "part-{i}.zstd.parquet",
+                basename_template=f"group-{group}-{run_tag}-" + "part-{i}.zstd.parquet",
                 existing_data_behavior="overwrite_or_ignore",
                 max_rows_per_group=1024,
                 file_options=file_options,
+                file_visitor=_record,
             )
 
         docs = self._docs_description
-        with progress_bar(
-            f"Retrieving DeltaTable-backed {docs}",
-            total=num_docs_needed,
-            enabled=not self.mute_progress_bars,
-            summary=f"Downloaded {{completed:,}} {docs} to {target_path}",
-        ) as pbar:
-            group = 1
-            size = 0
-            accumulator = []
-            _schema = pa.schema(arrowize(self.document_model))
-            schema = (
-                _schema.insert(0, pa.field("version", pa.string()))
-                if versioned
-                else _schema
+        try:
+            with progress_bar(
+                f"Retrieving DeltaTable-backed {docs}{version_note}",
+                total=num_docs_needed,
+                enabled=not self.mute_progress_bars,
+                summary=f"Downloaded {{completed:,}} {docs}{version_note} to {target_path}",
+            ) as pbar:
+                group = 1
+                size = 0
+                accumulator: list[pa.RecordBatch] = []
+                for rb in iterator:
+                    accumulator.append(rb)
+                    size += rb.get_total_buffer_size()
+                    pbar.update(rb.num_rows)
+
+                    if size >= MAPI_CLIENT_SETTINGS.DATASET_FLUSH_THRESHOLD:
+                        with status(
+                            f"Writing {docs} to disk...",
+                            enabled=not self.mute_progress_bars,
+                        ):
+                            _flush(accumulator, group)
+                        group += 1
+                        size = 0
+                        accumulator.clear()
+
+                # Writing the last chunk and committing can take a while,
+                # replace the (full) bar with a spinner meanwhile.
+                pbar.hide()
+                with status(
+                    f"Writing {docs}{version_note} to the local DeltaTable...",
+                    enabled=not self.mute_progress_bars,
+                ):
+                    if accumulator:
+                        _flush(accumulator, group)
+                    self._commit_delta_download(
+                        target_path, local, schema, added, version, versioned
+                    )
+        except BaseException:
+            # The files were never committed, so the table doesn't reference them
+            for action in added:
+                try:
+                    os.remove(os.path.join(target_path, unquote(action.path)))
+                except OSError:
+                    logger.warning(
+                        f"Could not remove uncommitted file {action.path} in {target_path}."
+                    )
+            raise
+
+        if not (pbar.shown and pbar.completed):
+            # The progress summary (which includes the path) wasn't printed,
+            # e.g. muted progress bars or non-interactive output
+            logger.info(
+                f"Dataset for {collection}{version_note} written to {target_path}"
             )
-            partitioning_schema = pa.schema([pa.field("version", pa.string())])
-            partitioning = (
-                pa.dataset.partitioning(partitioning_schema, flavor="hive")
-                if versioned
-                else None
-            )
-            for rg in iterator:
-                accumulator.append(rg)
-                page_size = rg.num_rows
-                size += rg.get_total_buffer_size()
-
-                pbar.update(page_size)
-
-                if size >= MAPI_CLIENT_SETTINGS.DATASET_FLUSH_THRESHOLD:
-                    _flush(accumulator, group, schema, partitioning)
-                    group += 1
-                    size = 0
-                    accumulator.clear()
-
-            if accumulator:
-                _flush(accumulator, group + 1, schema, partitioning)
-
-        logger.info(f"Dataset for {suffix} written to {target_path}")
-        logger.info("Converting to DeltaTable...")
-
-        delta_paritioning = Schema.from_arrow(partitioning_schema)
-
-        convert_to_deltalake(
-            target_path,
-            partition_by=delta_paritioning if versioned else None,
-            partition_strategy="hive" if versioned else None,
-        )
-
-        logger.info(
+        logger.debug(
             "Consult the delta-rs and pyarrow documentation for advanced usage: "
             "delta-io.github.io/delta-rs, arrow.apache.org/docs/python"
         )
+        return _dataset()
 
-        return {
-            "data": MPDataset(
-                path=target_path,
-                document_model=self.document_model,
-                use_document_model=self.use_document_model,
+    def _download_schema(self) -> pa.Schema:
+        """Arrow schema of the data written by a full download.
+
+        Defaults to the document model's. Override when the model has fields
+        that aren't stored in the S3 table (e.g. fields added by a search).
+        """
+        return pa.schema(arrowize(self.document_model))
+
+    def _local_delta_table(
+        self, target_path: str, versioned: bool, collection: str
+    ) -> DeltaTable | None:
+        """Open the local copy of a dataset, if there is one.
+
+        If the local copy was made by an older client and doesn't match the
+        remote layout (not a DeltaTable, or not partitioned by version when
+        the remote is), it can't be added to. With `force_renew` it is
+        deleted so the download starts fresh; otherwise an error is raised.
+
+        Args:
+            target_path (str) : local dataset directory
+            versioned (bool) : whether the remote table is partitioned by version
+            collection (str) : collection name, for messages
+
+        Returns:
+            the local DeltaTable, or None if there is none (or it was removed)
+        """
+        if not os.path.isdir(target_path) or not os.listdir(target_path):
+            return None
+
+        reason = None
+        if not DeltaTable.is_deltatable(target_path):
+            reason = "is not a DeltaTable"
+        else:
+            local = DeltaTable(target_path)
+            local_versioned = "version" in local.metadata().partition_columns
+            if local_versioned == versioned:
+                return local
+            reason = (
+                "is not partitioned by database version"
+                if versioned
+                else "is partitioned by database version, but the remote dataset isn't"
             )
-        }
+
+        if not self.force_renew:
+            raise MPRestError(
+                f"The local {collection} dataset at {target_path} {reason}, likely "
+                "because it was downloaded by an older version of mp-api. Delete or "
+                "move it, or re-run with MPRester(force_renew=True) to replace it."
+            )
+        logger.warning(
+            f"Removing the local {collection} dataset at {target_path}: it {reason}."
+        )
+        shutil.rmtree(target_path)
+        return None
+
+    def _count_delta_docs(
+        self,
+        tbl_lbl: str,
+        tbl: DeltaTable,
+        predicate: str,
+        version_rows: int | None,
+        filter_access: bool,
+        description: str,
+    ) -> int | None:
+        """Number of documents a full download will fetch, for the progress bar.
+
+        Without an access filter this is read from the Delta log (instant).
+        With one, the rows have to be counted on S3, which can be slow for
+        large tables; a status line is shown meanwhile.
+
+        Args:
+            tbl_lbl (str) : label of the remote table in the catalog
+            tbl (DeltaTable) : the remote table
+            predicate (str) : WHERE clause of the download query, or ""
+            version_rows (int or None) : rows in the requested version, from
+                the log, or None if the table isn't versioned
+            filter_access (bool) : whether access-controlled rows are excluded
+            description (str) : what's being counted, for the status line
+
+        Returns:
+            int, or None if counting failed (the bar then has no total)
+        """
+        if not filter_access:
+            return version_rows if version_rows is not None else tbl.count()
+
+        try:
+            with status(
+                f"Counting {description} documents (excluding access-controlled "
+                "entries), this can take a while...",
+                enabled=not self.mute_progress_bars,
+                logger=logger,
+            ):
+                result = self.delta_catalog.execute(
+                    f"SELECT COUNT(*) AS n FROM {tbl_lbl} {predicate}", label=tbl_lbl
+                )
+            return int(result.column("n")[0].as_py())
+        except Exception as exc:
+            logger.warning(
+                f"Could not count {description} documents, downloading without a total: {exc}"
+            )
+            return None
+
+    @staticmethod
+    def _commit_delta_download(
+        target_path: str,
+        local: DeltaTable | None,
+        schema: pa.Schema,
+        added: list[AddAction],
+        version: str | None,
+        versioned: bool,
+    ) -> None:
+        """Commit downloaded files to the local DeltaTable in one transaction.
+
+        Creates the table if there is none. Otherwise appends a new version
+        partition, or, if the version (or, for unversioned tables, the
+        table) is already there, replaces it.
+
+        Args:
+            target_path (str) : local dataset directory
+            local (DeltaTable or None) : the existing local table, if any
+            schema (pa.Schema) : schema of the data files (no partition column)
+            added (list of AddAction) : the files written by this download
+            version (str or None) : partition value of the downloaded version
+            versioned (bool) : whether the table is partitioned by version
+        """
+        partition_by = ["version"] if versioned else None
+        table_schema = Schema.from_arrow(
+            schema.append(pa.field("version", pa.string())) if versioned else schema
+        )
+        if local is None:
+            create_table_with_add_actions(
+                target_path,
+                table_schema,
+                added,
+                mode="error",
+                partition_by=partition_by,
+            )
+            return
+
+        if not versioned:
+            local.create_write_transaction(added, mode="overwrite", schema=table_schema)
+        elif version in {p.get("version") for p in local.partitions()}:
+            local.create_write_transaction(
+                added,
+                mode="overwrite",
+                schema=table_schema,
+                partition_by=partition_by,
+                partition_filters=[("version", "=", version)],  # type: ignore[list-item]
+            )
+        else:
+            local.create_write_transaction(
+                added, mode="append", schema=table_schema, partition_by=partition_by
+            )
+            return
+
+        # A replaced version's old files are no longer in the table, delete
+        # them now rather than keeping two copies on disk.
+        local.update_incremental()
+        removed = local.vacuum(
+            retention_hours=0, dry_run=False, enforce_retention_duration=False
+        )
+        if removed:
+            logger.debug(f"Removed {len(removed)} replaced files from {target_path}.")
 
     def _query_resource(
         self,
@@ -941,6 +1315,7 @@ class BaseRester(_Rester):
         chunk_size: int | None = None,
         timeout: int | None = None,
         show_progress: bool | None = None,
+        db_version: str | None = None,
     ) -> dict[str, Any]:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
@@ -958,6 +1333,9 @@ class BaseRester(_Rester):
             timeout (float or None): Time in seconds to wait until a request timeout error is thrown
             show_progress (bool or None): Whether to show progress bars for this call.
                 If None, defers to `not self.mute_progress_bars`.
+            db_version (str or None): Database version for this call, e.g. "2026.04.13"
+                or "latest". Only full downloads (no filters) can use a version other
+                than the one the API serves. Defaults to `self.db_version`.
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -977,6 +1355,9 @@ class BaseRester(_Rester):
         # TODO also skip fields set to same as their default
         no_query = not {field for field in criteria if field[0] != "_"}
         query_s3 = no_query and num_chunks is None
+
+        if db_version and not query_s3:
+            self._check_rest_db_version(db_version)
 
         if fields:
             if isinstance(fields, str):
@@ -1001,38 +1382,21 @@ class BaseRester(_Rester):
                 pbar_message = f"Retrieving {docs_name}"
                 pbar_summary = f"Retrieved {{completed:,}} {docs_name}"
 
-                if "/" not in self.suffix:
-                    suffix = self.suffix
-                elif self.suffix == "molecules/summary":
-                    suffix = "molecules"
-                elif self.suffix == "molecules/jcesr":
-                    suffix = "jcesr"
-                else:
-                    infix, suffix = self.suffix.split("/", 1)
-                    suffix = infix if suffix == "core" else suffix
-                    suffix = suffix.replace("_", "-")
-
-                if "tasks" in suffix:
-                    bucket_suffix, prefix = ("parsed", "core/tasks")
-                elif suffix in STATIC_COLLECTIONS:
-                    bucket_suffix = "build"
-                    prefix = f"static-collections/{suffix}"
-                else:
-                    # TODO: remove once all collections are migrated to delta-backed format
-                    bucket_suffix = "build"
-                    prefix = f"collections/{suffix}"
-
-                bucket = f"materialsproject-{bucket_suffix}"
+                suffix, bucket, prefix = self._s3_location()
 
                 if self.delta_backed:
-                    access_controlled = suffix in CONTROLLED_COLLECTIONS
-                    versioned = suffix != "tasks" and suffix not in STATIC_COLLECTIONS
                     return self._query_delta_backed(
                         bucket=bucket,
                         prefix=prefix,
-                        access_controlled=access_controlled,
-                        versioned=versioned,
+                        access_controlled=suffix in CONTROLLED_COLLECTIONS,
                         timeout=timeout,
+                        db_version=db_version,
+                    )
+
+                if db_version:
+                    logger.warning(
+                        f"The {suffix} dataset has a single version, ignoring "
+                        f"db_version={db_version!r}."
                     )
 
                 # Paginate over all entries in the bucket.
@@ -1610,6 +1974,7 @@ class BaseRester(_Rester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
         **kwargs,
     ) -> list[BaseModel] | list[dict]:
         """A generic search method to retrieve documents matching specific parameters.
@@ -1624,6 +1989,9 @@ class BaseRester(_Rester):
             fields (list[str]): List of fields to project. When searching, it is better to only ask for
                 the specific fields of interest to reduce the time taken to retrieve the documents. See
                  the available_fields property to see a list of fields to choose from.
+            db_version (str): Database version to download when no filters are given (full
+                dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
             kwargs: Supported search terms, e.g. nelements_max=3 for the "materials" search API.
                 Consult the specific API route for valid search terms.
 
@@ -1642,6 +2010,7 @@ class BaseRester(_Rester):
             fields=fields,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
+            db_version=db_version,
         )
 
     def get_data_by_id(
@@ -1683,6 +2052,7 @@ class BaseRester(_Rester):
         fields=None,
         chunk_size=1000,
         num_chunks=None,
+        db_version: str | None = None,
     ) -> list[BaseModel] | list[dict]:
         """Iterates over pages until all documents are retrieved. Displays
         progress bars. This method is designed to give a common
@@ -1705,6 +2075,7 @@ class BaseRester(_Rester):
             fields=fields,
             chunk_size=chunk_size,
             num_chunks=num_chunks,
+            db_version=db_version,
         )
 
         return results["data"]

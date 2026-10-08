@@ -262,6 +262,40 @@ class DeltaCatalog:
                 self._reload(entry)
             return entry.label, entry.table
 
+    def partition_row_counts(
+        self, label: str, column: str = "version"
+    ) -> dict[str, int] | None:
+        """Number of rows per value of a partition column, read from the Delta log.
+
+        No data files are read. Uses the cached snapshot; call
+        `get_table(..., refresh=True)` first for the latest one.
+
+        Args:
+            label (str) : label of a registered table
+            column (str) : partition column
+
+        Returns:
+            dict of partition value to row count, or None if the table isn't
+            partitioned on `column`. Values whose files have no row count in
+            the log are counted as 0.
+
+        Raises:
+            KeyError: if the table hasn't been loaded.
+        """
+        with self._lock:
+            table = self._entries[self._labels[label]].table
+        if column not in table.metadata().partition_columns:
+            return None
+        actions = pa.table(table.get_add_actions(flatten=True))
+        counts: dict[str, int] = {}
+        for value, rows in zip(
+            actions[f"partition.{column}"].to_pylist(),
+            actions["num_records"].to_pylist(),
+            strict=True,
+        ):
+            counts[value] = counts.get(value, 0) + (rows or 0)
+        return counts
+
     def execute(self, sql: str, label: str | None = None) -> pa.Table:
         """Run a SQL query and return the full result.
 
@@ -393,7 +427,7 @@ class DeltaCatalog:
             entry.generation += 1
             self._qb = qb
 
-        logger.info(
+        logger.debug(
             f"Refreshed DeltaTable '{entry.label}' ({entry.uri}) "
             f"to version {table.version()}."
         )

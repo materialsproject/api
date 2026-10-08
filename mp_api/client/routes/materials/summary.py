@@ -74,6 +74,7 @@ class SummaryRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
         _page: int | None = None,
         _sort_fields: str | None = None,
         **kwargs,
@@ -155,6 +156,9 @@ class SummaryRester(BaseRester):
                 Default is material_id if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.
@@ -376,6 +380,7 @@ class SummaryRester(BaseRester):
                         fields=fields,
                         **query_params,
                         **{sk: symm_params[i] for i, sk in enumerate(ordered_symm_key)},
+                        db_version=db_version,
                     )
                     for symm_params in product(
                         *[batched_symm_query[k] for k in ordered_symm_key]
@@ -389,4 +394,5 @@ class SummaryRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )

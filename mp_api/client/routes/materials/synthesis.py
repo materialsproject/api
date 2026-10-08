@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import pyarrow as pa
+from emmet.core.arrow import arrowize
 from emmet.core.synthesis import (
     OperationTypeEnum,
+    SynthesisRecipe,
     SynthesisSearchResultModel,
     SynthesisTypeEnum,
 )
@@ -12,7 +15,12 @@ from mp_api.client.core import BaseRester, MPRestError
 class SynthesisRester(BaseRester):
     suffix = "materials/synthesis"
     document_model = SynthesisSearchResultModel  # type: ignore
-    delta_backed = False
+
+    def _download_schema(self) -> pa.Schema:
+        """Full downloads hold recipes only: `search_score` and `highlights`
+        are added by the text search and aren't stored on S3 (they load as None).
+        """
+        return pa.schema(arrowize(SynthesisRecipe))
 
     def search(
         self,
@@ -49,6 +57,8 @@ class SynthesisRester(BaseRester):
             num_chunks (int | None): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int | None): Number of data entries per chunk.
 
+        With no search terms and `num_chunks=None`, every recipe is downloaded from
+        S3 as a local dataset instead; `search_score` and `highlights` are then None.
 
         Returns:
             ([SynthesisSearchResultModel], [dict]): List of synthesis documents or dictionaries.

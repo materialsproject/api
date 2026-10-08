@@ -12,7 +12,6 @@ class SurfacePropertiesRester(BaseRester):
     suffix = "materials/surface_properties"
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "material_id"
-    delta_backed = False
 
     def search(
         self,

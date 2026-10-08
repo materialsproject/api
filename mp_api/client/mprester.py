@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import itertools
 import json
+import logging
 import os
 import re
 import warnings
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from functools import cache, lru_cache
 from typing import TYPE_CHECKING
@@ -29,9 +31,15 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
-from mp_api.client.core._display import print_notice
+from mp_api.client.core._display import print_notice, status
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
-from mp_api.client.core.client import _Rester
+from mp_api.client.core.client import (
+    LATEST_DB_VERSION,
+    S3_COLLECTION_NAMES,
+    STATIC_COLLECTIONS,
+    BaseRester,
+    _Rester,
+)
 from mp_api.client.core.exceptions import (
     MPRestError,
     MPRestWarning,
@@ -46,6 +54,8 @@ from mp_api.client.core.utils import LazyImport, load_json, validate_ids
 from mp_api.client.routes import GENERIC_RESTERS
 from mp_api.client.routes.materials import MATERIALS_RESTERS
 from mp_api.client.routes.molecules import MOLECULES_RESTERS
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -83,6 +93,10 @@ GENERIC_RESTERS = {
     "doi": MATERIALS_RESTERS["doi"],
     **GENERIC_RESTERS,
 }
+
+# Routes whose S3 data isn't partitioned by database version, or that have
+# no S3 dataset at all (besides STATIC_COLLECTIONS)
+_UNVERSIONED_ROUTES = {"tasks", "similarity", "doi"}
 
 TOP_LEVEL_RESTERS = [
     "molecules/core",
@@ -151,9 +165,10 @@ class MPRester(_Rester):
             session: Session object to use. By default (None), the client will create one.
             headers: Custom headers for localhost connections.
             mute_progress_bars:  Whether to mute progress bars.
-            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database
-                than what is currently deployed. The Materials Project cannot guarantee that all
-                features will still work.
+            db_version (str) : Database version to use for data read from S3 (full dataset
+                downloads, phase diagrams), e.g. "2026.04.13". Defaults to the version
+                currently served by the API. REST queries always use the current database.
+                See `available_db_versions()` on a rester for the versions available.
             local_dataset_cache: Target directory for downloading full datasets. Defaults
                 to "mp_datasets" in the user's home directory
             force_renew: Option to overwrite existing local dataset
@@ -241,16 +256,26 @@ class MPRester(_Rester):
                 stacklevel=2,
             )
 
-        if self.db_version:
-            warnings.warn(
-                "Specifying an explicit database version is an experimental "
-                "feature. The Materials Project cannot guarantee "
-                "functionality at this time, use at your own risk!",
-                stacklevel=2,
-                category=MPRestWarning,
+        current_db_version = self._get_heartbeat_info(self.endpoint)[0]
+        # The version the REST API serves, may differ from self.db_version
+        self.current_db_version: str = current_db_version
+        rest_note = "REST queries use the " + (
+            f"current version, {current_db_version}."
+            if current_db_version
+            else "current version."
+        )
+        if not self.db_version:
+            self.db_version = current_db_version
+        elif self.db_version == LATEST_DB_VERSION:
+            logger.warning(
+                "Using the newest database version on S3 for each dataset (full "
+                f"dataset downloads, phase diagrams), which may be ahead of the API. {rest_note}"
             )
-        else:
-            self.db_version = self._get_heartbeat_info(self.endpoint)[0]
+        elif self.db_version != current_db_version:
+            logger.warning(
+                f"Using database version {self.db_version} for data read from S3 "
+                f"(full dataset downloads, phase diagrams). {rest_note}"
+            )
 
         if notify_db_version:
             self._db_version_check()
@@ -345,7 +370,83 @@ class MPRester(_Rester):
         )
 
     def __repr__(self) -> str:
+        if self.db_version == LATEST_DB_VERSION:
+            return "MPRester(latest)"
         return f"MPRester({'v' + self.db_version if self.db_version else 'unknown version'})"
+
+    def _versioned_resters(self) -> dict[str, BaseRester]:
+        """Delta-backed resters, keyed by route (e.g. "summary"), not yet checked for versions."""
+        resters: dict[str, BaseRester] = {}
+        for parent in ("materials", "molecules"):
+            core = getattr(self, parent)
+            for route, lazy in core.sub_resters.items():
+                # Only collections/... datasets are partitioned by version. Tasks
+                # and static collections are skipped without loading their (large)
+                # logs, and checked by name first so their modules aren't
+                # imported (some are slow to import).
+                name = S3_COLLECTION_NAMES.get(
+                    f"{parent}/{route}", route.replace("_", "-")
+                )
+                if (
+                    route in resters
+                    or route in _UNVERSIONED_ROUTES
+                    or name in STATIC_COLLECTIONS
+                    or not getattr(lazy, "delta_backed", False)
+                ):
+                    continue
+                rester = getattr(core, route)._obj
+                if rester._s3_location()[2].startswith("collections/"):
+                    resters[route] = rester
+        return resters
+
+    def available_db_versions(
+        self, collection: str | None = None
+    ) -> dict[str, list[str]] | list[str]:
+        """Database versions available for full dataset downloads on S3.
+
+        Read from the DeltaTable logs, no data is downloaded. Pass any of these
+        as `db_version` to a rester's `search()` (with no filters) or to
+        `MPRester(db_version=...)`.
+
+        Args:
+            collection (str or None) : a single collection, e.g. "summary" or
+                "materials/summary". If None, every collection that is
+                partitioned by database version is listed; tables are loaded in
+                parallel, with a status line while that runs.
+
+        Returns:
+            list of str for one collection, e.g. ["2026.04.13", "2026.09.28"],
+            otherwise dict of collection to list of str. Collections that
+            couldn't be loaded, or have a single version, are left out.
+
+        Raises:
+            MPRestError: if `collection` is unknown or has a single version.
+        """
+        resters = self._versioned_resters()
+        if collection is not None:
+            route = collection.split("/", 1)[-1].replace("-", "_")
+            if route not in resters:
+                raise MPRestError(
+                    f"Unknown collection {collection!r}, expected one of: "
+                    f"{', '.join(sorted(resters))}."
+                )
+            return resters[route].available_db_versions()
+
+        def _list(route: str) -> tuple[str, list[str] | None]:
+            try:
+                return route, resters[route].available_db_versions()
+            except Exception as exc:
+                logger.debug(f"No database versions for {route}: {exc}")
+                return route, None
+
+        with status(
+            f"Fetching available database versions for {len(resters)} datasets...",
+            enabled=not self.mute_progress_bars,
+            logger=logger,
+        ):
+            with ThreadPoolExecutor(max_workers=min(8, len(resters) or 1)) as pool:
+                found = list(pool.map(_list, sorted(resters)))
+        return {route: versions for route, versions in found if versions}
 
     def get_task_ids_associated_with_material_id(
         self, material_id: str, calc_types: list[CalcType] | None = None

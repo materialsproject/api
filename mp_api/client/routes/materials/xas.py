@@ -19,7 +19,6 @@ class XASRester(BaseRester):
     suffix = "materials/xas"
     document_model = XASDoc  # type: ignore
     primary_key = "task_id"
-    delta_backed = False
 
     def search(
         self,

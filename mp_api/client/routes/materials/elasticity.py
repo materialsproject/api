@@ -28,6 +28,7 @@ class ElasticityRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[ElasticityDoc] | list[dict]:
         """Query elasticity docs using a variety of search criteria.
 
@@ -55,6 +56,9 @@ class ElasticityRester(BaseRester):
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
             fields (list[str]): List of fields in ElasticityDoc to return data for.
                 Default is material_id and prett-formula if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([ElasticityDoc], [dict]) List of elasticity documents or dictionaries.
@@ -110,4 +114,5 @@ class ElasticityRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )
