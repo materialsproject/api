@@ -48,10 +48,12 @@ dependencies = [
   "orjson >= 3.10,<4",
   "pyarrow >= 20.0.0",
   "deltalake>=1.4.0,<1.6.0",
+  "rich>=13.0",
 ]
 
 [project.optional-dependencies]
 mcp = ["fastmcp"]
+notebook = ["ipywidgets"]
 server = ["flask"]
 contribs = [
   "boltons",
@@ -71,6 +73,7 @@ all = [
   "emmet-core[all]>=0.87.3rc2,<0.87.4",
   "fastmcp",
   "flask",
+  "ipywidgets",
 ]
 test = [
   "pre-commit",
@@ -82,7 +85,6 @@ test = [
   "mypy",
   "types-setuptools",
   "types-requests",
-  "types-tqdm"
 ]
 docs = ["sphinx"]
 

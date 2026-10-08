@@ -162,3 +162,29 @@ summary_sort_fields = [
 def test_sort(sort_field: str):
     with SummaryRester() as rester:
         client_sort(rester.search, sort_field, aux_query={sort_field: (0, 10)})
+
+
+def test_search_field_messages_have_no_ansi_codes(monkeypatch):
+    """Warning / error text must be plain: it ends up in logs and servers."""
+    import warnings
+
+    from mp_api.client.routes.materials.summary import SummaryRester
+
+    monkeypatch.setattr(
+        SummaryRester, "_get_heartbeat_info", staticmethod(lambda endpoint: ("v", []))
+    )
+    from mp_api.client.core.client import BaseRester
+
+    monkeypatch.setattr(BaseRester, "_search", lambda self, **kwargs: [])
+    rester = SummaryRester(api_key="a" * 32)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        rester.search(nelements=10)
+    messages = [str(w.message) for w in caught if "_search" in str(w.message)]
+    assert messages and all("\x1b" not in m for m in messages)
+
+    for kwargs in ({"nelements": 10, "num_elements": 11}, {"apples": "oranges"}):
+        with pytest.raises(MPRestError) as excinfo:
+            rester.search(**kwargs)
+        assert "\x1b" not in str(excinfo.value)

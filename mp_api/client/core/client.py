@@ -15,6 +15,7 @@ import shutil
 import sys
 import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from contextlib import ExitStack
 from copy import copy
 from functools import cache
 from importlib.metadata import PackageNotFoundError, version
@@ -39,10 +40,10 @@ from emmet.core.utils import jsanitize
 from pydantic import BaseModel
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
-from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
 from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
+from mp_api.client.core._display import ProgressHandle, progress_bar
 from mp_api.client.core.delta import DeltaCatalog
 from mp_api.client.core.exceptions import (
     MPRestError,
@@ -130,7 +131,7 @@ class QueryBuilderWithCache(QueryBuilder):
 
     def execute(self, sql: str) -> RecordBatchReader:
         """Execute SQL against the tables in the underlying catalog."""
-        return self.catalog.execute_stream(sql)
+        return self.catalog._execute_raw(sql)
 
 
 class _Rester:
@@ -239,6 +240,12 @@ class _Rester:
                 self.api_key, self.include_user_agent, self.headers
             )
         return self._session
+
+    @property
+    def _docs_description(self) -> str:
+        """E.g. "SummaryDoc documents", for progress bars and messages."""
+        name = getattr(getattr(self, "document_model", None), "__name__", "")
+        return f"{name} documents" if name and not name.startswith("_") else "documents"
 
     @property
     def delta_catalog(self) -> DeltaCatalog:
@@ -748,9 +755,6 @@ class BaseRester(_Rester):
         prefix = prefix.rstrip("/")
 
         # Check if user has access to GNoMe
-        # temp suppress tqdm
-        re_enable = not self.mute_progress_bars
-        self.mute_progress_bars = True
         has_gnome_access = bool(
             self._submit_requests(
                 url=urljoin(self.base_endpoint, "materials/summary/"),
@@ -762,11 +766,11 @@ class BaseRester(_Rester):
                 num_chunks=1,
                 chunk_size=1,
                 timeout=timeout if timeout is not None else self.timeout,
+                show_progress=False,
             )
             .get("meta", {})
             .get("total_doc", 0)
         )
-        self.mute_progress_bars = not re_enable
 
         suffix = prefix.rsplit("/")[1]
 
@@ -833,19 +837,6 @@ class BaseRester(_Rester):
                 # batch_id isn't a valid field
                 num_docs_needed = self.count()
 
-        pbar = (
-            tqdm(
-                desc=(
-                    f"Retrieving DeltaTable-backed {self.document_model.__name__} documents"
-                    if self.document_model is not None
-                    else "Retrieving documents"
-                ),
-                total=num_docs_needed,
-            )
-            if not self.mute_progress_bars
-            else None
-        )
-
         iterator = self.delta_catalog.execute_stream(
             f"SELECT * FROM {tbl_lbl} {predicate}"
         )
@@ -878,42 +869,43 @@ class BaseRester(_Rester):
                 file_options=file_options,
             )
 
-        group = 1
-        size = 0
-        accumulator = []
-        _schema = pa.schema(arrowize(self.document_model))
-        schema = (
-            _schema.insert(0, pa.field("version", pa.string()))
-            if versioned
-            else _schema
-        )
-        partitioning_schema = pa.schema([pa.field("version", pa.string())])
-        partitioning = (
-            pa.dataset.partitioning(partitioning_schema, flavor="hive")
-            if versioned
-            else None
-        )
-        for page in iterator:
-            # arro3 rb to pyarrow rb for compat w/ pyarrow ds writer
-            rg = pa.record_batch(page)
-            accumulator.append(rg)
-            page_size = page.num_rows
-            size += rg.get_total_buffer_size()
+        docs = self._docs_description
+        with progress_bar(
+            f"Retrieving DeltaTable-backed {docs}",
+            total=num_docs_needed,
+            enabled=not self.mute_progress_bars,
+            summary=f"Downloaded {{completed:,}} {docs} to {target_path}",
+        ) as pbar:
+            group = 1
+            size = 0
+            accumulator = []
+            _schema = pa.schema(arrowize(self.document_model))
+            schema = (
+                _schema.insert(0, pa.field("version", pa.string()))
+                if versioned
+                else _schema
+            )
+            partitioning_schema = pa.schema([pa.field("version", pa.string())])
+            partitioning = (
+                pa.dataset.partitioning(partitioning_schema, flavor="hive")
+                if versioned
+                else None
+            )
+            for rg in iterator:
+                accumulator.append(rg)
+                page_size = rg.num_rows
+                size += rg.get_total_buffer_size()
 
-            if pbar is not None:
                 pbar.update(page_size)
 
-            if size >= MAPI_CLIENT_SETTINGS.DATASET_FLUSH_THRESHOLD:
-                _flush(accumulator, group, schema, partitioning)
-                group += 1
-                size = 0
-                accumulator.clear()
+                if size >= MAPI_CLIENT_SETTINGS.DATASET_FLUSH_THRESHOLD:
+                    _flush(accumulator, group, schema, partitioning)
+                    group += 1
+                    size = 0
+                    accumulator.clear()
 
-        if accumulator:
-            _flush(accumulator, group + 1, schema, partitioning)
-
-        if pbar is not None:
-            pbar.close()
+            if accumulator:
+                _flush(accumulator, group + 1, schema, partitioning)
 
         logger.info(f"Dataset for {suffix} written to {target_path}")
         logger.info("Converting to DeltaTable...")
@@ -948,6 +940,7 @@ class BaseRester(_Rester):
         num_chunks: int | None = None,
         chunk_size: int | None = None,
         timeout: int | None = None,
+        show_progress: bool | None = None,
     ) -> dict[str, Any]:
         """Query the endpoint for a Resource containing a list of documents
         and meta information about pagination and total document count.
@@ -963,6 +956,8 @@ class BaseRester(_Rester):
             num_chunks: Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size: Number of data entries per chunk.
             timeout (float or None): Time in seconds to wait until a request timeout error is thrown
+            show_progress (bool or None): Whether to show progress bars for this call.
+                If None, defers to `not self.mute_progress_bars`.
 
         Returns:
             A Resource, a dict with two keys, "data" containing a list of documents, and
@@ -971,6 +966,8 @@ class BaseRester(_Rester):
         """
         if use_document_model is None:
             use_document_model = self.use_document_model
+        if show_progress is None:
+            show_progress = not self.mute_progress_bars
 
         timeout = self.timeout if timeout is None else timeout
 
@@ -1000,11 +997,9 @@ class BaseRester(_Rester):
             url = validate_endpoint(self.endpoint, suffix=suburl)
 
             if query_s3:
-                pbar_message = (  # type: ignore
-                    f"Retrieving {self.document_model.__name__} documents"  # type: ignore
-                    if self.document_model is not None
-                    else "Retrieving documents"
-                )
+                docs_name = self._docs_description
+                pbar_message = f"Retrieving {docs_name}"
+                pbar_summary = f"Retrieved {{completed:,}} {docs_name}"
 
                 if "/" not in self.suffix:
                     suffix = self.suffix
@@ -1060,6 +1055,7 @@ class BaseRester(_Rester):
                         num_chunks=num_chunks,
                         chunk_size=chunk_size,
                         timeout=timeout,
+                        show_progress=show_progress,
                     )
 
                 if fields:
@@ -1078,25 +1074,21 @@ class BaseRester(_Rester):
                     for key in keys
                 }
 
-                # Setup progress bar
                 num_docs_needed = int(self.count())
-                pbar = (
-                    tqdm(
-                        desc=pbar_message,
-                        total=num_docs_needed,
-                    )
-                    if not self.mute_progress_bars
-                    else None
-                )
-
-                unzipped_chunks = [
-                    docs
-                    for docs, _, _ in self._multi_thread(
-                        self._query_open_data,
-                        list(s3_params_list.values()),
-                        pbar,  # type: ignore
-                    )
-                ]
+                with progress_bar(
+                    pbar_message,
+                    total=num_docs_needed,
+                    enabled=show_progress,
+                    summary=pbar_summary,
+                ) as pbar:
+                    unzipped_chunks = [
+                        docs
+                        for docs, _, _ in self._multi_thread(
+                            self._query_open_data,
+                            list(s3_params_list.values()),
+                            pbar,
+                        )
+                    ]
 
                 _chunks = chain.from_iterable(unzipped_chunks)
                 data: dict[str, Any] = {
@@ -1116,6 +1108,7 @@ class BaseRester(_Rester):
                     num_chunks=num_chunks,
                     chunk_size=chunk_size,
                     timeout=timeout,
+                    show_progress=show_progress,
                 )
             return data
 
@@ -1132,6 +1125,7 @@ class BaseRester(_Rester):
         timeout: int | None = None,
         max_batch_size: int = 100,
         norecur: bool = False,
+        show_progress: bool | None = None,
     ) -> dict:
         """Handle submitting requests sequentially with pagination.
 
@@ -1148,10 +1142,15 @@ class BaseRester(_Rester):
             max_batch_size (int) : Maximum size of a batch when retrieving batches in parallel
             norecur (bool) : Whether to forbid recursive splitting of a query field
                 when a direct query fails
+            show_progress (bool or None): Whether to show progress bars for this call.
+                If None, defers to `not self.mute_progress_bars`.
 
         Returns:
             Dictionary containing data and metadata
         """
+        if show_progress is None:
+            show_progress = not self.mute_progress_bars
+
         # Parameters that naturally support comma-separated values and should NOT be split
         no_split_params = {
             "elements",
@@ -1174,6 +1173,51 @@ class BaseRester(_Rester):
             "formula",
             "chemsys",
         }
+
+        with ExitStack() as stack:
+            return self._submit_requests_inner(
+                stack,
+                url=url,
+                criteria=criteria,
+                use_document_model=use_document_model,
+                chunk_size=chunk_size,
+                num_chunks=num_chunks,
+                timeout=timeout,
+                max_batch_size=max_batch_size,
+                norecur=norecur,
+                show_progress=show_progress,
+                no_split_params=no_split_params,
+            )
+
+    def _submit_requests_inner(
+        self,
+        stack: ExitStack,
+        url: str,
+        criteria: dict[str, Any],
+        use_document_model: bool,
+        chunk_size: int | None,
+        num_chunks: int | None,
+        timeout: int | None,
+        max_batch_size: int,
+        norecur: bool,
+        show_progress: bool,
+        no_split_params: set[str],
+    ) -> dict:
+        """Body of `_submit_requests`; `stack` owns the progress bar's lifetime."""
+        docs_name = self._docs_description
+        pbar: ProgressHandle | None = None
+
+        def open_bar() -> ProgressHandle:
+            # Started before the first request (spinner until the total is
+            # known), closed when `stack` exits, including on errors.
+            return stack.enter_context(
+                progress_bar(
+                    f"Retrieving {docs_name}",
+                    total=None,
+                    enabled=show_progress,
+                    summary=f"Retrieved {{completed:,}} {docs_name}",
+                )
+            )
 
         # Check if we need to split any comma-separated parameters
         split_param = None
@@ -1231,48 +1275,41 @@ class BaseRester(_Rester):
 
                     # Batch the split values to reduce number of requests
                     # Use batches of up to 100 values to balance URL length and request count
-                    num_batches = min(
-                        max_batch_size, max(1, len(split_values) // max_batch_size)
-                    )
                     batch_size = min(len(split_values), max_batch_size)
+                    num_batches = ceil(len(split_values) / batch_size)
 
-                    # Setup progress bar for split parameter requests
-                    pbar_message = f"Retrieving {len(split_values)} {split_param} values in {num_batches} batches"
-                    pbar = (
-                        tqdm(
-                            desc=pbar_message,
-                            total=num_batches,
-                        )
-                        if not self.mute_progress_bars
-                        else None
-                    )
+                    with progress_bar(
+                        f"Retrieving {len(split_values)} {split_param} values "
+                        f"in {num_batches} batches",
+                        total=num_batches,
+                        enabled=show_progress,
+                        unit="batches",
+                        summary=f"Retrieved {len(split_values)} {split_param} values "
+                        "in {completed} batches",
+                    ) as pbar:
+                        for batch in batched(split_values, batch_size):
+                            split_criteria = copy(criteria)
+                            split_criteria[split_param] = ",".join(batch)
 
-                    for batch in batched(split_values, batch_size):
-                        split_criteria = copy(criteria)
-                        split_criteria[split_param] = ",".join(batch)
+                            # Recursively call _submit_requests with the batch
+                            # This will trigger another split if the batch is still too large
+                            result = self._submit_requests(
+                                url=url,
+                                criteria=split_criteria,
+                                use_document_model=use_document_model,
+                                chunk_size=chunk_size,
+                                num_chunks=num_chunks,
+                                timeout=timeout,
+                                norecur=len(batch) <= max_batch_size,
+                                show_progress=show_progress,
+                            )
 
-                        # Recursively call _submit_requests with the batch
-                        # This will trigger another split if the batch is still too large
-                        result = self._submit_requests(
-                            url=url,
-                            criteria=split_criteria,
-                            use_document_model=use_document_model,
-                            chunk_size=chunk_size,
-                            num_chunks=num_chunks,
-                            timeout=timeout,
-                            norecur=len(batch) <= max_batch_size,
-                        )
+                            data_chunks.append(result["data"])
+                            if "meta" in result:
+                                total_data["meta"] = result["meta"]
+                                total_num_docs += result["meta"].get("total_doc", 0)
 
-                        data_chunks.append(result["data"])
-                        if "meta" in result:
-                            total_data["meta"] = result["meta"]
-                            total_num_docs += result["meta"].get("total_doc", 0)
-
-                        if pbar is not None:
                             pbar.update(1)
-
-                    if pbar is not None:
-                        pbar.close()
 
                     total_data["data"] = list(chain.from_iterable(data_chunks))
 
@@ -1286,6 +1323,7 @@ class BaseRester(_Rester):
                     raise
         else:
             # No splitting needed - get first page
+            pbar = open_bar()
             total_data = {"data": []}
             initial_criteria = copy(criteria)
             if isinstance(
@@ -1320,25 +1358,12 @@ class BaseRester(_Rester):
         # Get total number of docs needed
         num_docs_needed = min((max_pages * chunk_size), total_num_docs)
 
-        # Setup progress bar
-        pbar_message = (  # type: ignore
-            f"Retrieving {self.document_model.__name__} documents"  # type: ignore
-            if self.document_model is not None
-            else "Retrieving documents"
-        )
-        pbar = (
-            tqdm(
-                desc=pbar_message,
-                total=num_docs_needed,
-            )
-            if not self.mute_progress_bars and total_num_docs > 0
-            else None
-        )
-
+        if pbar is None:
+            # first request succeeded on the split path
+            pbar = open_bar()
         initial_data_length = total_data_len
-
-        if pbar is not None:
-            pbar.update(initial_data_length)
+        pbar.total = num_docs_needed
+        pbar.update(min(initial_data_length, num_docs_needed))
 
         # If we have all the results in a single page, return directly
         if initial_data_length >= num_docs_needed or num_chunks == 1:
@@ -1346,9 +1371,6 @@ class BaseRester(_Rester):
             new_total_data["data"] = list(chain.from_iterable(data_chunks))[
                 :num_docs_needed
             ]
-
-            if pbar is not None:
-                pbar.close()
             return new_total_data
 
         # Warning to select specific fields only for many results
@@ -1384,9 +1406,7 @@ class BaseRester(_Rester):
             data_chunks.append(data["data"])
             chunk_len = len(data["data"])
             total_data_len += chunk_len
-
-            if pbar is not None:
-                pbar.update(chunk_len)
+            pbar.update(chunk_len)
 
             skip += page_criteria["_limit"]
             remaining_docs -= chunk_len
@@ -1394,9 +1414,6 @@ class BaseRester(_Rester):
             # Break if we didn't get any data (shouldn't happen, but safety check)
             if chunk_len == 0:
                 break
-
-        if pbar is not None:
-            pbar.close()
 
         total_data["data"] = list(chain.from_iterable(data_chunks))
 
@@ -1408,14 +1425,14 @@ class BaseRester(_Rester):
         self,
         func: Callable,
         params_list: list[dict],
-        progress_bar: tqdm | None = None,
+        progress_bar: ProgressHandle | None = None,
     ) -> list[tuple[Any, int, int]]:
         """Handles setting up a threadpool and sending parallel requests.
 
         Arguments:
             func (Callable): Callable function to multi
             params_list (list): list of dictionaries containing url and params for each request
-            progress_bar (tqdm): progress bar to update with progress
+            progress_bar (ProgressHandle): progress bar to update with progress
 
         Returns:
             Tuples with data, total number of docs in matching the query in the database,
@@ -1598,7 +1615,6 @@ class BaseRester(_Rester):
         """A generic search method to retrieve documents matching specific parameters.
 
         Arguments:
-            mute (bool): Whether to mute progress bars.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Set to False to only return specific fields of interest. This will
@@ -1669,7 +1685,7 @@ class BaseRester(_Rester):
         num_chunks=None,
     ) -> list[BaseModel] | list[dict]:
         """Iterates over pages until all documents are retrieved. Displays
-        progress using tqdm. This method is designed to give a common
+        progress bars. This method is designed to give a common
         implementation for the search_* methods on various endpoints. See
         materials endpoint for an example of this in use.
         """
@@ -1703,15 +1719,14 @@ class BaseRester(_Rester):
             int : Count of total results
         """
         criteria = criteria or {}
-        user_preferences = (
-            self.use_document_model,
-            self.mute_progress_bars,
-        )
-        self.use_document_model, self.mute_progress_bars = (
-            False,
-            True,
-        )  # do not waste cycles decoding
-        results = self._query_resource(criteria=criteria, num_chunks=1, chunk_size=1)
+        # do not waste cycles decoding, and don't show progress
+        query_kwargs: dict[str, Any] = {
+            "num_chunks": 1,
+            "chunk_size": 1,
+            "use_document_model": False,
+            "show_progress": False,
+        }
+        results = self._query_resource(criteria=criteria, **query_kwargs)
         cnt = results["meta"]["total_doc"]
 
         no_query = not {field for field in criteria if field[0] != "_"}
@@ -1719,9 +1734,7 @@ class BaseRester(_Rester):
             allowed_params = inspect.getfullargspec(self.search).args
             if "deprecated" in allowed_params:
                 criteria["deprecated"] = True
-                results = self._query_resource(
-                    criteria=criteria, num_chunks=1, chunk_size=1
-                )
+                results = self._query_resource(criteria=criteria, **query_kwargs)
                 cnt += results["meta"]["total_doc"]
                 warnings.warn(
                     "Omitting a query also includes deprecated documents in the results. "
@@ -1729,11 +1742,6 @@ class BaseRester(_Rester):
                     category=MPRestWarning,
                     stacklevel=2,
                 )
-
-        (
-            self.use_document_model,
-            self.mute_progress_bars,
-        ) = user_preferences
 
         if isinstance(cnt, str):
             raise MPRestError(f"Error counting documents: {cnt}")

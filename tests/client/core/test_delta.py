@@ -503,3 +503,13 @@ def test_query_delta_single_retries_and_wraps_errors(no_heartbeat):
     FakeQueryBuilder.failures = [DeltaError("request timed out")]
     with pytest.raises(MPRestError, match="increasing the 'timeout'"):
         rester._query_delta_single("SELECT 1", label=lbl)
+
+
+def test_execute_stream_returns_pyarrow_reader(catalog):
+    """Streaming must go through pyarrow, which releases the GIL between batches
+    (arro3 iteration holds it, freezing e.g. the progress bar refresh thread)."""
+    reader = catalog.execute_stream("SELECT * FROM a")
+    assert isinstance(reader, pa.RecordBatchReader)
+    batches = list(reader)
+    assert sum(b.num_rows for b in batches) == 1
+    assert all(isinstance(b, pa.RecordBatch) for b in batches)

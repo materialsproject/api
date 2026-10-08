@@ -108,3 +108,33 @@ def test_model_generation():
 
     # Ensure graceful handling of empty iterator input (no docs returned)
     assert _convert_to_model(iter([]), DummyClass) == []
+
+
+def test_returned_model_repr_is_plain_and_rich_is_styled():
+    import io
+
+    from rich.console import Console
+
+    from mp_api.client.core.schemas import _generate_returned_model
+
+    class Doc(BaseModel):
+        material_id: str | None = None
+        band_gap: float | None = None
+        formula: str | None = None
+
+    model, _, _ = _generate_returned_model(
+        {"material_id": "mp-149", "band_gap": 1.1}, Doc
+    )
+    doc = model(material_id="mp-149", band_gap=1.1)
+
+    for text in (repr(doc), str(doc)):
+        assert "\x1b[" not in text
+        assert "MPDataDoc<Doc>" in text and "band_gap=1.1" in text
+    assert "fields_not_requested=['formula']" in repr(doc)
+    assert "Fields not requested:" in str(doc)
+
+    buf = io.StringIO()
+    Console(file=buf, force_terminal=True, width=100).print(doc)
+    out = buf.getvalue()
+    assert "\x1b[1;4mMPDataDoc<Doc>" in out  # bold underline title
+    assert "material_id" in out and "'mp-149'" in out

@@ -304,7 +304,7 @@ class DeltaCatalog:
             )
             raise
 
-    def execute_stream(self, sql: str) -> RecordBatchReader:
+    def execute_stream(self, sql: str) -> pa.RecordBatchReader:
         """Run a SQL query and stream the results, without retrying.
 
         Used for full-dataset downloads, where batches may already have been
@@ -314,12 +314,21 @@ class DeltaCatalog:
         Does not use the runner: batches are fetched lazily as the returned
         reader is consumed, in the consuming thread.
 
+        The arro3 reader from deltalake is wrapped in a pyarrow reader (via the
+        Arrow C stream interface, no copy). Iterating the arro3 reader holds the
+        GIL while each batch is fetched, which freezes other threads, e.g. the
+        progress bar's refresh thread; pyarrow releases it.
+
         Args:
             sql (str) : SQL query
 
         Returns:
-            arro3 RecordBatchReader
+            pyarrow.RecordBatchReader
         """
+        return pa.RecordBatchReader.from_stream(self._execute_raw(sql))
+
+    def _execute_raw(self, sql: str) -> RecordBatchReader:
+        """Run a SQL query and return deltalake's (arro3) reader."""
         with self._lock:
             qb = self._qb
         return qb.execute(sql)

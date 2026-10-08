@@ -16,6 +16,8 @@ from pydantic import (
     create_model,
     field_validator,
 )
+from rich.highlighter import ReprHighlighter
+from rich.text import Text
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -153,29 +155,45 @@ def _generate_returned_model(
 
     orig_rester_name = document_model.__name__
 
+    def _shown_fields(self, include_not_requested: bool) -> list[str]:
+        return [
+            n
+            for n in data_model.model_fields
+            if n in set_fields
+            or (include_not_requested and n == "fields_not_requested")
+        ]
+
     def new_repr(self) -> str:
         extra = ",\n".join(
-            f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-            for n in data_model.model_fields
-            if n == "fields_not_requested" or n in set_fields
+            f"{n}={getattr(self, n)!r}" for n in _shown_fields(self, True)
         )
-
-        s = f"\033[4m\033[1m{self.__class__.__name__}<{orig_rester_name}>\033[0;0m\033[0;0m(\n{extra}\n)"  # noqa: E501
-        return s
+        return f"{self.__class__.__name__}<{orig_rester_name}>(\n{extra}\n)"
 
     def new_str(self) -> str:
         extra = ",\n".join(
-            f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-            for n in data_model.model_fields
-            if n in set_fields
+            f"{n}={getattr(self, n)!r}" for n in _shown_fields(self, False)
+        )
+        return (
+            f"{self.__class__.__name__}<{orig_rester_name}>"
+            f"\n{extra}\n\n"
+            f"Fields not requested:\n{fields_not_requested}"
         )
 
-        return (
-            f"\033[4m\033[1m{self.__class__.__name__}"
-            f"<{orig_rester_name}>\033[0;0m\033[0;0m"
-            f"\n{extra}\n\n"
-            f"\033[1mFields not requested:\033[0;0m\n{fields_not_requested}"
+    def new_rich(self) -> Text:
+        """Styled rendering for rich (console.print, rich.pretty in IPython)."""
+        highlight = ReprHighlighter()
+        text = Text()
+        text.append(
+            f"{self.__class__.__name__}<{orig_rester_name}>", style="bold underline"
         )
+        text.append("(\n")
+        for n in _shown_fields(self, True):
+            text.append(f"    {n}", style="bold")
+            text.append("=")
+            text.append_text(highlight(repr(getattr(self, n))))
+            text.append(",\n")
+        text.append(")")
+        return text
 
     def new_getattr(self, attr) -> str:
         if attr in self.unavailable_fields:
@@ -196,6 +214,7 @@ def _generate_returned_model(
 
     data_model.__repr__ = new_repr
     data_model.__str__ = new_str
+    data_model.__rich__ = new_rich
     data_model.__getattr__ = new_getattr
     data_model.dict = new_dict
 

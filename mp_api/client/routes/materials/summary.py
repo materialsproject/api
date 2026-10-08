@@ -234,52 +234,45 @@ class SummaryRester(BaseRester):
             warning_strs: list[str] = []
             exc_strs: list[str] = []
 
-            def csrc(x):
-                return f"\x1b[34m{x}\x1b[39m"
-
-            def _csrc(x):
-                return f"\x1b[31m{x}\x1b[39m"
-
             # Warn the user if they input any fields from _search without setting equivalent kwargs in search
             if db_keys["warn"]:
                 warning_strs.extend(
                     [
-                        f"You have specified fields used by {_csrc('`_search`')} that can be understood by {csrc('`search`')}",
-                        f"   {', '.join([_csrc(min_max_name_dict[k]) for k in db_keys['warn']])}",
-                        f"To ensure long term support, please use their {csrc('`search`')} equivalents:",
-                        f"   {', '.join([csrc(k) for k in db_keys['warn']])}",
+                        "You have specified fields used by `_search` that can be understood by `search`:",
+                        f"    {', '.join(min_max_name_dict[k] for k in db_keys['warn'])}",
+                        "To ensure long term support, please use their `search` equivalents:",
+                        f"    {', '.join(db_keys['warn'])}",
                     ]
                 )
 
             # Throw an exception if the user input a field from _search and its equivalent search kwarg
             if db_keys["duplicate"]:
-                dupe_pairs = "\n".join(
-                    f"{csrc(k)} and {_csrc(min_max_name_dict[k])}"
-                    for k in db_keys["duplicate"]
+                dupe_pairs = "\n    ".join(
+                    f"{k} and {min_max_name_dict[k]}" for k in db_keys["duplicate"]
                 )
                 exc_strs.extend(
                     [
-                        f"You have specified fields known to both {csrc('`search`')} and {_csrc('`_search`')}",
-                        f"   {dupe_pairs}",
-                        f"To avoid query ambiguity, please check your {csrc('`search`')} query and only specify",
-                        f"   {', '.join([csrc(k) for k in db_keys['duplicate']])}",
+                        "You have specified fields known to both `search` and `_search`:",
+                        f"    {dupe_pairs}",
+                        "To avoid query ambiguity, please check your `search` query and only specify:",
+                        f"    {', '.join(db_keys['duplicate'])}",
                     ]
                 )
             # Throw an exception if any unknown kwargs were input
             if db_keys["unknown"]:
                 exc_strs.extend(
                     [
-                        f"You have specified the following kwargs which are unknown to {csrc('`search`')}, "
-                        f"but may be known to {_csrc('`_search`')}",
-                        f"    \x1b[36m{', '.join(db_keys['unknown'])}\x1b[39m",
+                        "You have specified the following kwargs which are unknown to `search`, "
+                        "but may be known to `_search`:",
+                        f"    {', '.join(db_keys['unknown'])}",
                     ]
                 )
 
             # Always print links to documentation on warning / exception
             warn_ref_strs = [
                 "Please see the documentation:",
-                f"    {csrc('`search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search')}",
-                f"   {_csrc('`_search`: https://api.materialsproject.org/redoc#tag/Materials-Summary/operation/search_materials_summary__get')}",
+                "    `search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search",
+                "    `_search`: https://api.materialsproject.org/redoc#tag/Materials-Summary/operation/search_materials_summary__get",
             ]
 
             if exc_strs:

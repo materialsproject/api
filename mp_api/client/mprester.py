@@ -29,6 +29,7 @@ from pymatgen.io.vasp import Chgcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from requests import Session, get
 
+from mp_api.client.core._display import print_notice
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.client import _Rester
 from mp_api.client.core.exceptions import (
@@ -163,10 +164,10 @@ class MPRester(_Rester):
                 Share one instance across MPRester instances (e.g. one per web-server
                 worker) to reuse loaded table snapshots. If None, one is created and
                 shared by all resters under this MPRester.
-            notify_db_version (bool): If True, the current MP database version will
-                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database
-                version changes, you will be notified. The current database version is
-                also printed on instantiation. These local logs are not sent to
+            notify_db_version (bool): If True, the current MP database version is
+                printed (to stderr) on instantiation and recorded locally in
+                ~/.mprester.log.yaml. If it changed since the last recorded version, this
+                is highlighted and an MPRestWarning is also emitted. These local logs are not sent to
                 materialsproject.org and are not associated with your API key, so be
                 aware that a notification may not be presented if you run MPRester
                 from multiple computing environments.
@@ -290,6 +291,7 @@ class MPRester(_Rester):
             - headers
             - session
             - use_document_model
+            - mute_progress_bars
 
         """
         if self._contribs is None:
@@ -301,6 +303,7 @@ class MPRester(_Rester):
                     headers=self.headers,
                     session=self.session,
                     use_document_model=self.use_document_model,
+                    mute_progress_bars=self.mute_progress_bars,
                     **self._contribs_kwargs,
                 )
 
@@ -1921,7 +1924,7 @@ class MPRester(_Rester):
         )
 
     def _db_version_check(self) -> None:
-        """Check if the database version has drifted."""
+        """Print the database version and note if it has changed since last use."""
         import yaml  # type: ignore[import-untyped]
 
         old_db_version = None
@@ -1933,6 +1936,15 @@ class MPRester(_Rester):
             # Handle legacy pymatgen behavior
             if not isinstance(old_db_version, str):
                 old_db_version = None
+
+        if old_db_version and old_db_version != self.db_version:
+            print_notice(
+                "Materials Project database version changed: "
+                f"v{old_db_version} → v{self.db_version}",
+                style="mp.warning",
+            )
+        else:
+            print_notice(f"Materials Project database version: v{self.db_version}")
 
         if old_db_version != self.db_version:
             MAPI_CLIENT_SETTINGS.LOG_FILE.write_text(
