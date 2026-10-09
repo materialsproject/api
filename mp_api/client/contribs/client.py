@@ -169,10 +169,20 @@ def get_session(session: requests.Session | None = None) -> FuturesSession:
 
     Args:
         session (requests.Session or None) : Optional Session to use
-            in starting a FuturesSession
+            in starting a FuturesSession. Its adapters (retry policy,
+            pool size) are left as the caller configured them.
+
     Returns:
         FuturesSession
     """
+    if session is not None:
+        # FuturesSession applies `adapter_kwargs` to the adapters already
+        # mounted on a supplied session, in place. A caller's session may be
+        # shared with other clients (e.g. MPRester's, or one per web-server
+        # worker), so don't impose this client's retry policy (which retries
+        # POSTs) on it.
+        return FuturesSession(session=session, max_workers=MPCC_SETTINGS.MAX_WORKERS)
+
     adapter_kwargs = dict(
         max_retries=Retry(
             total=MPCC_SETTINGS.RETRIES,
@@ -185,7 +195,7 @@ def get_session(session: requests.Session | None = None) -> FuturesSession:
         )
     )
     return FuturesSession(
-        session=session if session else requests.Session(),
+        session=requests.Session(),
         max_workers=MPCC_SETTINGS.MAX_WORKERS,
         adapter_kwargs=adapter_kwargs,
     )

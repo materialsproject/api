@@ -161,3 +161,32 @@ def test_contribs_load_failure_raises_and_is_not_cached(monkeypatch):
         mpr.contribs
     assert isinstance(mpr.contribs, Flaky)  # retried, not cached as None
     assert mpr.contribs is mpr.contribs and len(calls) == 2
+
+
+def test_supplied_session_adapters_untouched():
+    """A caller's (possibly shared) session keeps its own retry policy."""
+    import requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util.retry import Retry
+
+    from mp_api.client.contribs.client import get_session
+
+    session = requests.Session()
+    retry = Retry(total=1, status_forcelist=[503], allowed_methods={"GET"})
+    session.mount("https://", HTTPAdapter(max_retries=retry))
+    before = session.get_adapter("https://").max_retries
+
+    futures_session = get_session(session=session)
+
+    assert futures_session.session is session
+    after = session.get_adapter("https://").max_retries
+    assert after is before
+    assert "POST" not in (after.allowed_methods or ())
+
+
+def test_own_session_gets_contribs_retries():
+    from mp_api.client.contribs.client import get_session
+
+    futures_session = get_session()
+    retry = futures_session.session.get_adapter("https://").max_retries
+    assert "POST" in retry.allowed_methods
