@@ -227,15 +227,16 @@ class _Rester:
         self.include_user_agent = include_user_agent
         self.use_document_model = use_document_model
 
-        self.headers = headers or get_consumer()
+        # Copy, so neither the caller's dict nor (below) a shared session is mutated
+        self.headers = dict(headers or get_consumer())
+        if is_dev_env() and self.api_key:
+            self.headers["x-api-key"] = self.api_key
+
         self._session = session or _Rester._create_session(
             api_key=self.api_key,
             include_user_agent=self.include_user_agent,
             headers=self.headers,
         )
-
-        if is_dev_env():
-            self._session.headers["x-api-key"] = self.api_key or ""
 
         self.use_document_model = use_document_model
         self.mute_progress_bars = mute_progress_bars
@@ -938,7 +939,9 @@ class BaseRester(_Rester):
         version: str | None = None
         if versioned:
             version = self._resolve_db_version(
-                requested, version_counts, collection  # type: ignore[arg-type]
+                requested,
+                version_counts,
+                collection,  # type: ignore[arg-type]
             )
         elif override:
             logger.warning(
