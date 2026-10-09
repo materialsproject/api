@@ -512,7 +512,9 @@ class BaseRester(_Rester):
 
         try:
             url = validate_endpoint(self.endpoint, suffix=suburl)
-            response = self.session.post(url, json=payload, verify=True, params=params)
+            response = self.session.post(
+                url, json=payload, verify=True, params=params, headers=self.headers
+            )
 
             if response.status_code == 200:
                 data = load_json(response.text)
@@ -576,7 +578,9 @@ class BaseRester(_Rester):
 
         try:
             url = validate_endpoint(self.endpoint, suffix=suburl)
-            response = self.session.patch(url, json=payload, verify=True, params=params)
+            response = self.session.patch(
+                url, json=payload, verify=True, params=params, headers=self.headers
+            )
 
             if response.status_code == 200:
                 data = load_json(response.text)

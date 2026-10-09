@@ -5,6 +5,8 @@ in a process. Per-client credentials and consumer headers must then travel
 with each request, never be written onto that shared session.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
 import requests
 
@@ -63,3 +65,17 @@ def test_caller_headers_not_mutated(dev_env):
     headers = {"X-Consumer-Id": "abc"}
     BaseRester(api_key=KEY_A, session=requests.Session(), headers=headers)
     assert headers == {"X-Consumer-Id": "abc"}
+
+
+@pytest.mark.parametrize("method", ["post", "patch"])
+def test_write_requests_forward_headers(prod_env, method):
+    session = MagicMock(spec=requests.Session)
+    response = MagicMock(status_code=200, text='{"data": []}')
+    getattr(session, method).return_value = response
+
+    consumer = {"X-Consumer-Id": "abc", "X-Consumer-Custom-Id": KEY_A}
+    rester = BaseRester(api_key=KEY_A, session=session, headers=consumer)
+    getattr(rester, f"_{method}_resource")(body={"x": 1}, use_document_model=False)
+
+    kwargs = getattr(session, method).call_args.kwargs
+    assert kwargs["headers"] == consumer
