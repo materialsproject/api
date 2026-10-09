@@ -33,7 +33,7 @@ class ElectronicStructureRester(BaseRester):
         warnings.warn(
             "MPRester.electronic_structure.search_electronic_structure_docs is deprecated. "
             "Please use MPRester.electronic_structure.search instead.",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
 
@@ -56,30 +56,34 @@ class ElectronicStructureRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ):
         """Query electronic structure docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            chemsys (str, List[str]): A chemical system or list of chemical systems
+            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.
+            chemsys (str | list[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
-            elements (List[str]): A list of elements.
-            exclude_elements (List[str]): A list of elements to exclude.
-            formula (str, List[str]): A formula including anonymized formula
+            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.
+            elements (list[str]): A list of elements.
+            exclude_elements (list[str]): A list of elements to exclude.
+            formula (str | list[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
+            num_elements (tuple[int, int]): Minimum and maximum number of elements to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
+            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([ElectronicStructureDoc]) List of electronic structure documents
@@ -146,6 +150,7 @@ class ElectronicStructureRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )
 
 
@@ -164,6 +169,7 @@ class BaseESPropertyRester(BaseRester):
                 use_document_model=self.use_document_model,
                 headers=self.headers,
                 mute_progress_bars=self.mute_progress_bars,
+                delta_catalog=self.delta_catalog,
             )
         return self._es_rester
 
@@ -177,7 +183,7 @@ class BandStructureRester(BaseESPropertyRester):
         warnings.warn(
             "MPRester.electronic_structure_bandstructure.search_bandstructure_summary is deprecated. "
             "Please use MPRester.electronic_structure_bandstructure.search instead.",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
 
@@ -199,8 +205,8 @@ class BandStructureRester(BaseESPropertyRester):
         """Query band structure summary data in electronic structure docs using a variety of search criteria.
 
         Arguments:
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
+            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.
+            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
             magnetic_ordering (Ordering or str): Magnetic ordering of the material.
@@ -208,7 +214,7 @@ class BandStructureRester(BaseESPropertyRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
+            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
@@ -298,7 +304,7 @@ class BandStructureRester(BaseESPropertyRester):
         if path_type:
             query += f"\nAND path_convention='{path_type}'"
 
-        table = self._query_delta_single(query)
+        table = self._query_delta_single(query, label=bs_lbl)
         if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
             if load_projections:
                 proj_bs_label, _ = self._get_delta_table(
@@ -307,7 +313,7 @@ class BandStructureRester(BaseESPropertyRester):
                     label="bandstructure_projections",
                 )
                 proj_table = self._query_delta_single(
-                    query.replace(bs_lbl, proj_bs_label)
+                    query.replace(bs_lbl, proj_bs_label), label=proj_bs_label
                 )
                 if (
                     len(deser_proj := proj_table.to_pylist(maps_as_pydicts="strict"))
@@ -340,7 +346,7 @@ class BandStructureRester(BaseESPropertyRester):
                 bandstructure, if available.
 
         Returns:
-            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object
+            bandstructure (BandStructure | BandStructureSymmLine): BandStructure or BandStructureSymmLine object
         """
         pt: BSPathType = (
             BSPathType(path_type) if isinstance(path_type, str) else path_type
@@ -412,7 +418,7 @@ class DosRester(BaseESPropertyRester):
         warnings.warn(
             "MPRester.electronic_structure_dos.search_dos_summary is deprecated. "
             "Please use MPRester.electronic_structure_dos.search instead.",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
 
@@ -435,8 +441,8 @@ class DosRester(BaseESPropertyRester):
         """Query density of states summary data in electronic structure docs using a variety of search criteria.
 
         Arguments:
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
+            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.
+            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.
             element (Element or str): Element for element-projected dos data.
             magnetic_ordering (Ordering or str): Magnetic ordering of the material.
             orbital (OrbitalType or str): Orbital for orbital-projected dos data.
@@ -445,7 +451,7 @@ class DosRester(BaseESPropertyRester):
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.
+            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
 
         Returns:
@@ -553,7 +559,7 @@ class DosRester(BaseESPropertyRester):
             rt = RunType(run_type) if isinstance(run_type, str) else run_type
             query += f"\nAND run_type='{rt.value}'"
 
-        table = self._query_delta_single(query)
+        table = self._query_delta_single(query, label=dos_lbl)
         if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
             if load_projections:
                 proj_dos_label, _ = self._get_delta_table(
@@ -562,7 +568,7 @@ class DosRester(BaseESPropertyRester):
                     label="dos_projections",
                 )
                 proj_table = self._query_delta_single(
-                    query.replace(dos_lbl, proj_dos_label)
+                    query.replace(dos_lbl, proj_dos_label), label=proj_dos_label
                 )
                 if (
                     len(deser_proj := proj_table.to_pylist(maps_as_pydicts="strict"))

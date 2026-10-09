@@ -87,7 +87,7 @@ def test_fields_not_requested_excludes_requested_fields(mpr):
 
 
 def test_warnings_exceptions():
-    with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
+    with pytest.warns(FutureWarning, match="Ignoring `monty_decode`"):
         MaterialsRester(monty_decode=True)
 
     with pytest.raises(MPRestError, match="Chunk size must be greater than zero"):

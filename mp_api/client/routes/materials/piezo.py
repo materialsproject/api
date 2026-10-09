@@ -21,19 +21,23 @@ class PiezoRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[PiezoelectricDoc] | list[dict]:
         """Query piezoelectric data using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            piezoelectric_modulus (Tuple[float,float]): Minimum and maximum of the
+            piezoelectric_modulus (tuple[float, float]): Minimum and maximum of the
                 piezoelectric modulus in C/m² to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in PiezoDoc to return data for.
+            fields (list[str]): List of fields in PiezoDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([PiezoDoc], [dict]) List of piezoelectric documents
@@ -66,4 +70,5 @@ class PiezoRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )

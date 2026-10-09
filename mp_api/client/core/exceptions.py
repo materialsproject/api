@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-import warnings
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MPRestError(Exception):
@@ -16,14 +18,20 @@ class MPRestWarning(Warning):
 class MPContribsClientError(ValueError):
     """Raised when the MPContribs client has problems."""
 
+    def _render_traceback_(self) -> list[str]:
+        """Show only the error message (no stack) in IPython / Jupyter.
+
+        These errors describe invalid user input, so the stack isn't useful.
+        IPython calls this hook for this exception type only.
+        """
+        return [f"{type(self).__name__}: {self}"]
+
 
 def _emit_status_warning() -> None:
-    """Emit a warning if client can't hear a heartbeat."""
-    warnings.warn(
+    """Log a warning if client can't hear a heartbeat."""
+    logger.warning(
         "Cannot listen to heartbeat, check Materials Project "
-        "status page: https://status.materialsproject.org/",
-        category=MPRestWarning,
-        stacklevel=2,
+        "status page: https://status.materialsproject.org/"
     )
 
 

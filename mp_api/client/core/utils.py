@@ -7,9 +7,11 @@ from importlib import import_module
 from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin
+from urllib.parse import unquote, urljoin
 
 import orjson
+import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from deltalake import DeltaTable
 from emmet.core import __version__ as _EMMET_CORE_VER
@@ -17,12 +19,12 @@ from emmet.core.mpid import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
+from mp_api.client.core._display import mp_warning
 from mp_api.client.core.exceptions import (
     MPDatasetIndexingWarning,
     MPDatasetIterationWarning,
     MPDatasetSlicingWarning,
     MPRestError,
-    MPRestWarning,
 )
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
@@ -59,6 +61,36 @@ def _compare_emmet_ver(
     )(parse_version(ref_version))
 
 
+def to_partition_version(db_version: str) -> str:
+    """Convert a database version to the form used for DeltaTable partitions.
+
+    Partition values use dashes where the database version uses dots,
+    e.g. "2026.04.13" -> "2026-04-13" and "2026.04.13.post1" -> "2026-04-13-post1".
+    Dashes and underscores are accepted in the input too.
+
+    Args:
+        db_version (str) : database version, e.g. "2026.04.13"
+
+    Returns:
+        str : partition value, e.g. "2026-04-13"
+    """
+    return db_version.strip().lstrip("v").replace(".", "-").replace("_", "-")
+
+
+def to_db_version(partition_version: str) -> str:
+    """Convert a DeltaTable partition value to the database version form.
+
+    The inverse of `to_partition_version`, e.g. "2026-04-13" -> "2026.04.13".
+
+    Args:
+        partition_version (str) : partition value, e.g. "2026-04-13"
+
+    Returns:
+        str : database version, e.g. "2026.04.13"
+    """
+    return to_partition_version(partition_version).replace("-", ".")
+
+
 def load_json(
     json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"
 ) -> Any:
@@ -82,10 +114,9 @@ def validate_api_key(api_key: str | None = None) -> str | None:
         # The web server requires the client to initialize without an API key.
         # Only warn the user if the API key cannot be identified to permit
         # the web server to run.
-        warnings.warn(
+        mp_warning(
             "No API key found, please set explicitly or in "
             "the `MP_API_KEY` environment variable.",
-            category=MPRestWarning,
             stacklevel=2,
         )
 
@@ -103,7 +134,7 @@ def validate_ids(id_list: list[str]) -> list[str]:
     """Function to validate material and task IDs.
 
     Args:
-        id_list (List[str]): List of material or task IDs.
+        id_list (list[str]): List of material or task IDs.
 
     Raises:
         MPRestError: If at least one ID is not formatted correctly.
@@ -259,6 +290,7 @@ class MPDataset:
         path: str | Path,
         document_model: ModelMetaclass,
         use_document_model: bool,
+        version: str | None = None,
     ):
         """Initialize a MPDataset.
 
@@ -270,11 +302,15 @@ class MPDataset:
             Pydantic document model for use during de-serialization of arrow data
         use_document_model: bool
             Use 'document_model' during de-serialization of arrow data.
+        version: str | None
+            Database version to read, for datasets partitioned by version,
+            e.g. "2026.04.13". If None, all data in the dataset is read.
         """
         self._start: int = 0
         self._path = Path(path)
         self._document_model: ModelMetaclass = document_model
-        self._dataset = ds.dataset(path)
+        self._version = to_db_version(version) if version else None
+        self._dataset = self._open_dataset()
         self._row_groups: list[Any] = list(
             chain.from_iterable(
                 [
@@ -284,6 +320,53 @@ class MPDataset:
             )
         )
         self._use_document_model = use_document_model
+
+    def _open_dataset(self) -> ds.Dataset:
+        """Open the data files that the DeltaTable's current version uses.
+
+        The file list comes from the Delta log, so files left behind by an
+        interrupted download, or removed from the table but not yet vacuumed,
+        are not read. Without a Delta log, every file in the directory is read.
+
+        The files are opened directly with pyarrow rather than through
+        `DeltaTable.to_pyarrow_dataset()`: reading through deltalake's
+        filesystem can hang the interpreter at exit (delta-rs 1.5.1).
+        """
+        if not DeltaTable.is_deltatable(str(self._path)):
+            return ds.dataset(self._path)
+
+        table = DeltaTable(self._path)
+        actions = pa.table(table.get_add_actions(flatten=True))
+        if self._version and "version" in table.metadata().partition_columns:
+            actions = actions.filter(
+                pc.equal(  # type: ignore[attr-defined]
+                    actions["partition.version"],
+                    to_partition_version(self._version),
+                )
+            )
+        # Paths in the log are relative to the table root and URL-encoded
+        files = [str(self._path / unquote(rel)) for rel in actions["path"].to_pylist()]
+        return ds.dataset(
+            files, schema=self._file_schema(table, files), format="parquet"
+        )
+
+    @staticmethod
+    def _file_schema(table: DeltaTable, files: list[str]) -> pa.Schema | None:
+        """Schema of the data files, used when there are none to infer it from.
+
+        Partition columns (e.g. version) are stored in the directory names,
+        not the files, so they are left out.
+        """
+        if files:
+            return None
+        partition_columns = set(table.metadata().partition_columns)
+        schema = pa.schema(table.schema().to_arrow())  # type: ignore[arg-type]
+        return pa.schema([f for f in schema if f.name not in partition_columns])
+
+    @property
+    def version(self) -> str | None:
+        """The database version this dataset reads, e.g. "2026.04.13"."""
+        return self._version
 
     @property
     def pyarrow_dataset(self) -> ds.Dataset:

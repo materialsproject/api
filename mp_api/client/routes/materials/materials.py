@@ -34,7 +34,7 @@ class MaterialsRester(CoreRester):
                 (pre-relaxation) structures. Defaults to True.
 
         Returns:
-            structure (Union[Structure, List[Structure]]): Pymatgen structure object or list of
+            structure (Structure | list[Structure]): Pymatgen structure object or list of
                 pymatgen structure objects.
         """
         field = "structure" if final else "initial_structures"
@@ -71,33 +71,37 @@ class MaterialsRester(CoreRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[MaterialsDoc] | list[dict]:
         """Query core material docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            chemsys (str, List[str]): A chemical system or list of chemical systems
+            chemsys (str | list[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             crystal_system (CrystalSystem): Crystal system of material.
-            density (Tuple[float,float]): Minimum and maximum density to consider.
+            density (tuple[float, float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
-            elements (List[str]): A list of elements.
-            exclude_elements (List[str]): A list of elements to exclude.
-            formula (str, List[str]): A formula including anonymized formula
+            elements (list[str]): A list of elements.
+            exclude_elements (list[str]): A list of elements to exclude.
+            formula (str | list[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.
-            num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
+            num_elements (tuple[int, int]): Minimum and maximum number of elements to consider.
+            num_sites (tuple[int, int]): Minimum and maximum number of sites to consider.
             spacegroup_number (int): Space group number of material.
             spacegroup_symbol (str): Space group symbol of the material in international short symbol notation.
-            task_ids (List[str]): List of Materials Project IDs to return data for.
-            volume (Tuple[float,float]): Minimum and maximum volume to consider.
+            task_ids (list[str]): List of Materials Project IDs to return data for.
+            volume (tuple[float, float]): Minimum and maximum volume to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
+            fields (list[str]): List of fields in MaterialsCoreDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([MaterialsDoc], [dict]) List of material documents or dictionaries.
@@ -172,6 +176,7 @@ class MaterialsRester(CoreRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )
 
     def find_structure(
@@ -273,7 +278,7 @@ class MaterialsRester(CoreRester):
         Args:
             run_type (str or RunType): Calculation run type (e.g. GGA, GGA+U, r2SCAN, PBESol)
             material_ids (list[str]): List of material ID values
-            uncorrected_energy (tuple[Optional[float], Optional[float]] | float): Tuple of minimum and maximum uncorrected DFT energy in eV/atom.
+            uncorrected_energy (tuple[float | None, float | None] | float): Tuple of minimum and maximum uncorrected DFT energy in eV/atom.
                 Note that if a single value is passed, it will be used as the minimum and maximum.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.

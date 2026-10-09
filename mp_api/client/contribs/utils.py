@@ -8,7 +8,6 @@ from hashlib import md5
 from typing import TYPE_CHECKING
 
 import orjson
-from jsonschema.exceptions import ValidationError
 from swagger_spec_validator.common import SwaggerValidationError
 
 from mp_api.client.contribs.settings import MPCC_SETTINGS
@@ -26,29 +25,12 @@ def _in_ipython() -> bool:
     return _ipython is not None and "IPKernelApp" in getattr(_ipython, "config", {})
 
 
-if _in_ipython():
+class MPContribsValidationError(MPContribsClientError, SwaggerValidationError):
+    """Raised when client-side validation of a value (e.g. email, URL) fails.
 
-    def _hide_traceback(
-        exc_tuple=None,
-        filename=None,
-        tb_offset=None,
-        exception_only=False,
-        running_compiled_code=False,
-    ):
-        etype, value, tb = sys.exc_info()
-
-        if issubclass(
-            etype, (MPContribsClientError, SwaggerValidationError, ValidationError)
-        ):
-            return _ipython._showtraceback(
-                etype, value, _ipython.InteractiveTB.get_exception_only(etype, value)
-            )
-
-        return _ipython._showtraceback(
-            etype, value, _ipython.InteractiveTB(etype, value, tb)
-        )
-
-    _ipython.showtraceback = _hide_traceback  # type: ignore[union-attr]
+    Subclasses SwaggerValidationError, which these validators raised previously,
+    so existing `except SwaggerValidationError` handlers keep working.
+    """
 
 
 def _compress(data: Any) -> tuple[int, bytes]:

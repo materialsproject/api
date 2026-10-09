@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.molecules_jcesr import MoleculesDoc
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
-from mp_api.client.core.exceptions import MPRestWarning
+from mp_api.client.core._display import mp_warning
 from mp_api.client.core.utils import validate_ids
 
 
@@ -19,10 +18,9 @@ class JcesrMoleculesRester(BaseRester):
 
     def __init__(self, **kwargs):
         """Throw deprecation warning when JCESR client is initialized."""
-        warnings.warn(
+        mp_warning(
             "NOTE: You are accessing the unmaintained legacy molecules data, "
             "please use MPRester.molecules.summary.",
-            category=MPRestWarning,
             stacklevel=2,
         )
         super().__init__(**kwargs)
@@ -49,20 +47,19 @@ class JcesrMoleculesRester(BaseRester):
         JCESR = Joint Center for Energy Storage Research
 
         Arguments:
-            task_ids (str, List[str]): A single molecule task ID string or list of strings.
+            task_ids (str | list[str]): A single molecule task ID string or list of strings.
                 (e.g., mol-45004, [mol-45004, mol-45228]).
-            charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.
-            elements (List[Element]): A list of elements.
-            film_orientation (List[Elements]): List of elements that are in the molecule.
-            EA (Tuple[float,float]): Minimum and maximum value of the electron affinity in eV to consider.
-            IE (Tuple[float,float]): Minimum and maximum value of the ionization energy in eV to consider.
-            nelements (Tuple[float,float]): Minimum and maximum number of elements in the molecule to consider.
+            charge (tuple[float, float]): Minimum and maximum value of the charge in +e to consider.
+            elements (list[Element]): A list of elements.
+            EA (tuple[float, float]): Minimum and maximum value of the electron affinity in eV to consider.
+            IE (tuple[float, float]): Minimum and maximum value of the ionization energy in eV to consider.
+            nelements (tuple[float, float]): Minimum and maximum number of elements in the molecule to consider.
             pointgroup (str): Point group of the molecule in Schoenflies notation.
             smiles (str): The simplified molecular input line-entry system (SMILES) representation of the molecule.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in MoleculesDoc to return data for.
+            fields (list[str]): List of fields in MoleculesDoc to return data for.
                 Default is the material_id only if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.

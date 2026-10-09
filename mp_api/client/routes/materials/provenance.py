@@ -19,18 +19,22 @@ class ProvenanceRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[ProvenanceDoc] | list[dict]:
         """Query provenance docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
             deprecated (bool): Whether the material is tagged as deprecated.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ProvenanceDoc to return data for.
+            fields (list[str]): List of fields in ProvenanceDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([ProvenanceDoc], [dict]) List of provenance documents or dictionaries.
@@ -54,4 +58,5 @@ class ProvenanceRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )

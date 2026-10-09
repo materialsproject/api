@@ -53,6 +53,19 @@ class MAPIClientSettings(BaseSettings):
         description="Whether to mute progress bars when data is retrieved.",
     )
 
+    LOG_LEVEL: str = Field(
+        "INFO",
+        description="Minimum level of client log messages to show, for the whole "
+        "client (including MPContribs). If the application configures logging, "
+        "messages go to its handlers instead.",
+    )
+
+    QUIET: bool = Field(
+        False,
+        description="Silence all client output: log messages, progress bars, "
+        "notices and MPRestWarnings. Deprecation warnings and errors are still raised.",
+    )
+
     MIN_EMMET_VERSION: str = Field(
         "0.86.3rc0",
         description="Minimum compatible version of emmet-core for the client.",

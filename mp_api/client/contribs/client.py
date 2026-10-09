@@ -21,7 +21,6 @@ from urllib.parse import urlsplit
 
 import orjson
 import pandas as pd
-import plotly.io as pio
 import requests
 from bravado.client import SwaggerClient
 from bravado.config import bravado_config_from_config_dict
@@ -43,11 +42,9 @@ from pyisemail.diagnosis import BaseDiagnosis
 from pymatgen.core import Structure as PmgStructure
 from requests.exceptions import RequestException
 from requests_futures.sessions import FuturesSession
-from swagger_spec_validator.common import SwaggerValidationError
-from tqdm.auto import tqdm
 from urllib3.util.retry import Retry
 
-from mp_api.client.contribs._logger import MPCC_LOGGER, TqdmToLogger
+from mp_api.client.contribs._logger import MPCC_LOGGER
 from mp_api.client.contribs._types import (
     Attachment,
     ComponentIdSets,
@@ -64,12 +61,19 @@ from mp_api.client.contribs.schemas import (
     QueryResult,
 )
 from mp_api.client.contribs.settings import MPCC_SETTINGS
-from mp_api.client.contribs.utils import flatten_dict, get_md5, unflatten_dict
+from mp_api.client.contribs.utils import (
+    MPContribsValidationError,
+    flatten_dict,
+    get_md5,
+    unflatten_dict,
+)
+from mp_api.client.core._display import progress_bar
 from mp_api.client.core.exceptions import MPContribsClientError
 from mp_api.client.core.schemas import _convert_to_model
+from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Iterable, Sequence
+    from collections.abc import Iterable, Sequence
     from typing import Any
 
     from mp_api.client.contribs._types import (
@@ -82,11 +86,6 @@ if TYPE_CHECKING:
 VALID_OPS = {"query", "create", "update", "delete", "download"}
 VALID_OPS_T = Literal[*VALID_OPS]  # type: ignore[valid-type]
 
-pd.options.plotting.backend = "plotly"
-pio.templates.default = "simple_white"
-warnings.formatwarning = lambda msg, *args, **kwargs: f"{msg}\n"
-warnings.filterwarnings("default", category=DeprecationWarning, module=__name__)
-
 
 def validate_email(email_string: str) -> None:
     """Validate user email address.
@@ -96,20 +95,20 @@ def validate_email(email_string: str) -> None:
     Returns:
         None
     Raises:
-        SwaggerValidationError on malformed email address.
+        MPContribsValidationError (a SwaggerValidationError) on malformed email address.
     """
     if email_string.count(":") != 1:
-        raise SwaggerValidationError(
+        raise MPContribsValidationError(
             f"{email_string} not of format <provider>:<email>."
         )
 
     provider, email = email_string.split(":", 1)
     if provider not in MPCC_SETTINGS.PROVIDERS:
-        raise SwaggerValidationError(f"{provider} is not a valid provider.")
+        raise MPContribsValidationError(f"{provider} is not a valid provider.")
 
     d = is_email(email, diagnose=True)
     if d > BaseDiagnosis.CATEGORIES["VALID"]:
-        raise SwaggerValidationError(f"{email} {d.message}")
+        raise MPContribsValidationError(f"{email} {d.message}")
 
     return None
 
@@ -138,12 +137,12 @@ def validate_url(
         None
 
     Raises:
-        SwaggerValidationError if any `qualifying` fields are missing
+        MPContribsValidationError (a SwaggerValidationError) if any `qualifying` fields are missing
 
     """
     tokens = urlsplit(url_string)
     if not all(getattr(tokens, qual_attr) for qual_attr in qualifying):
-        raise SwaggerValidationError(f"{url_string} invalid")
+        raise MPContribsValidationError(f"{url_string} invalid")
 
 
 url_format = SwaggerFormat(
@@ -165,34 +164,25 @@ for key in set(bravado_config._fields).intersection(set(bravado_config_dict)):
 bravado_config_dict["bravado"] = bravado_config
 
 
-# https://stackoverflow.com/a/8991553
-def grouper(n: int, iterable: Iterable) -> Generator:
-    """Collect data into non-overlapping fixed-length chunks or blocks.
-
-    Args:
-        n (int) : Maximum number of elements per block
-        iterable (Iterable) : object to divide into blocks
-
-    Returns:
-        Generator of input iterable divided into blocks
-    """
-    it = iter(iterable)
-    while True:
-        chunk = tuple(itertools.islice(it, n))
-        if not chunk:
-            return
-        yield chunk
-
-
 def get_session(session: requests.Session | None = None) -> FuturesSession:
     """Start a futures session.
 
     Args:
         session (requests.Session or None) : Optional Session to use
-            in starting a FuturesSession
+            in starting a FuturesSession. Its adapters (retry policy,
+            pool size) are left as the caller configured them.
+
     Returns:
         FuturesSession
     """
+    if session is not None:
+        # FuturesSession applies `adapter_kwargs` to the adapters already
+        # mounted on a supplied session, in place. A caller's session may be
+        # shared with other clients (e.g. MPRester's, or one per web-server
+        # worker), so don't impose this client's retry policy (which retries
+        # POSTs) on it.
+        return FuturesSession(session=session, max_workers=MPCC_SETTINGS.MAX_WORKERS)
+
     adapter_kwargs = dict(
         max_retries=Retry(
             total=MPCC_SETTINGS.RETRIES,
@@ -205,7 +195,7 @@ def get_session(session: requests.Session | None = None) -> FuturesSession:
         )
     )
     return FuturesSession(
-        session=session if session else requests.Session(),
+        session=requests.Session(),
         max_workers=MPCC_SETTINGS.MAX_WORKERS,
         adapter_kwargs=adapter_kwargs,
     )
@@ -248,13 +238,12 @@ def _run_futures(
     total = total if total_set else len(futures)
     responses: dict[str, dict[str, Any]] = {}
 
-    with tqdm(  # type: ignore[call-arg,attr-defined]
+    with progress_bar(
+        desc or "Requests",
         total=total,
-        desc=desc,
-        file=TqdmToLogger(),
-        miniters=1,
+        enabled=not disable,
         delay=5,
-        disable=disable,
+        unit="it",
     ) as pbar:
         for future in as_completed(futures):
             if not future.cancelled():
@@ -473,6 +462,7 @@ class ContribsClient(SwaggerClient):
         project: str | None = None,
         session: requests.Session | None = None,
         use_document_model: bool = False,
+        mute_progress_bars: bool = MAPI_CLIENT_SETTINGS.MUTE_PROGRESS_BARS,
         **kwargs,
     ) -> None:
         """Initialize the client - only reloads API spec from server as needed.
@@ -484,6 +474,7 @@ class ContribsClient(SwaggerClient):
             project (str): use this project for all operations (query, update, create, delete)
             session (requests.Session): override session for client to use
             use_document_model (bool) : whether to use pydantic document models by default to validate data
+            mute_progress_bars (bool) : whether to hide progress bars
             kwargs : To handle deprecated class attributes
         """
         # NOTE bravado future doesn't work with concurrent.futures
@@ -501,7 +492,7 @@ class ContribsClient(SwaggerClient):
                 )
             else:
                 api_key = kwargs.pop("apikey")
-            MPCC_LOGGER.warning(api_key_warn)
+            warnings.warn(api_key_warn, FutureWarning, stacklevel=2)
 
         if api_key and len(api_key) != 32:
             raise MPContribsClientError(f"Invalid API key: {api_key}")
@@ -538,6 +529,7 @@ class ContribsClient(SwaggerClient):
         self.session = get_session(session=session)
 
         self.use_document_model = use_document_model
+        self.mute_progress_bars = mute_progress_bars
 
         super().__init__(self.cached_swagger_spec)
 
@@ -550,9 +542,11 @@ class ContribsClient(SwaggerClient):
     @property
     def apikey(self) -> str | None:
         """Handle deprecated `apikey` attr."""
-        MPCC_LOGGER.warning(
+        warnings.warn(
             "`apikey` has been deprecated in favor of `api_key` for "
-            " consistency with the Materials Project API client."
+            "consistency with the Materials Project API client.",
+            FutureWarning,
+            stacklevel=2,
         )
         return self.api_key
 
@@ -647,7 +641,7 @@ class ContribsClient(SwaggerClient):
                     line_len = len(",".join(vv).encode("utf-8"))
 
                 if len(v) > per_page:
-                    for chunk in grouper(per_page, v):
+                    for chunk in itertools.batched(v, per_page):
                         queries.append({k: list(chunk)})
 
         query["per_page"] = per_page
@@ -826,7 +820,12 @@ class ContribsClient(SwaggerClient):
         futures = [
             self._get_future(i, q, rel_url="projects") for i, q in enumerate(queries)
         ]
-        responses = _run_futures(futures, total=total_count, timeout=timeout)
+        responses = _run_futures(
+            futures,
+            total=total_count,
+            timeout=timeout,
+            disable=self.mute_progress_bars,
+        )
 
         # NOTE: resp["result"]["data"] is a dict where each key is an int,
         # and each value is a **list** of projects as dict
@@ -1292,7 +1291,9 @@ class ContribsClient(SwaggerClient):
         _, total_pages = self.get_totals(query=query)
         queries = self._split_query(query, op="delete", pages=total_pages)
         futures = [self._get_future(i, q, op="delete") for i, q in enumerate(queries)]
-        _run_futures(futures, total=total, timeout=timeout)
+        _run_futures(
+            futures, total=total, timeout=timeout, disable=self.mute_progress_bars
+        )
         left, _ = self.get_totals(query=query)
         deleted = total - left
         self.init_columns(name=name)
@@ -1339,7 +1340,9 @@ class ContribsClient(SwaggerClient):
         futures = [
             self._get_future(i, q, rel_url=resource) for i, q in enumerate(queries)
         ]
-        responses = _run_futures(futures, timeout=timeout, desc="Totals")
+        responses = _run_futures(
+            futures, timeout=timeout, desc="Totals", disable=self.mute_progress_bars
+        )
 
         result = {
             k: sum(resp.get("result", {}).get(k, 0) for resp in responses.values())
@@ -1413,7 +1416,12 @@ class ContribsClient(SwaggerClient):
         _, total_pages = self.get_totals(query=query, timeout=timeout)
         queries = self._split_query(query, op=op, pages=total_pages)
         futures = [self._get_future(i, q) for i, q in enumerate(queries)]
-        responses = _run_futures(futures, timeout=timeout, desc="Identifiers")
+        responses = _run_futures(
+            futures,
+            timeout=timeout,
+            desc="Identifiers",
+            disable=self.mute_progress_bars,
+        )
 
         contributions: list[dict[str, Any]] = []
         for resp in responses.values():
@@ -1708,7 +1716,12 @@ class ContribsClient(SwaggerClient):
             _, total_pages = self.get_totals(query=cids_query)
             queries = self._split_query(cids_query, pages=total_pages)
             futures = [self._get_future(i, q) for i, q in enumerate(queries)]
-            responses = _run_futures(futures, total=total, timeout=timeout)
+            responses = _run_futures(
+                futures,
+                total=total,
+                timeout=timeout,
+                disable=self.mute_progress_bars,
+            )
             ret: dict[str, int | list[str]] = {"total_count": 0, "data": []}
 
             for resp in responses.values():
@@ -1787,7 +1800,9 @@ class ContribsClient(SwaggerClient):
             self._get_future(i, q, op="update", data=data)
             for i, q in enumerate(queries)
         ]
-        responses = _run_futures(futures, total=total, timeout=timeout)
+        responses = _run_futures(
+            futures, total=total, timeout=timeout, disable=self.mute_progress_bars
+        )
         updated = sum(resp["count"] for _, resp in responses.items())
 
         if updated:
@@ -2009,130 +2024,139 @@ class ContribsClient(SwaggerClient):
         ]
         fields.remove("needs_build")  # internal field
 
-        for contrib in tqdm(contributions, desc="Prepare"):  # type: ignore[call-arg,attr-defined]
-            if "data" in contrib:
-                contrib["data"] = unflatten_dict(contrib["data"])
-                self._is_serializable_dict(contrib["data"])
+        with progress_bar(
+            "Prepare",
+            total=len(contributions),
+            enabled=not self.mute_progress_bars,
+            unit="contribs",
+        ) as prepare_bar:
+            for contrib in contributions:
+                prepare_bar.update(1)
+                if "data" in contrib:
+                    contrib["data"] = unflatten_dict(contrib["data"])
+                    self._is_serializable_dict(contrib["data"])
 
-            update = "id" in contrib
-            project_name = id2project[contrib["id"]] if update else contrib["project"]
-            if (
-                not update
-                and unique_identifiers.get(project_name)
-                and contrib["identifier"]
-                in existing.get(project_name, {}).get("identifiers", {})
-            ):
-                continue
+                update = "id" in contrib
+                project_name = (
+                    id2project[contrib["id"]] if update else contrib["project"]
+                )
+                if (
+                    not update
+                    and unique_identifiers.get(project_name)
+                    and contrib["identifier"]
+                    in existing.get(project_name, {}).get("identifiers", {})
+                ):
+                    continue
 
-            contrib_copy: dict[str, Any] = {}
-            for k in fields:
-                if k in contrib:
-                    if isinstance(contrib[k], dict):
-                        flat: dict[str, str | int | float] = {}
-                        for kk, vv in flatten_dict(contrib[k]).items():
-                            if isinstance(vv, bool):
-                                flat[kk] = "Yes" if vv else "No"
-                            elif (isinstance(vv, str) and vv) or isinstance(
-                                vv, (float, int)
-                            ):
-                                flat[kk] = vv
-                        contrib_copy[k] = deepcopy(unflatten_dict(flat))
-                    else:
-                        contrib_copy[k] = deepcopy(contrib[k])
+                contrib_copy: dict[str, Any] = {}
+                for k in fields:
+                    if k in contrib:
+                        if isinstance(contrib[k], dict):
+                            flat: dict[str, str | int | float] = {}
+                            for kk, vv in flatten_dict(contrib[k]).items():
+                                if isinstance(vv, bool):
+                                    flat[kk] = "Yes" if vv else "No"
+                                elif (isinstance(vv, str) and vv) or isinstance(
+                                    vv, (float, int)
+                                ):
+                                    flat[kk] = vv
+                            contrib_copy[k] = deepcopy(unflatten_dict(flat))
+                        else:
+                            contrib_copy[k] = deepcopy(contrib[k])
 
-            contribs[project_name].append(contrib_copy)
+                contribs[project_name].append(contrib_copy)
 
-            for component in MPCC_SETTINGS.COMPONENTS:
-                elements = contrib.get(component, [])
-                nelems = len(elements)
+                for component in MPCC_SETTINGS.COMPONENTS:
+                    elements = contrib.get(component, [])
+                    nelems = len(elements)
 
-                if nelems > MPCC_SETTINGS.MAX_ELEMS:
-                    raise MPContribsClientError(
-                        f"Too many {component} ({nelems} > {MPCC_SETTINGS.MAX_ELEMS})!"
-                    )
-
-                if update and not nelems:
-                    continue  # nothing to update for this component
-
-                contribs[project_name][-1][component] = []
-
-                for element in elements:
-                    if update and element is None:
-                        contribs[project_name][-1][component].append(None)
-                        continue
-
-                    is_structure = isinstance(element, PmgStructure)
-                    is_table = isinstance(element, (pd.DataFrame, Table))
-                    is_attachment = isinstance(element, (str, Path, Attachment))
-                    if component == "structures" and not is_structure:
+                    if nelems > MPCC_SETTINGS.MAX_ELEMS:
                         raise MPContribsClientError(
-                            f"Use pymatgen Structure for {component}!"
-                        )
-                    elif component == "tables" and not is_table:
-                        raise MPContribsClientError(
-                            f"Use pandas DataFrame or mp_api.client.contribs.Table for {component}!"
-                        )
-                    elif component == "attachments" and not is_attachment:
-                        raise MPContribsClientError(
-                            f"Use str, pathlib.Path or mp_api.client.contribs.Attachment for {component}"
+                            f"Too many {component} ({nelems} > {MPCC_SETTINGS.MAX_ELEMS})!"
                         )
 
-                    if is_structure:
-                        dct = element.as_dict()
-                        del dct["@module"]
-                        del dct["@class"]
+                    if update and not nelems:
+                        continue  # nothing to update for this component
 
-                        if not dct.get("charge"):
-                            del dct["charge"]
+                    contribs[project_name][-1][component] = []
 
-                        if "properties" in dct:
-                            if dct["properties"]:
-                                MPCC_LOGGER.warning(
-                                    "storing structure properties not supported, yet!"
-                                )
-                            del dct["properties"]
-                    elif is_table:
-                        table = element
-                        if not isinstance(table, Table):
-                            table = Table(element)
-                            table.attrs = element.attrs
+                    for element in elements:
+                        if update and element is None:
+                            contribs[project_name][-1][component].append(None)
+                            continue
 
-                        table._clean()
-                        dct = table.to_dict(orient="split")
-                    elif is_attachment:
-                        if isinstance(element, (str, Path)):
-                            element = Attachment.from_file(element)
+                        is_structure = isinstance(element, PmgStructure)
+                        is_table = isinstance(element, (pd.DataFrame, Table))
+                        is_attachment = isinstance(element, (str, Path, Attachment))
+                        if component == "structures" and not is_structure:
+                            raise MPContribsClientError(
+                                f"Use pymatgen Structure for {component}!"
+                            )
+                        elif component == "tables" and not is_table:
+                            raise MPContribsClientError(
+                                f"Use pandas DataFrame or mp_api.client.contribs.Table for {component}!"
+                            )
+                        elif component == "attachments" and not is_attachment:
+                            raise MPContribsClientError(
+                                f"Use str, pathlib.Path or mp_api.client.contribs.Attachment for {component}"
+                            )
 
-                        dct = {k: element[k] for k in ["mime", "content"]}
-                    else:
-                        raise MPContribsClientError("This should never happen")
+                        if is_structure:
+                            dct = element.as_dict()
+                            del dct["@module"]
+                            del dct["@class"]
 
-                    digest = get_md5(dct)
+                            if not dct.get("charge"):
+                                del dct["charge"]
 
-                    if is_structure:
-                        dct["name"] = getattr(element, "name", "structure")
-                    elif is_table:
-                        dct["name"], dct["attrs"] = table._attrs_as_dict()
-                    elif is_attachment:
-                        dct["name"] = element.name
+                            if "properties" in dct:
+                                if dct["properties"]:
+                                    MPCC_LOGGER.warning(
+                                        "storing structure properties not supported, yet!"
+                                    )
+                                del dct["properties"]
+                        elif is_table:
+                            table = element
+                            if not isinstance(table, Table):
+                                table = Table(element)
+                                table.attrs = element.attrs
 
-                    dupe = bool(
-                        digest in digests[project_name][component]
-                        or digest
-                        in existing.get(project_name, {})
-                        .get(component, {})  # type: ignore[union-attr]
-                        .get("md5s", [])
-                    )
+                            table._clean()
+                            dct = table.to_dict(orient="split")
+                        elif is_attachment:
+                            if isinstance(element, (str, Path)):
+                                element = Attachment.from_file(element)
 
-                    if not ignore_dupes and dupe:
-                        # TODO add matching duplicate info to msg
-                        msg = f"Duplicate in {project_name}: {contrib['identifier']} {dct['name']}"
-                        raise MPContribsClientError(msg)
+                            dct = {k: element[k] for k in ["mime", "content"]}
+                        else:
+                            raise MPContribsClientError("This should never happen")
 
-                    digests[project_name][component].add(digest)
-                    contribs[project_name][-1][component].append(dct)
+                        digest = get_md5(dct)
 
-                self._is_valid_payload("Contribution", contribs[project_name][-1])
+                        if is_structure:
+                            dct["name"] = getattr(element, "name", "structure")
+                        elif is_table:
+                            dct["name"], dct["attrs"] = table._attrs_as_dict()
+                        elif is_attachment:
+                            dct["name"] = element.name
+
+                        dupe = bool(
+                            digest in digests[project_name][component]
+                            or digest
+                            in existing.get(project_name, {})
+                            .get(component, {})  # type: ignore[union-attr]
+                            .get("md5s", [])
+                        )
+
+                        if not ignore_dupes and dupe:
+                            # TODO add matching duplicate info to msg
+                            msg = f"Duplicate in {project_name}: {contrib['identifier']} {dct['name']}"
+                            raise MPContribsClientError(msg)
+
+                        digests[project_name][component].add(digest)
+                        contribs[project_name][-1][component].append(dct)
+
+                    self._is_valid_payload("Contribution", contribs[project_name][-1])
 
         # submit contributions
         if contribs:
@@ -2216,6 +2240,7 @@ class ContribsClient(SwaggerClient):
                         total=ncontribs - total_processed,
                         timeout=timeout,
                         desc="Submit",
+                        disable=self.mute_progress_bars,
                     )
                     processed = sum(r.get("count", 0) for r in responses.values())
                     total_processed += processed
@@ -2533,7 +2558,9 @@ class ContribsClient(SwaggerClient):
                 )
 
         if futures:
-            responses = _run_futures(futures, timeout=timeout)
+            responses = _run_futures(
+                futures, timeout=timeout, disable=self.mute_progress_bars
+            )
 
             for p, resp in responses.items():
                 Path(p).write_bytes(resp["result"])

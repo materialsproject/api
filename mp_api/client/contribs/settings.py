@@ -59,7 +59,11 @@ class ContribsClientSettings(BaseSettings):
 
     API_KEY: str | None = Field(None, description="The user's 32-character API key.")
 
-    CLIENT_LOG_LEVEL: str = Field("INFO")
+    CLIENT_LOG_LEVEL: str | None = Field(
+        None,
+        description="DEPRECATED and ignored: use MPRESTER_LOG_LEVEL, "
+        "which sets the level for the whole client.",
+    )
 
     model_config = SettingsConfigDict(env_prefix="MPCONTRIBS_")
 

@@ -20,12 +20,12 @@ class RobocrysRester(BaseRester):
         """Search text generated from Robocrystallographer.
 
         Arguments:
-            keywords (List[str]): List of search keywords
-            num_chunks (Optional[int]): Maximum number of chunks of data to yield. None will yield all possible.
-            chunk_size (Optional[int]): Number of data entries per chunk.
+            keywords (list[str]): List of search keywords
+            num_chunks (int | None): Maximum number of chunks of data to yield. None will yield all possible.
+            chunk_size (int | None): Number of data entries per chunk.
 
         Returns:
-            robocrys_docs (List[RobocrystallogapherDoc]): List of robocrystallographer documents
+            robocrys_docs (list[RobocrystallogapherDoc]): List of robocrystallographer documents
         """
         keyword_string = ",".join(keywords)
 
@@ -49,17 +49,21 @@ class RobocrysRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[RobocrystallogapherDoc] | list[dict]:
         """Query robocrystallographer docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in RobocrystallogapherDoc to return data for.
+            fields (list[str]): List of fields in RobocrystallogapherDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([RobocrystallogapherDoc], [dict]) List of robocrystallographer documents or dictionaries.
@@ -83,4 +87,5 @@ class RobocrysRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )

@@ -12,9 +12,11 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core._display import status
+from mp_api.client.core.client import LATEST_DB_VERSION, _normalize_db_version
 from mp_api.client.core.exceptions import MPRestError
 from mp_api.client.core.settings import DEFAULT_THERMOTYPE
-from mp_api.client.core.utils import validate_ids
+from mp_api.client.core.utils import to_partition_version, validate_ids
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -73,35 +75,39 @@ class ThermoRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[ThermoDoc] | list[dict]:
         """Query core thermo docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            chemsys (str, List[str]): A chemical system or list of chemical systems
+            chemsys (str | list[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.
-            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy
+            energy_above_hull (tuple[float, float]): Minimum and maximum energy above the hull in eV/atom to consider.
+            equilibrium_reaction_energy (tuple[float, float]): Minimum and maximum equilibrium reaction energy
                 in eV/atom to consider.
-            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.
-            formula (str, List[str]): A formula including anonymized formula
+            formation_energy (tuple[float, float]): Minimum and maximum formation energy in eV/atom to consider.
+            formula (str | list[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
             is_stable (bool): Whether the material is stable.
-            material_ids (List[str]): List of Materials Project IDs to return data for.
-            thermo_ids (List[str]): List of thermo IDs to return data for. This is a combination of the Materials
+            material_ids (list[str]): List of Materials Project IDs to return data for.
+            thermo_ids (list[str]): List of thermo IDs to return data for. This is a combination of the Materials
                 Project ID and thermo type (e.g. mp-149_GGA_GGA+U).
-            thermo_types (List[ThermoType or str]): List of thermo/run types to return data for (e.g. ThermoType.GGA_GGA_U).
-            num_elements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.
-            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.
-            uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total
+            thermo_types (list[ThermoType | str]): List of thermo/run types to return data for (e.g. ThermoType.GGA_GGA_U).
+            num_elements (tuple[int, int]): Minimum and maximum number of elements in the material to consider.
+            total_energy (tuple[float, float]): Minimum and maximum corrected total energy in eV/atom to consider.
+            uncorrected_energy (tuple[float, float]): Minimum and maximum uncorrected total
                 energy in eV/atom to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ThermoDoc to return data for.
+            fields (list[str]): List of fields in ThermoDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([ThermoDoc], [dict]) List of thermo documents or dictionaries.
@@ -183,10 +189,14 @@ class ThermoRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )
 
     def get_phase_diagram_from_chemsys(
-        self, chemsys: str, thermo_type: ThermoType | str = DEFAULT_THERMOTYPE
+        self,
+        chemsys: str,
+        thermo_type: ThermoType | str = DEFAULT_THERMOTYPE,
+        db_version: str | None = None,
     ) -> PhaseDiagram:
         """Get a pre-computed phase diagram for a given chemsys.
 
@@ -194,6 +204,8 @@ class ThermoRester(BaseRester):
             chemsys (str): A chemical system (e.g. Li-Fe-O)
             thermo_type (ThermoType): The thermo type for the phase diagram.
                 Defaults to ThermoType.GGA_GGA_U_R2SCAN.
+            db_version (str | None): Database version of the phase diagram, e.g.
+                "2026.04.13" or "latest". Defaults to the rester's version.
 
         Returns:
             (PhaseDiagram): Pymatgen phase diagram object.
@@ -201,20 +213,33 @@ class ThermoRester(BaseRester):
         validated_thermo_type = self._check_thermo_types([thermo_type]).pop()
 
         sorted_chemsys = "-".join(sorted(chemsys.split("-")))
-        version = self.db_version.replace(".", "-")
 
-        pd_lbl, _ = self._get_delta_table(
-            "materialsproject-build", "objects/phase-diagrams", label="phase_diagrams"
-        )
+        # Loading the (large) table and scanning it for one system takes seconds,
+        # so show what's happening rather than blocking silently:
+        with status(
+            f"Fetching the {validated_thermo_type} phase diagram for {sorted_chemsys}...",
+            enabled=not self.mute_progress_bars,
+        ):
+            pd_lbl, _ = self._get_delta_table(
+                "materialsproject-build",
+                "objects/phase-diagrams",
+                label="phase_diagrams",
+            )
+            requested = _normalize_db_version(db_version) or self.db_version
+            if requested == LATEST_DB_VERSION:
+                counts = self.delta_catalog.partition_row_counts(pd_lbl) or {}
+                version = self._resolve_db_version(requested, counts, "phase-diagrams")
+            else:
+                version = to_partition_version(requested)
 
-        query = f"""
-            SELECT phase_diagram
-            FROM   {pd_lbl}
-            WHERE  chemsys='{sorted_chemsys}'
-              AND  version='{version}'
-              AND  thermo_type='{validated_thermo_type}'
-        """
-        table = self._query_delta_single(query)
+            query = f"""
+                SELECT phase_diagram
+                FROM   {pd_lbl}
+                WHERE  chemsys='{sorted_chemsys}'
+                  AND  version='{version}'
+                  AND  thermo_type='{validated_thermo_type}'
+            """
+            table = self._query_delta_single(query, label=pd_lbl)
         as_py = table["phase_diagram"].to_pylist(maps_as_pydicts="strict")
 
         pd: PhaseDiagram | None = None

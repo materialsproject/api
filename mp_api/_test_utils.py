@@ -46,8 +46,8 @@ def client_search_testing(
         alt_name_dict (dict[str, str]): Alternative names for parameters used in the projection and subsequent data checking
         custom_field_tests (dict[str, Any]): Custom queries for specific fields.
         sub_doc_fields (list[str]): Prefixes for fields to check in resulting data. Useful when data to be tested is nested.
-        int_bounds (tuple[int,int]) : integer bounds to use in testing int-type query arguments
-        float_bounds (tuple[float,float]) : float bounds to use in testing float-type query arguments
+        int_bounds (tuple[int, int]) : integer bounds to use in testing int-type query arguments
+        float_bounds (tuple[float, float]) : float bounds to use in testing float-type query arguments
     """
     if search_method is None:
         return
@@ -58,7 +58,8 @@ def client_search_testing(
     for entry in param_tuples:
         param = entry[0]
 
-        if param not in excluded_params + ["return"]:
+        # `db_version` selects a dataset version rather than filtering docs
+        if param not in excluded_params + ["return", "db_version"]:
             param_type = entry[1]
             q: dict[str, Any] = {"chunk_size": 1, "num_chunks": 1}
 
@@ -139,7 +140,6 @@ def client_sort(
         if k not in ("_page", "_sort_fields", "chunk_size", "fields")
     }
     for sort_field in [sort_fields] if isinstance(sort_fields, str) else sort_fields:
-
         asc = search_method(
             _page=1,
             _sort_fields=sort_field,
