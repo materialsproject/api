@@ -35,10 +35,12 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span><span class="p">,</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlencode</span>
@@ -61,11 +63,28 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.symmetry.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span><span class="p">,</span> <span class="n">get</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DatabaseVersions</span><span class="p">,</span>
+    <span class="n">mp_warning</span><span class="p">,</span>
+    <span class="n">print_notice</span><span class="p">,</span>
+    <span class="n">status</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="n">quiet</span> <span class="k">as</span> <span class="n">set_quiet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._entries</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">apply_corrections</span><span class="p">,</span>
+    <span class="n">get_conventional_cell_entry</span><span class="p">,</span>
+    <span class="n">rescale_to_conventional</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._oxygen_evolution</span><span class="w"> </span><span class="kn">import</span> <span class="n">OxygenEvolution</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Rester</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LATEST_DB_VERSION</span><span class="p">,</span>
+    <span class="n">S3_COLLECTION_NAMES</span><span class="p">,</span>
+    <span class="n">STATIC_COLLECTIONS</span><span class="p">,</span>
+    <span class="n">BaseRester</span><span class="p">,</span>
+    <span class="n">_Rester</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">MPRestError</span><span class="p">,</span>
-    <span class="n">MPRestWarning</span><span class="p">,</span>
     <span class="n">_emit_status_warning</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -77,6 +96,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes</span><span class="w"> </span><span class="kn">import</span> <span class="n">GENERIC_RESTERS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.materials</span><span class="w"> </span><span class="kn">import</span> <span class="n">MATERIALS_RESTERS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.routes.molecules</span><span class="w"> </span><span class="kn">import</span> <span class="n">MOLECULES_RESTERS</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
@@ -96,6 +117,7 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.util.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpeciesLike</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">QueryBuilderWithCache</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.delta</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeltaCatalog</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DictLikeAccess</span>
 
 
@@ -113,6 +135,10 @@
     <span class="s2">"doi"</span><span class="p">:</span> <span class="n">MATERIALS_RESTERS</span><span class="p">[</span><span class="s2">"doi"</span><span class="p">],</span>
     <span class="o">**</span><span class="n">GENERIC_RESTERS</span><span class="p">,</span>
 <span class="p">}</span>
+
+<span class="c1"># Routes whose S3 data isn't partitioned by database version, or that have</span>
+<span class="c1"># no S3 dataset at all (besides STATIC_COLLECTIONS)</span>
+<span class="n">_UNVERSIONED_ROUTES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"tasks"</span><span class="p">,</span> <span class="s2">"similarity"</span><span class="p">,</span> <span class="s2">"doi"</span><span class="p">}</span>
 
 <span class="n">TOP_LEVEL_RESTERS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"molecules/core"</span><span class="p">,</span>
@@ -156,7 +182,9 @@
         <span class="p">)</span> <span class="o">=</span> <span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LOCAL_DATASET_CACHE</span><span class="p">,</span>
         <span class="n">force_renew</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">query_builder</span><span class="p">:</span> <span class="n">QueryBuilderWithCache</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">delta_catalog</span><span class="p">:</span> <span class="n">DeltaCatalog</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">notify_db_version</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">quiet</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Initialize the MPRester.</span>
@@ -184,23 +212,36 @@
 <span class="sd">            session: Session object to use. By default (None), the client will create one.</span>
 <span class="sd">            headers: Custom headers for localhost connections.</span>
 <span class="sd">            mute_progress_bars:  Whether to mute progress bars.</span>
-<span class="sd">            db_version (str) : EXPERIMENTAL, allows for accessing a different version of the database</span>
-<span class="sd">                than what is currently deployed. The Materials Project cannot guarantee that all</span>
-<span class="sd">                features will still work.</span>
+<span class="sd">            db_version (str) : Database version to use for data read from S3 (full dataset</span>
+<span class="sd">                downloads, phase diagrams), e.g. "2026.04.13". Defaults to the version</span>
+<span class="sd">                currently served by the API. REST queries always use the current database.</span>
+<span class="sd">                See `available_db_versions()` on a rester for the versions available.</span>
 <span class="sd">            local_dataset_cache: Target directory for downloading full datasets. Defaults</span>
 <span class="sd">                to "mp_datasets" in the user's home directory</span>
 <span class="sd">            force_renew: Option to overwrite existing local dataset</span>
-<span class="sd">            query_builder : Instance of QueryBuilderWithCache to use in querying delta tables</span>
+<span class="sd">            query_builder : DEPRECATED, use `delta_catalog`. Instance of QueryBuilderWithCache</span>
+<span class="sd">                whose catalog is used for querying delta tables.</span>
 <span class="sd">                NOTE: Must be a QueryBuilderWithCache, a deltalake.QueryBuilder will be ignored.</span>
-<span class="sd">            notify_db_version (bool): If True, the current MP database version will</span>
-<span class="sd">                be retrieved and logged locally in the ~/.mprester.log.yaml. If the database</span>
-<span class="sd">                version changes, you will be notified. The current database version is</span>
-<span class="sd">                also printed on instantiation. These local logs are not sent to</span>
+<span class="sd">            delta_catalog : Instance of DeltaCatalog to use for querying delta tables.</span>
+<span class="sd">                Share one instance across MPRester instances (e.g. one per web-server</span>
+<span class="sd">                worker) to reuse loaded table snapshots. If None, one is created and</span>
+<span class="sd">                shared by all resters under this MPRester.</span>
+<span class="sd">            notify_db_version (bool): If True, the current MP database version is</span>
+<span class="sd">                printed (to stderr) on instantiation and recorded locally in</span>
+<span class="sd">                ~/.mprester.log.yaml. If it changed since the last recorded version, this</span>
+<span class="sd">                is highlighted and an MPRestWarning is also emitted. These local logs are not sent to</span>
 <span class="sd">                materialsproject.org and are not associated with your API key, so be</span>
 <span class="sd">                aware that a notification may not be presented if you run MPRester</span>
 <span class="sd">                from multiple computing environments.</span>
+<span class="sd">            quiet (bool or None): If True, silence all client output for the whole</span>
+<span class="sd">                process: log messages, progress bars, notices and MPRestWarnings, see</span>
+<span class="sd">                `mp_api.client.quiet()`. False or None leave the current setting</span>
+<span class="sd">                (`MPRESTER_QUIET`, or an earlier `quiet()` call) unchanged.</span>
 <span class="sd">            **kwargs: access to legacy kwargs that may be in the process of being deprecated</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">quiet</span><span class="p">:</span>
+            <span class="c1"># Before anything else, so nothing is printed while connecting</span>
+            <span class="n">set_quiet</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span>
             <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span>
@@ -213,6 +254,7 @@
             <span class="n">local_dataset_cache</span><span class="o">=</span><span class="n">local_dataset_cache</span><span class="p">,</span>
             <span class="n">force_renew</span><span class="o">=</span><span class="n">force_renew</span><span class="p">,</span>
             <span class="n">query_builder</span><span class="o">=</span><span class="n">query_builder</span><span class="p">,</span>
+            <span class="n">delta_catalog</span><span class="o">=</span><span class="n">delta_catalog</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -261,23 +303,31 @@
             <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">emmet_version</span><span class="o">.</span><span class="n">base_version</span><span class="p">)</span>
             <span class="o">&lt;</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">MIN_EMMET_VERSION</span><span class="p">)</span>
         <span class="p">):</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">"The installed version of the mp-api client may not be compatible with the API server. "</span>
-                <span class="s2">"Please install a previous version if any problems occur."</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="s2">"Please install a previous version if any problems occur."</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">"Specifying an explicit database version is an experimental "</span>
-                <span class="s2">"feature. The Materials Project cannot guarantee "</span>
-                <span class="s2">"functionality at this time, use at your own risk!"</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
+        <span class="n">current_db_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_heartbeat_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># The version the REST API serves, may differ from self.db_version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">current_db_version</span>
+        <span class="n">rest_note</span> <span class="o">=</span> <span class="s2">"REST queries use the "</span> <span class="o">+</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"current version, </span><span class="si">{</span><span class="n">current_db_version</span><span class="si">}</span><span class="s2">."</span>
+            <span class="k">if</span> <span class="n">current_db_version</span>
+            <span class="k">else</span> <span class="s2">"current version."</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span> <span class="o">=</span> <span class="n">current_db_version</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span> <span class="o">==</span> <span class="n">LATEST_DB_VERSION</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">"Using the newest database version on S3 for each dataset (full "</span>
+                <span class="sa">f</span><span class="s2">"dataset downloads, phase diagrams), which may be ahead of the API. </span><span class="si">{</span><span class="n">rest_note</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_heartbeat_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span> <span class="o">!=</span> <span class="n">current_db_version</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Using database version </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="si">}</span><span class="s2"> for data read from S3 "</span>
+                <span class="sa">f</span><span class="s2">"(full dataset downloads, phase diagrams). </span><span class="si">{</span><span class="n">rest_note</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">notify_db_version</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db_version_check</span><span class="p">()</span>
@@ -305,7 +355,7 @@
                         <span class="n">db_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">,</span>
                         <span class="n">local_dataset_cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">local_dataset_cache</span><span class="p">,</span>
                         <span class="n">force_renew</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">force_renew</span><span class="p">,</span>
-                        <span class="n">query_builder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_query_builder</span><span class="p">,</span>
+                        <span class="n">delta_catalog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_catalog</span><span class="p">,</span>
                     <span class="p">),</span>
                 <span class="p">)</span></div>
 
@@ -319,34 +369,37 @@
 <span class="sd">            - headers</span>
 <span class="sd">            - session</span>
 <span class="sd">            - use_document_model</span>
+<span class="sd">            - mute_progress_bars</span>
 
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: if the optional MPContribs dependencies aren't installed.</span>
+<span class="sd">            MPRestError: if the client can't be created, e.g. the server is</span>
+<span class="sd">                unreachable. Nothing is cached, so a later access retries.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.contribs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContribsClient</span>
+            <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                    <span class="s2">"The MPContribs client needs optional dependencies: run "</span>
+                    <span class="s2">"`pip install 'mp-api[contribs]'`. It provides user-contributed "</span>
+                    <span class="s2">"data, also used by e.g. `get_pourbaix_entries` and "</span>
+                    <span class="s2">"`get_cohesive_energy`."</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
 
+            <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="o">=</span> <span class="n">ContribsClient</span><span class="p">(</span>
                     <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
                     <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
                     <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
                     <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
+                    <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
                     <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_contribs_kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
-
-            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">"Run `pip install 'mp-api[contribs]'` to make use of the MPContribs client."</span><span class="p">,</span>
-                    <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"Problem loading MPContribs client: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Problem loading the MPContribs client: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contribs</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
@@ -354,7 +407,7 @@
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Accessing </span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> data through MPRester.</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> is deprecated. "</span>
                 <span class="sa">f</span><span class="s2">"Please use MPRester.materials.</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> instead."</span><span class="p">,</span>
-                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="ne">FutureWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="s2">"materials"</span><span class="p">),</span> <span class="n">attr</span><span class="p">)</span>
@@ -371,7 +424,91 @@
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span> <span class="o">==</span> <span class="n">LATEST_DB_VERSION</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"MPRester(latest)"</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"MPRester(</span><span class="si">{</span><span class="s1">'v'</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'unknown version'</span><span class="si">}</span><span class="s2">)"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_versioned_resters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseRester</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Delta-backed resters, keyed by route (e.g. "summary"), not yet checked for versions."""</span>
+        <span class="n">resters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseRester</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"materials"</span><span class="p">,</span> <span class="s2">"molecules"</span><span class="p">):</span>
+            <span class="n">core</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">route</span><span class="p">,</span> <span class="n">lazy</span> <span class="ow">in</span> <span class="n">core</span><span class="o">.</span><span class="n">sub_resters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Only collections/... datasets are partitioned by version. Tasks</span>
+                <span class="c1"># and static collections are skipped without loading their (large)</span>
+                <span class="c1"># logs, and checked by name first so their modules aren't</span>
+                <span class="c1"># imported (some are slow to import).</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">S3_COLLECTION_NAMES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">parent</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">route</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">route</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">route</span> <span class="ow">in</span> <span class="n">resters</span>
+                    <span class="ow">or</span> <span class="n">route</span> <span class="ow">in</span> <span class="n">_UNVERSIONED_ROUTES</span>
+                    <span class="ow">or</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">STATIC_COLLECTIONS</span>
+                    <span class="ow">or</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">lazy</span><span class="p">,</span> <span class="s2">"delta_backed"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">rester</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">core</span><span class="p">,</span> <span class="n">route</span><span class="p">)</span><span class="o">.</span><span class="n">_obj</span>
+                <span class="k">if</span> <span class="n">rester</span><span class="o">.</span><span class="n">_s3_location</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"collections/"</span><span class="p">):</span>
+                    <span class="n">resters</span><span class="p">[</span><span class="n">route</span><span class="p">]</span> <span class="o">=</span> <span class="n">rester</span>
+        <span class="k">return</span> <span class="n">resters</span>
+
+<div class="viewcode-block" id="MPRester.available_db_versions">
+<a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.available_db_versions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">available_db_versions</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">collection</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DatabaseVersions</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Database versions available for full dataset downloads on S3.</span>
+
+<span class="sd">        Read from the DeltaTable logs, no data is downloaded. Pass any of these</span>
+<span class="sd">        as `db_version` to a rester's `search()` (with no filters) or to</span>
+<span class="sd">        `MPRester(db_version=...)`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            collection (str or None) : a single collection, e.g. "summary" or</span>
+<span class="sd">                "materials/summary". If None, every collection that is</span>
+<span class="sd">                partitioned by database version is listed; tables are loaded in</span>
+<span class="sd">                parallel, with a status line while that runs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list of str for one collection, e.g. ["2026.04.13", "2026.09.28"],</span>
+<span class="sd">            otherwise a dict of collection to list of str, which displays as a</span>
+<span class="sd">            table in a REPL or notebook. Collections that couldn't be loaded, or</span>
+<span class="sd">            have a single version, are left out.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            MPRestError: if `collection` is unknown or has a single version.</span>
+<span class="sd">        """</span>
+        <span class="n">resters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_versioned_resters</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">collection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">route</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="s2">"_"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">route</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">resters</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Unknown collection </span><span class="si">{</span><span class="n">collection</span><span class="si">!r}</span><span class="s2">, expected one of: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">resters</span><span class="p">))</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">resters</span><span class="p">[</span><span class="n">route</span><span class="p">]</span><span class="o">.</span><span class="n">available_db_versions</span><span class="p">()</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_list</span><span class="p">(</span><span class="n">route</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">route</span><span class="p">,</span> <span class="n">resters</span><span class="p">[</span><span class="n">route</span><span class="p">]</span><span class="o">.</span><span class="n">available_db_versions</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No database versions for </span><span class="si">{</span><span class="n">route</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">route</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="k">with</span> <span class="p">(</span>
+            <span class="n">status</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Fetching available database versions for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">resters</span><span class="p">)</span><span class="si">}</span><span class="s2"> datasets..."</span><span class="p">,</span>
+                <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">resters</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">))</span> <span class="k">as</span> <span class="n">pool</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_list</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">resters</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">DatabaseVersions</span><span class="p">(</span>
+            <span class="p">{</span><span class="n">route</span><span class="p">:</span> <span class="n">versions</span> <span class="k">for</span> <span class="n">route</span><span class="p">,</span> <span class="n">versions</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="n">versions</span><span class="p">},</span>
+            <span class="n">current</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_db_version</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="MPRester.get_task_ids_associated_with_material_id">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_task_ids_associated_with_material_id">[docs]</a>
@@ -459,8 +596,8 @@
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">"`get_database_version` has been deprecated in favor of "</span>
             <span class="s2">"MPRester().db_version."</span><span class="p">,</span>
+            <span class="ne">FutureWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span></div>
 
@@ -510,11 +647,9 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Multiple documents return for </span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">, this should not happen, please report it!"</span>
             <span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"No material found containing task </span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">. "</span>
-            <span class="s2">"Please report it if you suspect a task has gone missing."</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s2">"Please report it if you suspect a task has gone missing."</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
@@ -543,7 +678,7 @@
 <span class="w">        </span><span class="sd">"""Get all materials ids for a formula or chemsys.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            chemsys_formula (str, List[str]): A chemical system, list of chemical systems</span>
+<span class="sd">            chemsys_formula (str | list[str]): A chemical system, list of chemical systems</span>
 <span class="sd">            (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).</span>
 
 <span class="sd">        Returns:</span>
@@ -573,7 +708,7 @@
 <span class="w">        </span><span class="sd">"""Get a list of Structures corresponding to a chemical system or formula.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            chemsys_formula (str, List[str]): A chemical system, list of chemical systems</span>
+<span class="sd">            chemsys_formula (str | list[str]): A chemical system, list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), or single formula (e.g., Fe2O3, Si*).</span>
 <span class="sd">            final (bool): Whether to get the final structure, or the list of initial</span>
 <span class="sd">                (pre-relaxation) structures. Defaults to True.</span>
@@ -667,7 +802,7 @@
 <span class="sd">        entry is also returned.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            chemsys_formula_mpids (str, List[str]): A chemical system, list of chemical systems</span>
+<span class="sd">            chemsys_formula_mpids (str | list[str]): A chemical system, list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas</span>
 <span class="sd">                (e.g., Fe2O3, Si*, [SiO2, BiFeO3]), Materials Project ID, or list of Materials</span>
 <span class="sd">                Project IDs (e.g., mp-22526, [mp-22526, mp-149]).</span>
@@ -695,7 +830,7 @@
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="s2">"The `inc_structure` argument is deprecated as final structures "</span>
                 <span class="s2">"are always included in all returned ComputedStructureEntry objects."</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="ne">FutureWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
 
@@ -742,30 +877,15 @@
                 <span class="p">):</span>  <span class="c1"># merge property_data, retaining entry data (e.g. `oxidation_states`)</span>
                     <span class="n">entry_dict</span><span class="p">[</span><span class="s2">"data"</span><span class="p">]</span> <span class="o">|=</span> <span class="p">{</span><span class="n">prop</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">property_data</span><span class="p">}</span>
 
-                <span class="k">if</span> <span class="n">conventional_unit_cell</span><span class="p">:</span>
-                    <span class="n">entry_struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">[</span><span class="s2">"structure"</span><span class="p">])</span>
-                    <span class="n">s</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span>
-                        <span class="n">entry_struct</span>
-                    <span class="p">)</span><span class="o">.</span><span class="n">get_conventional_standard_structure</span><span class="p">()</span>
-                    <span class="n">site_ratio</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry_struct</span><span class="p">)</span>
-                    <span class="n">new_energy</span> <span class="o">=</span> <span class="n">entry_dict</span><span class="p">[</span><span class="s2">"energy"</span><span class="p">]</span> <span class="o">*</span> <span class="n">site_ratio</span>
-
-                    <span class="n">entry_dict</span><span class="p">[</span><span class="s2">"energy"</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_energy</span>
-                    <span class="n">entry_dict</span><span class="p">[</span><span class="s2">"structure"</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
-                    <span class="n">entry_dict</span><span class="p">[</span><span class="s2">"correction"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-                    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">entry_dict</span><span class="p">[</span><span class="s2">"composition"</span><span class="p">]:</span>
-                        <span class="n">entry_dict</span><span class="p">[</span><span class="s2">"composition"</span><span class="p">][</span><span class="n">element</span><span class="p">]</span> <span class="o">*=</span> <span class="n">site_ratio</span>
-
-                    <span class="k">for</span> <span class="n">correction</span> <span class="ow">in</span> <span class="n">entry_dict</span><span class="p">[</span><span class="s2">"energy_adjustments"</span><span class="p">]:</span>
-                        <span class="k">if</span> <span class="s2">"n_atoms"</span> <span class="ow">in</span> <span class="n">correction</span><span class="p">:</span>
-                            <span class="n">correction</span><span class="p">[</span><span class="s2">"n_atoms"</span><span class="p">]</span> <span class="o">*=</span> <span class="n">site_ratio</span>
-
                 <span class="c1"># Need to store object to permit de-duplication</span>
                 <span class="n">entries</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                     <span class="n">TypeAdapter</span><span class="p">(</span><span class="n">ComputedStructureEntryType</span><span class="p">)</span><span class="o">.</span><span class="n">validate_python</span><span class="p">(</span><span class="n">entry_dict</span><span class="p">)</span>
                 <span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">conventional_unit_cell</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rescale_to_conventional</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span> <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span></div>
 
 
@@ -899,20 +1019,23 @@
             <span class="p">)</span>
             <span class="n">compat</span> <span class="o">=</span> <span class="n">MaterialsProjectAqueousCompatibility</span><span class="p">(</span><span class="n">solid_compat</span><span class="o">=</span><span class="n">solid_compat</span><span class="p">)</span>
         <span class="c1"># suppress the warning about missing oxidation states</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ion_ref_entries</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span>
                 <span class="s2">"ignore"</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">"Failed to guess oxidation states.*"</span>
             <span class="p">)</span>
-            <span class="n">ion_ref_entries</span> <span class="o">=</span> <span class="n">compat</span><span class="o">.</span><span class="n">process_entries</span><span class="p">(</span><span class="n">ion_ref_entries</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="n">ion_ref_entries</span> <span class="o">=</span> <span class="n">apply_corrections</span><span class="p">(</span>
+                <span class="n">compat</span><span class="p">,</span>
+                <span class="n">ion_ref_entries</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s2">"Applying aqueous corrections"</span><span class="p">,</span>
+                <span class="n">log</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Applying aqueous corrections to </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> ion reference entries"</span><span class="p">,</span>
+                <span class="n">summary</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Applied aqueous corrections to </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> entries (</span><span class="se">{{</span><span class="s2">kept:,</span><span class="se">}}</span><span class="s2"> kept)"</span><span class="p">,</span>
+                <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="c1"># TODO - if the commented line above would work, this conditional block</span>
         <span class="c1"># could be removed</span>
         <span class="k">if</span> <span class="n">use_gibbs</span><span class="p">:</span>
-            <span class="c1"># replace the entries with GibbsComputedStructureEntry</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.computed_entries</span><span class="w"> </span><span class="kn">import</span> <span class="n">GibbsComputedStructureEntry</span>
-
-            <span class="n">ion_ref_entries</span> <span class="o">=</span> <span class="n">GibbsComputedStructureEntry</span><span class="o">.</span><span class="n">from_entries</span><span class="p">(</span>
-                <span class="n">ion_ref_entries</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">use_gibbs</span>
-            <span class="p">)</span>
+            <span class="n">ion_ref_entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_gibbs_entries</span><span class="p">(</span><span class="n">ion_ref_entries</span><span class="p">,</span> <span class="n">use_gibbs</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
         <span class="n">ion_ref_pd</span> <span class="o">=</span> <span class="n">PhaseDiagram</span><span class="p">(</span><span class="n">ion_ref_entries</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
         <span class="n">ion_entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ion_entries</span><span class="p">(</span><span class="n">ion_ref_pd</span><span class="p">,</span> <span class="n">ion_ref_data</span><span class="o">=</span><span class="n">ion_data</span><span class="p">)</span>
@@ -1172,6 +1295,22 @@
             <span class="p">)</span>
         <span class="p">]</span>
 
+    <span class="n">_get_conventional_cell_entry</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">get_conventional_cell_entry</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_to_gibbs_entries</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">entries</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">],</span> <span class="n">temp</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">GibbsComputedStructureEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Replace `entries` with GibbsComputedStructureEntry estimates at `temp` K."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.computed_entries</span><span class="w"> </span><span class="kn">import</span> <span class="n">GibbsComputedStructureEntry</span>
+
+        <span class="c1"># pymatgen builds a phase diagram and converts each entry internally,</span>
+        <span class="c1"># with no hook to count progress, so this is a status line:</span>
+        <span class="k">with</span> <span class="n">status</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Estimating Gibbs free energies at </span><span class="si">{</span><span class="n">temp</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> K for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> entries..."</span><span class="p">,</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">GibbsComputedStructureEntry</span><span class="o">.</span><span class="n">from_entries</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">entries</span><span class="p">),</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span>
+
 <div class="viewcode-block" id="MPRester.get_entries_in_chemsys">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_entries_in_chemsys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_entries_in_chemsys</span><span class="p">(</span>
@@ -1195,11 +1334,16 @@
 
 <span class="sd">        Mixed entries are taken from the MP-built phase diagram for the whole chemical</span>
 <span class="sd">        system, so they share one energy scale and reproduce the hull shown on</span>
-<span class="sd">        https://materialsproject.org. Narrowing the query with `additional_criteria`,</span>
-<span class="sd">        or passing ``compatible_only = False``, cannot be served that way and returns</span>
-<span class="sd">        entries that are *not* immediately suitable for constructing a phase diagram;</span>
-<span class="sd">        ``property_data`` and ``conventional_unit_cell`` re-apply the mixing scheme here</span>
-<span class="sd">        instead, which can differ slightly from MP. Warnings are thrown for these cases.</span>
+<span class="sd">        https://materialsproject.org; ``property_data`` fields are attached to the</span>
+<span class="sd">        served entries after the fact, and any further ``additional_criteria`` narrow</span>
+<span class="sd">        the served entries to the materials matching them (with MP's own semantics,</span>
+<span class="sd">        i.e. ``is_stable`` / ``energy_above_hull`` refer to each material's `own` thermo</span>
+<span class="sd">        doc; entries with no mixed-type thermo doc, which can occur when the mixing</span>
+<span class="sd">        scheme is re-applied locally when MP has no pre-built diagram, are then dropped).</span>
+<span class="sd">        Passing ``compatible_only = False`` cannot be served that way and returns</span>
+<span class="sd">        entries that are *not* immediately suitable for constructing a phase diagram,</span>
+<span class="sd">        with a warning. When MP has no pre-built diagram for the system, the mixing</span>
+<span class="sd">        scheme is re-applied locally (logged as a warning, with a progress bar).</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            elements (str or [str]): Parent chemical system string comprising element</span>
@@ -1244,17 +1388,6 @@
 
         <span class="n">all_chemsyses</span> <span class="o">=</span> <span class="n">_all_subchemsyses</span><span class="p">(</span><span class="n">elements_set</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">additional_criteria</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">"The default thermo type when retrieving entries has been changed from "</span>
-                <span class="s2">"the mixed/corrected PBE GGA and GGA+U hull (`thermo_type = GGA_GGA+U`) "</span>
-                <span class="s2">"to the joint PBE GGA / GGA+U / r2SCAN hull (`thermo_type = GGA_GGA+U_R2SCAN`). "</span>
-                <span class="s2">"To use the older behavior, call `get_entries_in_chemsys` with "</span>
-                <span class="s1">'`additional_criteria = {"thermo_types": ["GGA_GGA+U"]}`'</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-            <span class="p">)</span>
-
         <span class="n">additional_criteria</span> <span class="o">=</span> <span class="p">{</span>
             <span class="o">**</span><span class="n">DEFAULT_THERMOTYPE_CRITERIA</span><span class="p">,</span>
             <span class="o">**</span><span class="p">(</span><span class="n">additional_criteria</span> <span class="ow">or</span> <span class="p">{}),</span>
@@ -1266,56 +1399,92 @@
         <span class="c1"># (issue #1104). Thus we serve MP's phase diagram; built with mixing applied across the</span>
         <span class="c1"># full system, thus self-consistent by construction and identical to the MP website:</span>
         <span class="n">mixed</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">additional_criteria</span><span class="p">[</span><span class="s2">"thermo_types"</span><span class="p">])</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"GGA_GGA+U_R2SCAN"</span><span class="p">}</span>
-        <span class="n">consistent</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">mixed</span> <span class="ow">and</span> <span class="n">compatible_only</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">additional_criteria</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"thermo_types"</span><span class="p">}</span>
-        <span class="p">)</span>
+        <span class="n">consistent</span> <span class="o">=</span> <span class="n">mixed</span> <span class="ow">and</span> <span class="n">compatible_only</span>
+        <span class="n">extra_criteria</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">additional_criteria</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"thermo_types"</span>
+        <span class="p">}</span>
 
         <span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">consistent</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">property_data</span> <span class="ow">or</span> <span class="n">conventional_unit_cell</span><span class="p">):</span>
-                <span class="n">phase_diagram</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">get_phase_diagram_from_chemsys</span><span class="p">(</span>
-                    <span class="s2">"-"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">elements_set</span><span class="p">)),</span>
-                    <span class="n">thermo_type</span><span class="o">=</span><span class="n">additional_criteria</span><span class="p">[</span><span class="s2">"thermo_types"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
-                <span class="p">)</span>  <span class="c1"># default, mixed thermotype; takes a single type, not a list</span>
-                <span class="k">if</span> <span class="n">phase_diagram</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">entries</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">phase_diagram</span><span class="o">.</span><span class="n">all_entries</span><span class="p">)</span>
+            <span class="n">phase_diagram</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">get_phase_diagram_from_chemsys</span><span class="p">(</span>
+                <span class="s2">"-"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">elements_set</span><span class="p">)),</span>
+                <span class="n">thermo_type</span><span class="o">=</span><span class="n">additional_criteria</span><span class="p">[</span><span class="s2">"thermo_types"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="p">)</span>  <span class="c1"># default, mixed thermotype; takes a single type, not a list</span>
+            <span class="k">if</span> <span class="n">phase_diagram</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">entries</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">phase_diagram</span><span class="o">.</span><span class="n">all_entries</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">property_data</span><span class="p">:</span>  <span class="c1"># decorate the served entries post-hoc</span>
+                    <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                        <span class="n">chemsys</span><span class="o">=</span><span class="n">all_chemsyses</span><span class="p">,</span>
+                        <span class="n">thermo_types</span><span class="o">=</span><span class="n">additional_criteria</span><span class="p">[</span><span class="s2">"thermo_types"</span><span class="p">],</span>
+                        <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">,</span> <span class="o">*</span><span class="n">property_data</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="n">props</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">]):</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">property_data</span><span class="p">}</span>
+                        <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span>
+                    <span class="p">}</span>
+                    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>  <span class="c1"># served entries carry `material_id`</span>
+                        <span class="n">entry</span><span class="o">.</span><span class="n">data</span> <span class="o">|=</span> <span class="n">props</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">])]</span>
 
             <span class="k">if</span> <span class="n">entries</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># MP has no pre-built diagram for this system, or the entries need reshaping</span>
-                <span class="c1"># first, so redo the mixing here as MP does when building PDs. Mixing scheme</span>
-                <span class="c1"># is chemical-system dependent, so this can anchor on a different hull than</span>
-                <span class="c1"># MP did/would, and it drops entries it cannot place:</span>
+                <span class="c1"># MP has no pre-built diagram for this system, so redo the mixing here as MP does when</span>
+                <span class="c1"># building PDs. Mixing scheme is chemical-system dependent, so this can anchor on a</span>
+                <span class="c1"># different hull than MP did/would, and it drops entries it cannot place.</span>
+                <span class="c1"># A data event the caller can't change, so a log record (not a warning):</span>
                 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.mixing_scheme</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
                     <span class="n">MaterialsProjectDFTMixingScheme</span><span class="p">,</span>
                 <span class="p">)</span>
 
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">"Reconstructing a common energy scale for these entries with the "</span>
-                    <span class="s2">"GGA(+U)/r2SCAN mixing scheme, as the Materials Project has no pre-built "</span>
-                    <span class="s2">"phase diagram to serve for this query. Energies and hull distances may "</span>
-                    <span class="s2">"differ slightly from https://materialsproject.org, and entries the mixing "</span>
-                    <span class="s2">"scheme cannot place are dropped."</span><span class="p">,</span>
-                    <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">chemsys</span> <span class="o">=</span> <span class="s2">"-"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">elements_set</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"The Materials Project has no pre-built phase diagram for </span><span class="si">{</span><span class="n">chemsys</span><span class="si">}</span><span class="s2">, "</span>
+                    <span class="s2">"so a common energy scale is being reconstructed locally with the "</span>
+                    <span class="s2">"GGA(+U)/r2SCAN mixing scheme. Energies and hull distances may differ "</span>
+                    <span class="s2">"slightly from https://materialsproject.org, and entries the mixing "</span>
+                    <span class="s2">"scheme cannot place are dropped."</span>
                 <span class="p">)</span>
-                <span class="n">entries</span> <span class="o">=</span> <span class="n">MaterialsProjectDFTMixingScheme</span><span class="p">()</span><span class="o">.</span><span class="n">process_entries</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_unmixed_entries</span><span class="p">(</span>
-                        <span class="n">all_chemsyses</span><span class="p">,</span>
-                        <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
-                        <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">,</span>
-                        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                <span class="n">unmixed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unmixed_entries</span><span class="p">(</span>
+                    <span class="n">all_chemsyses</span><span class="p">,</span> <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+                <span class="p">)</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unmixed</span><span class="p">)</span>
+                <span class="n">entries</span> <span class="o">=</span> <span class="n">apply_corrections</span><span class="p">(</span>
+                    <span class="n">MaterialsProjectDFTMixingScheme</span><span class="p">(),</span>
+                    <span class="n">unmixed</span><span class="p">,</span>
+                    <span class="n">description</span><span class="o">=</span><span class="s2">"Re-mixing GGA(+U)/r2SCAN entries"</span><span class="p">,</span>
+                    <span class="n">log</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Re-mixing </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> GGA(+U)/r2SCAN entries onto a common energy scale"</span><span class="p">,</span>
+                    <span class="n">summary</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Re-mixed </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> entries onto a common energy scale "</span>
+                    <span class="s2">"(</span><span class="si">{kept:,}</span><span class="s2"> kept)"</span><span class="p">,</span>
+                    <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">extra_criteria</span><span class="p">:</span>
+                <span class="c1"># narrow the common-scale entries post-hoc, with MP's own criteria semantics</span>
+                <span class="c1"># (querying with the criteria directly returns per-material corrected entries</span>
+                <span class="c1"># which do not share a common energy scale):</span>
+                <span class="n">matching_ids</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                        <span class="n">chemsys</span><span class="o">=</span><span class="n">all_chemsyses</span><span class="p">,</span>
+                        <span class="n">thermo_types</span><span class="o">=</span><span class="n">additional_criteria</span><span class="p">[</span><span class="s2">"thermo_types"</span><span class="p">],</span>
+                        <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">],</span>
+                        <span class="o">**</span><span class="n">extra_criteria</span><span class="p">,</span>
                     <span class="p">)</span>
-                <span class="p">)</span>
+                <span class="p">}</span>
+                <span class="n">entries</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">entry</span>
+                    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span>
+                    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">])</span> <span class="ow">in</span> <span class="n">matching_ids</span>
+                <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>  <span class="c1"># non-consistent</span>
             <span class="k">if</span> <span class="n">mixed</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="n">mp_warning</span><span class="p">(</span>
                     <span class="s2">"Mixed GGA(+U)/r2SCAN entries can only be placed on a common energy scale "</span>
-                    <span class="s2">"when the whole chemical system is retrieved with `compatible_only = True`, "</span>
-                    <span class="s2">"so these entries are not suitable for constructing a phase diagram. Either "</span>
-                    <span class="s2">"drop the extra `additional_criteria` (and filter the returned entries "</span>
-                    <span class="s2">"instead), or request a single functional with "</span>
+                    <span class="s2">"with `compatible_only = True`, so these uncorrected entries are not "</span>
+                    <span class="s2">"suitable for constructing a phase diagram. Either use "</span>
+                    <span class="s2">"`compatible_only = True`, or request a single functional with "</span>
                     <span class="s1">'`additional_criteria = {"thermo_types": ["GGA_GGA+U"]}`.'</span><span class="p">,</span>
-                    <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                     <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                 <span class="p">)</span>
 
@@ -1323,16 +1492,19 @@
                 <span class="n">all_chemsyses</span><span class="p">,</span>
                 <span class="n">compatible_only</span><span class="o">=</span><span class="n">compatible_only</span><span class="p">,</span>
                 <span class="n">property_data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
-                <span class="n">conventional_unit_cell</span><span class="o">=</span><span class="n">conventional_unit_cell</span><span class="p">,</span>
                 <span class="n">additional_criteria</span><span class="o">=</span><span class="n">additional_criteria</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">use_gibbs</span><span class="p">:</span>
-            <span class="c1"># replace the entries with GibbsComputedStructureEntry</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.computed_entries</span><span class="w"> </span><span class="kn">import</span> <span class="n">GibbsComputedStructureEntry</span>
+        <span class="k">if</span> <span class="n">conventional_unit_cell</span><span class="p">:</span>
+            <span class="c1"># reshaped here rather than in the queries above, so that structure matching in the mixing</span>
+            <span class="c1"># scheme sees the original cells, and so that every energy adjustment is scaled appropriately:</span>
+            <span class="n">entries</span> <span class="o">=</span> <span class="n">rescale_to_conventional</span><span class="p">(</span>
+                <span class="n">entries</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span>
+            <span class="p">)</span>
 
-            <span class="k">return</span> <span class="n">GibbsComputedStructureEntry</span><span class="o">.</span><span class="n">from_entries</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">use_gibbs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_gibbs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_gibbs_entries</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">use_gibbs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">entries</span></div>
 
@@ -1356,7 +1528,7 @@
 <span class="sd">                bandstructure, if available.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object</span>
+<span class="sd">            bandstructure (BandStructure | BandStructureSymmLine): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">electronic_structure_bandstructure</span><span class="o">.</span><span class="n">get_bandstructure_from_material_id</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
             <span class="n">material_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span>
@@ -1546,12 +1718,11 @@
 <span class="sd">            NoMaD repository. Each zip archive will contain a manifest.json with</span>
 <span class="sd">            metadata info, e.g. the task/external_ids that belong to a directory.</span>
 <span class="sd">        """</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="n">mp_warning</span><span class="p">(</span>
             <span class="s2">"Full downloads of raw data are being transitioned to "</span>
             <span class="s2">"Materials Project's AWS S3 OpenData buckets. "</span>
             <span class="s2">"These features for accessing legacy raw data via NOMAD "</span>
             <span class="s2">"are maintained but may not be supported in the future."</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -1650,12 +1821,10 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_print_help_message</span><span class="p">(</span><span class="n">nomad_exist_task_ids</span><span class="p">,</span> <span class="n">task_ids</span><span class="p">,</span> <span class="n">file_patterns</span><span class="p">,</span> <span class="n">calc_types</span><span class="p">):</span>
         <span class="n">non_exist_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">task_ids</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">nomad_exist_task_ids</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"For file patterns [</span><span class="si">{</span><span class="n">file_patterns</span><span class="si">}</span><span class="s2">] and calc_types [</span><span class="si">{</span><span class="n">calc_types</span><span class="si">}</span><span class="s2">], </span><span class="se">\n</span><span class="s2">"</span>
             <span class="sa">f</span><span class="s2">"the following ids are not found on NOMAD [</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">non_exist_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">]. </span><span class="se">\n</span><span class="s2">"</span>
-            <span class="sa">f</span><span class="s2">"If you need to upload them, please contact Patrick Huck at phuck@lbl.gov"</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"If you need to upload them, please contact Patrick Huck at phuck@lbl.gov"</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="MPRester.query">
@@ -1885,11 +2054,9 @@
             <span class="n">pd</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"No phase diagram data available for chemical system </span><span class="si">{</span><span class="n">chemsys_str</span><span class="si">}</span><span class="s2"> "</span>
-                <span class="sa">f</span><span class="s2">"and thermo type </span><span class="si">{</span><span class="n">thermo_type_valid_str</span><span class="si">}</span><span class="s2">."</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"and thermo type </span><span class="si">{</span><span class="n">thermo_type_valid_str</span><span class="si">}</span><span class="s2">."</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
@@ -1904,11 +2071,31 @@
         <span class="c1"># side by side), and silently drops every entry it cannot pair up -- so we fetch</span>
         <span class="c1"># separately in the mixed case</span>
 
-        <span class="n">new_pd</span> <span class="o">=</span> <span class="n">PhaseDiagram</span><span class="p">(</span>
-            <span class="n">corrector</span><span class="o">.</span><span class="n">process_entries</span><span class="p">(</span><span class="n">joint_entries</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
-            <span class="k">if</span> <span class="n">corrector</span>
-            <span class="k">else</span> <span class="n">joint_entries</span>  <span class="c1"># type: ignore[list-item]</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">corrector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">processed</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">joint_entries</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_mp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">joint_entries</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
+            <span class="n">mixing</span> <span class="o">=</span> <span class="n">thermo_type_valid_str</span> <span class="o">==</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">GGA_GGA_U_R2SCAN</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="s2">"Re-mixing"</span> <span class="k">if</span> <span class="n">mixing</span> <span class="k">else</span> <span class="s2">"Correcting"</span>
+            <span class="n">processed</span> <span class="o">=</span> <span class="n">apply_corrections</span><span class="p">(</span>
+                <span class="n">corrector</span><span class="p">,</span>
+                <span class="n">joint_entries</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s2"> your entries with MP's"</span><span class="p">,</span>
+                <span class="n">log</span><span class="o">=</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> of your entries with </span><span class="si">{</span><span class="n">n_mp</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> MP entries "</span>
+                    <span class="o">+</span> <span class="p">(</span>
+                        <span class="s2">"onto a common GGA(+U)/r2SCAN energy scale"</span>
+                        <span class="k">if</span> <span class="n">mixing</span>
+                        <span class="k">else</span> <span class="sa">f</span><span class="s2">"using </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">corrector</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+                <span class="p">),</span>
+                <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Re-mixed'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">mixing</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'Corrected'</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">joint_entries</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="s2">"entries (</span><span class="si">{kept:,}</span><span class="s2"> kept)"</span>
+                <span class="p">),</span>
+                <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">new_pd</span> <span class="o">=</span> <span class="n">PhaseDiagram</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
 
         <span class="k">return</span> <span class="p">[</span>
             <span class="p">{</span>
@@ -1989,7 +2176,7 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_db_version_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Check if the database version has drifted."""</span>
+<span class="w">        </span><span class="sd">"""Print the database version and note if it has changed since last use."""</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>  <span class="c1"># type: ignore[import-untyped]</span>
 
         <span class="n">old_db_version</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2002,16 +2189,24 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old_db_version</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">old_db_version</span> <span class="o">=</span> <span class="kc">None</span>
 
+        <span class="k">if</span> <span class="n">old_db_version</span> <span class="ow">and</span> <span class="n">old_db_version</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">:</span>
+            <span class="n">print_notice</span><span class="p">(</span>
+                <span class="s2">"Materials Project database version changed: "</span>
+                <span class="sa">f</span><span class="s2">"v</span><span class="si">{</span><span class="n">old_db_version</span><span class="si">}</span><span class="s2"> → v</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">style</span><span class="o">=</span><span class="s2">"mp.warning"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_notice</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Materials Project database version: v</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">old_db_version</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">:</span>
             <span class="n">MAPI_CLIENT_SETTINGS</span><span class="o">.</span><span class="n">LOG_FILE</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
                 <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">({</span><span class="s2">"MAPI_DB_VERSION"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="p">})</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">old_db_version</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="n">mp_warning</span><span class="p">(</span>
                     <span class="s2">"Materials Project database version has changed "</span>
                     <span class="sa">f</span><span class="s2">"from v</span><span class="si">{</span><span class="n">old_db_version</span><span class="si">}</span><span class="s2"> to v</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="si">}</span><span class="s2">."</span><span class="p">,</span>
-                    <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                     <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                 <span class="p">)</span></div>
 

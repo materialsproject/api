@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.provenance.ProvenanceRester
    .. autosummary::
    
       ~ProvenanceRester.__init__
+      ~ProvenanceRester.available_db_versions
       ~ProvenanceRester.count
       ~ProvenanceRester.get_data_by_id
       ~ProvenanceRester.search
@@ -31,6 +32,7 @@ mp\_api.client.routes.materials.provenance.ProvenanceRester
    
       ~ProvenanceRester.available_fields
       ~ProvenanceRester.delta_backed
+      ~ProvenanceRester.delta_catalog
       ~ProvenanceRester.primary_key
       ~ProvenanceRester.query_builder
       ~ProvenanceRester.s3_client

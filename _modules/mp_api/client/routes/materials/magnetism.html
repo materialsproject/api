@@ -64,25 +64,29 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">MagnetismDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Query magnetism docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings (e.g., mp-149, [mp-149, mp-13]).</span>
-<span class="sd">            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.</span>
-<span class="sd">            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites</span>
+<span class="sd">            material_ids (str | list[str]): A single Material ID string or list of strings (e.g., mp-149, [mp-149, mp-13]).</span>
+<span class="sd">            num_magnetic_sites (tuple[int, int]): Minimum and maximum number of magnetic sites to consider.</span>
+<span class="sd">            num_unique_magnetic_sites (tuple[int, int]): Minimum and maximum number of unique magnetic sites</span>
 <span class="sd">                to consider.</span>
 <span class="sd">            ordering (Ordering]): The magnetic ordering of the material.</span>
-<span class="sd">            total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.</span>
-<span class="sd">            total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values</span>
+<span class="sd">            total_magnetization (tuple[float, float]): Minimum and maximum total magnetization values to consider.</span>
+<span class="sd">            total_magnetization_normalized_vol (tuple[float, float]): Minimum and maximum total magnetization values</span>
 <span class="sd">                normalized by volume to consider.</span>
-<span class="sd">            total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization</span>
+<span class="sd">            total_magnetization_normalized_formula_units (tuple[float, float]): Minimum and maximum total magnetization</span>
 <span class="sd">                values normalized by formula units to consider.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in MagnetismDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in MagnetismDoc to return data for.</span>
 <span class="sd">                Default is material_id and last_updated if all_fields is False.</span>
+<span class="sd">            db_version (str | None): Database version to download when no filters are given</span>
+<span class="sd">                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.</span>
+<span class="sd">                See `available_db_versions()`.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([MagnetismDoc], [dict]) List of magnetism documents or dictionaries.</span>
@@ -158,6 +162,7 @@
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
+            <span class="n">db_version</span><span class="o">=</span><span class="n">db_version</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>
 

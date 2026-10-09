@@ -47,7 +47,6 @@
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/grain_boundaries"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">GrainBoundaryDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"material_id"</span>
-    <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="GrainBoundaryRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.grain_boundaries.GrainBoundaryRester.html#mp_api.client.routes.materials.grain_boundaries.GrainBoundaryRester.search">[docs]</a>
@@ -71,24 +70,24 @@
 <span class="w">        </span><span class="sd">"""Query grain boundary docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">             material_ids (str, List[str]): Search for grain boundary data associated with the specified Material IDs</span>
+<span class="sd">             material_ids (str | list[str]): Search for grain boundary data associated with the specified Material IDs</span>
 <span class="sd">             chemsys (str): Dash-delimited string of elements in the material.</span>
-<span class="sd">             gb_plane(List[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]</span>
-<span class="sd">             gb_energy (Tuple[float,float]): Minimum and maximum grain boundary energy in J/m³ to consider.</span>
-<span class="sd">             material_ids (List[str]): List of Materials Project IDs to query with.</span>
+<span class="sd">             gb_plane(list[str]): The Miller index of grain boundary plane. e.g., [1, 1, 1]</span>
+<span class="sd">             gb_energy (tuple[float, float]): Minimum and maximum grain boundary energy in J/m³ to consider.</span>
+<span class="sd">             material_ids (list[str]): List of Materials Project IDs to query with.</span>
 <span class="sd">             pretty_formula (str): Formula of the material.</span>
-<span class="sd">             rotation_angle (Tuple[float,float]): Minimum and maximum rotation angle in degrees to consider.</span>
+<span class="sd">             rotation_angle (tuple[float, float]): Minimum and maximum rotation angle in degrees to consider.</span>
 <span class="sd">             rotation_axis (tuple of 3 int or of 4 int): The Miller index of rotation axis.</span>
 <span class="sd">                A 3- or 4-tuple of int or str: e.g.,</span>
 <span class="sd">                (0, 0, 0, 1), (1, 0, 0), (1, 1, 0), or (1, 1, 1)</span>
 <span class="sd">             sigma (int): Sigma value of grain boundary.</span>
-<span class="sd">             separation_energy (Tuple[float,float]): Minimum and maximum work of separation energy in J/m³ to consider.</span>
+<span class="sd">             separation_energy (tuple[float, float]): Minimum and maximum work of separation energy in J/m³ to consider.</span>
 <span class="sd">             sigma (int): Sigma value of the boundary.</span>
 <span class="sd">             type (GBTypeEnum): Grain boundary type.</span>
 <span class="sd">             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">             chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">             all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">             fields (List[str]): List of fields in GrainBoundaryDoc to return data for.</span>
+<span class="sd">             fields (list[str]): List of fields in GrainBoundaryDoc to return data for.</span>
 <span class="sd">                 Default is material_id and last_updated if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>

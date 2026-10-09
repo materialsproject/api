@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.eos.EOSRester
    .. autosummary::
    
       ~EOSRester.__init__
+      ~EOSRester.available_db_versions
       ~EOSRester.count
       ~EOSRester.get_data_by_id
       ~EOSRester.search
@@ -31,6 +32,7 @@ mp\_api.client.routes.materials.eos.EOSRester
    
       ~EOSRester.available_fields
       ~EOSRester.delta_backed
+      ~EOSRester.delta_catalog
       ~EOSRester.primary_key
       ~EOSRester.query_builder
       ~EOSRester.s3_client

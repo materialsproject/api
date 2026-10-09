@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.materials.MaterialsRester
    .. autosummary::
    
       ~MaterialsRester.__init__
+      ~MaterialsRester.available_db_versions
       ~MaterialsRester.count
       ~MaterialsRester.find_structure
       ~MaterialsRester.get_blessed_entries
@@ -34,6 +35,7 @@ mp\_api.client.routes.materials.materials.MaterialsRester
    
       ~MaterialsRester.available_fields
       ~MaterialsRester.delta_backed
+      ~MaterialsRester.delta_catalog
       ~MaterialsRester.primary_key
       ~MaterialsRester.query_builder
       ~MaterialsRester.s3_client

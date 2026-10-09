@@ -60,23 +60,27 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">OxidationStateDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Query oxidation state docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">            material_ids (str | list[str]): A single Material ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
-<span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
+<span class="sd">            chemsys (str | list[str]): A chemical system or list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).</span>
-<span class="sd">            formula (str, List[str]): A formula including anonymized formula</span>
+<span class="sd">            formula (str | list[str]): A formula including anonymized formula</span>
 <span class="sd">                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed</span>
 <span class="sd">                (e.g., [Fe2O3, ABO3]).</span>
-<span class="sd">            possible_species (List[str]): A list of element symbols appended with oxidation states (e.g. [Cr2+, O2-]]).</span>
+<span class="sd">            possible_species (list[str]): A list of element symbols appended with oxidation states (e.g. [Cr2+, O2-]]).</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in OxidationStateDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in OxidationStateDoc to return data for.</span>
 <span class="sd">                Default is material_id, last_updated, and formula_pretty if all_fields is False.</span>
+<span class="sd">            db_version (str | None): Database version to download when no filters are given</span>
+<span class="sd">                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.</span>
+<span class="sd">                See `available_db_versions()`.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([OxidationStateDoc], [dict]) List of oxidation state documents or dictionaries.</span>
@@ -116,6 +120,7 @@
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
+            <span class="n">db_version</span><span class="o">=</span><span class="n">db_version</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>
 

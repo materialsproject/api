@@ -45,9 +45,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="n">status</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">LATEST_DB_VERSION</span><span class="p">,</span> <span class="n">_normalize_db_version</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_THERMOTYPE</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_partition_version</span><span class="p">,</span> <span class="n">validate_ids</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
@@ -110,35 +112,39 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ThermoDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Query core thermo docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">            material_ids (str | list[str]): A single Material ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
-<span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
+<span class="sd">            chemsys (str | list[str]): A chemical system or list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).</span>
-<span class="sd">            energy_above_hull (Tuple[float,float]): Minimum and maximum energy above the hull in eV/atom to consider.</span>
-<span class="sd">            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy</span>
+<span class="sd">            energy_above_hull (tuple[float, float]): Minimum and maximum energy above the hull in eV/atom to consider.</span>
+<span class="sd">            equilibrium_reaction_energy (tuple[float, float]): Minimum and maximum equilibrium reaction energy</span>
 <span class="sd">                in eV/atom to consider.</span>
-<span class="sd">            formation_energy (Tuple[float,float]): Minimum and maximum formation energy in eV/atom to consider.</span>
-<span class="sd">            formula (str, List[str]): A formula including anonymized formula</span>
+<span class="sd">            formation_energy (tuple[float, float]): Minimum and maximum formation energy in eV/atom to consider.</span>
+<span class="sd">            formula (str | list[str]): A formula including anonymized formula</span>
 <span class="sd">                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed</span>
 <span class="sd">                (e.g., [Fe2O3, ABO3]).</span>
 <span class="sd">            is_stable (bool): Whether the material is stable.</span>
-<span class="sd">            material_ids (List[str]): List of Materials Project IDs to return data for.</span>
-<span class="sd">            thermo_ids (List[str]): List of thermo IDs to return data for. This is a combination of the Materials</span>
+<span class="sd">            material_ids (list[str]): List of Materials Project IDs to return data for.</span>
+<span class="sd">            thermo_ids (list[str]): List of thermo IDs to return data for. This is a combination of the Materials</span>
 <span class="sd">                Project ID and thermo type (e.g. mp-149_GGA_GGA+U).</span>
-<span class="sd">            thermo_types (List[ThermoType or str]): List of thermo/run types to return data for (e.g. ThermoType.GGA_GGA_U).</span>
-<span class="sd">            num_elements (Tuple[int,int]): Minimum and maximum number of elements in the material to consider.</span>
-<span class="sd">            total_energy (Tuple[float,float]): Minimum and maximum corrected total energy in eV/atom to consider.</span>
-<span class="sd">            uncorrected_energy (Tuple[float,float]): Minimum and maximum uncorrected total</span>
+<span class="sd">            thermo_types (list[ThermoType | str]): List of thermo/run types to return data for (e.g. ThermoType.GGA_GGA_U).</span>
+<span class="sd">            num_elements (tuple[int, int]): Minimum and maximum number of elements in the material to consider.</span>
+<span class="sd">            total_energy (tuple[float, float]): Minimum and maximum corrected total energy in eV/atom to consider.</span>
+<span class="sd">            uncorrected_energy (tuple[float, float]): Minimum and maximum uncorrected total</span>
 <span class="sd">                energy in eV/atom to consider.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in ThermoDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in ThermoDoc to return data for.</span>
 <span class="sd">                Default is material_id and last_updated if all_fields is False.</span>
+<span class="sd">            db_version (str | None): Database version to download when no filters are given</span>
+<span class="sd">                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.</span>
+<span class="sd">                See `available_db_versions()`.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([ThermoDoc], [dict]) List of thermo documents or dictionaries.</span>
@@ -220,13 +226,17 @@
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
+            <span class="n">db_version</span><span class="o">=</span><span class="n">db_version</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ThermoRester.get_phase_diagram_from_chemsys">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.thermo.ThermoRester.html#mp_api.client.routes.materials.thermo.ThermoRester.get_phase_diagram_from_chemsys">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_phase_diagram_from_chemsys</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">thermo_type</span><span class="p">:</span> <span class="n">ThermoType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_THERMOTYPE</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">chemsys</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">thermo_type</span><span class="p">:</span> <span class="n">ThermoType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_THERMOTYPE</span><span class="p">,</span>
+        <span class="n">db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhaseDiagram</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Get a pre-computed phase diagram for a given chemsys.</span>
 
@@ -234,6 +244,8 @@
 <span class="sd">            chemsys (str): A chemical system (e.g. Li-Fe-O)</span>
 <span class="sd">            thermo_type (ThermoType): The thermo type for the phase diagram.</span>
 <span class="sd">                Defaults to ThermoType.GGA_GGA_U_R2SCAN.</span>
+<span class="sd">            db_version (str | None): Database version of the phase diagram, e.g.</span>
+<span class="sd">                "2026.04.13" or "latest". Defaults to the rester's version.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            (PhaseDiagram): Pymatgen phase diagram object.</span>
@@ -241,20 +253,33 @@
         <span class="n">validated_thermo_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_thermo_types</span><span class="p">([</span><span class="n">thermo_type</span><span class="p">])</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
 
         <span class="n">sorted_chemsys</span> <span class="o">=</span> <span class="s2">"-"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">chemsys</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)))</span>
-        <span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">)</span>
 
-        <span class="n">pd_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
-            <span class="s2">"materialsproject-build"</span><span class="p">,</span> <span class="s2">"objects/phase-diagrams"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"phase_diagrams"</span>
-        <span class="p">)</span>
+        <span class="c1"># Loading the (large) table and scanning it for one system takes seconds,</span>
+        <span class="c1"># so show what's happening rather than blocking silently:</span>
+        <span class="k">with</span> <span class="n">status</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Fetching the </span><span class="si">{</span><span class="n">validated_thermo_type</span><span class="si">}</span><span class="s2"> phase diagram for </span><span class="si">{</span><span class="n">sorted_chemsys</span><span class="si">}</span><span class="s2">..."</span><span class="p">,</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">pd_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+                <span class="s2">"materialsproject-build"</span><span class="p">,</span>
+                <span class="s2">"objects/phase-diagrams"</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">"phase_diagrams"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">requested</span> <span class="o">=</span> <span class="n">_normalize_db_version</span><span class="p">(</span><span class="n">db_version</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span>
+            <span class="k">if</span> <span class="n">requested</span> <span class="o">==</span> <span class="n">LATEST_DB_VERSION</span><span class="p">:</span>
+                <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_catalog</span><span class="o">.</span><span class="n">partition_row_counts</span><span class="p">(</span><span class="n">pd_lbl</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+                <span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_db_version</span><span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="s2">"phase-diagrams"</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">version</span> <span class="o">=</span> <span class="n">to_partition_version</span><span class="p">(</span><span class="n">requested</span><span class="p">)</span>
 
-        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span>
-<span class="s2">            SELECT phase_diagram</span>
-<span class="s2">            FROM   </span><span class="si">{</span><span class="n">pd_lbl</span><span class="si">}</span>
-<span class="s2">            WHERE  chemsys='</span><span class="si">{</span><span class="n">sorted_chemsys</span><span class="si">}</span><span class="s2">'</span>
-<span class="s2">              AND  version='</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">'</span>
-<span class="s2">              AND  thermo_type='</span><span class="si">{</span><span class="n">validated_thermo_type</span><span class="si">}</span><span class="s2">'</span>
-<span class="s2">        """</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span>
+<span class="s2">                SELECT phase_diagram</span>
+<span class="s2">                FROM   </span><span class="si">{</span><span class="n">pd_lbl</span><span class="si">}</span>
+<span class="s2">                WHERE  chemsys='</span><span class="si">{</span><span class="n">sorted_chemsys</span><span class="si">}</span><span class="s2">'</span>
+<span class="s2">                  AND  version='</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">'</span>
+<span class="s2">                  AND  thermo_type='</span><span class="si">{</span><span class="n">validated_thermo_type</span><span class="si">}</span><span class="s2">'</span>
+<span class="s2">            """</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">pd_lbl</span><span class="p">)</span>
         <span class="n">as_py</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s2">"phase_diagram"</span><span class="p">]</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">)</span>
 
         <span class="n">pd</span><span class="p">:</span> <span class="n">PhaseDiagram</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>

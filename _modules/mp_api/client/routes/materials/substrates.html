@@ -67,18 +67,18 @@
 <span class="w">        </span><span class="sd">"""Query substrate docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            area (Tuple[float,float]): Minimum and maximum volume in Å² to consider for the minimum coincident</span>
+<span class="sd">            area (tuple[float, float]): Minimum and maximum volume in Å² to consider for the minimum coincident</span>
 <span class="sd">                interface area range.</span>
-<span class="sd">            energy (Tuple[float,float]): Minimum and maximum energy in meV to consider for the elastic energy range.</span>
+<span class="sd">            energy (tuple[float, float]): Minimum and maximum energy in meV to consider for the elastic energy range.</span>
 <span class="sd">            film_id (str): Materials Project ID of the film material.</span>
-<span class="sd">            film_orientation (List[int]): Vector indicating the surface orientation of the film material.</span>
+<span class="sd">            film_orientation (list[int]): Vector indicating the surface orientation of the film material.</span>
 <span class="sd">            substrate_id (str): Materials Project ID of the substrate material.</span>
 <span class="sd">            substrate_formula (str): Reduced formula of the substrate material.</span>
-<span class="sd">            substrate_orientation (List[int]): Vector indicating the surface orientation of the substrate material.</span>
+<span class="sd">            substrate_orientation (list[int]): Vector indicating the surface orientation of the substrate material.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in SubstratesDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in SubstratesDoc to return data for.</span>
 <span class="sd">                Default is the film_id and substrate_id only if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>

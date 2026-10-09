@@ -33,14 +33,13 @@
   <h1>Source code for mp_api.client.routes.molecules.jcesr</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.molecules_jcesr</span><span class="w"> </span><span class="kn">import</span> <span class="n">MoleculesDoc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="n">mp_warning</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 
@@ -56,10 +55,9 @@
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.molecules.jcesr.JcesrMoleculesRester.html#mp_api.client.routes.molecules.jcesr.JcesrMoleculesRester.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Throw deprecation warning when JCESR client is initialized."""</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="n">mp_warning</span><span class="p">(</span>
             <span class="s2">"NOTE: You are accessing the unmaintained legacy molecules data, "</span>
             <span class="s2">"please use MPRester.molecules.summary."</span><span class="p">,</span>
-            <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -89,20 +87,19 @@
 <span class="sd">        JCESR = Joint Center for Energy Storage Research</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            task_ids (str, List[str]): A single molecule task ID string or list of strings.</span>
+<span class="sd">            task_ids (str | list[str]): A single molecule task ID string or list of strings.</span>
 <span class="sd">                (e.g., mol-45004, [mol-45004, mol-45228]).</span>
-<span class="sd">            charge (Tuple[float,float]): Minimum and maximum value of the charge in +e to consider.</span>
-<span class="sd">            elements (List[Element]): A list of elements.</span>
-<span class="sd">            film_orientation (List[Elements]): List of elements that are in the molecule.</span>
-<span class="sd">            EA (Tuple[float,float]): Minimum and maximum value of the electron affinity in eV to consider.</span>
-<span class="sd">            IE (Tuple[float,float]): Minimum and maximum value of the ionization energy in eV to consider.</span>
-<span class="sd">            nelements (Tuple[float,float]): Minimum and maximum number of elements in the molecule to consider.</span>
+<span class="sd">            charge (tuple[float, float]): Minimum and maximum value of the charge in +e to consider.</span>
+<span class="sd">            elements (list[Element]): A list of elements.</span>
+<span class="sd">            EA (tuple[float, float]): Minimum and maximum value of the electron affinity in eV to consider.</span>
+<span class="sd">            IE (tuple[float, float]): Minimum and maximum value of the ionization energy in eV to consider.</span>
+<span class="sd">            nelements (tuple[float, float]): Minimum and maximum number of elements in the molecule to consider.</span>
 <span class="sd">            pointgroup (str): Point group of the molecule in Schoenflies notation.</span>
 <span class="sd">            smiles (str): The simplified molecular input line-entry system (SMILES) representation of the molecule.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in MoleculesDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in MoleculesDoc to return data for.</span>
 <span class="sd">                Default is the material_id only if all_fields is False.</span>
 <span class="sd">            _page (int or None) : Page of the results to skip to.</span>
 <span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.</span>

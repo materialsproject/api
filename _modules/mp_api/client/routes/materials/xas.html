@@ -39,7 +39,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.xas</span><span class="w"> </span><span class="kn">import</span> <span class="n">XASDoc</span><span class="p">,</span> <span class="n">validate_xas_spectrum_id</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestError</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -54,7 +54,6 @@
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/xas"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">XASDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"task_id"</span>
-    <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="XASRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.xas.XASRester.html#mp_api.client.routes.materials.xas.XASRester.search">[docs]</a>
@@ -83,18 +82,18 @@
 <span class="sd">            absorbing_element (Element): The absorbing element.</span>
 <span class="sd">            formula (str): A formula including anonymized formula</span>
 <span class="sd">                or wild cards (e.g., Fe2O3, ABO3, Si*).</span>
-<span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
+<span class="sd">            chemsys (str | list[str]): A chemical system or list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).</span>
-<span class="sd">            elements (List[str]): A list of elements.</span>
-<span class="sd">            task_ids (str, List[str]): A single Task ID string or list of strings</span>
+<span class="sd">            elements (list[str]): A list of elements.</span>
+<span class="sd">            task_ids (str | list[str]): A single Task ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
 <span class="sd">            spectrum_type (XasType): Spectrum type (e.g. EXAFS, XAFS, or XANES).</span>
-<span class="sd">            spectrum_ids (str, List[str]): A single Spectrum ID string or list of strings</span>
+<span class="sd">            spectrum_ids (str | list[str]): A single Spectrum ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149-XANES-Li-K, [mp-149-XANES-Li-K, mp-13-XANES-Li-K]).</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in MaterialsCoreDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in MaterialsCoreDoc to return data for.</span>
 <span class="sd">                Default is material_id, last_updated, and formula_pretty if all_fields is False.</span>
 <span class="sd">            _page (int or None) : Page of the results to skip to.</span>
 <span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.</span>
@@ -114,8 +113,8 @@
                 <span class="s2">"`material_id` has been replaced by `task_id` in the xas endpoint. "</span>
                 <span class="s2">"Please migrate to using the newer field name and the `task_ids` kwarg "</span>
                 <span class="s2">"for searching."</span><span class="p">,</span>
+                <span class="ne">FutureWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="n">_locals</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>

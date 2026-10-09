@@ -17,6 +17,7 @@ mp\_api.client.mprester.MPRester
    .. autosummary::
    
       ~MPRester.__init__
+      ~MPRester.available_db_versions
       ~MPRester.find_structure
       ~MPRester.get_atom_reference_data
       ~MPRester.get_bandstructure_by_material_id
@@ -56,6 +57,7 @@ mp\_api.client.mprester.MPRester
    .. autosummary::
    
       ~MPRester.contribs
+      ~MPRester.delta_catalog
       ~MPRester.query_builder
       ~MPRester.session
    

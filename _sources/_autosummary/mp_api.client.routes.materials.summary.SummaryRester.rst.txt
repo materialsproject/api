@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.summary.SummaryRester
    .. autosummary::
    
       ~SummaryRester.__init__
+      ~SummaryRester.available_db_versions
       ~SummaryRester.count
       ~SummaryRester.get_data_by_id
       ~SummaryRester.search
@@ -31,6 +32,7 @@ mp\_api.client.routes.materials.summary.SummaryRester
    
       ~SummaryRester.available_fields
       ~SummaryRester.delta_backed
+      ~SummaryRester.delta_catalog
       ~SummaryRester.primary_key
       ~SummaryRester.query_builder
       ~SummaryRester.s3_client

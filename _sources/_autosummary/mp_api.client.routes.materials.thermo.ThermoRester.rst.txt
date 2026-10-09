@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.thermo.ThermoRester
    .. autosummary::
    
       ~ThermoRester.__init__
+      ~ThermoRester.available_db_versions
       ~ThermoRester.count
       ~ThermoRester.get_data_by_id
       ~ThermoRester.get_phase_diagram_from_chemsys
@@ -32,6 +33,7 @@ mp\_api.client.routes.materials.thermo.ThermoRester
    
       ~ThermoRester.available_fields
       ~ThermoRester.delta_backed
+      ~ThermoRester.delta_catalog
       ~ThermoRester.primary_key
       ~ThermoRester.query_builder
       ~ThermoRester.s3_client

@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.electronic\_structure.BaseESPropertyRester
    .. autosummary::
    
       ~BaseESPropertyRester.__init__
+      ~BaseESPropertyRester.available_db_versions
       ~BaseESPropertyRester.count
       ~BaseESPropertyRester.get_data_by_id
    
@@ -30,6 +31,7 @@ mp\_api.client.routes.materials.electronic\_structure.BaseESPropertyRester
    
       ~BaseESPropertyRester.available_fields
       ~BaseESPropertyRester.delta_backed
+      ~BaseESPropertyRester.delta_catalog
       ~BaseESPropertyRester.es_rester
       ~BaseESPropertyRester.primary_key
       ~BaseESPropertyRester.query_builder

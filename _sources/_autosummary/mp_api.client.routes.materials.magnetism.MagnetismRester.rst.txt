@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.magnetism.MagnetismRester
    .. autosummary::
    
       ~MagnetismRester.__init__
+      ~MagnetismRester.available_db_versions
       ~MagnetismRester.count
       ~MagnetismRester.get_data_by_id
       ~MagnetismRester.search
@@ -31,6 +32,7 @@ mp\_api.client.routes.materials.magnetism.MagnetismRester
    
       ~MagnetismRester.available_fields
       ~MagnetismRester.delta_backed
+      ~MagnetismRester.delta_catalog
       ~MagnetismRester.primary_key
       ~MagnetismRester.query_builder
       ~MagnetismRester.s3_client

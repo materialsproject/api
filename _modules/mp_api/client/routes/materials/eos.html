@@ -38,7 +38,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.eos</span><span class="w"> </span><span class="kn">import</span> <span class="n">EOSDoc</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span><span class="p">,</span> <span class="n">MPRestWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 
@@ -65,13 +65,13 @@
 <span class="w">        </span><span class="sd">"""Query equations of state docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            task_ids (str, List[str]): Search for equation of states associated with the specified task IDs</span>
-<span class="sd">            energies (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.</span>
-<span class="sd">            volumes (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.</span>
+<span class="sd">            task_ids (str | list[str]): Search for equation of states associated with the specified task IDs</span>
+<span class="sd">            energies (tuple[float, float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.</span>
+<span class="sd">            volumes (tuple[float, float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in EOSDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in EOSDoc to return data for.</span>
 <span class="sd">                Default is material_id only if all_fields is False.</span>
 <span class="sd">            **kwargs : used for handling deprecated kwargs</span>
 
@@ -90,8 +90,8 @@
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="s2">"`material_id` has been replaced by `task_id` in the EOS endpoint. "</span>
                 <span class="s2">"Please migrate to using the newer field name."</span><span class="p">,</span>
+                <span class="ne">FutureWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">task_ids</span><span class="p">:</span>

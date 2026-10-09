@@ -47,7 +47,6 @@
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/surface_properties"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">SurfacePropDoc</span>  <span class="c1"># type: ignore</span>
     <span class="n">primary_key</span> <span class="o">=</span> <span class="s2">"material_id"</span>
-    <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="SurfacePropertiesRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.surface_properties.SurfacePropertiesRester.html#mp_api.client.routes.materials.surface_properties.SurfacePropertiesRester.search">[docs]</a>
@@ -67,19 +66,19 @@
 <span class="w">        </span><span class="sd">"""Query surface properties docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">            material_ids (str | list[str]): A single Material ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
 <span class="sd">            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.</span>
-<span class="sd">            shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.</span>
-<span class="sd">            surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values to</span>
+<span class="sd">            shape_factor (tuple[float, float]): Minimum and maximum shape factor values to consider.</span>
+<span class="sd">            surface_energy_anisotropy (tuple[float, float]): Minimum and maximum surface energy anisotropy values to</span>
 <span class="sd">                consider.</span>
-<span class="sd">            weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy in J/m² to</span>
+<span class="sd">            weighted_surface_energy (tuple[float, float]): Minimum and maximum weighted surface energy in J/m² to</span>
 <span class="sd">                consider.</span>
-<span class="sd">            weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.</span>
+<span class="sd">            weighted_work_function (tuple[float, float]): Minimum and maximum weighted work function in eV to consider.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in SurfacePropDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in SurfacePropDoc to return data for.</span>
 <span class="sd">                Default is material_id only if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>

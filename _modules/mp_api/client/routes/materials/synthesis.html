@@ -33,8 +33,11 @@
   <h1>Source code for mp_api.client.routes.materials.synthesis</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pa</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.arrow</span><span class="w"> </span><span class="kn">import</span> <span class="n">arrowize</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.synthesis</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">OperationTypeEnum</span><span class="p">,</span>
+    <span class="n">SynthesisRecipe</span><span class="p">,</span>
     <span class="n">SynthesisSearchResultModel</span><span class="p">,</span>
     <span class="n">SynthesisTypeEnum</span><span class="p">,</span>
 <span class="p">)</span>
@@ -47,7 +50,12 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">SynthesisRester</span><span class="p">(</span><span class="n">BaseRester</span><span class="p">):</span>
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"materials/synthesis"</span>
     <span class="n">document_model</span> <span class="o">=</span> <span class="n">SynthesisSearchResultModel</span>  <span class="c1"># type: ignore</span>
-    <span class="n">delta_backed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_download_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pa</span><span class="o">.</span><span class="n">Schema</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Full downloads hold recipes only: `search_score` and `highlights`</span>
+<span class="sd">        are added by the text search and aren't stored on S3 (they load as None).</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">pa</span><span class="o">.</span><span class="n">schema</span><span class="p">(</span><span class="n">arrowize</span><span class="p">(</span><span class="n">SynthesisRecipe</span><span class="p">))</span>
 
 <div class="viewcode-block" id="SynthesisRester.search">
 <a class="viewcode-back" href="../../../../../_autosummary/mp_api.client.routes.materials.synthesis.SynthesisRester.html#mp_api.client.routes.materials.synthesis.SynthesisRester.search">[docs]</a>
@@ -71,21 +79,23 @@
 <span class="w">        </span><span class="sd">"""Search synthesis recipe text.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            keywords (Optional[List[str]]): List of string keywords to search synthesis paragraph text with</span>
-<span class="sd">            synthesis_type (Optional[List[SynthesisTypeEnum]]): Type of synthesis to include</span>
-<span class="sd">            target_formula (Optional[str]): Chemical formula of the target material</span>
-<span class="sd">            precursor_formula (Optional[str]): Chemical formula of the precursor material</span>
-<span class="sd">            operations (Optional[List[OperationTypeEnum]]): List of operations that syntheses must have</span>
-<span class="sd">            condition_heating_temperature_min (Optional[float]): Minimal heating temperature</span>
-<span class="sd">            condition_heating_temperature_max (Optional[float]): Maximal heating temperature</span>
-<span class="sd">            condition_heating_time_min (Optional[float]): Minimal heating time</span>
-<span class="sd">            condition_heating_time_max (Optional[float]): Maximal heating time</span>
-<span class="sd">            condition_heating_atmosphere (Optional[List[str]]): Required heating atmosphere, such as "air", "argon"</span>
-<span class="sd">            condition_mixing_device (Optional[List[str]]): Required mixing device, such as "zirconia", "Al2O3".</span>
-<span class="sd">            condition_mixing_media (Optional[List[str]]): Required mixing media, such as "alcohol", "water"</span>
-<span class="sd">            num_chunks (Optional[int]): Maximum number of chunks of data to yield. None will yield all possible.</span>
-<span class="sd">            chunk_size (Optional[int]): Number of data entries per chunk.</span>
+<span class="sd">            keywords (list[str] | None): List of string keywords to search synthesis paragraph text with</span>
+<span class="sd">            synthesis_type (list[SynthesisTypeEnum] | None): Type of synthesis to include</span>
+<span class="sd">            target_formula (str | None): Chemical formula of the target material</span>
+<span class="sd">            precursor_formula (str | None): Chemical formula of the precursor material</span>
+<span class="sd">            operations (list[OperationTypeEnum] | None): List of operations that syntheses must have</span>
+<span class="sd">            condition_heating_temperature_min (float | None): Minimal heating temperature</span>
+<span class="sd">            condition_heating_temperature_max (float | None): Maximal heating temperature</span>
+<span class="sd">            condition_heating_time_min (float | None): Minimal heating time</span>
+<span class="sd">            condition_heating_time_max (float | None): Maximal heating time</span>
+<span class="sd">            condition_heating_atmosphere (list[str] | None): Required heating atmosphere, such as "air", "argon"</span>
+<span class="sd">            condition_mixing_device (list[str] | None): Required mixing device, such as "zirconia", "Al2O3".</span>
+<span class="sd">            condition_mixing_media (list[str] | None): Required mixing media, such as "alcohol", "water"</span>
+<span class="sd">            num_chunks (int | None): Maximum number of chunks of data to yield. None will yield all possible.</span>
+<span class="sd">            chunk_size (int | None): Number of data entries per chunk.</span>
 
+<span class="sd">        With no search terms and `num_chunks=None`, every recipe is downloaded from</span>
+<span class="sd">        S3 as a local dataset instead; `search_score` and `highlights` are then None.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([SynthesisSearchResultModel], [dict]): List of synthesis documents or dictionaries.</span>

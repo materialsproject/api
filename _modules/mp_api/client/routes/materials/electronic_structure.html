@@ -70,7 +70,7 @@
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">"MPRester.electronic_structure.search_electronic_structure_docs is deprecated. "</span>
             <span class="s2">"Please use MPRester.electronic_structure.search instead."</span><span class="p">,</span>
-            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="ne">FutureWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -96,30 +96,34 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Query electronic structure docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">            material_ids (str | list[str]): A single Material ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
-<span class="sd">            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.</span>
-<span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
+<span class="sd">            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.</span>
+<span class="sd">            chemsys (str | list[str]): A chemical system or list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).</span>
-<span class="sd">            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.</span>
-<span class="sd">            elements (List[str]): A list of elements.</span>
-<span class="sd">            exclude_elements (List[str]): A list of elements to exclude.</span>
-<span class="sd">            formula (str, List[str]): A formula including anonymized formula</span>
+<span class="sd">            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.</span>
+<span class="sd">            elements (list[str]): A list of elements.</span>
+<span class="sd">            exclude_elements (list[str]): A list of elements to exclude.</span>
+<span class="sd">            formula (str | list[str]): A formula including anonymized formula</span>
 <span class="sd">                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed</span>
 <span class="sd">                (e.g., [Fe2O3, ABO3]).</span>
 <span class="sd">            is_gap_direct (bool): Whether the material has a direct band gap.</span>
 <span class="sd">            is_metal (bool): Whether the material is considered a metal.</span>
 <span class="sd">            magnetic_ordering (Ordering): Magnetic ordering of the material.</span>
-<span class="sd">            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.</span>
+<span class="sd">            num_elements (tuple[int, int]): Minimum and maximum number of elements to consider.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.</span>
 <span class="sd">                Default is material_id and last_updated if all_fields is False.</span>
+<span class="sd">            db_version (str | None): Database version to download when no filters are given</span>
+<span class="sd">                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.</span>
+<span class="sd">                See `available_db_versions()`.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([ElectronicStructureDoc]) List of electronic structure documents</span>
@@ -186,6 +190,7 @@
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
+            <span class="n">db_version</span><span class="o">=</span><span class="n">db_version</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>
 
@@ -208,6 +213,7 @@
                 <span class="n">use_document_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span><span class="p">,</span>
                 <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
                 <span class="n">mute_progress_bars</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+                <span class="n">delta_catalog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_catalog</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_es_rester</span></div>
 
@@ -226,7 +232,7 @@
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">"MPRester.electronic_structure_bandstructure.search_bandstructure_summary is deprecated. "</span>
             <span class="s2">"Please use MPRester.electronic_structure_bandstructure.search instead."</span><span class="p">,</span>
-            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="ne">FutureWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -251,8 +257,8 @@
 <span class="w">        </span><span class="sd">"""Query band structure summary data in electronic structure docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.</span>
-<span class="sd">            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.</span>
+<span class="sd">            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.</span>
+<span class="sd">            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.</span>
 <span class="sd">            is_gap_direct (bool): Whether the material has a direct band gap.</span>
 <span class="sd">            is_metal (bool): Whether the material is considered a metal.</span>
 <span class="sd">            magnetic_ordering (Ordering or str): Magnetic ordering of the material.</span>
@@ -260,7 +266,7 @@
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.</span>
 <span class="sd">                Default is material_id and last_updated if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>
@@ -353,7 +359,7 @@
         <span class="k">if</span> <span class="n">path_type</span><span class="p">:</span>
             <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">AND path_convention='</span><span class="si">{</span><span class="n">path_type</span><span class="si">}</span><span class="s2">'"</span>
 
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">bs_lbl</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deser</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">load_projections</span><span class="p">:</span>
                 <span class="n">proj_bs_label</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
@@ -362,7 +368,7 @@
                     <span class="n">label</span><span class="o">=</span><span class="s2">"bandstructure_projections"</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">proj_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span>
-                    <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">bs_lbl</span><span class="p">,</span> <span class="n">proj_bs_label</span><span class="p">)</span>
+                    <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">bs_lbl</span><span class="p">,</span> <span class="n">proj_bs_label</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">proj_bs_label</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="nb">len</span><span class="p">(</span><span class="n">deser_proj</span> <span class="o">:=</span> <span class="n">proj_table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span>
@@ -398,7 +404,7 @@
 <span class="sd">                bandstructure, if available.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            bandstructure (Union[BandStructure, BandStructureSymmLine]): BandStructure or BandStructureSymmLine object</span>
+<span class="sd">            bandstructure (BandStructure | BandStructureSymmLine): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        """</span>
         <span class="n">pt</span><span class="p">:</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">BSPathType</span><span class="p">(</span><span class="n">path_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">path_type</span>
@@ -476,7 +482,7 @@
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">"MPRester.electronic_structure_dos.search_dos_summary is deprecated. "</span>
             <span class="s2">"Please use MPRester.electronic_structure_dos.search instead."</span><span class="p">,</span>
-            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="ne">FutureWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -502,8 +508,8 @@
 <span class="w">        </span><span class="sd">"""Query density of states summary data in electronic structure docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.</span>
-<span class="sd">            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.</span>
+<span class="sd">            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.</span>
+<span class="sd">            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.</span>
 <span class="sd">            element (Element or str): Element for element-projected dos data.</span>
 <span class="sd">            magnetic_ordering (Ordering or str): Magnetic ordering of the material.</span>
 <span class="sd">            orbital (OrbitalType or str): Orbital for orbital-projected dos data.</span>
@@ -512,7 +518,7 @@
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in ElectronicStructureDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in ElectronicStructureDoc to return data for.</span>
 <span class="sd">                Default is material_id and last_updated if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>
@@ -623,7 +629,7 @@
             <span class="n">rt</span> <span class="o">=</span> <span class="n">RunType</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">run_type</span>
             <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">AND run_type='</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">'"</span>
 
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">dos_lbl</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deser</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">load_projections</span><span class="p">:</span>
                 <span class="n">proj_dos_label</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
@@ -632,7 +638,7 @@
                     <span class="n">label</span><span class="o">=</span><span class="s2">"dos_projections"</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">proj_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span>
-                    <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dos_lbl</span><span class="p">,</span> <span class="n">proj_dos_label</span><span class="p">)</span>
+                    <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dos_lbl</span><span class="p">,</span> <span class="n">proj_dos_label</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">proj_dos_label</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="nb">len</span><span class="p">(</span><span class="n">deser_proj</span> <span class="o">:=</span> <span class="n">proj_table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span>

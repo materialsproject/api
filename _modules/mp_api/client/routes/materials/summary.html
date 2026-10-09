@@ -33,7 +33,6 @@
   <h1>Source code for mp_api.client.routes.materials.summary</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">product</span>
 
@@ -41,7 +40,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.symmetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrystalSystem</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.magnetism</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ordering</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span><span class="p">,</span> <span class="n">MPRestWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="n">mp_warning</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 
@@ -111,6 +111,7 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">_page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">_sort_fields</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
@@ -118,80 +119,83 @@
 <span class="w">        </span><span class="sd">"""Query core data using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.</span>
-<span class="sd">            chemsys (str, List[str]): A chemical system or list of chemical systems</span>
+<span class="sd">            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.</span>
+<span class="sd">            chemsys (str | list[str]): A chemical system or list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).</span>
 <span class="sd">            crystal_system (CrystalSystem or list[CrystalSystem]): Crystal system(s) of the materials.</span>
-<span class="sd">            density (Tuple[float,float]): Minimum and maximum density to consider.</span>
+<span class="sd">            density (tuple[float, float]): Minimum and maximum density to consider.</span>
 <span class="sd">            deprecated (bool): Whether the material is tagged as deprecated.</span>
-<span class="sd">            e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.</span>
-<span class="sd">            e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.</span>
-<span class="sd">            e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.</span>
-<span class="sd">            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.</span>
-<span class="sd">            elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for the elastic anisotropy.</span>
-<span class="sd">            elements (List[str]): A list of elements.</span>
-<span class="sd">            energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.</span>
-<span class="sd">            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy in</span>
+<span class="sd">            e_electronic (tuple[float, float]): Minimum and maximum electronic dielectric constant to consider.</span>
+<span class="sd">            e_ionic (tuple[float, float]): Minimum and maximum ionic dielectric constant to consider.</span>
+<span class="sd">            e_total (tuple[float, float]): Minimum and maximum total dielectric constant to consider.</span>
+<span class="sd">            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.</span>
+<span class="sd">            elastic_anisotropy (tuple[float, float]): Minimum and maximum value to consider for the elastic anisotropy.</span>
+<span class="sd">            elements (list[str]): A list of elements.</span>
+<span class="sd">            energy_above_hull (tuple[int, int]): Minimum and maximum energy above the hull in eV/atom to consider.</span>
+<span class="sd">            equilibrium_reaction_energy (tuple[float, float]): Minimum and maximum equilibrium reaction energy in</span>
 <span class="sd">                eV/atom to consider.</span>
 <span class="sd">            exclude_elements (List(str)): List of elements to exclude.</span>
-<span class="sd">            formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.</span>
-<span class="sd">            formula (str, List[str]): A formula including anonymized formula</span>
+<span class="sd">            formation_energy (tuple[int, int]): Minimum and maximum formation energy in eV/atom to consider.</span>
+<span class="sd">            formula (str | list[str]): A formula including anonymized formula</span>
 <span class="sd">                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed</span>
 <span class="sd">                (e.g., [Fe2O3, ABO3]).</span>
-<span class="sd">            g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average</span>
+<span class="sd">            g_reuss (tuple[float, float]): Minimum and maximum value in GPa to consider for the Reuss average</span>
 <span class="sd">                of the shear modulus.</span>
-<span class="sd">            g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt average</span>
+<span class="sd">            g_voigt (tuple[float, float]): Minimum and maximum value in GPa to consider for the Voigt average</span>
 <span class="sd">                of the shear modulus.</span>
-<span class="sd">            g_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill</span>
+<span class="sd">            g_vrh (tuple[float, float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill</span>
 <span class="sd">                average of the shear modulus.</span>
-<span class="sd">            has_props: (List[HasProps], List[str]): The calculated properties available for the material.</span>
+<span class="sd">            has_props (list[HasProps] | list[str]): The calculated properties available for the material.</span>
 <span class="sd">            has_reconstructed (bool): Whether the entry has any reconstructed surfaces.</span>
 <span class="sd">            is_gap_direct (bool): Whether the material has a direct band gap.</span>
 <span class="sd">            is_metal (bool): Whether the material is considered a metal.</span>
 <span class="sd">            is_stable (bool): Whether the material lies on the convex energy hull.</span>
-<span class="sd">            k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average</span>
+<span class="sd">            k_reuss (tuple[float, float]): Minimum and maximum value in GPa to consider for the Reuss average</span>
 <span class="sd">                of the bulk modulus.</span>
-<span class="sd">            k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt average</span>
+<span class="sd">            k_voigt (tuple[float, float]): Minimum and maximum value in GPa to consider for the Voigt average</span>
 <span class="sd">                of the bulk modulus.</span>
-<span class="sd">            k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill</span>
+<span class="sd">            k_vrh (tuple[float, float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill</span>
 <span class="sd">                average of the bulk modulus.</span>
 <span class="sd">            magnetic_ordering (Ordering): Magnetic ordering of the material.</span>
-<span class="sd">            material_ids (str, List[str]): A single Material ID string or list of strings</span>
+<span class="sd">            material_ids (str | list[str]): A single Material ID string or list of strings</span>
 <span class="sd">                (e.g., mp-149, [mp-149, mp-13]).</span>
-<span class="sd">            n (Tuple[float,float]): Minimum and maximum refractive index to consider.</span>
-<span class="sd">            nelements (Tuple[int,int]): Minimum and maximum number of elements to consider.</span>
-<span class="sd">            num_elements (Tuple[int,int]): Alias for `nelements`, deprecated. Minimum and maximum number of elements to consider.</span>
-<span class="sd">            num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.</span>
-<span class="sd">            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.</span>
-<span class="sd">            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites to consider.</span>
-<span class="sd">            piezoelectric_modulus (Tuple[float,float]): Minimum and maximum piezoelectric modulus to consider.</span>
-<span class="sd">            poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for Poisson's ratio.</span>
+<span class="sd">            n (tuple[float, float]): Minimum and maximum refractive index to consider.</span>
+<span class="sd">            nelements (tuple[int, int]): Minimum and maximum number of elements to consider.</span>
+<span class="sd">            num_elements (tuple[int, int]): Alias for `nelements`, deprecated. Minimum and maximum number of elements to consider.</span>
+<span class="sd">            num_sites (tuple[int, int]): Minimum and maximum number of sites to consider.</span>
+<span class="sd">            num_magnetic_sites (tuple[int, int]): Minimum and maximum number of magnetic sites to consider.</span>
+<span class="sd">            num_unique_magnetic_sites (tuple[int, int]): Minimum and maximum number of unique magnetic sites to consider.</span>
+<span class="sd">            piezoelectric_modulus (tuple[float, float]): Minimum and maximum piezoelectric modulus to consider.</span>
+<span class="sd">            poisson_ratio (tuple[float, float]): Minimum and maximum value to consider for Poisson's ratio.</span>
 <span class="sd">            possible_species (List(str)): List of element symbols appended with oxidation states. (e.g. Cr2+,O2-)</span>
-<span class="sd">            shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.</span>
+<span class="sd">            shape_factor (tuple[float, float]): Minimum and maximum shape factor values to consider.</span>
 <span class="sd">            spacegroup_number (int or list[int]): Space group number(s) of materials.</span>
 <span class="sd">            spacegroup_symbol (str or list[str]): Space group symbol(s) of the materials in international short symbol notation.</span>
-<span class="sd">            surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values</span>
+<span class="sd">            surface_energy_anisotropy (tuple[float, float]): Minimum and maximum surface energy anisotropy values</span>
 <span class="sd">                to consider.</span>
 <span class="sd">            theoretical: (bool): Whether the material is theoretical.</span>
-<span class="sd">            total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.</span>
-<span class="sd">            total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.</span>
-<span class="sd">            total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization</span>
+<span class="sd">            total_energy (tuple[int, int]): Minimum and maximum corrected total energy in eV/atom to consider.</span>
+<span class="sd">            total_magnetization (tuple[float, float]): Minimum and maximum total magnetization values to consider.</span>
+<span class="sd">            total_magnetization_normalized_formula_units (tuple[float, float]): Minimum and maximum total magnetization</span>
 <span class="sd">                values normalized by formula units to consider.</span>
-<span class="sd">            total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values</span>
+<span class="sd">            total_magnetization_normalized_vol (tuple[float, float]): Minimum and maximum total magnetization values</span>
 <span class="sd">                normalized by volume to consider.</span>
-<span class="sd">            uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.</span>
-<span class="sd">            volume (Tuple[float,float]): Minimum and maximum volume to consider.</span>
-<span class="sd">            weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy</span>
+<span class="sd">            uncorrected_energy (tuple[int, int]): Minimum and maximum uncorrected total energy in eV/atom to consider.</span>
+<span class="sd">            volume (tuple[float, float]): Minimum and maximum volume to consider.</span>
+<span class="sd">            weighted_surface_energy (tuple[float, float]): Minimum and maximum weighted surface energy</span>
 <span class="sd">                in J/m² to consider.</span>
-<span class="sd">            weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.</span>
+<span class="sd">            weighted_work_function (tuple[float, float]): Minimum and maximum weighted work function in eV to consider.</span>
 <span class="sd">            include_gnome (bool): whether to include materials from GNoMe dataset</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in SummaryDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in SummaryDoc to return data for.</span>
 <span class="sd">                Default is material_id if all_fields is False.</span>
 <span class="sd">            _page (int or None) : Page of the results to skip to.</span>
 <span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.</span>
+<span class="sd">            db_version (str | None): Database version to download when no filters are given</span>
+<span class="sd">                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.</span>
+<span class="sd">                See `available_db_versions()`.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.</span>
@@ -271,62 +275,51 @@
             <span class="n">warning_strs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">exc_strs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">csrc</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\x1b</span><span class="s2">[34m</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="se">\x1b</span><span class="s2">[39m"</span>
-
-            <span class="k">def</span><span class="w"> </span><span class="nf">_csrc</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\x1b</span><span class="s2">[31m</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="se">\x1b</span><span class="s2">[39m"</span>
-
             <span class="c1"># Warn the user if they input any fields from _search without setting equivalent kwargs in search</span>
             <span class="k">if</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">"warn"</span><span class="p">]:</span>
                 <span class="n">warning_strs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                     <span class="p">[</span>
-                        <span class="sa">f</span><span class="s2">"You have specified fields used by </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="s1">'`_search`'</span><span class="p">)</span><span class="si">}</span><span class="s2"> that can be understood by </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">'`search`'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"   </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">_csrc</span><span class="p">(</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">db_keys</span><span class="p">[</span><span class="s1">'warn'</span><span class="p">]])</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"To ensure long term support, please use their </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">'`search`'</span><span class="p">)</span><span class="si">}</span><span class="s2"> equivalents:"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"   </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">csrc</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">db_keys</span><span class="p">[</span><span class="s1">'warn'</span><span class="p">]])</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="s2">"You have specified fields used by `_search` that can be understood by `search`:"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">db_keys</span><span class="p">[</span><span class="s1">'warn'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="s2">"To ensure long term support, please use their `search` equivalents:"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">db_keys</span><span class="p">[</span><span class="s1">'warn'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                     <span class="p">]</span>
                 <span class="p">)</span>
 
             <span class="c1"># Throw an exception if the user input a field from _search and its equivalent search kwarg</span>
             <span class="k">if</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">"duplicate"</span><span class="p">]:</span>
-                <span class="n">dupe_pairs</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
-                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">"duplicate"</span><span class="p">]</span>
+                <span class="n">dupe_pairs</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">    "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">min_max_name_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">"duplicate"</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="n">exc_strs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                     <span class="p">[</span>
-                        <span class="sa">f</span><span class="s2">"You have specified fields known to both </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">'`search`'</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="s1">'`_search`'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"   </span><span class="si">{</span><span class="n">dupe_pairs</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"To avoid query ambiguity, please check your </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">'`search`'</span><span class="p">)</span><span class="si">}</span><span class="s2"> query and only specify"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"   </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">csrc</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">db_keys</span><span class="p">[</span><span class="s1">'duplicate'</span><span class="p">]])</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="s2">"You have specified fields known to both `search` and `_search`:"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">dupe_pairs</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="s2">"To avoid query ambiguity, please check your `search` query and only specify:"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">db_keys</span><span class="p">[</span><span class="s1">'duplicate'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                     <span class="p">]</span>
                 <span class="p">)</span>
             <span class="c1"># Throw an exception if any unknown kwargs were input</span>
             <span class="k">if</span> <span class="n">db_keys</span><span class="p">[</span><span class="s2">"unknown"</span><span class="p">]:</span>
                 <span class="n">exc_strs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                     <span class="p">[</span>
-                        <span class="sa">f</span><span class="s2">"You have specified the following kwargs which are unknown to </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">'`search`'</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
-                        <span class="sa">f</span><span class="s2">"but may be known to </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="s1">'`_search`'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"    </span><span class="se">\x1b</span><span class="s2">[36m</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">db_keys</span><span class="p">[</span><span class="s1">'unknown'</span><span class="p">])</span><span class="si">}</span><span class="se">\x1b</span><span class="s2">[39m"</span><span class="p">,</span>
+                        <span class="s2">"You have specified the following kwargs which are unknown to `search`, "</span>
+                        <span class="s2">"but may be known to `_search`:"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">db_keys</span><span class="p">[</span><span class="s1">'unknown'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                     <span class="p">]</span>
                 <span class="p">)</span>
 
             <span class="c1"># Always print links to documentation on warning / exception</span>
             <span class="n">warn_ref_strs</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="s2">"Please see the documentation:"</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">csrc</span><span class="p">(</span><span class="s1">'`search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"   </span><span class="si">{</span><span class="n">_csrc</span><span class="p">(</span><span class="s1">'`_search`: https://api.materialsproject.org/redoc#tag/Materials-Summary/operation/search_materials_summary__get'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"    `search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search"</span><span class="p">,</span>
+                <span class="s2">"    `_search`: https://api.materialsproject.org/redoc#tag/Materials-Summary/operation/search_materials_summary__get"</span><span class="p">,</span>
             <span class="p">]</span>
 
             <span class="k">if</span> <span class="n">exc_strs</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">warning_strs</span><span class="p">,</span> <span class="o">*</span><span class="n">exc_strs</span><span class="p">,</span> <span class="o">*</span><span class="n">warn_ref_strs</span><span class="p">]))</span>
             <span class="k">if</span> <span class="n">warn_ref_strs</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">warning_strs</span><span class="p">,</span> <span class="o">*</span><span class="n">warn_ref_strs</span><span class="p">]),</span>
-                    <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
-                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="n">mp_warning</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">warning_strs</span><span class="p">,</span> <span class="o">*</span><span class="n">warn_ref_strs</span><span class="p">]),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">user_settings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"_page"</span><span class="p">,</span> <span class="s2">"_sort_fields"</span><span class="p">}:</span>
@@ -420,6 +413,7 @@
                         <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
                         <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
                         <span class="o">**</span><span class="p">{</span><span class="n">sk</span><span class="p">:</span> <span class="n">symm_params</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ordered_symm_key</span><span class="p">)},</span>
+                        <span class="n">db_version</span><span class="o">=</span><span class="n">db_version</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="k">for</span> <span class="n">symm_params</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span>
                         <span class="o">*</span><span class="p">[</span><span class="n">batched_symm_query</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ordered_symm_key</span><span class="p">]</span>
@@ -433,6 +427,7 @@
             <span class="n">all_fields</span><span class="o">=</span><span class="n">all_fields</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="o">**</span><span class="n">query_params</span><span class="p">,</span>
+            <span class="n">db_version</span><span class="o">=</span><span class="n">db_version</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>
 

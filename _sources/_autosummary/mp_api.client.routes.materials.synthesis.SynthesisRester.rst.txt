@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.synthesis.SynthesisRester
    .. autosummary::
    
       ~SynthesisRester.__init__
+      ~SynthesisRester.available_db_versions
       ~SynthesisRester.count
       ~SynthesisRester.get_data_by_id
       ~SynthesisRester.search
@@ -31,6 +32,7 @@ mp\_api.client.routes.materials.synthesis.SynthesisRester
    
       ~SynthesisRester.available_fields
       ~SynthesisRester.delta_backed
+      ~SynthesisRester.delta_catalog
       ~SynthesisRester.primary_key
       ~SynthesisRester.query_builder
       ~SynthesisRester.s3_client

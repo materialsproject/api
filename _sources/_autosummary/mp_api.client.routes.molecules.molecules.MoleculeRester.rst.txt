@@ -17,6 +17,7 @@ mp\_api.client.routes.molecules.molecules.MoleculeRester
    .. autosummary::
    
       ~MoleculeRester.__init__
+      ~MoleculeRester.available_db_versions
       ~MoleculeRester.count
       ~MoleculeRester.get_data_by_id
    
@@ -30,6 +31,7 @@ mp\_api.client.routes.molecules.molecules.MoleculeRester
    
       ~MoleculeRester.available_fields
       ~MoleculeRester.delta_backed
+      ~MoleculeRester.delta_catalog
       ~MoleculeRester.primary_key
       ~MoleculeRester.query_builder
       ~MoleculeRester.s3_client

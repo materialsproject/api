@@ -33,7 +33,6 @@
   <h1>Source code for mp_api.client.routes.materials.electrodes</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.electrode</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -44,7 +43,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.periodic_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestError</span><span class="p">,</span> <span class="n">MPRestWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="n">mp_warning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPRestError</span>
 
 
 <div class="viewcode-block" id="BaseElectrodeRester">
@@ -79,48 +79,52 @@
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">all_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">db_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">_page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">_sort_fields</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">InsertionElectrodeDoc</span> <span class="o">|</span> <span class="n">ConversionElectrodeDoc</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Query using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            battery_ids (str, List[str]): A single battery ID string or list of strings</span>
+<span class="sd">            battery_ids (str | list[str]): A single battery ID string or list of strings</span>
 <span class="sd">                (e.g., mp-22526_Li, [mp-22526_Li, mp-22526_Ca]).</span>
-<span class="sd">            average_voltage (Tuple[float,float]): Minimum and maximum value of the average voltage for a particular</span>
+<span class="sd">            average_voltage (tuple[float, float]): Minimum and maximum value of the average voltage for a particular</span>
 <span class="sd">                voltage step in V.</span>
-<span class="sd">            capacity_grav (Tuple[float,float]): Minimum and maximum value of the gravimetric capacity in maH/g.</span>
-<span class="sd">            capacity_vol (Tuple[float,float]): Minimum and maximum value of the volumetric capacity in maH/cc.</span>
-<span class="sd">            elements (List[str]): A list of elements for the framework material.</span>
-<span class="sd">            energy_grav (Tuple[float,float]): Minimum and maximum value of the gravimetric energy (specific energy)</span>
+<span class="sd">            capacity_grav (tuple[float, float]): Minimum and maximum value of the gravimetric capacity in maH/g.</span>
+<span class="sd">            capacity_vol (tuple[float, float]): Minimum and maximum value of the volumetric capacity in maH/cc.</span>
+<span class="sd">            elements (list[str]): A list of elements for the framework material.</span>
+<span class="sd">            energy_grav (tuple[float, float]): Minimum and maximum value of the gravimetric energy (specific energy)</span>
 <span class="sd">                in Wh/kg.</span>
-<span class="sd">            energy_vol (Tuple[float,float]): Minimum and maximum value of the volumetric energy (energy density)</span>
+<span class="sd">            energy_vol (tuple[float, float]): Minimum and maximum value of the volumetric energy (energy density)</span>
 <span class="sd">                in Wh/l.</span>
-<span class="sd">            exclude_elements (List[str]): A list of elements to exclude for the framework material.</span>
-<span class="sd">            formula (str, List[str]): Chemical formula or list of chemical formulas of any of the materials</span>
+<span class="sd">            exclude_elements (list[str]): A list of elements to exclude for the framework material.</span>
+<span class="sd">            formula (str | list[str]): Chemical formula or list of chemical formulas of any of the materials</span>
 <span class="sd">                associated with the electrode system. This includes materials partially along the charge-discharge path.</span>
-<span class="sd">            fracA_charge (Tuple[float,float]): Minimum and maximum value of the atomic fraction of the working ion</span>
+<span class="sd">            fracA_charge (tuple[float, float]): Minimum and maximum value of the atomic fraction of the working ion</span>
 <span class="sd">                in the charged state.</span>
-<span class="sd">            fracA_discharge (Tuple[float,float]): Minimum and maximum value of the atomic fraction of the working ion</span>
+<span class="sd">            fracA_discharge (tuple[float, float]): Minimum and maximum value of the atomic fraction of the working ion</span>
 <span class="sd">                in the discharged state.</span>
-<span class="sd">            max_delta_volume (Tuple[float,float]): Minimum and maximum value of the max volume change in percent for a</span>
+<span class="sd">            max_delta_volume (tuple[float, float]): Minimum and maximum value of the max volume change in percent for a</span>
 <span class="sd">                particular voltage step.</span>
-<span class="sd">            max_voltage_step (Tuple[float,float]): Minimum and maximum value of the maximum voltage for a particular</span>
+<span class="sd">            max_voltage_step (tuple[float, float]): Minimum and maximum value of the maximum voltage for a particular</span>
 <span class="sd">                voltage step in V.</span>
-<span class="sd">            num_elements (Tuple[int,int]): Minimum and maximum number of elements to consider.</span>
+<span class="sd">            num_elements (tuple[int, int]): Minimum and maximum number of elements to consider.</span>
 <span class="sd">            num_steps (int): Number of distinct voltage steps from charged to discharged based on stable intermediates.</span>
-<span class="sd">            stability_charge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the charged</span>
+<span class="sd">            stability_charge (tuple[float, float]): Minimum and maximum value of the energy above hull of the charged</span>
 <span class="sd">                material.</span>
-<span class="sd">            stability_discharge (Tuple[float,float]): Minimum and maximum value of the energy above hull of the</span>
+<span class="sd">            stability_discharge (tuple[float, float]): Minimum and maximum value of the energy above hull of the</span>
 <span class="sd">                discharged material.</span>
-<span class="sd">            working_ion (Element, List[Element]): Element or list of elements of the working ion.</span>
+<span class="sd">            working_ion (Element | list[Element]): Element or list of elements of the working ion.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in InsertionElectrodeDoc or ConversionElectrodeDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in InsertionElectrodeDoc or ConversionElectrodeDoc to return data for.</span>
 <span class="sd">                Default is battery_id and last_updated if all_fields is False.</span>
 <span class="sd">            _page (int or None) : Page of the results to skip to.</span>
 <span class="sd">            _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.</span>
+<span class="sd">            db_version (str | None): Database version to download when no filters are given</span>
+<span class="sd">                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.</span>
+<span class="sd">                See `available_db_versions()`.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([InsertionElectrodeDoc or ConversionElectrodeDoc], [dict]) List of insertion/conversion electrode documents or dictionaries.</span>
@@ -178,9 +182,8 @@
             <span class="k">if</span> <span class="n">query_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="p">}</span>
         <span class="k">if</span> <span class="n">ignored_fields</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="n">mp_warning</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Ignoring fields </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ignored_fields</span><span class="p">)</span><span class="si">}</span><span class="s2"> which are not valid options for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="n">category</span><span class="o">=</span><span class="n">MPRestWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
 
@@ -190,7 +193,7 @@
             <span class="k">if</span> <span class="n">query_params</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="p">}</span>
 
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span><span class="o">**</span><span class="n">query_params</span><span class="p">)</span>  <span class="c1"># type: ignore[return-value]</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span><span class="o">**</span><span class="n">query_params</span><span class="p">,</span> <span class="n">db_version</span><span class="o">=</span><span class="n">db_version</span><span class="p">)</span>  <span class="c1"># type: ignore[return-value]</span></div>
 </div>
 
 

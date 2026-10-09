@@ -62,11 +62,11 @@
 <span class="w">        </span><span class="sd">"""Query for DOI data.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            material_ids (str, List[str]): Search for DOI data associated with the specified Material IDs</span>
+<span class="sd">            material_ids (str | list[str]): Search for DOI data associated with the specified Material IDs</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in DOIDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in DOIDoc to return data for.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ([DOIDoc], [dict]) List of DOIDoc documents or dictionaries.</span>

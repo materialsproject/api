@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.elasticity.ElasticityRester
    .. autosummary::
    
       ~ElasticityRester.__init__
+      ~ElasticityRester.available_db_versions
       ~ElasticityRester.count
       ~ElasticityRester.get_data_by_id
       ~ElasticityRester.search
@@ -31,6 +32,7 @@ mp\_api.client.routes.materials.elasticity.ElasticityRester
    
       ~ElasticityRester.available_fields
       ~ElasticityRester.delta_backed
+      ~ElasticityRester.delta_catalog
       ~ElasticityRester.primary_key
       ~ElasticityRester.query_builder
       ~ElasticityRester.s3_client

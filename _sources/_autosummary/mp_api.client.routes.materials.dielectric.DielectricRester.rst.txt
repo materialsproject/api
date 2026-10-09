@@ -17,6 +17,7 @@ mp\_api.client.routes.materials.dielectric.DielectricRester
    .. autosummary::
    
       ~DielectricRester.__init__
+      ~DielectricRester.available_db_versions
       ~DielectricRester.count
       ~DielectricRester.get_data_by_id
       ~DielectricRester.search
@@ -31,6 +32,7 @@ mp\_api.client.routes.materials.dielectric.DielectricRester
    
       ~DielectricRester.available_fields
       ~DielectricRester.delta_backed
+      ~DielectricRester.delta_catalog
       ~DielectricRester.primary_key
       ~DielectricRester.query_builder
       ~DielectricRester.s3_client

@@ -91,7 +91,9 @@
 <span class="s2">            </span><span class="si">{</span><span class="n">predicate</span><span class="si">}</span><span class="s2">;</span>
 <span class="s2">        """</span>
 
-        <span class="n">traj_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">)</span>
+        <span class="n">traj_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">traj_lbl</span><span class="p">)</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span>
+            <span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">traj_data</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No trajectory data for </span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2"> found"</span><span class="p">)</span>
@@ -116,17 +118,17 @@
 <span class="w">        </span><span class="sd">"""Query core task docs using a variety of search criteria.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            task_ids (str, List[str]): List of Materials Project IDs to return data for.</span>
-<span class="sd">            elements (List[str]): A list of elements.</span>
-<span class="sd">            exclude_elements (List[str]): A list of elements to exclude.</span>
-<span class="sd">            formula (str, List[str]): A formula including anonymized formula</span>
+<span class="sd">            task_ids (str | list[str]): List of Materials Project IDs to return data for.</span>
+<span class="sd">            elements (list[str]): A list of elements.</span>
+<span class="sd">            exclude_elements (list[str]): A list of elements to exclude.</span>
+<span class="sd">            formula (str | list[str]): A formula including anonymized formula</span>
 <span class="sd">                or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed</span>
 <span class="sd">                (e.g., [Fe2O3, ABO3]).</span>
 <span class="sd">            last_updated (tuple[datetime, datetime]): A tuple of min and max UTC formatted datetimes.</span>
 <span class="sd">            num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.</span>
 <span class="sd">            chunk_size (int): Number of data entries per chunk. Max size is 100.</span>
 <span class="sd">            all_fields (bool): Whether to return all fields in the document. Defaults to True.</span>
-<span class="sd">            fields (List[str]): List of fields in CoreTaskDoc to return data for.</span>
+<span class="sd">            fields (list[str]): List of fields in CoreTaskDoc to return data for.</span>
 <span class="sd">                Default is material_id, last_updated, and formula_pretty if all_fields is False.</span>
 
 <span class="sd">        Returns:</span>
