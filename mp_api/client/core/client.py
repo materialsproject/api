@@ -941,12 +941,8 @@ class BaseRester(_Rester):
         versioned = version_counts is not None
 
         version: str | None = None
-        if versioned:
-            version = self._resolve_db_version(
-                requested,
-                version_counts,
-                collection,  # type: ignore[arg-type]
-            )
+        if version_counts is not None:
+            version = self._resolve_db_version(requested, version_counts, collection)
         elif override:
             logger.warning(
                 f"The {collection} dataset has a single version, ignoring "
