@@ -819,16 +819,12 @@ loop_
         reason="upstream known to timeout",
         strict=False,
     )
-    def test_nomad_integration(self, mpr):
+    def test_nomad_integration(self, mpr, caplog):
         # No particular reason for this MPID other than that it exists in NOMAD.
         target_mpid = "mp-10018"
-        with (
-            pytest.warns(
-                MPRestWarning, match="Full downloads of raw data are being transitioned"
-            ),
-            pytest.warns(
-                MPRestWarning, match="the following ids are not found on NOMAD"
-            ),
+        caplog.set_level(logging.WARNING, logger="mp_api.client")
+        with pytest.warns(
+            MPRestWarning, match="Full downloads of raw data are being transitioned"
         ):
             calc_type_map, nomad_urls = mpr.get_download_info(
                 target_mpid,
@@ -863,6 +859,13 @@ loop_
                 and "re_pattern=POSCAR%7COUTCAR" in url
                 for url in nomad_urls
             )
+
+        # tasks missing from NOMAD are a data event: logged, not warned
+        assert any(
+            "the following ids are not found on NOMAD" in r.getMessage()
+            and r.levelno == logging.WARNING
+            for r in caplog.records
+        )
 
     def test_db_warning(self, monkeypatch: pytest.MonkeyPatch):
         from pathlib import Path
