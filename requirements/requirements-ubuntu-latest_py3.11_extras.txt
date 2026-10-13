@@ -703,7 +703,7 @@ webcolors==25.10.0
     # via jsonschema
 websockets==17.0.1
     # via fastmcp-slim
-werkzeug==3.1.8
+werkzeug==3.1.9
     # via flask
 wrapt==2.3.0
     # via deprecated
