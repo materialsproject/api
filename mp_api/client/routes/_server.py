@@ -98,11 +98,11 @@ class MessagesRester(BaseRester):  # pragma: no cover
 
         Args:
             last_updated (datetime): Datetime to use to query for newer messages
-            sort_fields (List[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
+            sort_fields (list[str]): Fields used to sort results. Prefix with '-' to sort in descending order.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields to project.
+            fields (list[str]): List of fields to project.
 
         Returns:
             Dictionary with messages data

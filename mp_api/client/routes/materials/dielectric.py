@@ -24,21 +24,25 @@ class DielectricRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[DielectricDoc] | list[dict]:
         """Query dielectric docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.
-            e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
-            e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
-            n (Tuple[float,float]): Minimum and maximum refractive index to consider.
+            e_total (tuple[float, float]): Minimum and maximum total dielectric constant to consider.
+            e_ionic (tuple[float, float]): Minimum and maximum ionic dielectric constant to consider.
+            e_electronic (tuple[float, float]): Minimum and maximum electronic dielectric constant to consider.
+            n (tuple[float, float]): Minimum and maximum refractive index to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in DielectricDoc to return data for.
+            fields (list[str]): List of fields in DielectricDoc to return data for.
                 Default is material_id and last_updated if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([DielectricDoc], [dict]) List of dielectric documents or dictionaries.
@@ -80,4 +84,5 @@ class DielectricRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )

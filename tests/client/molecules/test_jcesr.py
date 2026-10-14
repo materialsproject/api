@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import pytest
 from pymatgen.core.periodic_table import Element
@@ -15,9 +16,11 @@ from mp_api.client.routes.molecules.jcesr import JcesrMoleculesRester
 
 @pytest.fixture
 def rester():
-    rester = JcesrMoleculesRester()
-    yield rester
-    rester.session.close()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        rester = JcesrMoleculesRester()
+        yield rester
+        rester.session.close()
 
 
 excluded_params = [
@@ -64,8 +67,10 @@ def test_warning():
 
 @requires_api_key
 def test_pagination():
-    with JcesrMoleculesRester() as rester:
-        client_pagination(rester.search, "task_id")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with JcesrMoleculesRester() as rester:
+            client_pagination(rester.search, "task_id")
 
 
 @requires_api_key
@@ -76,5 +81,7 @@ def test_pagination():
     ],
 )
 def test_sort(sort_field):
-    with JcesrMoleculesRester() as rester:
-        client_sort(rester.search, sort_field, default_fields=())
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with JcesrMoleculesRester() as rester:
+            client_sort(rester.search, sort_field, default_fields=())

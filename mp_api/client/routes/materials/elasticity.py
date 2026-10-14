@@ -28,33 +28,37 @@ class ElasticityRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[ElasticityDoc] | list[dict]:
         """Query elasticity docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for
+            elastic_anisotropy (tuple[float, float]): Minimum and maximum value to consider for
                 the elastic anisotropy.
-            g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+            g_voigt (tuple[float, float]): Minimum and maximum value in GPa to consider for
                 the Voigt average of the shear modulus.
-            g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+            g_reuss (tuple[float, float]): Minimum and maximum value in GPa to consider for
                 the Reuss average of the shear modulus.
-            g_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+            g_vrh (tuple[float, float]): Minimum and maximum value in GPa to consider for
                 the Voigt-Reuss-Hill average of the shear modulus.
-            k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+            k_voigt (tuple[float, float]): Minimum and maximum value in GPa to consider for
                 the Voigt average of the bulk modulus.
-            k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+            k_reuss (tuple[float, float]): Minimum and maximum value in GPa to consider for
                 the Reuss average of the bulk modulus.
-            k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for
+            k_vrh (tuple[float, float]): Minimum and maximum value in GPa to consider for
                 the Voigt-Reuss-Hill average of the bulk modulus.
-            poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for
+            poisson_ratio (tuple[float, float]): Minimum and maximum value to consider for
                 Poisson's ratio.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in ElasticityDoc to return data for.
+            fields (list[str]): List of fields in ElasticityDoc to return data for.
                 Default is material_id and prett-formula if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([ElasticityDoc], [dict]) List of elasticity documents or dictionaries.
@@ -110,4 +114,5 @@ class ElasticityRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )

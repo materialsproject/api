@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING
 
 from emmet.core.xas import XASDoc, validate_xas_spectrum_id
 from pymatgen.core.periodic_table import Element
 
-from mp_api.client.core import BaseRester, MPRestWarning
+from mp_api.client.core import BaseRester
+from mp_api.client.core._display import mp_deprecation
 from mp_api.client.core.exceptions import MPRestError
 
 if TYPE_CHECKING:
@@ -19,7 +19,6 @@ class XASRester(BaseRester):
     suffix = "materials/xas"
     document_model = XASDoc  # type: ignore
     primary_key = "task_id"
-    delta_backed = False
 
     def search(
         self,
@@ -46,18 +45,18 @@ class XASRester(BaseRester):
             absorbing_element (Element): The absorbing element.
             formula (str): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*).
-            chemsys (str, List[str]): A chemical system or list of chemical systems
+            chemsys (str | list[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            elements (List[str]): A list of elements.
-            task_ids (str, List[str]): A single Task ID string or list of strings
+            elements (list[str]): A list of elements.
+            task_ids (str | list[str]): A single Task ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
             spectrum_type (XasType): Spectrum type (e.g. EXAFS, XAFS, or XANES).
-            spectrum_ids (str, List[str]): A single Spectrum ID string or list of strings
+            spectrum_ids (str | list[str]): A single Spectrum ID string or list of strings
                 (e.g., mp-149-XANES-Li-K, [mp-149-XANES-Li-K, mp-13-XANES-Li-K]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in MaterialsCoreDoc to return data for.
+            fields (list[str]): List of fields in MaterialsCoreDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
@@ -73,12 +72,11 @@ class XASRester(BaseRester):
                     "Please specify only `task_ids`."
                 )
             task_ids = kwargs.pop("material_ids")
-            warnings.warn(
+            mp_deprecation(
                 "`material_id` has been replaced by `task_id` in the xas endpoint. "
                 "Please migrate to using the newer field name and the `task_ids` kwarg "
                 "for searching.",
                 stacklevel=2,
-                category=MPRestWarning,
             )
 
         _locals = locals()

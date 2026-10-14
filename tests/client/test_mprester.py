@@ -1,5 +1,6 @@
 import importlib
 import itertools
+import logging
 import os
 import random
 import warnings
@@ -35,7 +36,9 @@ from pymatgen.entries.computed_entries import (
     ConstantEnergyAdjustment,
     GibbsComputedStructureEntry,
 )
-from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
+from pymatgen.analysis.compatibility.mixing_scheme import (
+    MaterialsProjectDFTMixingScheme,
+)
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
 
@@ -79,7 +82,7 @@ class TestMPRester:
         assert db_version is not None
 
         with pytest.warns(
-            MPRestWarning, match="`get_database_version` has been deprecated"
+            FutureWarning, match="`get_database_version` has been deprecated"
         ):
             assert db_version == mpr.get_database_version()
 
@@ -144,46 +147,53 @@ loop_
  _atom_site_occupancy
   Ne  Ne0  1  0.00000000  0.00000000  -0.00000000  1
 """
-        struct_from_cif = CifParser.from_str(cif_str).parse_structures(primitive=True)[
-            0
-        ]
-        temp_file = NamedTemporaryFile(suffix=".cif")
-        with open(temp_file.name, "wt") as f:
-            f.write(cif_str)
-            f.seek(0)
 
-        for struct_or_path, use_document_model in [
-            (temp_file.name, True),
-            (struct_from_cif, False),
-        ]:
-            with MPRester(use_document_model=use_document_model) as mpr:
-                data = mpr.find_structure(struct_or_path)
-            assert isinstance(data, str) and data == "mp-111"
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            struct_from_cif = CifParser.from_str(cif_str).parse_structures(
+                primitive=True
+            )[0]
+            temp_file = NamedTemporaryFile(suffix=".cif")
+            with open(temp_file.name, "wt") as f:
+                f.write(cif_str)
+                f.seek(0)
 
-        f.close()
+            for struct_or_path, use_document_model in [
+                (temp_file.name, True),
+                (struct_from_cif, False),
+            ]:
+                with MPRester(use_document_model=use_document_model) as mpr:
+                    data = mpr.find_structure(struct_or_path)
+                assert isinstance(data, str) and data == "mp-111"
 
-        with pytest.raises(MPRestError, match="Provide filename or Structure object."):
-            mpr.find_structure(struct_from_cif.as_dict())
+            f.close()
 
-        with pytest.raises(MPRestError, match="`allow_multiple_results` must be a"):
-            mpr.find_structure(struct_from_cif, allow_multiple_results=1.0)
+            with pytest.raises(
+                MPRestError, match="Provide filename or Structure object."
+            ):
+                mpr.find_structure(struct_from_cif.as_dict())
 
-        assert (
-            len(
-                mpr.find_structure(
-                    struct_from_cif.copy().replace_species({"Ne": "K"}),
-                    allow_multiple_results=2,
+            with pytest.raises(MPRestError, match="`allow_multiple_results` must be a"):
+                mpr.find_structure(struct_from_cif, allow_multiple_results=1.0)
+
+            assert (
+                len(
+                    mpr.find_structure(
+                        struct_from_cif.copy().replace_species({"Ne": "K"}),
+                        allow_multiple_results=2,
+                    )
                 )
+                <= 2
             )
-            <= 2
-        )
 
     def test_get_bandstructure_by_material_id(self, mpr):
-        bs = mpr.get_bandstructure_by_material_id("mp-149")
-        assert isinstance(bs, BandStructureSymmLine)
-        bs_uniform = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
-        assert isinstance(bs_uniform, BandStructure)
-        assert not isinstance(bs_uniform, BandStructureSymmLine)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            bs = mpr.get_bandstructure_by_material_id("mp-149")
+            assert isinstance(bs, BandStructureSymmLine)
+            bs_uniform = mpr.get_bandstructure_by_material_id("mp-149", line_mode=False)
+            assert isinstance(bs_uniform, BandStructure)
+            assert not isinstance(bs_uniform, BandStructureSymmLine)
 
     def test_get_dos_by_id(self, mpr):
         dos = mpr.get_dos_by_material_id("mp-149")
@@ -210,7 +220,7 @@ loop_
         syms = ["Li", "Fe", "O"]
         chemsys = "Li-Fe-O"
         with pytest.warns(
-            DeprecationWarning, match="The `inc_structure` argument is deprecated"
+            FutureWarning, match="The `inc_structure` argument is deprecated"
         ):
             entries = mpr.get_entries(thermo_docs[0].chemsys, inc_structure=False)
 
@@ -278,11 +288,13 @@ loop_
     def test_get_entries_in_chemsys(self, mpr):
         syms = ["Li", "Fe", "O"]
         syms2 = "Li-Fe-O"
-        with pytest.warns(
-            MPRestWarning, match="The default thermo type when retrieving entries"
-        ):
-            entries = mpr.get_entries_in_chemsys(syms)
-        entries2 = mpr.get_entries_in_chemsys(syms2)
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            entries = mpr.get_entries_in_chemsys(syms)  # default thermo type
+        assert not [w for w in record if issubclass(w.category, MPRestWarning)]
+        entries2 = mpr.get_entries_in_chemsys(
+            syms2, additional_criteria={"thermo_types": [ThermoType.GGA_GGA_U_R2SCAN]}
+        )
         elements = {Element(sym) for sym in syms}
         for e in entries:
             assert isinstance(e, ComputedEntry)
@@ -292,7 +304,11 @@ loop_
         e2 = {i.entry_id for i in entries2}
         assert e1 == e2
 
-        gibbs_entries = mpr.get_entries_in_chemsys(syms2, use_gibbs=500)
+        gibbs_entries = mpr.get_entries_in_chemsys(
+            syms2,
+            use_gibbs=500,
+            additional_criteria={"thermo_types": [ThermoType.GGA_GGA_U_R2SCAN]},
+        )
         for e in gibbs_entries:
             assert isinstance(e, GibbsComputedStructureEntry)
 
@@ -308,7 +324,10 @@ loop_
         chemical system that entry's thermo doc was built for, so pooling the served entries
         across subsystems put Cs2TiI6 ~4.6 eV/atom above the hull instead of on it.
         """
-        entries = mpr.get_entries_in_chemsys("Cs-Ti-I")
+        entries = mpr.get_entries_in_chemsys(
+            "Cs-Ti-I",
+            additional_criteria={"thermo_types": [ThermoType.GGA_GGA_U_R2SCAN]},
+        )
         phase_diagram = PhaseDiagram(entries)
         host = next(e for e in entries if e.composition.reduced_formula == "Cs2TiI6")
         assert phase_diagram.get_e_above_hull(host) == pytest.approx(0.0, abs=1e-6)
@@ -334,7 +353,9 @@ loop_
             all_fields=False,
             fields=["material_id", "energy_above_hull"],
         )
-        entries = mpr.get_entries_in_chemsys("H-O")
+        entries = mpr.get_entries_in_chemsys(
+            "H-O", additional_criteria={"thermo_types": [ThermoType.GGA_GGA_U_R2SCAN]}
+        )
         phase_diagram = PhaseDiagram(entries)
         by_mpid = defaultdict(list)
         for entry in entries:
@@ -352,7 +373,11 @@ loop_
 
         # uncorrected mixed entries cannot be placed on a common scale, so a warning is thrown:
         with pytest.warns(MPRestWarning, match="common energy scale"):
-            mpr.get_entries_in_chemsys("Cs-Ti-I", compatible_only=False)
+            mpr.get_entries_in_chemsys(
+                "Cs-Ti-I",
+                compatible_only=False,
+                additional_criteria={"thermo_types": [ThermoType.GGA_GGA_U_R2SCAN]},
+            )
 
     def test_get_entries_in_chemsys_decorated_served_pd(self, mpr):
         """
@@ -360,9 +385,14 @@ loop_
         the pre-built phase diagram (and decorated post-hoc), rather than falling back
         to re-applying the mixing scheme locally (which can differ from MP's hull).
         """
-        entries = mpr.get_entries_in_chemsys("H-O")
+        entries = mpr.get_entries_in_chemsys(
+            "H-O", additional_criteria={"thermo_types": [ThermoType.GGA_GGA_U_R2SCAN]}
+        )
         decorated = mpr.get_entries_in_chemsys(
-            "H-O", property_data=["energy_above_hull"], conventional_unit_cell=True
+            "H-O",
+            property_data=["energy_above_hull"],
+            conventional_unit_cell=True,
+            additional_criteria={"thermo_types": [ThermoType.GGA_GGA_U_R2SCAN]},
         )
         served = {
             str(e.entry_id): (
@@ -662,94 +692,94 @@ loop_
             with MPRester() as mpr:
                 mpr.get_cohesive_energy("mp-1")
 
-    # SOMETHING IS OFF HERE FOR THE MIXING SCHEME
-    # MIXING SCHEME TEST IS FLAKY, PASSES ROUGHLY 20% OF THE TIME
     @pytest.mark.parametrize(
         "thermo_type", ["GGA_GGA+U", ThermoType.GGA_GGA_U_R2SCAN, "r2SCAN"]
     )
-    def test_get_stability(self, thermo_type):
+    def test_get_stability(self, thermo_type, caplog):
         """
         This test is adapted from the pymatgen one - the scope is broadened
         to include more diverse chemical environments and thermo types which
         reflect the scope of the current MP database.
         """
-        if (
-            isinstance(thermo_type, ThermoType)
-            and thermo_type == ThermoType.GGA_GGA_U_R2SCAN
-        ):
-            pytest.skip("See comments about flakiness for mixing scheme")
 
-        with MPRester() as mpr:
+        with warnings.catch_warnings():
+            # ignore some common pmg warnings: failed to guess oxi states, discarding entries, etc.
+            warnings.filterwarnings("ignore", category=UserWarning)
 
-            # No golden test data. Always test on fetched thermo data
-            chemsys_to_test: set[str] = {
-                doc.chemsys
-                for doc in mpr.materials.thermo.search(
-                    thermo_types=[thermo_type],
-                    num_elements=2,
-                    num_chunks=1,
-                    chunk_size=4,
-                    fields=["chemsys"],
-                )
-            }
-
-            for chemsys in chemsys_to_test:
-
-                # RETURN ORDER NOT DETERMINISTIC
-                entries = mpr.get_entries_in_chemsys(
-                    chemsys, additional_criteria={"thermo_types": [thermo_type]}
-                )
-
-                modified_entries = [
-                    ComputedEntry(
-                        entry.composition,
-                        entry.uncorrected_energy + 0.01,
-                        parameters=entry.parameters,
-                        entry_id=f"mod_{entry.entry_id}",
+            with MPRester() as mpr:
+                # No golden test data. Always test on fetched thermo data
+                chemsys_to_test: set[str] = {
+                    doc.chemsys
+                    for doc in mpr.materials.thermo.search(
+                        thermo_types=[thermo_type],
+                        num_elements=2,
+                        num_chunks=1,
+                        chunk_size=4,
+                        fields=["chemsys"],
                     )
-                    for entry in entries
-                    # MIXING SCHEME - ONLY PASSES IF A "GOOD" ENTRY IS RETURNED FIRST??
-                    if entry.entry_id == entries[0].entry_id
-                ]
+                }
 
-                if (
-                    all(len(entry.composition.elements) == 1 for entry in entries)
-                    and chemsys.count("-") > 0
-                ):
-                    # For a multi-element chemsys with no multinaries, only elementals,
-                    # there should be no phase diagram data available.
-                    with pytest.warns(
-                        MPRestWarning, match="No phase diagram data available"
+                for chemsys in chemsys_to_test:
+                    # RETURN ORDER NOT DETERMINISTIC
+                    entries = mpr.get_entries_in_chemsys(
+                        chemsys, additional_criteria={"thermo_types": [thermo_type]}
+                    )
+
+                    modified_entries = [
+                        ComputedEntry(
+                            entry.composition,
+                            entry.uncorrected_energy + 0.01,
+                            parameters=entry.parameters,
+                            entry_id=f"mod_{entry.entry_id}",
+                        )
+                        for entry in entries
+                        # MIXING SCHEME - ONLY PASSES IF A "GOOD" ENTRY IS RETURNED FIRST??
+                        if entry.entry_id == entries[0].entry_id
+                    ]
+
+                    if (
+                        all(len(entry.composition.elements) == 1 for entry in entries)
+                        and chemsys.count("-") > 0
                     ):
-                        mpr.get_stability(modified_entries, thermo_type=thermo_type)
-                    return
+                        # For a multi-element chemsys with no multinaries, only elementals,
+                        # there should be no phase diagram data available.
+                        # a data event, so a log record rather than a warning
+                        with caplog.at_level(logging.WARNING, logger="mp_api.client"):
+                            assert (
+                                mpr.get_stability(
+                                    modified_entries, thermo_type=thermo_type
+                                )
+                                is None
+                            )
+                        assert "No phase diagram data available" in caplog.text
+                        return
 
-                else:
-                    rester_ehulls = mpr.get_stability(
-                        modified_entries, thermo_type=thermo_type
-                    )
+                    else:
+                        rester_ehulls = mpr.get_stability(
+                            modified_entries, thermo_type=thermo_type
+                        )
 
-            all_entries = entries + modified_entries
+                all_entries = entries + modified_entries
 
-            compat = None
-            if thermo_type == "GGA_GGA+U":
-                compat = MaterialsProject2020Compatibility()
-            elif thermo_type == "GGA_GGA+U_R2SCAN":
-                compat = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
+                compat = None
+                if thermo_type == "GGA_GGA+U":
+                    compat = MaterialsProject2020Compatibility()
+                elif thermo_type == "GGA_GGA+U_R2SCAN":
+                    compat = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
 
-            if compat:
-                all_entries = compat.process_entries(all_entries)
+                if compat:
+                    all_entries = compat.process_entries(all_entries)
 
-            pd = PhaseDiagram(all_entries)
-            for entry in all_entries:
-                if str(entry.entry_id).startswith("mod"):
-                    for dct in rester_ehulls:
-                        if dct["entry_id"] == entry.entry_id:
-                            data = dct
-                            break
-                    assert pd.get_e_above_hull(entry) == pytest.approx(
-                        data["e_above_hull"]
-                    )
+                pd = PhaseDiagram(all_entries)
+                for entry in all_entries:
+                    if str(entry.entry_id).startswith("mod"):
+                        for dct in rester_ehulls:
+                            if dct["entry_id"] == entry.entry_id:
+                                data = dct
+                                break
+                        assert pd.get_e_above_hull(entry) == pytest.approx(
+                            data["e_above_hull"]
+                        )
 
     @pytest.mark.parametrize(
         "mpid, working_ion, thermo_type",
@@ -789,16 +819,12 @@ loop_
         reason="upstream known to timeout",
         strict=False,
     )
-    def test_nomad_integration(self, mpr):
+    def test_nomad_integration(self, mpr, caplog):
         # No particular reason for this MPID other than that it exists in NOMAD.
         target_mpid = "mp-10018"
-        with (
-            pytest.warns(
-                MPRestWarning, match="Full downloads of raw data are being transitioned"
-            ),
-            pytest.warns(
-                MPRestWarning, match="the following ids are not found on NOMAD"
-            ),
+        caplog.set_level(logging.WARNING, logger="mp_api.client")
+        with pytest.warns(
+            MPRestWarning, match="Full downloads of raw data are being transitioned"
         ):
             calc_type_map, nomad_urls = mpr.get_download_info(
                 target_mpid,
@@ -834,6 +860,13 @@ loop_
                 for url in nomad_urls
             )
 
+        # tasks missing from NOMAD are a data event: logged, not warned
+        assert any(
+            "the following ids are not found on NOMAD" in r.getMessage()
+            and r.levelno == logging.WARNING
+            for r in caplog.records
+        )
+
     def test_db_warning(self, monkeypatch: pytest.MonkeyPatch):
         from pathlib import Path
 
@@ -853,30 +886,30 @@ loop_
             assert parsed_db_ver == db_version
             assert isinstance(parsed_db_ver, str)
 
-    def test_warnings_exceptions(self):
-        # Generic warnings/exceptions tests, nothji
-        with pytest.warns(MPRestWarning, match="Ignoring `monty_decode`"):
+    def test_warnings_exceptions(self, caplog):
+        # Generic warnings/exceptions tests
+        with pytest.warns(FutureWarning, match="Ignoring `monty_decode`"):
             MPRester(monty_decode=False)
 
         with MPRester() as mpr:
             with pytest.raises(
                 NotImplementedError,
-                match="The MPRester\(\).query method has been replaced",
+                match=r"The MPRester\(\).query method has been replaced",
             ):
                 mpr.query(some_field=1.0)
 
-            with pytest.warns(
-                MPRestWarning, match="No material found containing task mp-0"
-            ):
+            # a data event, so a log record rather than a warning
+            with caplog.at_level(logging.WARNING, logger="mp_api.client"):
                 assert mpr.get_material_id_from_task_id("mp-0") is None
+            assert "No material found containing task mp-0" in caplog.text
 
             for attr in mpr._deprecated_attributes:
                 with pytest.warns(
-                    DeprecationWarning, match="Accessing.*data through MPRester\..*"
+                    FutureWarning, match=r"Accessing.*data through MPRester\..*"
                 ):
                     getattr(mpr, attr, None)
 
-    def test_min_emmet_warning(self, monkeypatch: pytest.MonkeyPatch):
+    def test_min_emmet_warning(self, monkeypatch: pytest.MonkeyPatch, caplog):
         from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
         with MPRester() as mpr:
@@ -884,7 +917,6 @@ loop_
             monkeypatch.setattr(
                 MAPI_CLIENT_SETTINGS, "MIN_EMMET_VERSION", f"{emmet_ver.major + 1}.0.0"
             )
-            with pytest.warns(
-                MPRestWarning, match="The installed version of the mp-api"
-            ):
+            with caplog.at_level(logging.WARNING, logger="mp_api.client"):
                 MPRester()
+            assert "The installed version of the mp-api" in caplog.text

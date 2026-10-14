@@ -37,21 +37,21 @@ class MoleculesSummaryRester(BaseRester):
         Arguments:
             charge (int): Minimum and maximum charge for the molecule.
             spin_multiplicity (int): Minimum and maximum spin for the molecule.
-            nelements (Tuple[int, int]): Minimum and maximum number of elements
-            chemsys (str, List[str]): A chemical system, list of chemical systems
+            nelements (tuple[int, int]): Minimum and maximum number of elements
+            chemsys (str | list[str]): A chemical system, list of chemical systems
                 (e.g., Li-C-O, [C-O-H-N, Li-N]).
             #deprecated (bool): Whether the material is tagged as deprecated.
-            elements (List[str]): A list of elements.
+            elements (list[str]): A list of elements.
             exclude_elements (List(str)): List of elements to exclude.
-            formula (str, List[str]): An alphabetical formula or list of formulas
+            formula (str | list[str]): An alphabetical formula or list of formulas
                 (e.g. "C2 Li2 O4", ["C2 H4", "C2 H6"]).
-            has_props: (List[HasProps]): The calculated properties available for the material.
+            has_props (list[HasProps]): The calculated properties available for the material.
             molecule_ids (str or MPculeID, or list[str | MPculeID]):
                 (List of) Materials Project Molecule IDs (MPculeIDs) to return data for.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in SearchDoc to return data for.
+            fields (list[str]): List of fields in SearchDoc to return data for.
                 Default is material_id if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.

@@ -7,9 +7,11 @@ from importlib import import_module
 from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin
+from urllib.parse import unquote, urljoin
 
 import orjson
+import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from deltalake import DeltaTable
 from emmet.core import __version__ as _EMMET_CORE_VER
@@ -17,12 +19,13 @@ from emmet.core.mpid import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
+from mp_api.client.core._display import mp_advice, mp_warning
+from mp_api.client.core._external import track_calls
 from mp_api.client.core.exceptions import (
     MPDatasetIndexingWarning,
     MPDatasetIterationWarning,
     MPDatasetSlicingWarning,
     MPRestError,
-    MPRestWarning,
 )
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
@@ -59,6 +62,36 @@ def _compare_emmet_ver(
     )(parse_version(ref_version))
 
 
+def to_partition_version(db_version: str) -> str:
+    """Convert a database version to the form used for DeltaTable partitions.
+
+    Partition values use dashes where the database version uses dots,
+    e.g. "2026.04.13" -> "2026-04-13" and "2026.04.13.post1" -> "2026-04-13-post1".
+    Dashes and underscores are accepted in the input too.
+
+    Args:
+        db_version (str) : database version, e.g. "2026.04.13"
+
+    Returns:
+        str : partition value, e.g. "2026-04-13"
+    """
+    return db_version.strip().lstrip("v").replace(".", "-").replace("_", "-")
+
+
+def to_db_version(partition_version: str) -> str:
+    """Convert a DeltaTable partition value to the database version form.
+
+    The inverse of `to_partition_version`, e.g. "2026-04-13" -> "2026.04.13".
+
+    Args:
+        partition_version (str) : partition value, e.g. "2026-04-13"
+
+    Returns:
+        str : database version, e.g. "2026.04.13"
+    """
+    return to_partition_version(partition_version).replace("-", ".")
+
+
 def load_json(
     json_like: str | bytes, deser: bool = False, encoding: str = "utf-8"
 ) -> Any:
@@ -82,10 +115,9 @@ def validate_api_key(api_key: str | None = None) -> str | None:
         # The web server requires the client to initialize without an API key.
         # Only warn the user if the API key cannot be identified to permit
         # the web server to run.
-        warnings.warn(
+        mp_warning(
             "No API key found, please set explicitly or in "
             "the `MP_API_KEY` environment variable.",
-            category=MPRestWarning,
             stacklevel=2,
         )
 
@@ -99,26 +131,92 @@ def validate_api_key(api_key: str | None = None) -> str | None:
     return api_key
 
 
-def validate_ids(id_list: list[str]) -> list[str]:
-    """Function to validate material and task IDs.
+LEGACY_ID_PREFIXES: frozenset[str] = frozenset({"mvc"})
+"""Prefixes of identifiers that used to exist in the database but were removed."""
+
+
+def _shortlist(items: list[Any], sep: str = ", ", limit: int = 10) -> str:
+    """The first `limit` items joined by `sep`, noting how many were left out."""
+    shown = sep.join(map(str, items[:limit]))
+    if len(items) > limit:
+        shown += f"{sep}... ({len(items) - limit:,} more)"
+    return shown
+
+
+def _is_legacy_id(idx: Any) -> bool:
+    return isinstance(idx, str) and idx.split("-", 1)[0] in LEGACY_ID_PREFIXES
+
+
+def validate_ids(id_list: Iterable[Any], *, user_input: bool = True) -> list[str]:
+    """Validate and format Materials Project identifiers (material and task IDs).
+
+    Identifiers are checked strictly (see `emmet.core.mpid.validate_identifier`
+    with `strict=True`): a bare ID ("149", "aaaaaaft") or "<prefix>-<id>" with
+    a known prefix ("mp-149"). Invalid identifiers are dropped and reported
+    together in one `MPRestWarning`, which the caller can act on. Legacy
+    identifiers (e.g. "mvc-149"), which were removed from the database, are
+    dropped with a notice of their own.
 
     Args:
-        id_list (List[str]): List of material or task IDs.
+        id_list (Iterable) : identifiers given by the user, or returned by the API
+        user_input (bool) : True for identifiers the user passed. False for
+            identifiers the API returned, for which an invalid one is a bug, so
+            an `MPRestError` is raised instead of a warning.
 
     Raises:
-        MPRestError: If at least one ID is not formatted correctly.
+        MPRestError: if too many identifiers are given, if none is valid, or
+            (with `user_input=False`) if any is invalid.
 
     Returns:
-        id_list: Returns original ID list if everything is formatted correctly.
+        list of str : the valid identifiers, formatted, in their input order
     """
+    from mp_api.client.core._external import user_stacklevel
+
+    id_list = list(id_list)
     if len(id_list) > MAPI_CLIENT_SETTINGS.MAX_LIST_LENGTH:
         raise MPRestError(
             "List of material/molecule IDs provided is too long. Consider removing the ID filter to automatically pull"
             " data for all IDs and filter locally."
         )
 
-    validated = [validate_identifier(idx, serialize=False) for idx in id_list]
-    return [getattr(idx, "string", str(idx)) for idx in validated]
+    valid: list[str] = []
+    legacy: list[str] = []
+    invalid: list[str] = []
+    for idx in id_list:
+        if _is_legacy_id(idx):
+            legacy.append(idx)
+            continue
+        try:
+            parsed = validate_identifier(idx, serialize=False, strict=True)
+        except ValueError as exc:
+            invalid.append(str(exc))
+            continue
+        valid.append(getattr(parsed, "string", str(parsed)))
+
+    if not user_input and (invalid or legacy):
+        raise MPRestError(
+            "The Materials Project API returned invalid identifiers: "
+            + _shortlist(invalid + [repr(idx) for idx in legacy], sep="; ")
+        )
+
+    stacklevel = user_stacklevel()
+    if legacy:
+        mp_warning(
+            "These IDs refer to legacy calculations that have been removed from the "
+            f"Materials Project database, and are ignored: {_shortlist(legacy)}",
+            stacklevel=stacklevel,
+        )
+    if invalid:
+        reasons = [f"{reason.rstrip('.')}." for reason in invalid]
+        mp_warning(
+            "Ignoring invalid IDs. Materials Project IDs are a bare ID, e.g. "
+            "'149' or 'aaaaaaft', or '<prefix>-<id>', e.g. 'mp-149'. "
+            + _shortlist(reasons, sep=" "),
+            stacklevel=stacklevel,
+        )
+    if id_list and not valid:
+        raise MPRestError(f"No valid IDs to query (ignored: {_shortlist(id_list)}).")
+    return valid
 
 
 def validate_endpoint(endpoint: str | None, suffix: str | None = None) -> str:
@@ -251,6 +349,7 @@ class LazyImport:
         return self._obj.__dir__() if hasattr(self._obj, "__dir__") else []
 
 
+@track_calls
 class MPDataset:
     """Convenience wrapper for pyarrow datasets stored on disk."""
 
@@ -259,6 +358,7 @@ class MPDataset:
         path: str | Path,
         document_model: ModelMetaclass,
         use_document_model: bool,
+        version: str | None = None,
     ):
         """Initialize a MPDataset.
 
@@ -270,11 +370,15 @@ class MPDataset:
             Pydantic document model for use during de-serialization of arrow data
         use_document_model: bool
             Use 'document_model' during de-serialization of arrow data.
+        version: str | None
+            Database version to read, for datasets partitioned by version,
+            e.g. "2026.04.13". If None, all data in the dataset is read.
         """
         self._start: int = 0
         self._path = Path(path)
         self._document_model: ModelMetaclass = document_model
-        self._dataset = ds.dataset(path)
+        self._version = to_db_version(version) if version else None
+        self._dataset = self._open_dataset()
         self._row_groups: list[Any] = list(
             chain.from_iterable(
                 [
@@ -284,6 +388,53 @@ class MPDataset:
             )
         )
         self._use_document_model = use_document_model
+
+    def _open_dataset(self) -> ds.Dataset:
+        """Open the data files that the DeltaTable's current version uses.
+
+        The file list comes from the Delta log, so files left behind by an
+        interrupted download, or removed from the table but not yet vacuumed,
+        are not read. Without a Delta log, every file in the directory is read.
+
+        The files are opened directly with pyarrow rather than through
+        `DeltaTable.to_pyarrow_dataset()`: reading through deltalake's
+        filesystem can hang the interpreter at exit (delta-rs 1.5.1).
+        """
+        if not DeltaTable.is_deltatable(str(self._path)):
+            return ds.dataset(self._path)
+
+        table = DeltaTable(self._path)
+        actions = pa.table(table.get_add_actions(flatten=True))
+        if self._version and "version" in table.metadata().partition_columns:
+            actions = actions.filter(
+                pc.equal(  # type: ignore[attr-defined]
+                    actions["partition.version"],
+                    to_partition_version(self._version),
+                )
+            )
+        # Paths in the log are relative to the table root and URL-encoded
+        files = [str(self._path / unquote(rel)) for rel in actions["path"].to_pylist()]
+        return ds.dataset(
+            files, schema=self._file_schema(table, files), format="parquet"
+        )
+
+    @staticmethod
+    def _file_schema(table: DeltaTable, files: list[str]) -> pa.Schema | None:
+        """Schema of the data files, used when there are none to infer it from.
+
+        Partition columns (e.g. version) are stored in the directory names,
+        not the files, so they are left out.
+        """
+        if files:
+            return None
+        partition_columns = set(table.metadata().partition_columns)
+        schema = pa.schema(table.schema().to_arrow())  # type: ignore[arg-type]
+        return pa.schema([f for f in schema if f.name not in partition_columns])
+
+    @property
+    def version(self) -> str | None:
+        """The database version this dataset reads, e.g. "2026.04.13"."""
+        return self._version
 
     @property
     def pyarrow_dataset(self) -> ds.Dataset:
@@ -311,12 +462,11 @@ class MPDataset:
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
-            warnings.warn(
-                """
-                Pythonic slicing of arrow-based MPDatasets is sub-optimal, consider using
-                idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-                docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
-                """,
+            mp_advice(
+                "Pythonic slicing of arrow-based MPDatasets is sub-optimal, consider "
+                "using idiomatic arrow patterns. See MP's docs on MPDatasets for "
+                "relevant examples: "
+                "docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets",
                 MPDatasetSlicingWarning,
                 stacklevel=2,
             )
@@ -329,12 +479,11 @@ class MPDataset:
                 else ds_slice
             )
 
-        warnings.warn(
-            """
-            Pythonic indexing into arrow-based MPDatasets is sub-optimal, consider using
-            idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-            docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
-            """,
+        mp_advice(
+            "Pythonic indexing into arrow-based MPDatasets is sub-optimal, consider "
+            "using idiomatic arrow patterns. See MP's docs on MPDatasets for "
+            "relevant examples: "
+            "docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets",
             MPDatasetIndexingWarning,
             stacklevel=2,
         )
@@ -348,12 +497,11 @@ class MPDataset:
         with warnings.catch_warnings(
             action="ignore", category=MPDatasetIndexingWarning
         ):
-            warnings.warn(
-                """
-                Iterating through arrow-based MPDatasets is sub-optimal, consider using
-                idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-                docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
-                """,
+            mp_advice(
+                "Iterating through arrow-based MPDatasets is sub-optimal, consider "
+                "using idiomatic arrow patterns. See MP's docs on MPDatasets for "
+                "relevant examples: "
+                "docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets",
                 MPDatasetIterationWarning,
                 stacklevel=2,
             )

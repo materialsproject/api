@@ -12,7 +12,6 @@ class SurfacePropertiesRester(BaseRester):
     suffix = "materials/surface_properties"
     document_model = SurfacePropDoc  # type: ignore
     primary_key = "material_id"
-    delta_backed = False
 
     def search(
         self,
@@ -30,19 +29,19 @@ class SurfacePropertiesRester(BaseRester):
         """Query surface properties docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
-            shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
-            surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values to
+            shape_factor (tuple[float, float]): Minimum and maximum shape factor values to consider.
+            surface_energy_anisotropy (tuple[float, float]): Minimum and maximum surface energy anisotropy values to
                 consider.
-            weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy in J/m² to
+            weighted_surface_energy (tuple[float, float]): Minimum and maximum weighted surface energy in J/m² to
                 consider.
-            weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.
+            weighted_work_function (tuple[float, float]): Minimum and maximum weighted work function in eV to consider.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in SurfacePropDoc to return data for.
+            fields (list[str]): List of fields in SurfacePropDoc to return data for.
                 Default is material_id only if all_fields is False.
 
         Returns:

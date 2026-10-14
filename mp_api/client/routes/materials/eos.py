@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.eos import EOSDoc
 
-from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
+from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core._display import mp_deprecation
 from mp_api.client.core.utils import validate_ids
 
 
@@ -28,13 +28,13 @@ class EOSRester(BaseRester):
         """Query equations of state docs using a variety of search criteria.
 
         Arguments:
-            task_ids (str, List[str]): Search for equation of states associated with the specified task IDs
-            energies (Tuple[float,float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
-            volumes (Tuple[float,float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
+            task_ids (str | list[str]): Search for equation of states associated with the specified task IDs
+            energies (tuple[float, float]): Minimum and maximum energy in eV/atom to consider for EOS plot range.
+            volumes (tuple[float, float]): Minimum and maximum volume in A³/atom to consider for EOS plot range.
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in EOSDoc to return data for.
+            fields (list[str]): List of fields in EOSDoc to return data for.
                 Default is material_id only if all_fields is False.
             **kwargs : used for handling deprecated kwargs
 
@@ -50,11 +50,10 @@ class EOSRester(BaseRester):
                     "Please specify only `task_ids`."
                 )
             task_ids = kwargs.pop("material_ids")
-            warnings.warn(
+            mp_deprecation(
                 "`material_id` has been replaced by `task_id` in the EOS endpoint. "
                 "Please migrate to using the newer field name.",
                 stacklevel=2,
-                category=MPRestWarning,
             )
 
         if task_ids:

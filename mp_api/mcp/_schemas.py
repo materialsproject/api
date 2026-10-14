@@ -416,7 +416,7 @@ class FetchResult(BaseModel):
     @model_validator(mode="before")
     def set_url(cls, config: Any) -> Any:
         """Set default Materials Project URL and title."""
-        formatted_mpid = validate_ids([config.get("id")])[0]
+        formatted_mpid = validate_ids([config.get("id")], user_input=False)[0]
         if not config.get("title"):
             config["title"] = formatted_mpid
 

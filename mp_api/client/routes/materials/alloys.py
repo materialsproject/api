@@ -21,6 +21,7 @@ class AlloysRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[AlloyPairDoc] | list[dict]:
         """Query for hypothetical alloys formed between two commensurate
         crystal structures, following the methodology in
@@ -30,12 +31,15 @@ class AlloysRester(BaseRester):
         endpoint is useful.
 
         Arguments:
-            material_ids (str, List[str]): Search for alloys containing the specified Material IDs
-            formulae (List[str]): Search for alloys containing the specified formulae
+            material_ids (str | list[str]): Search for alloys containing the specified Material IDs
+            formulae (list[str]): Search for alloys containing the specified formulae
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in AlloyPairDoc to return data for.
+            fields (list[str]): List of fields in AlloyPairDoc to return data for.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([AlloyPairDoc], [dict]) List of alloy pair documents or dictionaries.
@@ -61,4 +65,5 @@ class AlloysRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )

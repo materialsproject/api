@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 _REQUIRED_CLIENT_KWARGS = {
     "use_document_model": False,
     "include_user_agent": True,
+    # stdio transport: never draw progress bars (they go to stderr regardless)
+    "mute_progress_bars": True,
 }
 
 

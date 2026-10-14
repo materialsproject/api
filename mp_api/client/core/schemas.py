@@ -2,19 +2,35 @@
 
 from __future__ import annotations
 
-from functools import cached_property
+import logging
+from functools import cached_property, lru_cache
 from importlib import import_module
+from importlib.metadata import version
 from itertools import chain
 from typing import TYPE_CHECKING, ForwardRef, get_args
 
 from emmet.core.utils import jsanitize
-from pydantic import BaseModel, create_model
+from pydantic import (
+    BaseModel,
+    ValidationError,
+    create_model,
+    field_validator,
+)
+from rich.highlighter import ReprHighlighter
+from rich.text import Text
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Any
 
     from pydantic.fields import FieldInfo
+
+logger = logging.getLogger(__name__)
+
+
+@lru_cache(20)
+def _warn_failed_field_validation(logger: logging.Logger, msg: str):
+    logger.warning(msg)
 
 
 class _DictLikeAccess(BaseModel):
@@ -47,7 +63,7 @@ class _DictLikeAccess(BaseModel):
         return (
             f"{self.__class__.__name__}(\n"
             + "\n".join(
-                f"  {k} ({annos[k]}) : {getattr(self,k)}" for k in populated_fields
+                f"  {k} ({annos[k]}) : {getattr(self, k)}" for k in populated_fields
             )
             + "\n)"
         )
@@ -55,6 +71,24 @@ class _DictLikeAccess(BaseModel):
     def __repr__(self) -> str:
         """Match output of str()."""
         return self.__str__()
+
+    @field_validator("*", mode="wrap")
+    @classmethod
+    def ignore_invalid(cls, value, default_validator, info) -> Any:
+        try:
+            return default_validator(value)
+        except ValidationError:
+            emmet_version = version("emmet-core")
+            annotation = cls.model_fields[info.field_name].annotation
+            _warn_failed_field_validation(
+                logger,
+                f"Failed validation on field: '{info.field_name}', received type: '{type(value)}', expected type: '{annotation}'. "
+                "Field value set to 'None', re-run query with 'document_model=False' to skip validation. "
+                f"Local 'emmet-core' version is: '{emmet_version}', run 'mpr = MPRester(); mpr.get_emmet_version(mpr.endpoint)' to "
+                "check the live API server for schema version mismatches and upgrade 'emmet-core' if needed.",
+            )
+
+            return None
 
 
 def _generate_returned_model(
@@ -121,29 +155,45 @@ def _generate_returned_model(
 
     orig_rester_name = document_model.__name__
 
+    def _shown_fields(self, include_not_requested: bool) -> list[str]:
+        return [
+            n
+            for n in data_model.model_fields
+            if n in set_fields
+            or (include_not_requested and n == "fields_not_requested")
+        ]
+
     def new_repr(self) -> str:
         extra = ",\n".join(
-            f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-            for n in data_model.model_fields
-            if n == "fields_not_requested" or n in set_fields
+            f"{n}={getattr(self, n)!r}" for n in _shown_fields(self, True)
         )
-
-        s = f"\033[4m\033[1m{self.__class__.__name__}<{orig_rester_name}>\033[0;0m\033[0;0m(\n{extra}\n)"  # noqa: E501
-        return s
+        return f"{self.__class__.__name__}<{orig_rester_name}>(\n{extra}\n)"
 
     def new_str(self) -> str:
         extra = ",\n".join(
-            f"\033[1m{n}\033[0;0m={getattr(self, n)!r}"
-            for n in data_model.model_fields
-            if n in set_fields
+            f"{n}={getattr(self, n)!r}" for n in _shown_fields(self, False)
+        )
+        return (
+            f"{self.__class__.__name__}<{orig_rester_name}>"
+            f"\n{extra}\n\n"
+            f"Fields not requested:\n{fields_not_requested}"
         )
 
-        return (
-            f"\033[4m\033[1m{self.__class__.__name__}"
-            f"<{orig_rester_name}>\033[0;0m\033[0;0m"
-            f"\n{extra}\n\n"
-            f"\033[1mFields not requested:\033[0;0m\n{fields_not_requested}"
+    def new_rich(self) -> Text:
+        """Styled rendering for rich (console.print, rich.pretty in IPython)."""
+        highlight = ReprHighlighter()
+        text = Text()
+        text.append(
+            f"{self.__class__.__name__}<{orig_rester_name}>", style="bold underline"
         )
+        text.append("(\n")
+        for n in _shown_fields(self, True):
+            text.append(f"    {n}", style="bold")
+            text.append("=")
+            text.append_text(highlight(repr(getattr(self, n))))
+            text.append(",\n")
+        text.append(")")
+        return text
 
     def new_getattr(self, attr) -> str:
         if attr in self.unavailable_fields:
@@ -164,6 +214,7 @@ def _generate_returned_model(
 
     data_model.__repr__ = new_repr
     data_model.__str__ = new_str
+    data_model.__rich__ = new_rich
     data_model.__getattr__ = new_getattr
     data_model.dict = new_dict
 
