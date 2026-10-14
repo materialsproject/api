@@ -500,7 +500,9 @@ entry is also returned.</p>
 <li><p><strong>chemsys_formula_mpids</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – A chemical system, list of chemical systems
 (e.g., Li-Fe-O, Si-<em>, [Si-O, Li-Fe-P]), formula, list of formulas
 (e.g., Fe2O3, Si</em>, [SiO2, BiFeO3]), Materials Project ID, or list of Materials
-Project IDs (e.g., mp-22526, [mp-22526, mp-149]).</p></li>
+Project IDs (e.g., mp-22526, [mp-22526, mp-149]). A list may mix these
+kinds (e.g., [Li-O, Fe2O3, mp-149]): each kind is queried separately and
+the entries are combined. Invalid IDs are skipped with a warning.</p></li>
 <li><p><strong>compatible_only</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether to return only “compatible”
 entries. Compatible entries are entries that have been
 processed using the MaterialsProject2020Compatibility class,

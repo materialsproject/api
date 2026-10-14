@@ -305,7 +305,7 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
-        <span class="n">material_ids</span> <span class="o">=</span> <span class="n">validate_ids</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+        <span class="n">material_ids</span> <span class="o">=</span> <span class="n">validate_ids</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">user_input</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">material_ids</span> <span class="k">if</span> <span class="n">allow_multiple_results</span> <span class="k">else</span> <span class="n">material_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 

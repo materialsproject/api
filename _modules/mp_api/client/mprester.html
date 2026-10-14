@@ -65,6 +65,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DatabaseVersions</span><span class="p">,</span>
+    <span class="n">mp_deprecation</span><span class="p">,</span>
     <span class="n">mp_warning</span><span class="p">,</span>
     <span class="n">print_notice</span><span class="p">,</span>
     <span class="n">status</span><span class="p">,</span>
@@ -73,8 +74,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._entries</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">apply_corrections</span><span class="p">,</span>
     <span class="n">get_conventional_cell_entry</span><span class="p">,</span>
+    <span class="n">mixing_scheme_class</span><span class="p">,</span>
     <span class="n">rescale_to_conventional</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._external</span><span class="w"> </span><span class="kn">import</span> <span class="n">in_current_context</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._oxygen_evolution</span><span class="w"> </span><span class="kn">import</span> <span class="n">OxygenEvolution</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.client</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">LATEST_DB_VERSION</span><span class="p">,</span>
@@ -158,6 +161,41 @@
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">element_set</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">els</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">element_set</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
     <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_classify_chemsys_formula_ids</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Sort `get_entries` inputs into chemical systems, formulas and IDs.</span>
+
+<span class="sd">    - chemical system: element symbols or "*" joined by "-" ("Li-Fe-O", "Si-*")</span>
+<span class="sd">    - formula: no "-", and a valid composition once "*" are removed ("Fe2O3", "Si*")</span>
+<span class="sd">    - anything else is taken to be an ID, validated later</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict : {"chemsys": [...], "formula": [...], "material_ids": [...]},</span>
+<span class="sd">            leaving out kinds with no values, in that order</span>
+<span class="sd">    """</span>
+    <span class="n">by_kind</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"chemsys"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"formula"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"material_ids"</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
+            <span class="n">by_kind</span><span class="p">[</span><span class="s2">"material_ids"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="n">part</span> <span class="o">==</span> <span class="s2">"*"</span> <span class="ow">or</span> <span class="n">Element</span><span class="o">.</span><span class="n">is_valid_symbol</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span>
+        <span class="p">):</span>
+            <span class="n">by_kind</span><span class="p">[</span><span class="s2">"chemsys"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">""</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">Composition</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">by_kind</span><span class="p">[</span><span class="s2">"formula"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+                <span class="k">continue</span>
+        <span class="n">by_kind</span><span class="p">[</span><span class="s2">"material_ids"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">kind</span><span class="p">:</span> <span class="n">found</span> <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">by_kind</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">found</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="MPRester">
@@ -404,10 +442,9 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deprecated_attributes</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="n">mp_deprecation</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Accessing </span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> data through MPRester.</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> is deprecated. "</span>
                 <span class="sa">f</span><span class="s2">"Please use MPRester.materials.</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> instead."</span><span class="p">,</span>
-                <span class="ne">FutureWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="s2">"materials"</span><span class="p">),</span> <span class="n">attr</span><span class="p">)</span>
@@ -503,7 +540,7 @@
             <span class="p">),</span>
             <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">resters</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">))</span> <span class="k">as</span> <span class="n">pool</span><span class="p">,</span>
         <span class="p">):</span>
-            <span class="n">found</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_list</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">resters</span><span class="p">)))</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">in_current_context</span><span class="p">(</span><span class="n">_list</span><span class="p">),</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">resters</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">DatabaseVersions</span><span class="p">(</span>
             <span class="p">{</span><span class="n">route</span><span class="p">:</span> <span class="n">versions</span> <span class="k">for</span> <span class="n">route</span><span class="p">,</span> <span class="n">versions</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="n">versions</span><span class="p">},</span>
             <span class="n">current</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_db_version</span><span class="p">,</span>
@@ -593,10 +630,9 @@
 
 <span class="sd">        Returns: database version as a string if accessible, None otherwise</span>
 <span class="sd">        """</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="n">mp_deprecation</span><span class="p">(</span>
             <span class="s2">"`get_database_version` has been deprecated in favor of "</span>
             <span class="s2">"MPRester().db_version."</span><span class="p">,</span>
-            <span class="ne">FutureWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_version</span></div>
@@ -805,7 +841,9 @@
 <span class="sd">            chemsys_formula_mpids (str | list[str]): A chemical system, list of chemical systems</span>
 <span class="sd">                (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas</span>
 <span class="sd">                (e.g., Fe2O3, Si*, [SiO2, BiFeO3]), Materials Project ID, or list of Materials</span>
-<span class="sd">                Project IDs (e.g., mp-22526, [mp-22526, mp-149]).</span>
+<span class="sd">                Project IDs (e.g., mp-22526, [mp-22526, mp-149]). A list may mix these</span>
+<span class="sd">                kinds (e.g., [Li-O, Fe2O3, mp-149]): each kind is queried separately and</span>
+<span class="sd">                the entries are combined. Invalid IDs are skipped with a warning.</span>
 <span class="sd">            compatible_only (bool): Whether to return only "compatible"</span>
 <span class="sd">                entries. Compatible entries are entries that have been</span>
 <span class="sd">                processed using the MaterialsProject2020Compatibility class,</span>
@@ -827,26 +865,18 @@
 <span class="sd">            List ComputedStructureEntry objects.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"inc_structure"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="n">mp_deprecation</span><span class="p">(</span>
                 <span class="s2">"The `inc_structure` argument is deprecated as final structures "</span>
                 <span class="s2">"are always included in all returned ComputedStructureEntry objects."</span><span class="p">,</span>
-                <span class="ne">FutureWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chemsys_formula_mpids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">chemsys_formula_mpids</span> <span class="o">=</span> <span class="p">[</span><span class="n">chemsys_formula_mpids</span><span class="p">]</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"material_ids"</span><span class="p">:</span> <span class="n">validate_ids</span><span class="p">(</span><span class="n">chemsys_formula_mpids</span><span class="p">)}</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="s2">"-"</span> <span class="ow">in</span> <span class="n">entry</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">chemsys_formula_mpids</span><span class="p">):</span>
-                <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"chemsys"</span><span class="p">:</span> <span class="n">chemsys_formula_mpids</span><span class="p">}</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"formula"</span><span class="p">:</span> <span class="n">chemsys_formula_mpids</span><span class="p">}</span>
-
-        <span class="k">if</span> <span class="n">additional_criteria</span><span class="p">:</span>
-            <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">input_params</span><span class="p">,</span> <span class="o">**</span><span class="n">additional_criteria</span><span class="p">}</span>
+        <span class="n">by_kind</span> <span class="o">=</span> <span class="n">_classify_chemsys_formula_ids</span><span class="p">(</span><span class="n">chemsys_formula_mpids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">by_kind</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"material_ids"</span><span class="p">):</span>  <span class="c1"># report invalid IDs here, before any query</span>
+            <span class="n">by_kind</span><span class="p">[</span><span class="s2">"material_ids"</span><span class="p">]</span> <span class="o">=</span> <span class="n">validate_ids</span><span class="p">(</span><span class="n">by_kind</span><span class="p">[</span><span class="s2">"material_ids"</span><span class="p">])</span>
 
         <span class="n">entries</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">ComputedStructureEntry</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
@@ -856,11 +886,16 @@
             <span class="k">else</span> <span class="p">[</span><span class="s2">"entries"</span><span class="p">,</span> <span class="s2">"thermo_type"</span><span class="p">]</span> <span class="o">+</span> <span class="n">property_data</span>
         <span class="p">)</span>
 
-        <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
-            <span class="o">**</span><span class="n">input_params</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
-            <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="c1"># One query per kind of input (a query matches all of its filters)</span>
+        <span class="n">docs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">doc</span>
+            <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">by_kind</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                <span class="o">**</span><span class="p">{</span><span class="n">kind</span><span class="p">:</span> <span class="n">values</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">additional_criteria</span> <span class="ow">or</span> <span class="p">{})},</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
 
         <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
             <span class="n">entry_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">)</span> <span class="k">else</span> <span class="n">doc</span><span class="p">)[</span>
@@ -1432,9 +1467,7 @@
                 <span class="c1"># building PDs. Mixing scheme is chemical-system dependent, so this can anchor on a</span>
                 <span class="c1"># different hull than MP did/would, and it drops entries it cannot place.</span>
                 <span class="c1"># A data event the caller can't change, so a log record (not a warning):</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.mixing_scheme</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-                    <span class="n">MaterialsProjectDFTMixingScheme</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="n">MaterialsProjectDFTMixingScheme</span> <span class="o">=</span> <span class="n">mixing_scheme_class</span><span class="p">()</span>
 
                 <span class="n">chemsys</span> <span class="o">=</span> <span class="s2">"-"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">elements_set</span><span class="p">))</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -2042,7 +2075,7 @@
             <span class="n">corrector</span> <span class="o">=</span> <span class="n">MaterialsProject2020Compatibility</span><span class="p">()</span>
 
         <span class="k">elif</span> <span class="n">thermo_type_valid_str</span> <span class="o">==</span> <span class="n">ThermoType</span><span class="o">.</span><span class="n">GGA_GGA_U_R2SCAN</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.entries.mixing_scheme</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialsProjectDFTMixingScheme</span>
+            <span class="n">MaterialsProjectDFTMixingScheme</span> <span class="o">=</span> <span class="n">mixing_scheme_class</span><span class="p">()</span>
 
             <span class="n">corrector</span> <span class="o">=</span> <span class="n">MaterialsProjectDFTMixingScheme</span><span class="p">(</span><span class="n">run_type_2</span><span class="o">=</span><span class="s2">"r2SCAN"</span><span class="p">)</span>
 
