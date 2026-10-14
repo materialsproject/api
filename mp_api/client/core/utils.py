@@ -131,26 +131,92 @@ def validate_api_key(api_key: str | None = None) -> str | None:
     return api_key
 
 
-def validate_ids(id_list: list[str]) -> list[str]:
-    """Function to validate material and task IDs.
+LEGACY_ID_PREFIXES: frozenset[str] = frozenset({"mvc"})
+"""Prefixes of identifiers that used to exist in the database but were removed."""
+
+
+def _shortlist(items: list[Any], sep: str = ", ", limit: int = 10) -> str:
+    """The first `limit` items joined by `sep`, noting how many were left out."""
+    shown = sep.join(map(str, items[:limit]))
+    if len(items) > limit:
+        shown += f"{sep}... ({len(items) - limit:,} more)"
+    return shown
+
+
+def _is_legacy_id(idx: Any) -> bool:
+    return isinstance(idx, str) and idx.split("-", 1)[0] in LEGACY_ID_PREFIXES
+
+
+def validate_ids(id_list: Iterable[Any], *, user_input: bool = True) -> list[str]:
+    """Validate and format Materials Project identifiers (material and task IDs).
+
+    Identifiers are checked strictly (see `emmet.core.mpid.validate_identifier`
+    with `strict=True`): a bare ID ("149", "aaaaaaft") or "<prefix>-<id>" with
+    a known prefix ("mp-149"). Invalid identifiers are dropped and reported
+    together in one `MPRestWarning`, which the caller can act on. Legacy
+    identifiers (e.g. "mvc-149"), which were removed from the database, are
+    dropped with a notice of their own.
 
     Args:
-        id_list (list[str]): List of material or task IDs.
+        id_list (Iterable) : identifiers given by the user, or returned by the API
+        user_input (bool) : True for identifiers the user passed. False for
+            identifiers the API returned, for which an invalid one is a bug, so
+            an `MPRestError` is raised instead of a warning.
 
     Raises:
-        MPRestError: If at least one ID is not formatted correctly.
+        MPRestError: if too many identifiers are given, if none is valid, or
+            (with `user_input=False`) if any is invalid.
 
     Returns:
-        id_list: Returns original ID list if everything is formatted correctly.
+        list of str : the valid identifiers, formatted, in their input order
     """
+    from mp_api.client.core._external import user_stacklevel
+
+    id_list = list(id_list)
     if len(id_list) > MAPI_CLIENT_SETTINGS.MAX_LIST_LENGTH:
         raise MPRestError(
             "List of material/molecule IDs provided is too long. Consider removing the ID filter to automatically pull"
             " data for all IDs and filter locally."
         )
 
-    validated = [validate_identifier(idx, serialize=False) for idx in id_list]
-    return [getattr(idx, "string", str(idx)) for idx in validated]
+    valid: list[str] = []
+    legacy: list[str] = []
+    invalid: list[str] = []
+    for idx in id_list:
+        if _is_legacy_id(idx):
+            legacy.append(idx)
+            continue
+        try:
+            parsed = validate_identifier(idx, serialize=False, strict=True)
+        except ValueError as exc:
+            invalid.append(str(exc))
+            continue
+        valid.append(getattr(parsed, "string", str(parsed)))
+
+    if not user_input and (invalid or legacy):
+        raise MPRestError(
+            "The Materials Project API returned invalid identifiers: "
+            + _shortlist(invalid + [repr(idx) for idx in legacy], sep="; ")
+        )
+
+    stacklevel = user_stacklevel()
+    if legacy:
+        mp_warning(
+            "These IDs refer to legacy calculations that have been removed from the "
+            f"Materials Project database, and are ignored: {_shortlist(legacy)}",
+            stacklevel=stacklevel,
+        )
+    if invalid:
+        reasons = [f"{reason.rstrip('.')}." for reason in invalid]
+        mp_warning(
+            "Ignoring invalid IDs. Materials Project IDs are a bare ID, e.g. "
+            "'149' or 'aaaaaaft', or '<prefix>-<id>', e.g. 'mp-149'. "
+            + _shortlist(reasons, sep=" "),
+            stacklevel=stacklevel,
+        )
+    if id_list and not valid:
+        raise MPRestError(f"No valid IDs to query (ignored: {_shortlist(id_list)}).")
+    return valid
 
 
 def validate_endpoint(endpoint: str | None, suffix: str | None = None) -> str:
