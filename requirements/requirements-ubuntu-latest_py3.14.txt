@@ -6,15 +6,15 @@
 #
 annotated-types==0.8.0
     # via pydantic
-arro3-core==0.9.0
+arro3-core==0.9.1
     # via deltalake
 bibtexparser==1.4.4
     # via pymatgen-core
 blake3==1.0.11
     # via emmet-core
-boto3==1.43.110
+boto3==1.43.114
     # via mp-api (pyproject.toml)
-botocore==1.43.110
+botocore==1.43.114
     # via
     #   boto3
     #   s3transfer
@@ -32,9 +32,9 @@ deltalake==1.5.1
     # via mp-api (pyproject.toml)
 deprecated==3.0.0
     # via deltalake
-emmet-core==0.88.0rc0
+emmet-core==0.88.0rc3
     # via mp-api (pyproject.toml)
-fonttools==4.66.1
+fonttools==4.67.0
     # via matplotlib
 idna==3.20
     # via requests
@@ -63,15 +63,15 @@ monty==2026.7.16
     #   emmet-core
     #   mp-api (pyproject.toml)
     #   pymatgen-core
-more-itertools==11.1.0
+more-itertools==11.2.1
     # via inflect
 mpmath==1.3.0
     # via sympy
-narwhals==2.26.0
+narwhals==2.27.1
     # via plotly
 networkx==3.7
     # via pymatgen-core
-numpy==2.5.3
+numpy==2.5.4
     # via
     #   contourpy
     #   matplotlib
@@ -99,18 +99,18 @@ plotly==7.1.0
     # via pymatgen-core
 pubchempy==1.0.5
     # via emmet-core
-pyarrow==25.0.1
+pyarrow==26.0.0
     # via mp-api (pyproject.toml)
 pybtex==0.26.1
     # via emmet-core
-pydantic==2.14.0
+pydantic==2.14.1
     # via
     #   emmet-core
     #   pydantic-settings
     #   pymatgen-io-validation
-pydantic-core==2.50.0
+pydantic-core==2.50.1
     # via pydantic
-pydantic-settings==2.15.0
+pydantic-settings==2.16.0
     # via
     #   emmet-core
     #   pymatgen-io-validation
@@ -155,7 +155,7 @@ scipy==1.18.1
     # via pymatgen-core
 six==1.17.0
     # via python-dateutil
-spglib==2.7.0
+spglib==2.8.0
     # via pymatgen-core
 sympy==1.14.0
     # via pymatgen-core
@@ -169,6 +169,7 @@ typing-extensions==4.16.0
     # via
     #   pydantic
     #   pydantic-core
+    #   pydantic-settings
     #   typeguard
     #   typing-inspection
 typing-inspection==0.4.4
@@ -181,5 +182,5 @@ urllib3==2.8.0
     # via
     #   botocore
     #   requests
-wrapt==2.5.0
+wrapt==2.5.1
     # via deprecated
