@@ -51,9 +51,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from types import FrameType
-    from typing import Any, TextIO, TypeVar
-
-    T = TypeVar("T")
+    from typing import Any, TextIO
 
 EXTERNAL_LOGGER = "mp_api.client.external"
 
@@ -95,7 +93,7 @@ def is_capturing() -> bool:
     return _depth.get() > 0
 
 
-def in_current_context(fn: Callable[..., T]) -> Callable[..., T]:
+def in_current_context[T](fn: Callable[..., T]) -> Callable[..., T]:
     """Wrap `fn` to run in a copy of the caller's context, e.g. in worker threads.
 
     Each call gets its own copy, so the wrapper can run in several threads at once.
@@ -163,7 +161,7 @@ def _tracked(fn: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def track_calls(cls: type[T]) -> type[T]:
+def track_calls[C: type](cls: C) -> C:
     """Make the public methods `cls` defines run inside `capturing()`.
 
     Covers plain functions, static and class methods (not properties or other
@@ -236,7 +234,9 @@ def _location(filename: str, lineno: int) -> str:
     return f"{filename}:{lineno}"
 
 
-def _render_own(category: type[Warning], message: str, filename: str, lineno: int) -> bool:
+def _render_own(
+    category: type[Warning], message: str, filename: str, lineno: int
+) -> bool:
     """Show one of the client's warnings on the console, if it's interactive."""
     from mp_api.client.core._display import print_warning
 
@@ -285,24 +285,29 @@ class _WarningHook:
         origin = _warning_origin()
         module = origin.f_globals.get("__name__", "") if origin else ""
         if module.split(".")[0] == "mp_api":
-            if file is None and self._prints_by_default() and _render_own(
-                category, str(message), filename, lineno
+            if (
+                file is None
+                and self._prints_by_default()
+                and _render_own(category, str(message), filename, lineno)
             ):
                 return
-        elif is_capturing() and not issubclass(category, _PASS_THROUGH_CATEGORIES):
-            if origin is not None:
-                text = str(message)
-                if category is not UserWarning:
-                    text = f"{category.__name__}: {text}"
-                _emit(
-                    module.split(".")[0] or "unknown",
-                    logging.WARNING,
-                    text,
-                    origin.f_code.co_filename,
-                    origin.f_lineno,
-                    origin.f_code.co_name,
-                )
-                return
+        elif (
+            origin is not None
+            and is_capturing()
+            and not issubclass(category, _PASS_THROUGH_CATEGORIES)
+        ):
+            text = str(message)
+            if category is not UserWarning:
+                text = f"{category.__name__}: {text}"
+            _emit(
+                module.split(".")[0] or "unknown",
+                logging.WARNING,
+                text,
+                origin.f_code.co_filename,
+                origin.f_lineno,
+                origin.f_code.co_name,
+            )
+            return
         self.previous(message, category, filename, lineno, file, line)
 
 
@@ -331,17 +336,17 @@ class _LastResortHandler(logging.Handler):
         self.handle(record)
 
 
-_install_lock = threading.Lock()
-_installed = False
+class _Installed:
+    lock = threading.Lock()
+    done = False
 
 
 def install() -> None:
     """Install the warnings hook and the logging fallback, once per process."""
-    global _installed
-    with _install_lock:
-        if _installed:
+    with _Installed.lock:
+        if _Installed.done:
             return
         warnings.showwarning = _WarningHook(warnings.showwarning)
         if logging.lastResort is not None:
             logging.lastResort = _LastResortHandler(logging.lastResort)
-        _installed = True
+        _Installed.done = True

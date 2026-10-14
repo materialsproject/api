@@ -30,7 +30,7 @@ from mp_api.client.core._external import (
 )
 from mp_api.client.core.exceptions import MPRestWarning
 
-LIB_SOURCE = '''
+LIB_SOURCE = """
 import logging, warnings
 
 log = logging.getLogger("fakelib.core")
@@ -46,7 +46,7 @@ def runtime():
 
 def logs():
     log.warning("library log record")
-'''
+"""
 
 
 @pytest.fixture
@@ -563,7 +563,9 @@ def default_printer(monkeypatch):
         "_showwarnmsg_impl",
         lambda msg: printed.append(f"{msg.category.__name__}: {msg.message}"),
     )
-    monkeypatch.setattr(warnings, "showwarning", _WarningHook(warnings._showwarning_orig))
+    monkeypatch.setattr(
+        warnings, "showwarning", _WarningHook(warnings._showwarning_orig)
+    )
     return printed
 
 
