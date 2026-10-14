@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 
 from emmet.core.eos import EOSDoc
 
 from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core._display import mp_deprecation
 from mp_api.client.core.utils import validate_ids
 
 
@@ -50,10 +50,9 @@ class EOSRester(BaseRester):
                     "Please specify only `task_ids`."
                 )
             task_ids = kwargs.pop("material_ids")
-            warnings.warn(
+            mp_deprecation(
                 "`material_id` has been replaced by `task_id` in the EOS endpoint. "
                 "Please migrate to using the newer field name.",
-                FutureWarning,
                 stacklevel=2,
             )
 

@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import logging
 import os
-import warnings
 
 from mp_api.client.contribs.settings import MPCC_SETTINGS
+from mp_api.client.core._display import mp_deprecation
 
 
 class CustomLoggerAdapter(logging.LoggerAdapter):
@@ -39,10 +39,9 @@ def get_logger(name: str = "mp_api.client.contribs") -> CustomLoggerAdapter:
 
 
 if MPCC_SETTINGS.CLIENT_LOG_LEVEL is not None:
-    warnings.warn(
+    mp_deprecation(
         "MPCONTRIBS_CLIENT_LOG_LEVEL is deprecated and ignored, use MPRESTER_LOG_LEVEL "
         "(which sets the level for the whole client) instead.",
-        FutureWarning,
         stacklevel=2,
     )
 

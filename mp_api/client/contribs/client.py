@@ -8,7 +8,6 @@ import importlib.metadata
 import itertools
 import sys
 import time
-import warnings
 from base64 import urlsafe_b64encode
 from collections import defaultdict
 from concurrent.futures import as_completed
@@ -67,7 +66,8 @@ from mp_api.client.contribs.utils import (
     get_md5,
     unflatten_dict,
 )
-from mp_api.client.core._display import progress_bar
+from mp_api.client.core._display import mp_deprecation, progress_bar
+from mp_api.client.core._external import track_calls
 from mp_api.client.core.exceptions import MPContribsClientError
 from mp_api.client.core.schemas import _convert_to_model
 from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
@@ -444,6 +444,7 @@ def _version(url):
             time.sleep(30)
 
 
+@track_calls
 class ContribsClient(SwaggerClient):
     """client to connect to MPContribs API.
 
@@ -492,7 +493,7 @@ class ContribsClient(SwaggerClient):
                 )
             else:
                 api_key = kwargs.pop("apikey")
-            warnings.warn(api_key_warn, FutureWarning, stacklevel=2)
+            mp_deprecation(api_key_warn, stacklevel=2)
 
         if api_key and len(api_key) != 32:
             raise MPContribsClientError(f"Invalid API key: {api_key}")
@@ -542,10 +543,9 @@ class ContribsClient(SwaggerClient):
     @property
     def apikey(self) -> str | None:
         """Handle deprecated `apikey` attr."""
-        warnings.warn(
+        mp_deprecation(
             "`apikey` has been deprecated in favor of `api_key` for "
             "consistency with the Materials Project API client.",
-            FutureWarning,
             stacklevel=2,
         )
         return self.api_key

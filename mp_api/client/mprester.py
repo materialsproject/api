@@ -32,6 +32,7 @@ from requests import Session, get
 
 from mp_api.client.core._display import (
     DatabaseVersions,
+    mp_deprecation,
     mp_warning,
     print_notice,
     status,
@@ -40,8 +41,10 @@ from mp_api.client.core._display import quiet as set_quiet
 from mp_api.client.core._entries import (
     apply_corrections,
     get_conventional_cell_entry,
+    mixing_scheme_class,
     rescale_to_conventional,
 )
+from mp_api.client.core._external import in_current_context
 from mp_api.client.core._oxygen_evolution import OxygenEvolution
 from mp_api.client.core.client import (
     LATEST_DB_VERSION,
@@ -125,6 +128,41 @@ def _all_subchemsyses(elements: Iterable[str]) -> list[str]:
         for n in range(1, len(element_set) + 1)
         for els in itertools.combinations(element_set, n)
     ]
+
+
+def _classify_chemsys_formula_ids(values: list[str]) -> dict[str, list[str]]:
+    """Sort `get_entries` inputs into chemical systems, formulas and IDs.
+
+    - chemical system: element symbols or "*" joined by "-" ("Li-Fe-O", "Si-*")
+    - formula: no "-", and a valid composition once "*" are removed ("Fe2O3", "Si*")
+    - anything else is taken to be an ID, validated later
+
+    Returns:
+        dict : {"chemsys": [...], "formula": [...], "material_ids": [...]},
+            leaving out kinds with no values, in that order
+    """
+    by_kind: dict[str, list[str]] = {"chemsys": [], "formula": [], "material_ids": []}
+    for value in values:
+        text = value.strip() if isinstance(value, str) else value
+        if not isinstance(text, str) or not text:
+            by_kind["material_ids"].append(value)
+            continue
+        parts = text.split("-")
+        if len(parts) > 1 and all(
+            part == "*" or Element.is_valid_symbol(part) for part in parts
+        ):
+            by_kind["chemsys"].append(text)
+            continue
+        if len(parts) == 1 and text.replace("*", ""):
+            try:
+                Composition(text.replace("*", ""))
+            except Exception:
+                pass
+            else:
+                by_kind["formula"].append(text)
+                continue
+        by_kind["material_ids"].append(value)
+    return {kind: found for kind, found in by_kind.items() if found}
 
 
 class MPRester(_Rester):
@@ -366,10 +404,9 @@ class MPRester(_Rester):
 
     def __getattr__(self, attr):
         if attr in self._deprecated_attributes:
-            warnings.warn(
+            mp_deprecation(
                 f"Accessing {attr} data through MPRester.{attr} is deprecated. "
                 f"Please use MPRester.materials.{attr} instead.",
-                FutureWarning,
                 stacklevel=2,
             )
             return getattr(super().__getattribute__("materials"), attr)
@@ -463,7 +500,7 @@ class MPRester(_Rester):
             ),
             ThreadPoolExecutor(max_workers=min(8, len(resters) or 1)) as pool,
         ):
-            found = list(pool.map(_list, sorted(resters)))
+            found = list(pool.map(in_current_context(_list), sorted(resters)))
         return DatabaseVersions(
             {route: versions for route, versions in found if versions},
             current=self.current_db_version,
@@ -544,10 +581,9 @@ class MPRester(_Rester):
 
         Returns: database version as a string if accessible, None otherwise
         """
-        warnings.warn(
+        mp_deprecation(
             "`get_database_version` has been deprecated in favor of "
             "MPRester().db_version.",
-            FutureWarning,
             stacklevel=2,
         )
         return self.db_version
@@ -735,7 +771,9 @@ class MPRester(_Rester):
             chemsys_formula_mpids (str | list[str]): A chemical system, list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]), formula, list of formulas
                 (e.g., Fe2O3, Si*, [SiO2, BiFeO3]), Materials Project ID, or list of Materials
-                Project IDs (e.g., mp-22526, [mp-22526, mp-149]).
+                Project IDs (e.g., mp-22526, [mp-22526, mp-149]). A list may mix these
+                kinds (e.g., [Li-O, Fe2O3, mp-149]): each kind is queried separately and
+                the entries are combined. Invalid IDs are skipped with a warning.
             compatible_only (bool): Whether to return only "compatible"
                 entries. Compatible entries are entries that have been
                 processed using the MaterialsProject2020Compatibility class,
@@ -757,26 +795,18 @@ class MPRester(_Rester):
             List ComputedStructureEntry objects.
         """
         if kwargs.pop("inc_structure", None) is not None:
-            warnings.warn(
+            mp_deprecation(
                 "The `inc_structure` argument is deprecated as final structures "
                 "are always included in all returned ComputedStructureEntry objects.",
-                FutureWarning,
                 stacklevel=2,
             )
 
         if isinstance(chemsys_formula_mpids, str):
             chemsys_formula_mpids = [chemsys_formula_mpids]
 
-        try:
-            input_params = {"material_ids": validate_ids(chemsys_formula_mpids)}
-        except ValueError:
-            if any("-" in entry for entry in chemsys_formula_mpids):
-                input_params = {"chemsys": chemsys_formula_mpids}
-            else:
-                input_params = {"formula": chemsys_formula_mpids}
-
-        if additional_criteria:
-            input_params = {**input_params, **additional_criteria}
+        by_kind = _classify_chemsys_formula_ids(chemsys_formula_mpids)
+        if by_kind.get("material_ids"):  # report invalid IDs here, before any query
+            by_kind["material_ids"] = validate_ids(by_kind["material_ids"])
 
         entries: set[ComputedStructureEntry] = set()
 
@@ -786,11 +816,16 @@ class MPRester(_Rester):
             else ["entries", "thermo_type"] + property_data
         )
 
-        docs = self.materials.thermo.search(
-            **input_params,  # type: ignore
-            all_fields=False,
-            fields=fields,
-        )
+        # One query per kind of input (a query matches all of its filters)
+        docs = [
+            doc
+            for kind, values in by_kind.items()
+            for doc in self.materials.thermo.search(
+                **{kind: values, **(additional_criteria or {})},  # type: ignore[arg-type]
+                all_fields=False,
+                fields=fields,
+            )
+        ]
 
         for doc in docs:
             entry_list = (doc.model_dump() if isinstance(doc, BaseModel) else doc)[
@@ -1344,9 +1379,7 @@ class MPRester(_Rester):
                 # building PDs. Mixing scheme is chemical-system dependent, so this can anchor on a
                 # different hull than MP did/would, and it drops entries it cannot place.
                 # A data event the caller can't change, so a log record (not a warning):
-                from pymatgen.entries.mixing_scheme import (
-                    MaterialsProjectDFTMixingScheme,
-                )
+                MaterialsProjectDFTMixingScheme = mixing_scheme_class()
 
                 chemsys = "-".join(sorted(elements_set))
                 logger.warning(
@@ -1918,7 +1951,7 @@ class MPRester(_Rester):
             corrector = MaterialsProject2020Compatibility()
 
         elif thermo_type_valid_str == ThermoType.GGA_GGA_U_R2SCAN.value:
-            from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
+            MaterialsProjectDFTMixingScheme = mixing_scheme_class()
 
             corrector = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
 

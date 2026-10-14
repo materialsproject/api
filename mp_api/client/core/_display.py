@@ -29,20 +29,62 @@ level, handler or propagation setting, here. Child loggers (`mp_api.client.*`,
 including contribs) never set their own level, so one setting controls all of
 them. Use `MPRESTER_LOG_LEVEL` or `enable_logging(level)`.
 
+Messages are shown in the console's default style; only the level is
+coloured.
+
+The client's warnings
+---------------------
+The client's own warnings (`MPRestWarning`, its `FutureWarning` deprecations,
+the `MPDataset*Warning`s) are ordinary Python warnings, so filters
+(`warnings.filterwarnings`, `pytest.warns`, `logging.captureWarnings`) work
+as usual. In a terminal / notebook they are shown in the same layout as log
+records, with the warning class as the label and the caller's code below:
+
+```
+MPRestWarning  <message>
+               my_script.py:12
+```
+
+Elsewhere, or if the application installed its own warnings hook (e.g.
+`logging.captureWarnings(True)`), Python's usual format / the application's
+hook is used.
+
+Other libraries
+---------------
+Warnings from other libraries (pymatgen, emmet, ...) raised while a client
+method runs, and their log records that nothing else would handle, are shown
+as WARNING records on `mp_api.client.external.<library>`, naming the library
+code they came from. In a terminal / notebook:
+
+```
+WARNING  mp_api.client.external.pymatgen  <message>
+         pymatgen/analysis/compatibility/mixing_scheme.py:320
+```
+
+and on one line otherwise. Library deprecation warnings are left alone.
+Silence one library with e.g.
+`logging.getLogger("mp_api.client.external.pymatgen").setLevel(logging.ERROR)`.
+See `mp_api.client.core._external`.
+
 Quiet mode
 ----------
 `quiet()` (or `MPRESTER_QUIET=true`, or `MPRester(quiet=True)`) silences the
-client for the whole process: no log records, progress bars, status lines,
-notices or `MPRestWarning`s. Deprecation warnings (`FutureWarning`) and
-exceptions are still raised. It can be used as a context manager.
+client for the whole process: no log records (including those from other
+libraries, above), progress bars, status lines, notices, `MPRestWarning`s or
+`MPDataset*Warning`s.
+Exceptions are still raised, and the client's deprecation warnings
+(`FutureWarning`) are still shown unless `quiet(deprecations=True)` or
+`MPRESTER_QUIET_DEPRECATIONS=true`. It can be used as a context manager; see
+`quiet()` for exactly what is and isn't silenced.
 
 Which channel to use
 --------------------
 - The operation failed: raise an exception.
-- A deprecated API was used: `warnings.warn(..., FutureWarning)`, which is
-  shown by default, also when called from other libraries.
+- A deprecated API was used: `mp_deprecation(...)` (a `FutureWarning`), which
+  is shown by default, also when called from other libraries.
 - Something the caller can change in their call (an ignored argument, misuse,
-  a caveat about what the data means): `mp_warning(...)` (an `MPRestWarning`).
+  a caveat about what the data means): `mp_warning(...)` (an `MPRestWarning`),
+  or `mp_advice(..., category)` for a more specific warning class.
 - A runtime or data event the caller can't change in code (server
   unreachable, data missing, a local dataset reused): `logger.warning/info`.
 - Diagnostics: `logger.debug`.
@@ -81,11 +123,11 @@ import io
 import logging
 import threading
 import time
-import warnings
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Self
 
 from rich.console import Console
+from rich.highlighter import NullHighlighter
 from rich.logging import RichHandler
 from rich.progress import (
     BarColumn,
@@ -137,6 +179,8 @@ MP_THEME = Theme(
         "mp.error": "#F14668",  # Bulma danger
         "mp.muted": "#7A7A7A",  # Bulma .has-text-grey
         "mp.title": "bold underline",
+        "mp.logger.external": "#939FC8",  # mp.secondary: logger of a library record
+        "mp.warning.label": "#D69E00",  # class name of a client warning
         "mp.field": "bold",
         "mp.table.header": "bold #008F83",  # brand dark
         # database versions, relative to the one the API serves
@@ -198,6 +242,35 @@ def _can_draw_live(console: Console) -> bool:
             return False
         return True
     return console.is_terminal and not console.is_dumb_terminal
+
+
+def print_warning(label: str, message: str, location: str) -> bool:
+    """Show a client warning on the console, if it's interactive.
+
+    Rendered like the log records: the label (the warning's class name) in a
+    column of its own, the message in the default style, and where the
+    warning points to (the caller's code) on a muted line below it.
+
+    Args:
+        label (str) : e.g. "MPRestWarning"
+        message (str) : warning text
+        location (str) : "file:line"
+
+    Returns:
+        bool : False if nothing was shown (not an interactive console)
+    """
+    console = get_console()
+    if not _is_interactive(console):
+        return False
+    grid = Table.grid(padding=(0, 1), expand=True)
+    grid.add_column(style="mp.warning.label", no_wrap=True)
+    grid.add_column(ratio=1, overflow="fold")
+    grid.add_row(
+        Text(label),
+        Text.assemble(message.strip(), "\n", (location, "mp.muted")),
+    )
+    console.print(grid)
+    return True
 
 
 def print_notice(message: str, style: str | None = None) -> None:
@@ -675,6 +748,25 @@ def _app_level(logger: logging.Logger) -> int:
     return logging.WARNING  # pragma: no cover - root always has a level
 
 
+class _MPRichHandler(RichHandler):
+    """`RichHandler` showing messages in the console's default style.
+
+    Only the level (and, for records re-emitted from other libraries, the
+    logger name and origin) is styled.
+    """
+
+    def render_message(self, record: logging.LogRecord, message: str) -> Text:
+        if (origin := getattr(record, "mp_origin", None)) is None:
+            return Text(message)
+        return Text.assemble(
+            (record.name, "mp.logger.external"),
+            "  ",
+            str(getattr(record, "mp_message", message)),
+            "\n",
+            (origin, "mp.muted"),
+        )
+
+
 class _MPDefaultHandler(logging.Handler):
     """Default handler for `mp_api.client`, see module docstring."""
 
@@ -686,12 +778,14 @@ class _MPDefaultHandler(logging.Handler):
 
     def _rich_handler(self, console: Console) -> RichHandler:
         if self._rich is None or self._rich.console is not console:
-            self._rich = RichHandler(
+            self._rich = _MPRichHandler(
                 console=console,
                 show_time=False,
                 show_path=False,
                 markup=False,
                 rich_tracebacks=False,
+                highlighter=NullHighlighter(),
+                keywords=[],
             )
         return self._rich
 
@@ -768,10 +862,11 @@ _SILENT = logging.CRITICAL + 1
 
 
 class _QuietState:
-    """Process-wide quiet flag. `saved_level` is the log level to restore."""
+    """Process-wide quiet flags. `saved_level` is the log level to restore."""
 
     def __init__(self) -> None:
         self.enabled = False
+        self.deprecations = False
         self.saved_level: int = logging.NOTSET
 
 
@@ -781,36 +876,58 @@ _QUIET = _QuietState()
 class _QuietContext:
     """Returned by `quiet()`; restores the previous state when used with `with`."""
 
-    def __init__(self, previous: bool) -> None:
+    def __init__(self, previous: tuple[bool, bool]) -> None:
         self._previous = previous
 
     def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *exc_info: object) -> None:
-        _set_quiet(self._previous)
+        _set_quiet(*self._previous)
 
 
-def _set_quiet(enabled: bool) -> bool:
-    """Turn quiet mode on or off, returning the previous state."""
+def _set_quiet(enabled: bool, deprecations: bool = False) -> tuple[bool, bool]:
+    """Set quiet mode, returning the previous `(enabled, deprecations)`."""
     logger = logging.getLogger(LOGGER_NAME)
     with _handler_lock:
-        previous = _QUIET.enabled
-        if enabled and not previous:
+        previous = (_QUIET.enabled, _QUIET.deprecations)
+        if enabled and not _QUIET.enabled:
             _QUIET.saved_level = logger.level
             logger.setLevel(_SILENT)
-        elif previous and not enabled:
+        elif _QUIET.enabled and not enabled:
             logger.setLevel(_QUIET.saved_level)
         _QUIET.enabled = enabled
+        _QUIET.deprecations = enabled and deprecations
     return previous
 
 
-def quiet(enabled: bool = True) -> _QuietContext:
-    """Silence all output from the client in this process.
+def quiet(enabled: bool = True, *, deprecations: bool = False) -> _QuietContext:
+    """Silence output from the client in this process.
 
-    While quiet, the client emits no log records (they don't reach the
-    application's handlers either), progress bars, status lines, notices or
-    `MPRestWarning`s. Deprecation warnings and exceptions are unaffected.
+    Silenced while quiet:
+
+    - the client's log records (they don't reach the application's handlers
+      either), progress bars, status lines and notices
+    - `MPRestWarning`s and the `MPDataset*Warning`s (slow indexing, slicing
+      or iteration of downloaded datasets)
+    - warnings and fallback log output from other libraries (e.g. pymatgen)
+      raised while a client method runs; these are otherwise shown as
+      WARNING records on `mp_api.client.external.<library>`
+    - with `deprecations=True`, also the client's deprecation warnings
+      (`FutureWarning`)
+
+    Not silenced:
+
+    - exceptions
+    - deprecation warnings from other libraries
+    - output libraries print directly (`print()`, their own progress bars)
+      or write from compiled code
+    - log records sent to handlers that a library or the application set up
+    - library warnings raised outside client methods, e.g. on import, or when
+      using returned objects later
+    - warnings, if the application replaced `warnings.showwarning` itself
+      (e.g. `logging.captureWarnings(True)` after importing the client, or
+      `warnings.catch_warnings(record=True)`): they go where it sent them
 
     Takes effect immediately; as a context manager, the previous state is
     restored on exit:
@@ -821,15 +938,19 @@ def quiet(enabled: bool = True) -> _QuietContext:
     quiet()  # for the rest of the process
     with quiet():  # only within the block
         ...
+    with quiet(deprecations=True):  # also hide the client's deprecation warnings
+        ...
     ```
 
     Args:
         enabled (bool) : True to silence the client, False to restore output.
+        deprecations (bool) : also silence the client's deprecation warnings.
+            Only applies when `enabled` is True.
 
     Returns:
         a context manager that restores the previous state on exit
     """
-    return _QuietContext(_set_quiet(enabled))
+    return _QuietContext(_set_quiet(enabled, deprecations))
 
 
 def is_quiet() -> bool:
@@ -850,13 +971,50 @@ def mp_warning(message: str, stacklevel: int = 1) -> None:
         return
     from mp_api.client.core.exceptions import MPRestWarning
 
-    warnings.warn(message, MPRestWarning, stacklevel=stacklevel + 1)
+    _warn(message, MPRestWarning, stacklevel + 1)
+
+
+def mp_advice(message: str, category: type[Warning], stacklevel: int = 1) -> None:
+    """Like `mp_warning`, with another warning class, e.g. `MPDatasetIndexingWarning`.
+
+    Args:
+        message (str) : warning text
+        category (type[Warning]) : warning class
+        stacklevel (int) : as for `warnings.warn`, relative to the caller
+    """
+    if _QUIET.enabled:
+        return
+    _warn(message, category, stacklevel + 1)
+
+
+def mp_deprecation(message: str, stacklevel: int = 1) -> None:
+    """Emit a deprecation warning (`FutureWarning`) for the client's own API.
+
+    Shown by default; silenced by `quiet(deprecations=True)` or
+    `MPRESTER_QUIET_DEPRECATIONS`.
+
+    Args:
+        message (str) : warning text
+        stacklevel (int) : as for `warnings.warn`, relative to the caller
+    """
+    if _QUIET.deprecations:
+        return
+    _warn(message, FutureWarning, stacklevel + 1)
+
+
+def _warn(message: str, category: type[Warning], stacklevel: int) -> None:
+    """Warn as if from `_warn`'s caller, not counting public method wrappers."""
+    from mp_api.client.core._external import warn
+
+    warn(message, category, stacklevel + 1)
 
 
 def _configure_from_settings() -> None:
     """Configure client output from settings, on import of `mp_api.client`."""
+    from mp_api.client.core._external import install
     from mp_api.client.core.settings import MAPI_CLIENT_SETTINGS
 
+    install()
     enable_logging()
     if MAPI_CLIENT_SETTINGS.QUIET:
-        quiet(True)
+        quiet(True, deprecations=MAPI_CLIENT_SETTINGS.QUIET_DEPRECATIONS)

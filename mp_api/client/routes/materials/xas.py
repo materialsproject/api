@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING
 
 from emmet.core.xas import XASDoc, validate_xas_spectrum_id
 from pymatgen.core.periodic_table import Element
 
 from mp_api.client.core import BaseRester
+from mp_api.client.core._display import mp_deprecation
 from mp_api.client.core.exceptions import MPRestError
 
 if TYPE_CHECKING:
@@ -72,11 +72,10 @@ class XASRester(BaseRester):
                     "Please specify only `task_ids`."
                 )
             task_ids = kwargs.pop("material_ids")
-            warnings.warn(
+            mp_deprecation(
                 "`material_id` has been replaced by `task_id` in the xas endpoint. "
                 "Please migrate to using the newer field name and the `task_ids` kwarg "
                 "for searching.",
-                FutureWarning,
                 stacklevel=2,
             )
 

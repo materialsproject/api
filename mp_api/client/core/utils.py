@@ -19,7 +19,8 @@ from emmet.core.mpid import validate_identifier
 from monty.json import MontyDecoder
 from packaging.version import parse as parse_version
 
-from mp_api.client.core._display import mp_warning
+from mp_api.client.core._display import mp_advice, mp_warning
+from mp_api.client.core._external import track_calls
 from mp_api.client.core.exceptions import (
     MPDatasetIndexingWarning,
     MPDatasetIterationWarning,
@@ -282,6 +283,7 @@ class LazyImport:
         return self._obj.__dir__() if hasattr(self._obj, "__dir__") else []
 
 
+@track_calls
 class MPDataset:
     """Convenience wrapper for pyarrow datasets stored on disk."""
 
@@ -394,12 +396,11 @@ class MPDataset:
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
-            warnings.warn(
-                """
-                Pythonic slicing of arrow-based MPDatasets is sub-optimal, consider using
-                idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-                docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
-                """,
+            mp_advice(
+                "Pythonic slicing of arrow-based MPDatasets is sub-optimal, consider "
+                "using idiomatic arrow patterns. See MP's docs on MPDatasets for "
+                "relevant examples: "
+                "docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets",
                 MPDatasetSlicingWarning,
                 stacklevel=2,
             )
@@ -412,12 +413,11 @@ class MPDataset:
                 else ds_slice
             )
 
-        warnings.warn(
-            """
-            Pythonic indexing into arrow-based MPDatasets is sub-optimal, consider using
-            idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-            docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
-            """,
+        mp_advice(
+            "Pythonic indexing into arrow-based MPDatasets is sub-optimal, consider "
+            "using idiomatic arrow patterns. See MP's docs on MPDatasets for "
+            "relevant examples: "
+            "docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets",
             MPDatasetIndexingWarning,
             stacklevel=2,
         )
@@ -431,12 +431,11 @@ class MPDataset:
         with warnings.catch_warnings(
             action="ignore", category=MPDatasetIndexingWarning
         ):
-            warnings.warn(
-                """
-                Iterating through arrow-based MPDatasets is sub-optimal, consider using
-                idiomatic arrow patterns. See MP's docs on MPDatasets for relevant examples:
-                docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets
-                """,
+            mp_advice(
+                "Iterating through arrow-based MPDatasets is sub-optimal, consider "
+                "using idiomatic arrow patterns. See MP's docs on MPDatasets for "
+                "relevant examples: "
+                "docs.materialsproject.org/materials-project-data-lakehouse/arrow-datasets",
                 MPDatasetIterationWarning,
                 stacklevel=2,
             )

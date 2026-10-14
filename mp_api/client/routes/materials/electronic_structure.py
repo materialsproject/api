@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
@@ -17,6 +16,7 @@ from pymatgen.electronic_structure.bandstructure import (
 from pymatgen.electronic_structure.core import OrbitalType, Spin
 
 from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core._display import mp_deprecation
 from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
@@ -30,10 +30,9 @@ class ElectronicStructureRester(BaseRester):
 
     def search_electronic_structure_docs(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
-        warnings.warn(
+        mp_deprecation(
             "MPRester.electronic_structure.search_electronic_structure_docs is deprecated. "
             "Please use MPRester.electronic_structure.search instead.",
-            FutureWarning,
             stacklevel=2,
         )
 
@@ -180,10 +179,9 @@ class BandStructureRester(BaseESPropertyRester):
 
     def search_bandstructure_summary(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
-        warnings.warn(
+        mp_deprecation(
             "MPRester.electronic_structure_bandstructure.search_bandstructure_summary is deprecated. "
             "Please use MPRester.electronic_structure_bandstructure.search instead.",
-            FutureWarning,
             stacklevel=2,
         )
 
@@ -415,10 +413,9 @@ class DosRester(BaseESPropertyRester):
 
     def search_dos_summary(self, *args, **kwargs):  # pragma: no cover
         """Deprecated."""
-        warnings.warn(
+        mp_deprecation(
             "MPRester.electronic_structure_dos.search_dos_summary is deprecated. "
             "Please use MPRester.electronic_structure_dos.search instead.",
-            FutureWarning,
             stacklevel=2,
         )
 

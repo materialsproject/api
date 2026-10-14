@@ -33,9 +33,25 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
     from typing import Any
 
+    from pymatgen.analysis.compatibility.mixing_scheme import (
+        MaterialsProjectDFTMixingScheme,
+    )
     from pymatgen.entries.compatibility import Compatibility
 
     from mp_api.client.core._display import ProgressHandle
+
+
+def mixing_scheme_class() -> type[MaterialsProjectDFTMixingScheme]:
+    """The `MaterialsProjectDFTMixingScheme` class, wherever this pymatgen keeps it.
+
+    Newer pymatgen moved it to `pymatgen.analysis.compatibility.mixing_scheme`
+    and deprecated the old module.
+    """
+    try:
+        from pymatgen.analysis.compatibility import mixing_scheme
+    except ImportError:  # pragma: no cover - older pymatgen
+        from pymatgen.entries import mixing_scheme  # type: ignore[no-redef]
+    return mixing_scheme.MaterialsProjectDFTMixingScheme
 
 
 def _advance(handle: ProgressHandle, amount: float) -> None:
@@ -173,7 +189,8 @@ def apply_corrections(
         enabled (bool) : whether to show progress
     """
     from pymatgen.entries.compatibility import MaterialsProjectAqueousCompatibility
-    from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
+
+    mixing_scheme = mixing_scheme_class()
 
     n = len(entries)
     corrector = _private_copy(corrector)
@@ -183,7 +200,7 @@ def apply_corrections(
         ) as handle,
         ExitStack() as stack,
     ):
-        if isinstance(corrector, MaterialsProjectDFTMixingScheme):
+        if isinstance(corrector, mixing_scheme):
             # passes: compat_1 corrections (run type 1 entries), structure
             # matching (all entries), then the mixing adjustments (all entries)
             n_1 = sum(

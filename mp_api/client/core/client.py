@@ -16,7 +16,6 @@ import shutil
 import sys
 import time
 import uuid
-import warnings
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from contextlib import ExitStack
 from copy import copy
@@ -47,7 +46,14 @@ from requests.exceptions import RequestException
 from urllib3.util.retry import Retry
 
 from mp_api.client._server_utils import get_consumer, get_user_api_key, is_dev_env
-from mp_api.client.core._display import ProgressHandle, mp_warning, progress_bar, status
+from mp_api.client.core._display import (
+    ProgressHandle,
+    mp_deprecation,
+    mp_warning,
+    progress_bar,
+    status,
+)
+from mp_api.client.core._external import in_current_context, track_calls
 from mp_api.client.core.delta import DeltaCatalog
 from mp_api.client.core.exceptions import (
     MPRestError,
@@ -134,11 +140,10 @@ class QueryBuilderWithCache(QueryBuilder):
             _warn (bool) : internal, whether to emit a DeprecationWarning
         """
         if _warn:
-            warnings.warn(
+            mp_deprecation(
                 "QueryBuilderWithCache is deprecated and will be removed in a future "
                 "release. Pass `delta_catalog=DeltaCatalog()` "
                 "(from mp_api.client.core.delta) to MPRester instead.",
-                FutureWarning,
                 stacklevel=2,
             )
         self.catalog: DeltaCatalog = catalog if catalog is not None else DeltaCatalog()
@@ -161,6 +166,11 @@ class QueryBuilderWithCache(QueryBuilder):
 
 class _Rester:
     """Define base attributes of a REST client."""
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Run public methods inside `capturing()`, see `core._external`."""
+        super().__init_subclass__(**kwargs)
+        track_calls(cls)
 
     def __init__(
         self,
@@ -253,10 +263,9 @@ class _Rester:
         if "monty_decode" in kwargs:
             # Pop to not repeatedly trigger warning to the user
             kwargs.pop("monty_decode", None)
-            warnings.warn(
+            mp_deprecation(
                 "Ignoring `monty_decode`, as it is no longer a supported option in `mp_api`."
                 "The client by default returns results consistent with `monty_decode=True`.",
-                FutureWarning,
                 stacklevel=2,
             )
 
@@ -284,9 +293,8 @@ class _Rester:
     @property
     def query_builder(self) -> QueryBuilderWithCache:
         """Deprecated: use `delta_catalog`."""
-        warnings.warn(
+        mp_deprecation(
             "`query_builder` is deprecated, use `delta_catalog` instead.",
-            FutureWarning,
             stacklevel=2,
         )
         if self._query_builder is None:
@@ -371,6 +379,9 @@ class _Rester:
             )  # Catiously do not allow access to any access controlled `batch_id`s
         response = get_resp.json()
         return response["db_version"], response["access_controlled_batch_ids"]
+
+
+track_calls(_Rester)
 
 
 class BaseRester(_Rester):
@@ -1806,6 +1817,8 @@ class BaseRester(_Rester):
         )  # Iter necessary for islice to keep track of what has been accessed
 
         params_ind = 0
+        # Workers run inside the caller's client call, see `core._external`
+        run_in_context = in_current_context(func)
 
         with ThreadPoolExecutor(
             max_workers=MAPI_CLIENT_SETTINGS.NUM_PARALLEL_REQUESTS  # type: ignore
@@ -1818,7 +1831,7 @@ class BaseRester(_Rester):
                 MAPI_CLIENT_SETTINGS.NUM_PARALLEL_REQUESTS,  # type: ignore
             ):
                 future = executor.submit(
-                    func,
+                    run_in_context,
                     **params,
                 )
 
@@ -1847,7 +1860,7 @@ class BaseRester(_Rester):
                 # Populate more futures to replace finished
                 for params in itertools.islice(params_gen, len(finished)):
                     new_future = executor.submit(
-                        func,
+                        run_in_context,
                         **params,
                     )
 
@@ -2015,9 +2028,8 @@ class BaseRester(_Rester):
         document_id: str,
         fields: list[str] | None = None,
     ) -> BaseModel | dict[str, Any] | None:
-        warnings.warn(
+        mp_deprecation(
             "get_data_by_id is deprecated and will be removed soon. Please use the search method instead.",
-            FutureWarning,
             stacklevel=2,
         )
 

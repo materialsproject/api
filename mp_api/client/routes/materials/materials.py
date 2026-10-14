@@ -262,7 +262,7 @@ class MaterialsRester(CoreRester):
 
         if not matches:
             return []
-        material_ids = validate_ids(matches)
+        material_ids = validate_ids(matches, user_input=False)
         return material_ids if allow_multiple_results else material_ids[0]
 
     def get_blessed_entries(

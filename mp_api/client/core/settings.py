@@ -62,8 +62,15 @@ class MAPIClientSettings(BaseSettings):
 
     QUIET: bool = Field(
         False,
-        description="Silence all client output: log messages, progress bars, "
-        "notices and MPRestWarnings. Deprecation warnings and errors are still raised.",
+        description="Silence client output: log messages, progress bars, notices, "
+        "MPRestWarnings, and warnings from other libraries raised during client "
+        "calls. Deprecation warnings and errors are still raised.",
+    )
+
+    QUIET_DEPRECATIONS: bool = Field(
+        False,
+        description="With MPRESTER_QUIET, also silence the client's deprecation "
+        "warnings (FutureWarning).",
     )
 
     MIN_EMMET_VERSION: str = Field(

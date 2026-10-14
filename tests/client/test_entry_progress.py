@@ -17,13 +17,13 @@ from pymatgen.entries.computed_entries import (
     ComputedStructureEntry,
     GibbsComputedStructureEntry,
 )
-from pymatgen.entries.mixing_scheme import MaterialsProjectDFTMixingScheme
 from rich.console import Console
 
 import mp_api.client.core._display as display
 from mp_api.client import quiet
 from mp_api.client.core._display import MP_THEME, progress_bar
 from mp_api.client.core._entries import (
+    mixing_scheme_class,
     _track_calls,
     apply_corrections,
     _private_copy,
@@ -33,6 +33,7 @@ from mp_api.client.core._entries import (
 from mp_api.client.core.exceptions import MPRestWarning
 
 CLIENT = "mp_api.client"
+MaterialsProjectDFTMixingScheme = mixing_scheme_class()
 
 
 def messages(caplog) -> list[str]:
