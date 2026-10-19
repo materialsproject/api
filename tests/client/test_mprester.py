@@ -241,24 +241,40 @@ loop_
 
         assert all(e.data.get("energy_above_hull", None) is not None for e in entries)
 
-        # Conventional structure
-        as_conv = mpr.get_entry_by_material_id(
-            thermo_docs[3].material_id, conventional_unit_cell=True
-        )
-        assert all(e.structure == e.structure.to_conventional() for e in as_conv)
-
-        # Ensure energy per atom is same
-        non_standardized = mpr.get_entry_by_material_id(
-            thermo_docs[3].material_id, conventional_unit_cell=False
-        )
-        for e in as_conv:
-            ref = next(f for f in non_standardized if f.entry_id == e.entry_id)
-            assert e.uncorrected_energy_per_atom == pytest.approx(
-                ref.uncorrected_energy_per_atom
+        # Conventional structure, compared one thermo type at a time: entries from
+        # different thermo types can share an ``entry_id`` (e.g. the uncorrected
+        # ``R2SCAN`` entry and the mixed ``GGA_GGA+U_R2SCAN`` entry of the same
+        # material), so ``entry_id`` only identifies an entry within one thermo type
+        for thermo_type in (
+            ThermoType.GGA_GGA_U,
+            ThermoType.GGA_GGA_U_R2SCAN,
+            ThermoType.R2SCAN,
+        ):
+            criteria = {"thermo_types": [thermo_type.value]}
+            as_conv = mpr.get_entry_by_material_id(
+                thermo_docs[3].material_id,
+                conventional_unit_cell=True,
+                additional_criteria=criteria,
             )
-            # corrected too: every adjustment must scale with the cell, including
-            # extensive ones with no ``n_atoms``, e.g. the r2SCAN mixing correction
-            assert e.energy_per_atom == pytest.approx(ref.energy_per_atom)
+            assert all(e.structure == e.structure.to_conventional() for e in as_conv)
+
+            # Ensure energy per atom is same
+            non_standardized = mpr.get_entry_by_material_id(
+                thermo_docs[3].material_id,
+                conventional_unit_cell=False,
+                additional_criteria=criteria,
+            )
+            assert len({e.entry_id for e in non_standardized}) == len(
+                non_standardized
+            )
+            for e in as_conv:
+                ref = next(f for f in non_standardized if f.entry_id == e.entry_id)
+                assert e.uncorrected_energy_per_atom == pytest.approx(
+                    ref.uncorrected_energy_per_atom
+                )
+                # corrected too: every adjustment must scale with the cell, including
+                # extensive ones with no ``n_atoms``, e.g. the r2SCAN mixing correction
+                assert e.energy_per_atom == pytest.approx(ref.energy_per_atom)
 
         # Additional criteria
         entry = mpr.get_entries(
