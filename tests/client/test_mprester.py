@@ -264,9 +264,7 @@ loop_
                 conventional_unit_cell=False,
                 additional_criteria=criteria,
             )
-            assert len({e.entry_id for e in non_standardized}) == len(
-                non_standardized
-            )
+            assert len({e.entry_id for e in non_standardized}) == len(non_standardized)
             for e in as_conv:
                 ref = next(f for f in non_standardized if f.entry_id == e.entry_id)
                 assert e.uncorrected_energy_per_atom == pytest.approx(
