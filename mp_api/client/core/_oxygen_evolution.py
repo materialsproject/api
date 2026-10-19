@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import warnings
 from collections.abc import Sequence
 from io import StringIO
 from pathlib import Path
@@ -16,7 +15,7 @@ from pymatgen.core import Composition, Element
 from scipy.constants import Avogadro, Boltzmann, atm, elementary_charge
 from scipy.interpolate import make_splrep, splev
 
-from mp_api.client.core.exceptions import MPRestWarning
+from mp_api.client.core._display import mp_warning
 
 DEFAULT_CACHE_FILE = Path(__file__).absolute().parent / "JANAF_O2_data.json"
 # O2 partial pressure at ambient conditions, in MPa
@@ -122,11 +121,10 @@ class OxygenEvolution:
             (mu_arr < min(NIST_JANAF_O2_MU_T["mu-mu_0K"]))
             | (mu_arr > max(NIST_JANAF_O2_MU_T["mu-mu_0K"]))
         ):
-            warnings.warn(
+            mp_warning(
                 "Some of the input chemical potential values are "
                 "outside the fitting range - extrapolation will be inaccurate.",
                 stacklevel=2,
-                category=MPRestWarning,
             )
         return splev(mu_arr, self.mu_to_temp_spline_params())
 

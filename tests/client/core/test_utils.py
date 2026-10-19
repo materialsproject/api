@@ -125,7 +125,9 @@ def test_id_validation():
     # For all new AlphaIDs, ensure these validate correctly
     assert all(
         isinstance(x, str) and AlphaID(x).string == x
-        for x in validate_ids([y + AlphaID._cut_point for y in range(max_num_idxs)])
+        for x in validate_ids(
+            [str(y + AlphaID._cut_point) for y in range(max_num_idxs)]
+        )
     )
 
 

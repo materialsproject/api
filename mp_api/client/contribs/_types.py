@@ -69,7 +69,10 @@ class Table(pd.DataFrame, _Component):
             try:
                 allowed_kwargs = getfullargspec(line_chart).args
                 attrs = {k: v for k, v in self.attrs.items() if k in allowed_kwargs}
-                return self.plot(**attrs)
+                # Plot with plotly directly, rather than changing the
+                # process-wide pandas plotting backend / plotly template.
+                attrs.setdefault("template", "simple_white")
+                return line_chart(self, **attrs)
             except Exception as e:
                 MPCC_LOGGER.error(f"Can't display table: {e}")
 

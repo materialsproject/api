@@ -23,23 +23,27 @@ class OxidationStatesRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
     ) -> list[OxidationStateDoc] | list[dict]:
         """Query oxidation state docs using a variety of search criteria.
 
         Arguments:
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            chemsys (str, List[str]): A chemical system or list of chemical systems
+            chemsys (str | list[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
-            formula (str, List[str]): A formula including anonymized formula
+            formula (str | list[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
-            possible_species (List[str]): A list of element symbols appended with oxidation states (e.g. [Cr2+, O2-]]).
+            possible_species (list[str]): A list of element symbols appended with oxidation states (e.g. [Cr2+, O2-]]).
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in OxidationStateDoc to return data for.
+            fields (list[str]): List of fields in OxidationStateDoc to return data for.
                 Default is material_id, last_updated, and formula_pretty if all_fields is False.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([OxidationStateDoc], [dict]) List of oxidation state documents or dictionaries.
@@ -79,4 +83,5 @@ class OxidationStatesRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )

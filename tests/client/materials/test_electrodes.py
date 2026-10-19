@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import pytest
 from pymatgen.core.periodic_table import Element
@@ -74,19 +75,21 @@ def test_insertion_client(insertion_rester):
 
 @requires_api_key
 def test_conversion_client(conversion_rester):
-    search_method = conversion_rester.search
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        search_method = conversion_rester.search
 
-    excl = ConversionElectrodeRester._exclude_search_fields
-    client_search_testing(
-        search_method=search_method,
-        excluded_params=excluded_params + excl,
-        alt_name_dict=alt_name_dict,
-        custom_field_tests={
-            "battery_ids": ["mp-1067_Al"],
-            "working_ion": Element("Li"),
-        },
-        sub_doc_fields=sub_doc_fields,
-    )
+        excl = ConversionElectrodeRester._exclude_search_fields
+        client_search_testing(
+            search_method=search_method,
+            excluded_params=excluded_params + excl,
+            alt_name_dict=alt_name_dict,
+            custom_field_tests={
+                "battery_ids": ["mp-1067_Al"],
+                "working_ion": Element("Li"),
+            },
+            sub_doc_fields=sub_doc_fields,
+        )
 
 
 @requires_api_key

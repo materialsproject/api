@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 from itertools import chain, product
 
@@ -8,7 +7,8 @@ from emmet.core.summary import HasProps, SummaryDoc
 from emmet.core.symmetry import CrystalSystem
 from pymatgen.analysis.magnetism import Ordering
 
-from mp_api.client.core import BaseRester, MPRestError, MPRestWarning
+from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core._display import mp_warning
 from mp_api.client.core.utils import validate_ids
 
 
@@ -74,6 +74,7 @@ class SummaryRester(BaseRester):
         chunk_size: int = 1000,
         all_fields: bool = True,
         fields: list[str] | None = None,
+        db_version: str | None = None,
         _page: int | None = None,
         _sort_fields: str | None = None,
         **kwargs,
@@ -81,80 +82,83 @@ class SummaryRester(BaseRester):
         """Query core data using a variety of search criteria.
 
         Arguments:
-            band_gap (Tuple[float,float]): Minimum and maximum band gap in eV to consider.
-            chemsys (str, List[str]): A chemical system or list of chemical systems
+            band_gap (tuple[float, float]): Minimum and maximum band gap in eV to consider.
+            chemsys (str | list[str]): A chemical system or list of chemical systems
                 (e.g., Li-Fe-O, Si-*, [Si-O, Li-Fe-P]).
             crystal_system (CrystalSystem or list[CrystalSystem]): Crystal system(s) of the materials.
-            density (Tuple[float,float]): Minimum and maximum density to consider.
+            density (tuple[float, float]): Minimum and maximum density to consider.
             deprecated (bool): Whether the material is tagged as deprecated.
-            e_electronic (Tuple[float,float]): Minimum and maximum electronic dielectric constant to consider.
-            e_ionic (Tuple[float,float]): Minimum and maximum ionic dielectric constant to consider.
-            e_total (Tuple[float,float]): Minimum and maximum total dielectric constant to consider.
-            efermi (Tuple[float,float]): Minimum and maximum fermi energy in eV to consider.
-            elastic_anisotropy (Tuple[float,float]): Minimum and maximum value to consider for the elastic anisotropy.
-            elements (List[str]): A list of elements.
-            energy_above_hull (Tuple[int,int]): Minimum and maximum energy above the hull in eV/atom to consider.
-            equilibrium_reaction_energy (Tuple[float,float]): Minimum and maximum equilibrium reaction energy in
+            e_electronic (tuple[float, float]): Minimum and maximum electronic dielectric constant to consider.
+            e_ionic (tuple[float, float]): Minimum and maximum ionic dielectric constant to consider.
+            e_total (tuple[float, float]): Minimum and maximum total dielectric constant to consider.
+            efermi (tuple[float, float]): Minimum and maximum fermi energy in eV to consider.
+            elastic_anisotropy (tuple[float, float]): Minimum and maximum value to consider for the elastic anisotropy.
+            elements (list[str]): A list of elements.
+            energy_above_hull (tuple[int, int]): Minimum and maximum energy above the hull in eV/atom to consider.
+            equilibrium_reaction_energy (tuple[float, float]): Minimum and maximum equilibrium reaction energy in
                 eV/atom to consider.
             exclude_elements (List(str)): List of elements to exclude.
-            formation_energy (Tuple[int,int]): Minimum and maximum formation energy in eV/atom to consider.
-            formula (str, List[str]): A formula including anonymized formula
+            formation_energy (tuple[int, int]): Minimum and maximum formation energy in eV/atom to consider.
+            formula (str | list[str]): A formula including anonymized formula
                 or wild cards (e.g., Fe2O3, ABO3, Si*). A list of chemical formulas can also be passed
                 (e.g., [Fe2O3, ABO3]).
-            g_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average
+            g_reuss (tuple[float, float]): Minimum and maximum value in GPa to consider for the Reuss average
                 of the shear modulus.
-            g_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt average
+            g_voigt (tuple[float, float]): Minimum and maximum value in GPa to consider for the Voigt average
                 of the shear modulus.
-            g_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill
+            g_vrh (tuple[float, float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill
                 average of the shear modulus.
-            has_props: (List[HasProps], List[str]): The calculated properties available for the material.
+            has_props (list[HasProps] | list[str]): The calculated properties available for the material.
             has_reconstructed (bool): Whether the entry has any reconstructed surfaces.
             is_gap_direct (bool): Whether the material has a direct band gap.
             is_metal (bool): Whether the material is considered a metal.
             is_stable (bool): Whether the material lies on the convex energy hull.
-            k_reuss (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Reuss average
+            k_reuss (tuple[float, float]): Minimum and maximum value in GPa to consider for the Reuss average
                 of the bulk modulus.
-            k_voigt (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt average
+            k_voigt (tuple[float, float]): Minimum and maximum value in GPa to consider for the Voigt average
                 of the bulk modulus.
-            k_vrh (Tuple[float,float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill
+            k_vrh (tuple[float, float]): Minimum and maximum value in GPa to consider for the Voigt-Reuss-Hill
                 average of the bulk modulus.
             magnetic_ordering (Ordering): Magnetic ordering of the material.
-            material_ids (str, List[str]): A single Material ID string or list of strings
+            material_ids (str | list[str]): A single Material ID string or list of strings
                 (e.g., mp-149, [mp-149, mp-13]).
-            n (Tuple[float,float]): Minimum and maximum refractive index to consider.
-            nelements (Tuple[int,int]): Minimum and maximum number of elements to consider.
-            num_elements (Tuple[int,int]): Alias for `nelements`, deprecated. Minimum and maximum number of elements to consider.
-            num_sites (Tuple[int,int]): Minimum and maximum number of sites to consider.
-            num_magnetic_sites (Tuple[int,int]): Minimum and maximum number of magnetic sites to consider.
-            num_unique_magnetic_sites (Tuple[int,int]): Minimum and maximum number of unique magnetic sites to consider.
-            piezoelectric_modulus (Tuple[float,float]): Minimum and maximum piezoelectric modulus to consider.
-            poisson_ratio (Tuple[float,float]): Minimum and maximum value to consider for Poisson's ratio.
+            n (tuple[float, float]): Minimum and maximum refractive index to consider.
+            nelements (tuple[int, int]): Minimum and maximum number of elements to consider.
+            num_elements (tuple[int, int]): Alias for `nelements`, deprecated. Minimum and maximum number of elements to consider.
+            num_sites (tuple[int, int]): Minimum and maximum number of sites to consider.
+            num_magnetic_sites (tuple[int, int]): Minimum and maximum number of magnetic sites to consider.
+            num_unique_magnetic_sites (tuple[int, int]): Minimum and maximum number of unique magnetic sites to consider.
+            piezoelectric_modulus (tuple[float, float]): Minimum and maximum piezoelectric modulus to consider.
+            poisson_ratio (tuple[float, float]): Minimum and maximum value to consider for Poisson's ratio.
             possible_species (List(str)): List of element symbols appended with oxidation states. (e.g. Cr2+,O2-)
-            shape_factor (Tuple[float,float]): Minimum and maximum shape factor values to consider.
+            shape_factor (tuple[float, float]): Minimum and maximum shape factor values to consider.
             spacegroup_number (int or list[int]): Space group number(s) of materials.
             spacegroup_symbol (str or list[str]): Space group symbol(s) of the materials in international short symbol notation.
-            surface_energy_anisotropy (Tuple[float,float]): Minimum and maximum surface energy anisotropy values
+            surface_energy_anisotropy (tuple[float, float]): Minimum and maximum surface energy anisotropy values
                 to consider.
             theoretical: (bool): Whether the material is theoretical.
-            total_energy (Tuple[int,int]): Minimum and maximum corrected total energy in eV/atom to consider.
-            total_magnetization (Tuple[float,float]): Minimum and maximum total magnetization values to consider.
-            total_magnetization_normalized_formula_units (Tuple[float,float]): Minimum and maximum total magnetization
+            total_energy (tuple[int, int]): Minimum and maximum corrected total energy in eV/atom to consider.
+            total_magnetization (tuple[float, float]): Minimum and maximum total magnetization values to consider.
+            total_magnetization_normalized_formula_units (tuple[float, float]): Minimum and maximum total magnetization
                 values normalized by formula units to consider.
-            total_magnetization_normalized_vol (Tuple[float,float]): Minimum and maximum total magnetization values
+            total_magnetization_normalized_vol (tuple[float, float]): Minimum and maximum total magnetization values
                 normalized by volume to consider.
-            uncorrected_energy (Tuple[int,int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
-            volume (Tuple[float,float]): Minimum and maximum volume to consider.
-            weighted_surface_energy (Tuple[float,float]): Minimum and maximum weighted surface energy
+            uncorrected_energy (tuple[int, int]): Minimum and maximum uncorrected total energy in eV/atom to consider.
+            volume (tuple[float, float]): Minimum and maximum volume to consider.
+            weighted_surface_energy (tuple[float, float]): Minimum and maximum weighted surface energy
                 in J/m² to consider.
-            weighted_work_function (Tuple[float,float]): Minimum and maximum weighted work function in eV to consider.
+            weighted_work_function (tuple[float, float]): Minimum and maximum weighted work function in eV to consider.
             include_gnome (bool): whether to include materials from GNoMe dataset
             num_chunks (int): Maximum number of chunks of data to yield. None will yield all possible.
             chunk_size (int): Number of data entries per chunk.
             all_fields (bool): Whether to return all fields in the document. Defaults to True.
-            fields (List[str]): List of fields in SummaryDoc to return data for.
+            fields (list[str]): List of fields in SummaryDoc to return data for.
                 Default is material_id if all_fields is False.
             _page (int or None) : Page of the results to skip to.
             _sort_fields (str or None) : Field to sort on. Including a leading "-" sign will reverse sort order.
+            db_version (str | None): Database version to download when no filters are given
+                (full dataset), e.g. "2026.04.13" or "latest". Defaults to the rester's version.
+                See `available_db_versions()`.
 
         Returns:
             ([SummaryDoc], [dict]) List of SummaryDoc documents or dictionaries.
@@ -234,62 +238,51 @@ class SummaryRester(BaseRester):
             warning_strs: list[str] = []
             exc_strs: list[str] = []
 
-            def csrc(x):
-                return f"\x1b[34m{x}\x1b[39m"
-
-            def _csrc(x):
-                return f"\x1b[31m{x}\x1b[39m"
-
             # Warn the user if they input any fields from _search without setting equivalent kwargs in search
             if db_keys["warn"]:
                 warning_strs.extend(
                     [
-                        f"You have specified fields used by {_csrc('`_search`')} that can be understood by {csrc('`search`')}",
-                        f"   {', '.join([_csrc(min_max_name_dict[k]) for k in db_keys['warn']])}",
-                        f"To ensure long term support, please use their {csrc('`search`')} equivalents:",
-                        f"   {', '.join([csrc(k) for k in db_keys['warn']])}",
+                        "You have specified fields used by `_search` that can be understood by `search`:",
+                        f"    {', '.join(min_max_name_dict[k] for k in db_keys['warn'])}",
+                        "To ensure long term support, please use their `search` equivalents:",
+                        f"    {', '.join(db_keys['warn'])}",
                     ]
                 )
 
             # Throw an exception if the user input a field from _search and its equivalent search kwarg
             if db_keys["duplicate"]:
-                dupe_pairs = "\n".join(
-                    f"{csrc(k)} and {_csrc(min_max_name_dict[k])}"
-                    for k in db_keys["duplicate"]
+                dupe_pairs = "\n    ".join(
+                    f"{k} and {min_max_name_dict[k]}" for k in db_keys["duplicate"]
                 )
                 exc_strs.extend(
                     [
-                        f"You have specified fields known to both {csrc('`search`')} and {_csrc('`_search`')}",
-                        f"   {dupe_pairs}",
-                        f"To avoid query ambiguity, please check your {csrc('`search`')} query and only specify",
-                        f"   {', '.join([csrc(k) for k in db_keys['duplicate']])}",
+                        "You have specified fields known to both `search` and `_search`:",
+                        f"    {dupe_pairs}",
+                        "To avoid query ambiguity, please check your `search` query and only specify:",
+                        f"    {', '.join(db_keys['duplicate'])}",
                     ]
                 )
             # Throw an exception if any unknown kwargs were input
             if db_keys["unknown"]:
                 exc_strs.extend(
                     [
-                        f"You have specified the following kwargs which are unknown to {csrc('`search`')}, "
-                        f"but may be known to {_csrc('`_search`')}",
-                        f"    \x1b[36m{', '.join(db_keys['unknown'])}\x1b[39m",
+                        "You have specified the following kwargs which are unknown to `search`, "
+                        "but may be known to `_search`:",
+                        f"    {', '.join(db_keys['unknown'])}",
                     ]
                 )
 
             # Always print links to documentation on warning / exception
             warn_ref_strs = [
                 "Please see the documentation:",
-                f"    {csrc('`search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search')}",
-                f"   {_csrc('`_search`: https://api.materialsproject.org/redoc#tag/Materials-Summary/operation/search_materials_summary__get')}",
+                "    `search`: https://materialsproject.github.io/api/_autosummary/mp_api.client.routes.materials.summary.SummaryRester.html#mp_api.client.routes.materials.summary.SummaryRester.search",
+                "    `_search`: https://api.materialsproject.org/redoc#tag/Materials-Summary/operation/search_materials_summary__get",
             ]
 
             if exc_strs:
                 raise MPRestError("\n".join([*warning_strs, *exc_strs, *warn_ref_strs]))
             if warn_ref_strs:
-                warnings.warn(
-                    "\n".join([*warning_strs, *warn_ref_strs]),
-                    category=MPRestWarning,
-                    stacklevel=2,
-                )
+                mp_warning("\n".join([*warning_strs, *warn_ref_strs]), stacklevel=2)
 
         for param, value in user_settings.items():
             if param in {"_page", "_sort_fields"}:
@@ -383,6 +376,7 @@ class SummaryRester(BaseRester):
                         fields=fields,
                         **query_params,
                         **{sk: symm_params[i] for i, sk in enumerate(ordered_symm_key)},
+                        db_version=db_version,
                     )
                     for symm_params in product(
                         *[batched_symm_query[k] for k in ordered_symm_key]
@@ -396,4 +390,5 @@ class SummaryRester(BaseRester):
             all_fields=all_fields,
             fields=fields,
             **query_params,
+            db_version=db_version,
         )
