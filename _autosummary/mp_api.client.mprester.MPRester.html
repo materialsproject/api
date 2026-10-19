@@ -492,8 +492,12 @@ is True</p>
 <dd><p>Get a list of ComputedStructureEntry from a chemical system, or formula, or MPID.</p>
 <p>This returns a list of ComputedStructureEntry with final structures for all thermo types
 represented in the database. Each type corresponds to a different mixing scheme
-(i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN). By default the thermo_type of the
-entry is also returned.</p>
+(i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN).</p>
+<p>Entries from different thermo types can share an <code class="docutils literal notranslate"><span class="pre">entry_id</span></code> and differ only
+in their energy adjustments: e.g. the R2SCAN and GGA/GGA+U/R2SCAN entries of a
+material are the same r2SCAN calculation, the latter with the mixing correction
+applied. To get the entries of a single thermo type, pass it in
+<code class="docutils literal notranslate"><span class="pre">additional_criteria</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">{&quot;thermo_types&quot;:</span> <span class="pre">[&quot;GGA_GGA+U_R2SCAN&quot;]}</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

@@ -834,8 +834,13 @@
 
 <span class="sd">        This returns a list of ComputedStructureEntry with final structures for all thermo types</span>
 <span class="sd">        represented in the database. Each type corresponds to a different mixing scheme</span>
-<span class="sd">        (i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN). By default the thermo_type of the</span>
-<span class="sd">        entry is also returned.</span>
+<span class="sd">        (i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN).</span>
+
+<span class="sd">        Entries from different thermo types can share an ``entry_id`` and differ only</span>
+<span class="sd">        in their energy adjustments: e.g. the R2SCAN and GGA/GGA+U/R2SCAN entries of a</span>
+<span class="sd">        material are the same r2SCAN calculation, the latter with the mixing correction</span>
+<span class="sd">        applied. To get the entries of a single thermo type, pass it in</span>
+<span class="sd">        ``additional_criteria``, e.g. ``{"thermo_types": ["GGA_GGA+U_R2SCAN"]}``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            chemsys_formula_mpids (str | list[str]): A chemical system, list of chemical systems</span>
