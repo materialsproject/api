@@ -764,8 +764,13 @@ class MPRester(_Rester):
 
         This returns a list of ComputedStructureEntry with final structures for all thermo types
         represented in the database. Each type corresponds to a different mixing scheme
-        (i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN). By default the thermo_type of the
-        entry is also returned.
+        (i.e. GGA/GGA+U, GGA/GGA+U/R2SCAN, R2SCAN).
+
+        Entries from different thermo types can share an ``entry_id`` and differ only
+        in their energy adjustments: e.g. the R2SCAN and GGA/GGA+U/R2SCAN entries of a
+        material are the same r2SCAN calculation, the latter with the mixing correction
+        applied. To get the entries of a single thermo type, pass it in
+        ``additional_criteria``, e.g. ``{"thermo_types": ["GGA_GGA+U_R2SCAN"]}``.
 
         Args:
             chemsys_formula_mpids (str | list[str]): A chemical system, list of chemical systems
