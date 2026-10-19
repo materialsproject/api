@@ -24,7 +24,7 @@ arrow==1.4.0
     # via isoduration
 ase==3.29.0
     # via pymatgen-analysis-diffusion
-ast-serialize==0.13.0
+ast-serialize==0.13.1
     # via mypy
 asttokens==3.0.2
     # via stack-data
@@ -58,13 +58,13 @@ bravado==12.0.1
     # via mp-api (pyproject.toml)
 bravado-core==6.4.1
     # via bravado
-cachetools==7.2.1
+cachetools==7.2.3
     # via
     #   mp-api (pyproject.toml)
     #   py-key-value-aio
 caio==0.12.9
     # via aiofile
-certifi==2026.7.22
+certifi==2026.10.18
     # via requests
 cffi==2.1.1
     # via cryptography
@@ -102,7 +102,7 @@ deltalake==1.5.1
     # via mp-api (pyproject.toml)
 deprecated==3.0.0
     # via deltalake
-distlib==0.4.3
+distlib==0.4.4
     # via virtualenv
 dnspython==2.9.0
     # via
@@ -115,7 +115,7 @@ docutils==0.22.4
     # via sphinx
 email-validator==2.3.0
     # via pydantic
-emmet-core[all]==0.88.0rc3
+emmet-core[all]==0.88.0
     # via mp-api (pyproject.toml)
 exceptiongroup==1.3.1
     # via fastmcp-slim
@@ -123,11 +123,11 @@ execnet==2.1.2
     # via pytest-xdist
 executing==2.3.0
     # via stack-data
-fastmcp==4.1.0
+fastmcp==4.1.1
     # via mp-api (pyproject.toml)
-fastmcp-slim[client,server]==4.1.0
+fastmcp-slim[client,server]==4.1.1
     # via fastmcp
-filelock==4.2.0
+filelock==4.2.4
     # via
     #   python-discovery
     #   virtualenv
@@ -143,7 +143,7 @@ fonttools==4.67.0
     # via matplotlib
 fqdn==1.6.0
     # via jsonschema
-griffelib==2.3.2
+griffelib==2.4.0
     # via fastmcp-slim
 h11==0.16.0
     # via
@@ -151,9 +151,9 @@ h11==0.16.0
     #   uvicorn
 h5py==3.16.0
     # via phonopy
-httpcore2==2.13.1
+httpcore2==2.14.0
     # via httpx2
-httpx2==2.13.1
+httpx2==2.14.0
     # via
     #   fastmcp-slim
     #   mcp
@@ -212,13 +212,13 @@ joblib==1.6.0
     # via
     #   pymatgen-analysis-diffusion
     #   pymatgen-core
-joserfc==1.7.5
+joserfc==1.7.7
     # via
     #   authlib
     #   fastmcp-slim
 json2html==1.3.0
     # via mp-api (pyproject.toml)
-jsonpointer==3.2.1
+jsonpointer==3.4
     # via jsonschema
 jsonref==1.1.0
     # via
@@ -376,14 +376,14 @@ phonopy==4.8.3
     # via emmet-core
 phonors==0.6.0
     # via phonopy
-pillow==12.3.0
+pillow==13.0.0
     # via
     #   imageio
     #   matplotlib
     #   scikit-image
 pint==0.26.1
     # via mp-api (pyproject.toml)
-platformdirs==4.13.0
+platformdirs==4.13.5
     # via
     #   fastmcp-slim
     #   pint
@@ -392,7 +392,7 @@ plotly==7.1.0
     # via
     #   pymatgen-analysis-defects
     #   pymatgen-core
-pluggy==1.6.0
+pluggy==1.7.0
     # via
     #   pytest
     #   pytest-cov
@@ -462,11 +462,11 @@ pymatgen==2026.9.24
     #   pymatgen-analysis-diffusion
 pymatgen-analysis-alloys==0.0.9
     # via emmet-core
-pymatgen-analysis-defects==2026.10.14
+pymatgen-analysis-defects==2026.10.16
     # via emmet-core
 pymatgen-analysis-diffusion==2026.9.23
     # via emmet-core
-pymatgen-core==2026.10.2
+pymatgen-core==2026.10.16
     # via
     #   emmet-core
     #   pymatgen
@@ -495,7 +495,7 @@ pytest-asyncio==1.4.0
     # via mp-api (pyproject.toml)
 pytest-cov==7.1.0
     # via mp-api (pyproject.toml)
-pytest-mock==3.16.0
+pytest-mock==3.17.0
     # via mp-api (pyproject.toml)
 pytest-xdist==3.8.0
     # via mp-api (pyproject.toml)
@@ -507,7 +507,7 @@ python-dateutil==2.9.0.post0
     #   bravado-core
     #   matplotlib
     #   pandas
-python-discovery==1.6.2
+python-discovery==1.6.4
     # via virtualenv
 python-dotenv==1.2.4
     # via
@@ -626,7 +626,7 @@ sse-starlette==3.5.0
     # via mcp
 stack-data==0.6.3
     # via ipython
-starlette==1.8.0
+starlette==1.9.0
     # via
     #   fastmcp-slim
     #   mcp
@@ -641,7 +641,7 @@ sympy==1.14.0
     # via pymatgen-core
 tabulate==0.10.0
     # via pymatgen-core
-tifffile==2026.9.20
+tifffile==2026.10.15
     # via scikit-image
 tqdm==4.70.1
     # via pymatgen-core
@@ -702,7 +702,7 @@ uvicorn==0.54.0
     # via
     #   fastmcp-slim
     #   mcp
-virtualenv==21.14.7
+virtualenv==21.14.11
     # via pre-commit
 watchfiles==1.3.0
     # via fastmcp-slim
@@ -710,7 +710,7 @@ wcwidth==0.9.2
     # via prompt-toolkit
 webcolors==25.10.0
     # via jsonschema
-websockets==17.2
+websockets==17.3
     # via fastmcp-slim
 werkzeug==3.1.9
     # via flask

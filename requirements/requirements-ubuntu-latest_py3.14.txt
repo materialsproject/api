@@ -18,7 +18,7 @@ botocore==1.43.114
     # via
     #   boto3
     #   s3transfer
-certifi==2026.7.22
+certifi==2026.10.18
     # via requests
 charset-normalizer==3.5.2
     # via requests
@@ -32,7 +32,7 @@ deltalake==1.5.1
     # via mp-api (pyproject.toml)
 deprecated==3.0.0
     # via deltalake
-emmet-core==0.88.0rc3
+emmet-core==0.88.0
     # via mp-api (pyproject.toml)
 fonttools==4.67.0
     # via matplotlib
@@ -93,7 +93,7 @@ palettable==3.3.3
     # via pymatgen-core
 pandas==3.0.6
     # via pymatgen-core
-pillow==12.3.0
+pillow==13.0.0
     # via matplotlib
 plotly==7.1.0
     # via pymatgen-core
@@ -120,7 +120,7 @@ pymatgen==2026.9.24
     # via
     #   emmet-core
     #   mp-api (pyproject.toml)
-pymatgen-core==2026.10.2
+pymatgen-core==2026.10.16
     # via
     #   emmet-core
     #   pymatgen
