@@ -486,6 +486,7 @@ class BaseRester(_Rester):
 
         self.timeout = timeout
         self._s3_client = s3_client
+        self._gnome_access: bool | None = None
 
     @property
     def s3_client(self):
@@ -896,6 +897,45 @@ class BaseRester(_Rester):
                 "to download that version, then filter it locally."
             )
 
+    def _has_gnome_access(self, timeout: int | None = None) -> bool:
+        """Whether the API key can access the GNoMe (BY-NC licensed) data.
+
+        Data in access-controlled collections that the key cannot access is not
+        served by the API, so is left out of full dataset downloads and phase
+        diagrams too. Checked with one request on first use, then cached; a failed
+        check (e.g. no API key) is treated as no access.
+
+        Args:
+            timeout (int or None) : timeout for the check, defaults to `self.timeout`
+
+        Returns:
+            bool
+        """
+        if self._gnome_access is None:
+            try:
+                self._gnome_access = bool(
+                    self._submit_requests(
+                        url=urljoin(self.base_endpoint, "materials/summary/"),
+                        criteria={
+                            "batch_id": "gnome_r2scan_statics",
+                            "_fields": "material_id",
+                        },
+                        use_document_model=False,
+                        num_chunks=1,
+                        chunk_size=1,
+                        timeout=timeout if timeout is not None else self.timeout,
+                        show_progress=False,
+                    )
+                    .get("meta", {})
+                    .get("total_doc", 0)
+                )
+            except MPRestError as exc:
+                logger.debug(
+                    f"Could not check access to GNoMe data, assuming none: {exc}"
+                )
+                self._gnome_access = False
+        return self._gnome_access
+
     def _query_delta_backed(
         self,
         bucket: str,
@@ -995,28 +1035,10 @@ class BaseRester(_Rester):
                 f"Regenerating {collection}{version_note} at {target_path}..."
             )
 
-        # Check if user has access to GNoMe
-        has_gnome_access = bool(
-            self._submit_requests(
-                url=urljoin(self.base_endpoint, "materials/summary/"),
-                criteria={
-                    "batch_id": "gnome_r2scan_statics",
-                    "_fields": "material_id",
-                },
-                use_document_model=False,
-                num_chunks=1,
-                chunk_size=1,
-                timeout=timeout if timeout is not None else self.timeout,
-                show_progress=False,
-            )
-            .get("meta", {})
-            .get("total_doc", 0)
-        )
-
         conditions = []
         if versioned:
             conditions.append(f"version = '{version}'")
-        filter_access = access_controlled and not has_gnome_access
+        filter_access = access_controlled and not self._has_gnome_access(timeout)
         if filter_access:
             if collection == "tasks":
                 controlled_batch_str = ",".join(

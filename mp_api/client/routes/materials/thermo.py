@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
+from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -10,6 +12,7 @@ from emmet.core.types.pymatgen_types.phase_diagram_adapter import PhaseDiagramTy
 from pydantic import TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
+from pymatgen.entries.computed_entries import ConstantEnergyAdjustment
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core._display import status
@@ -22,6 +25,54 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from enums import Enum
+
+logger = logging.getLogger(__name__)
+
+
+def _accessible_entries(entries: list, elements: list) -> list:
+    """The entries of a pre-built GGA(+U)/r2SCAN phase diagram without the access-
+    controlled (BY-NC licensed, GNoMe) ones, with energies as if mixed without them.
+
+    The GNoMe entries are r2SCAN-only, so they do not affect the mixing state or the
+    other entries' energies, except in r2SCAN-anchored systems: there the mixing scheme
+    places GGA(+U)-only entries onto the r2SCAN hull (shifting them by the r2SCAN minus
+    the GGA(+U) hull energy at their composition), which includes the GNoMe entries.
+    These are re-referenced to the r2SCAN hull without them, as a re-mix would give.
+    """
+    accessible = [e for e in entries if e.data.get("license") != "BY-NC"]
+    shifted = [
+        i
+        for i, e in enumerate(accessible)
+        if any(
+            "onto the r2SCAN hull" in (a.description or "")
+            for a in e.energy_adjustments
+        )
+    ]
+    if not shifted:
+        return accessible
+
+    r2scan = [
+        e for e in entries if str(e.parameters.get("run_type")).lower() == "r2scan"
+    ]
+    full_hull = PhaseDiagram(r2scan, elements=elements)
+    accessible_hull = PhaseDiagram(
+        [e for e in r2scan if e.data.get("license") != "BY-NC"], elements=elements
+    )
+    for i in shifted:
+        comp = accessible[i].composition
+        shift = accessible_hull.get_hull_energy_per_atom(comp)
+        shift -= full_hull.get_hull_energy_per_atom(comp)
+        if shift > 1e-10:  # (beyond float noise) copy, to leave the served entry as is:
+            entry = accessible[i] = deepcopy(accessible[i])
+            entry.energy_adjustments.append(
+                ConstantEnergyAdjustment(
+                    shift * comp.num_atoms,
+                    name="MP GGA(+U)/r2SCAN mixing adjustment, without GNoMe entries",
+                    description="Place GGA(+U) energy onto the r2SCAN hull without the "
+                    "access-controlled (GNoMe) entries",
+                )
+            )
+    return accessible
 
 
 class ThermoRester(BaseRester):
@@ -200,6 +251,11 @@ class ThermoRester(BaseRester):
     ) -> PhaseDiagram:
         """Get a pre-computed phase diagram for a given chemsys.
 
+        For API keys without access to the GNoMe data, its (BY-NC licensed) entries
+        are left out, as for all other GNoMe data served to such keys, and the phase
+        diagram is rebuilt from the remaining entries, with the energies they would
+        have from the GGA(+U)/r2SCAN mixing scheme without the GNoMe entries.
+
         Arguments:
             chemsys (str): A chemical system (e.g. Li-Fe-O)
             thermo_type (ThermoType): The thermo type for the phase diagram.
@@ -245,6 +301,30 @@ class ThermoRester(BaseRester):
         pd: PhaseDiagram | None = None
         if len(pds := TypeAdapter(list[PhaseDiagramType]).validate_python(as_py)) > 0:
             pd = pds[0]
+
+        # The pre-built phase diagrams include the access-controlled GNoMe entries, which
+        # (like their thermo docs, needed e.g. for `get_entries_in_chemsys` with
+        # `property_data`) are otherwise not served to API keys without access to them:
+        if (
+            pd
+            and any(e.data.get("license") == "BY-NC" for e in pd.all_entries)
+            and not self._has_gnome_access()
+        ):
+            try:
+                accessible = _accessible_entries(pd.all_entries, pd.elements)
+                n_left_out = len(pd.all_entries) - len(accessible)
+                pd = PhaseDiagram(accessible, elements=pd.elements)
+            except ValueError as exc:  # e.g. missing elemental (terminal) entries
+                logger.warning(
+                    f"Could not rebuild the {sorted_chemsys} phase diagram without its "
+                    f"access-controlled (GNoMe) entries, so these are kept: {exc}"
+                )
+            else:
+                logger.info(
+                    f"Left out {n_left_out:,} access-controlled (GNoMe) entries from the "
+                    f"{sorted_chemsys} phase diagram, as this API key does not have "
+                    "access to GNoMe data."
+                )
 
         # Ensure el_ref keys are Element objects for PDPlotter.
         # Ensure qhull_data is a numpy array

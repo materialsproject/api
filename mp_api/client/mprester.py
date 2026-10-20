@@ -62,7 +62,7 @@ from mp_api.client.core.settings import (
     DEFAULT_THERMOTYPE_CRITERIA,
     MAPI_CLIENT_SETTINGS,
 )
-from mp_api.client.core.utils import LazyImport, load_json, validate_ids
+from mp_api.client.core.utils import LazyImport, _shortlist, load_json, validate_ids
 from mp_api.client.routes import GENERIC_RESTERS
 from mp_api.client.routes.materials import MATERIALS_RESTERS
 from mp_api.client.routes.molecules import MOLECULES_RESTERS
@@ -1295,7 +1295,9 @@ class MPRester(_Rester):
         Passing ``compatible_only = False`` cannot be served that way and returns
         entries that are *not* immediately suitable for constructing a phase diagram,
         with a warning. When MP has no pre-built diagram for the system, the mixing
-        scheme is re-applied locally (logged as a warning, with a progress bar).
+        scheme is re-applied locally (logged as a warning, with a progress bar). For API
+        keys without access to the GNoMe data, its entries are left out of the served
+        diagrams (see ``ThermoRester.get_phase_diagram_from_chemsys``).
 
         Args:
             elements (str or [str]): Parent chemical system string comprising element
@@ -1376,8 +1378,19 @@ class MPRester(_Rester):
                         str(doc["material_id"]): {p: doc[p] for p in property_data}
                         for doc in docs
                     }
+                    undecorated = []
                     for entry in entries:  # served entries carry `material_id`
-                        entry.data |= props[str(entry.data["material_id"])]
+                        if (mpid := str(entry.data["material_id"])) in props:
+                            entry.data |= props[mpid]
+                        else:  # e.g. with a `db_version` other than the API's
+                            undecorated.append(mpid)
+                    if undecorated:
+                        logger.warning(
+                            f"No thermo document was found for {len(undecorated):,} of "
+                            f"the served {'-'.join(sorted(elements_set))} phase diagram "
+                            f"entries ({_shortlist(undecorated)}), so `property_data` "
+                            "could not be attached to them."
+                        )
 
             if entries is None:
                 # MP has no pre-built diagram for this system, so redo the mixing here as MP does when
