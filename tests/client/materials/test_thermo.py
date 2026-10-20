@@ -98,6 +98,13 @@ def test_get_phase_diagram_from_chemsys_gnome_access(monkeypatch, has_access):
     # the r2SCAN hull (which are re-referenced to it without the GNoMe entries, so can
     # only go up), and the hull is rebuilt without the GNoMe entries:
     assert set(energies) == set(full_energies) - gnome
+    # Cu-Se-Si is r2SCAN-anchored, so GGA(+U)-only entries are re-referenced (fails on
+    # data drift, rather than silently skipping the check below):
+    assert any(
+        "without GNoMe" in adj.name
+        for e in pd.all_entries
+        for adj in e.energy_adjustments
+    )
     for entry in pd.all_entries:
         i = str(entry.entry_id)
         if any("without GNoMe" in adj.name for adj in entry.energy_adjustments):
