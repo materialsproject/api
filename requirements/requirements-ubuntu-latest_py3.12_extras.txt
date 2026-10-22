@@ -64,7 +64,7 @@ cachetools==7.2.3
     #   py-key-value-aio
 caio==0.12.9
     # via aiofile
-certifi==2026.10.18
+certifi==2026.10.19
     # via requests
 cffi==2.1.1
     # via cryptography
@@ -708,7 +708,7 @@ uvicorn==0.54.0
     # via
     #   fastmcp-slim
     #   mcp
-virtualenv==21.14.11
+virtualenv==21.14.12
     # via pre-commit
 watchfiles==1.3.0
     # via fastmcp-slim
