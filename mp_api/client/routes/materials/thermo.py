@@ -10,6 +10,7 @@ from emmet.core.types.pymatgen_types.phase_diagram_adapter import PhaseDiagramTy
 from pydantic import TypeAdapter
 from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Element
+from pymatgen.entries.computed_entries import ConstantEnergyAdjustment
 
 from mp_api.client.core import BaseRester
 from mp_api.client.core._display import status
@@ -22,6 +23,45 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from enums import Enum
+
+
+def _accessible_entries(pd: PhaseDiagram) -> list:
+    """The entries of a pre-built GGA(+U)/r2SCAN phase diagram without the access-
+    controlled (BY-NC licensed, GNoMe) ones, with energies as if mixed without them.
+
+    GNoMe entries in the mixed phase diagrams are r2SCAN, so they only affect the mixing
+    state or other entries' energies in r2SCAN-anchored systems. If this is the case and
+    GNoMe entries are being pruned, we re-reference to the r2SCAN hull without them, as
+    a re-mix would give.
+    """
+    entries = [e for e in pd.all_entries if e.data.get("license") != "BY-NC"]
+    shifted = [
+        e
+        for e in entries
+        if any(
+            "onto the r2SCAN hull" in (a.description or "")
+            for a in e.energy_adjustments
+        )
+    ]
+    if shifted:
+        r2scan = [
+            e for e in entries if str(e.parameters.get("run_type")).lower() == "r2scan"
+        ]
+        hull = PhaseDiagram(r2scan, elements=pd.elements)
+        shifts = [  # (all before any entry energies change)
+            hull.get_hull_energy_per_atom(e.composition)
+            - pd.get_hull_energy_per_atom(e.composition)
+            for e in shifted
+        ]
+        for entry, shift in zip(shifted, shifts, strict=True):
+            if shift > 1e-10:  # beyond float noise
+                entry.energy_adjustments.append(
+                    ConstantEnergyAdjustment(
+                        shift * entry.composition.num_atoms,
+                        name="MP GGA(+U)/r2SCAN mixing adjustment, without GNoMe entries",
+                    )
+                )
+    return entries
 
 
 class ThermoRester(BaseRester):
@@ -245,6 +285,14 @@ class ThermoRester(BaseRester):
         pd: PhaseDiagram | None = None
         if len(pds := TypeAdapter(list[PhaseDiagramType]).validate_python(as_py)) > 0:
             pd = pds[0]
+
+        # pre-built phase diagrams include the access-controlled GNoMe entries
+        if (
+            pd
+            and any(e.data.get("license") == "BY-NC" for e in pd.all_entries)
+            and not self._has_gnome_access()
+        ):
+            pd = PhaseDiagram(_accessible_entries(pd), elements=pd.elements)
 
         # Ensure el_ref keys are Element objects for PDPlotter.
         # Ensure qhull_data is a numpy array

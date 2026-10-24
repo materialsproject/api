@@ -69,3 +69,37 @@ def test_get_phase_diagram_from_chemsys():
         pd,
         PhaseDiagram,
     )
+
+
+def test_get_phase_diagram_from_chemsys_gnome_access(rester):
+    """The (access-controlled, BY-NC licensed) GNoMe entries of the pre-built phase
+    diagrams are only served to API keys with access to the GNoMe data."""
+    rester._gnome_access = True  # (the cached access check)
+    full = rester.get_phase_diagram_from_chemsys("Cu-Se-Si")
+    rester._gnome_access = False
+    pd = rester.get_phase_diagram_from_chemsys("Cu-Se-Si")
+
+    # the GNoMe Cu3SiSe4 is on the r2SCAN-anchored hull (as of v2026.09.28), so the
+    # GGA(+U)-only entries placed onto it are re-referenced (up) without it, and the
+    # other entries keep their energies:
+    gnome = {str(e.entry_id) for e in full.all_entries if e.data["license"] == "BY-NC"}
+    full_energies = {str(e.entry_id): e.energy_per_atom for e in full.all_entries}
+    energies = {str(e.entry_id): e.energy_per_atom for e in pd.all_entries}
+    reref = {
+        str(e.entry_id)
+        for e in pd.all_entries
+        if any("without GNoMe" in adj.name for adj in e.energy_adjustments)
+    }
+    assert gnome and reref
+    assert set(energies) == set(full_energies) - gnome
+    for i, energy in energies.items():
+        if i in reref:
+            assert energy > full_energies[i]
+        else:
+            assert energy == pytest.approx(full_energies[i])
+
+
+def test_failed_gnome_access_check_not_cached():
+    with ThermoRester(api_key="a" * 32) as rester:  # invalid key, so the check fails
+        assert not rester._has_gnome_access()
+        assert rester._gnome_access is None  # so checked again on the next call

@@ -44,8 +44,10 @@ from pymatgen.io.vasp import Chgcar
 
 from mp_api._test_utils import requires_api_key
 from mp_api.client import MPRester
+from mp_api.client.mprester import _all_subchemsyses
 from mp_api.client.core import MPRestError, MPRestWarning
 from mp_api.client.core.settings import _DEFAULT_ENDPOINT
+from mp_api.client.routes.materials.thermo import ThermoRester
 
 try:
     from mp_api.client.contribs import ContribsClient as contribs_client
@@ -435,6 +437,49 @@ loop_
             # the extensive mixing-scheme adjustments on r2SCAN entries) and stoichiometry:
             assert entry.energy_per_atom == pytest.approx(energy, abs=1e-8)
             assert entry.composition.reduced_formula == formula
+
+    def test_get_entries_in_chemsys_gnome_access(self, mpr, monkeypatch):
+        """``property_data`` is attached to the served entries also for API keys
+        without access to the GNoMe data, whose thermo docs these keys cannot get.
+        """
+        monkeypatch.setattr(
+            ThermoRester, "_has_gnome_access", lambda self, timeout=None: False
+        )
+        entries = mpr.get_entries_in_chemsys(
+            "Cu-Se-Si", property_data=["energy_above_hull"]
+        )
+        assert entries
+        assert not any(e.data["license"] == "BY-NC" for e in entries)
+        assert all("energy_above_hull" in e.data for e in entries)
+
+    def test_get_phase_diagram_without_gnome_matches_remix(self, mpr, monkeypatch):
+        """Without GNoMe access, the served phase diagram without GNoMe entries has the
+        hull that re-mixing the other entries gives.
+        """
+        # just dropping the GNoMe entries without re-mixing here leaves Tb-Tc-Ge entries spuriously stable
+        chemsys = "Ge-Tb-Tc"
+        monkeypatch.setattr(
+            ThermoRester, "_has_gnome_access", lambda self, timeout=None: False
+        )
+        pd = mpr.materials.thermo.get_phase_diagram_from_chemsys(chemsys)
+        unmixed = mpr._get_unmixed_entries(_all_subchemsyses(chemsys.split("-")))
+        remixed = PhaseDiagram(
+            MaterialsProjectDFTMixingScheme().process_entries(
+                [e for e in unmixed if e.data.get("license") != "BY-NC"]
+            )
+        )
+
+        def e_above_hull(phase_diagram):
+            by_mpid: dict[str, float] = {}
+            for e in phase_diagram.all_entries:
+                mpid = str(e.data["material_id"])
+                eah = phase_diagram.get_e_above_hull(e)
+                by_mpid[mpid] = min(by_mpid.get(mpid, eah), eah)
+            return by_mpid
+
+        served, reference = e_above_hull(pd), e_above_hull(remixed)
+        assert set(served) == set(reference)
+        assert all(served[i] == pytest.approx(reference[i], abs=1e-6) for i in served)
 
     @pytest.mark.skipif(
         contribs_client is None,
