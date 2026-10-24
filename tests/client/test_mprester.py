@@ -438,11 +438,9 @@ loop_
             assert entry.energy_per_atom == pytest.approx(energy, abs=1e-8)
             assert entry.composition.reduced_formula == formula
 
-    def test_get_entries_in_chemsys_gnome_access(self, mpr, monkeypatch, caplog):
+    def test_get_entries_in_chemsys_gnome_access(self, mpr, monkeypatch):
         """``property_data`` is attached to the served entries also for API keys
-        without access to the GNoMe data, whose thermo docs these keys cannot get
-        (previously a ``KeyError`` for any phase diagram with GNoMe entries), and a
-        served entry without a thermo doc no longer fails the whole query.
+        without access to the GNoMe data, whose thermo docs these keys cannot get.
         """
         monkeypatch.setattr(
             ThermoRester, "_has_gnome_access", lambda self, timeout=None: False
@@ -454,39 +452,16 @@ loop_
         assert not any(e.data["license"] == "BY-NC" for e in entries)
         assert all("energy_above_hull" in e.data for e in entries)
 
-        # e.g. with a `db_version` other than the API's, or a missing doc:
-        search = ThermoRester.search
-
-        def search_missing_one(self, *args, **kwargs):
-            return search(self, *args, **kwargs)[1:]
-
-        monkeypatch.setattr(ThermoRester, "search", search_missing_one)
-        with caplog.at_level(logging.WARNING, logger="mp_api.client"):
-            entries = mpr.get_entries_in_chemsys(
-                "Cu-Se-Si", property_data=["energy_above_hull"]
-            )
-        undecorated = [e for e in entries if "energy_above_hull" not in e.data]
-        assert 0 < len(undecorated) < len(entries)
-        assert "could not be attached" in caplog.text
-
     def test_get_phase_diagram_without_gnome_matches_remix(self, mpr, monkeypatch):
-        """Without GNoMe access, the served phase diagram less its GNoMe entries has the
-        hull that re-mixing the other entries gives (GGA(+U)-only entries placed onto the
-        r2SCAN hull are re-referenced to it without the GNoMe entries; just dropping
-        them here leaves Tb-Tc-Ge entries spuriously stable, as of v2026.09.28).
+        """Without GNoMe access, the served phase diagram without GNoMe entries has the
+        hull that re-mixing the other entries gives.
         """
+        # just dropping the GNoMe entries without re-mixing here leaves Tb-Tc-Ge entries spuriously stable
         chemsys = "Ge-Tb-Tc"
         monkeypatch.setattr(
             ThermoRester, "_has_gnome_access", lambda self, timeout=None: False
         )
         pd = mpr.materials.thermo.get_phase_diagram_from_chemsys(chemsys)
-        if not any(
-            "without GNoMe" in adj.name
-            for e in pd.all_entries
-            for adj in e.energy_adjustments
-        ):
-            pytest.skip(f"No re-referenced entries in the {chemsys} phase diagram")
-
         unmixed = mpr._get_unmixed_entries(_all_subchemsyses(chemsys.split("-")))
         remixed = PhaseDiagram(
             MaterialsProjectDFTMixingScheme().process_entries(

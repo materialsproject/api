@@ -898,12 +898,10 @@ class BaseRester(_Rester):
             )
 
     def _has_gnome_access(self, timeout: int | None = None) -> bool:
-        """Whether the API key can access the GNoMe (BY-NC licensed) data.
+        """Whether the API key can access the (BY-NC licensed) GNoMe data.
 
-        Data in access-controlled collections that the key cannot access is not
-        served by the API, so is left out of full dataset downloads and phase
-        diagrams too. Checked with one request on first use, then cached; a failed
-        check (e.g. no API key) is treated as no access.
+        Checked with one request, cached once it succeeds. A failed check (e.g. without
+        an API key) counts as no access, and is retried on the next call.
 
         Args:
             timeout (int or None) : timeout for the check, defaults to `self.timeout`
@@ -933,7 +931,7 @@ class BaseRester(_Rester):
                 logger.debug(
                     f"Could not check access to GNoMe data, assuming none: {exc}"
                 )
-                self._gnome_access = False
+                return False
         return self._gnome_access
 
     def _query_delta_backed(
