@@ -40,7 +40,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "pymatgen>=2026.9.23",  # MaterialsProjectDFTMixingScheme fix for local re-mixes
+  "pymatgen>=2026.10.24",
   "requests>=2.23.0",
   "monty>=2024.12.10",
   "emmet-core>=0.88.0",
