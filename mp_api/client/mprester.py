@@ -1376,8 +1376,19 @@ class MPRester(_Rester):
                         str(doc["material_id"]): {p: doc[p] for p in property_data}
                         for doc in docs
                     }
+                    no_doc = dict.fromkeys(property_data)
+                    missing = []
                     for entry in entries:  # served entries carry `material_id`
-                        entry.data |= props[str(entry.data["material_id"])]
+                        material_id = str(entry.data["material_id"])
+                        if material_id not in props:
+                            missing.append(material_id)
+                        entry.data |= props.get(material_id, no_doc)
+                    if missing:  # e.g. materials removed since an older `db_version`
+                        logger.warning(
+                            f"No thermo document was found for {', '.join(missing)} in "
+                            f"database version {self.current_db_version} (used for REST "
+                            "queries), so their `property_data` fields are None."
+                        )
 
             if entries is None:
                 # MP has no pre-built diagram for this system, so redo the mixing here as MP does when

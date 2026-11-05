@@ -445,6 +445,27 @@ loop_
             assert entry.energy_per_atom == pytest.approx(energy, abs=1e-8)
             assert entry.composition.reduced_formula == formula
 
+    def test_get_entries_in_chemsys_decorated_served_pd_missing_docs(self, caplog):
+        """
+        With an older ``db_version``, the phase diagram is read from that version but
+        ``property_data`` from the REST API (current version), which lacks some of its
+        materials, e.g. ``mp-1275385`` in the v2026.04.13 Co-O phase diagram. These get
+        None rather than raising a ``KeyError``.
+        """
+        with MPRester(db_version="2026.04.13") as mpr:
+            with caplog.at_level(logging.WARNING, logger="mp_api.client"):
+                entries = mpr.get_entries_in_chemsys(
+                    "Co-O", property_data=["energy_above_hull"]
+                )
+        missing = {
+            str(e.data["material_id"])
+            for e in entries
+            if e.data["energy_above_hull"] is None
+        }
+        assert "mp-1275385" in missing
+        assert len(missing) < len(entries)
+        assert "No thermo document was found for mp-1275385" in caplog.text
+
     def test_get_entries_in_chemsys_gnome_access(self, mpr, monkeypatch):
         """``property_data`` is attached to the served entries also for API keys
         without access to the GNoMe data, whose thermo docs these keys cannot get.
