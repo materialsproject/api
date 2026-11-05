@@ -40,7 +40,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "pymatgen>2024.2.20",
+  "pymatgen>=2026.10.24",
   "requests>=2.23.0",
   "monty>=2024.12.10",
   "emmet-core>=0.88.0",

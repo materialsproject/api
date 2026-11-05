@@ -1399,7 +1399,8 @@ class MPRester(_Rester):
                 )
                 n = len(unmixed)
                 entries = apply_corrections(
-                    MaterialsProjectDFTMixingScheme(),
+                    # strict structure matching, as for MP's pre-built phase diagrams
+                    MaterialsProjectDFTMixingScheme(fuzzy_matching=False),
                     unmixed,
                     description="Re-mixing GGA(+U)/r2SCAN entries",
                     log=f"Re-mixing {n:,} GGA(+U)/r2SCAN entries onto a common energy scale",

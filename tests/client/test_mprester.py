@@ -46,6 +46,7 @@ from mp_api._test_utils import requires_api_key
 from mp_api.client import MPRester
 from mp_api.client.core import MPRestError, MPRestWarning
 from mp_api.client.core.settings import _DEFAULT_ENDPOINT
+from mp_api.client.routes.materials.thermo import ThermoRester
 
 try:
     from mp_api.client.contribs import ContribsClient as contribs_client
@@ -330,6 +331,18 @@ loop_
             MPRestError, match="Please specify fewer elements to query by"
         ):
             mpr.get_entries_in_chemsys([Element.from_Z(1 + i).name for i in range(10)])
+
+    def test_get_entries_in_chemsys_remix_matches_served(self, mpr, monkeypatch):
+        """The client-side re-mix (used when MP has no pre-built phase diagram) matches
+        MP's pre-built phase diagram rules."""
+        served = mpr.get_entries_in_chemsys("O")
+        monkeypatch.setattr(  # force the re-mix
+            ThermoRester, "get_phase_diagram_from_chemsys", lambda *args, **kwargs: None
+        )
+        remixed = mpr.get_entries_in_chemsys("O")
+        assert {str(e.entry_id): e.energy_per_atom for e in remixed} == pytest.approx(
+            {str(e.entry_id): e.energy_per_atom for e in served}
+        )
 
     def test_get_entries_in_chemsys_mixed_hull(self, mpr):
         """Mixed GGA(+U)/r2SCAN entries must all sit on one energy scale (issue #1104).
