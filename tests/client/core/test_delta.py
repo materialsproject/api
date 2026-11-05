@@ -6,6 +6,7 @@ these tests need no network access, API key, or files on disk.
 
 import logging
 import threading
+import time
 import warnings
 
 import pyarrow as pa
@@ -18,9 +19,9 @@ from mp_api.client.core.delta import DeltaCatalog, _is_missing_object
 from mp_api.client.core.exceptions import MPRestError, MPRestWarning
 
 REAL_ERROR = (
-    "Failed to fetch metadata for file Users/tsmathis/mp_datasets/build/collections/"
+    "Failed to fetch metadata for file data/mp_datasets/build/collections/"
     "materials/version=2026-04-13/group-4-part-0.zstd.parquet: Parquet error: External: "
-    "Object at location /Users/tsmathis/mp_datasets/build/collections/materials/"
+    "Object at location /data/mp_datasets/build/collections/materials/"
     "version=2026-04-13/group-4-part-0.zstd.parquet not found: No such file or "
     "directory (os error 2)"
 )
@@ -344,6 +345,13 @@ def _in_thread(fn, *args, **kwargs):
     return th, result
 
 
+def _wait_until(predicate, timeout=5.0):
+    deadline = time.monotonic() + timeout
+    while not predicate():
+        assert time.monotonic() < deadline, "test timed out"
+        time.sleep(0.005)
+
+
 def test_reload_does_not_block_queries_on_other_tables(catalog, monkeypatch):
     blocker = BlockingLoads(monkeypatch, "s3a://bucket/a/")
 
@@ -386,6 +394,9 @@ def test_concurrent_refreshes_of_same_table_reload_once(catalog, monkeypatch):
     t1, r1 = _in_thread(catalog.execute, "SELECT * FROM a", label="a")
     assert blocker.started.wait(5)
     t2, r2 = _in_thread(catalog.execute, "SELECT * FROM a", label="a")
+    # t2 must take the second failure before t1's reload finishes; otherwise
+    # t1's retry takes it and fails
+    _wait_until(lambda: not FakeQueryBuilder.failures)
 
     blocker.release.set()
     t1.join(5)
