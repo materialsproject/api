@@ -994,11 +994,14 @@ class ContribsClient(SwaggerClient):
             else MPCDict(contrib)
         )
 
-    def get_table(self, tid_or_md5: str) -> Table:
+    def get_table(self, tid_or_md5: str, timeout: int = -1) -> Table:
         """Retrieve full Pandas DataFrame for a table.
+
+        Data pages beyond the first are fetched concurrently.
 
         Args:
             tid_or_md5 (str): ObjectId or MD5 hash digest for table
+            timeout (int): cancel remaining requests if timeout exceeded (in seconds)
         """
         str_len = len(tid_or_md5)
         if str_len not in {24, 32}:
@@ -1016,23 +1019,36 @@ class ContribsClient(SwaggerClient):
 
         op = self.swagger_spec.resources["tables"].queryTables
         per_page = op.params["data_per_page"].param_spec["maximum"]
-        table: dict[str, list[str]] = {"data": []}
-        page, pages = 1, None
 
-        while pages is None or page <= pages:
-            resp = self.tables.getTableById(
-                pk=tid, _fields=["_all"], data_page=page, data_per_page=per_page
-            ).result()
-            table["data"].extend(resp["data"])
-            if pages is None:
-                pages = resp["total_data_pages"]
-                table["index"] = resp["index"]
-                table["columns"] = resp["columns"]
-                table_attrs: dict[str, str] = (resp.get("attrs") or {}) | {
-                    field: resp.get(field) for field in {"id", "name", "md5"}
-                }
+        # fetch the first page to learn the total number of data pages + metadata
+        resp = self.tables.getTableById(
+            pk=tid, _fields=["_all"], data_page=1, data_per_page=per_page
+        ).result()
+        pages = resp["total_data_pages"]
+        table: dict[str, Any] = {
+            "data": resp["data"],
+            "index": resp["index"],
+            "columns": resp["columns"],
+        }
+        table_attrs: dict[str, str] = (resp.get("attrs") or {}) | {
+            field: resp.get(field) for field in {"id", "name", "md5"}
+        }
 
-            page += 1
+        # fetch any remaining pages concurrently, then reassemble in page order
+        if pages > 1:
+            futures = [
+                self._get_future(
+                    page,
+                    {"_fields": "_all", "data_page": page, "data_per_page": per_page},
+                    rel_url=f"tables/{tid}",
+                )
+                for page in range(2, pages + 1)
+            ]
+            responses = _run_futures(
+                futures, timeout=timeout, disable=self.mute_progress_bars
+            )
+            for page in sorted(responses):
+                table["data"].extend(responses[page]["result"]["data"])
 
         return Table.from_dict(table | {"attrs": table_attrs})
 
