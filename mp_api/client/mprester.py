@@ -1924,16 +1924,19 @@ class MPRester(_Rester):
         """Get the energy above hull of a list of entries.
 
         Args:
-        entries (list of ComputedEntry or ComputedStructureEntry or PDEntry) :
-            List of entries with energy and composition information to compute
-            hull energies.
-        thermo_type (str or ThermoType) : The hull type to use.
-            Defaults to ThermoType.GGA_GGA_U_R2SCAN.
+            entries (list of ComputedEntry or ComputedStructureEntry or PDEntry):
+                List of entries with energy and composition information to compute
+                hull energies. Entries the corrections drop (for the GGA(+U)/r2SCAN
+                mixing scheme, those without a structure or `entry_id`, and duplicates
+                of a structure) are only assigned an energy above hull if computed
+                with the functional the hull is anchored on, else None.
+            thermo_type (str or ThermoType) : The hull type to use.
+                Defaults to ThermoType.GGA_GGA_U_R2SCAN.
 
         Returns:
         list of dict:
             {
-                "e_above_hull": float, # energy above the hull
+                "e_above_hull": float | None, # energy above the hull, or None
                 "composition": dict[str,float], # composition as dict
                 "energy": float, # energy with mixing / corrections
                 "entry_id": str, # optional identifier
@@ -2012,15 +2015,66 @@ class MPRester(_Rester):
             )
         new_pd = PhaseDiagram(processed)  # type: ignore[arg-type]
 
-        return [
-            {
-                "e_above_hull": new_pd.get_e_above_hull(entry),  # type: ignore[arg-type]
-                "composition": entry.composition.as_dict(),
-                "energy": entry.energy,
-                "entry_id": getattr(entry, "entry_id", f"user-entry-{idx}"),
-            }
-            for idx, entry in enumerate(entries)
-        ]
+        # The corrector works in place, so the entries it kept are the input objects. The
+        # mixing scheme leaves the energies of the functional the hull is anchored on as
+        # compat_1/compat_2 corrected them, so entries of that functional it dropped (e.g.
+        # duplicates of MP structures) are on the hull's scale once corrected the same way
+        kept = {id(entry) for entry in processed}
+        anchor_run_types: list[str] = []
+        anchor_compat: Compatibility | None = None
+        if isinstance(corrector, mixing_scheme_class()):
+            # it only keeps r2SCAN entries unadjusted if the hull is anchored on r2SCAN
+            r2scan_anchored = any(
+                e.parameters["run_type"] in corrector.valid_rtypes_2
+                and not e.energy_adjustments
+                for e in processed
+                if isinstance(e, ComputedStructureEntry)  # all the scheme keeps
+            )
+            anchor_run_types, anchor_compat = (
+                (corrector.valid_rtypes_2, corrector.compat_2)
+                if r2scan_anchored
+                else (corrector.valid_rtypes_1, corrector.compat_1)
+            )
+
+        def placed(entry):
+            """`entry` with its energy on the hull's scale, or None if it isn't."""
+            if id(entry) in kept:
+                return entry
+            if entry.parameters.get("run_type") not in anchor_run_types:
+                return None
+            if anchor_compat is None:  # not corrected (r2SCAN's compat_2 here)
+                return entry
+            try:  # MP2020's POTCAR check raises for entries without POTCAR info
+                return anchor_compat.process_entry(entry, inplace=False)
+            except (KeyError, ValueError):
+                return None
+
+        results, unplaced = [], []
+        for idx, entry in enumerate(entries):
+            label = getattr(entry, "entry_id", None) or f"user-entry-{idx}"
+            if (placement := placed(entry)) is None:
+                unplaced.append(label)
+            results.append(
+                {
+                    "e_above_hull": (
+                        None
+                        if placement is None
+                        # a dropped entry is not on the hull, so can lie below it
+                        else new_pd.get_e_above_hull(placement, allow_negative=True)
+                    ),
+                    "composition": entry.composition.as_dict(),
+                    "energy": (entry if placement is None else placement).energy,
+                    "entry_id": label,
+                }
+            )
+        if unplaced:
+            mp_warning(
+                f"{type(corrector).__name__} dropped {len(unplaced):,} of your entries, "
+                f"which are off the {thermo_type_valid_str} hull's energy scale, so their "
+                f"`e_above_hull` is None: {', '.join(unplaced)}",
+                stacklevel=2,
+            )
+        return results
 
     def get_oxygen_evolution(
         self,

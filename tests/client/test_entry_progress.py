@@ -430,4 +430,53 @@ def test_get_stability_shows_progress(mpr, thermo, monkeypatch, term):
     mine = [gga[3]]
     result = mpr.get_stability(mine, thermo_type="GGA_GGA+U")
     assert result and result[0]["entry_id"] == "GGA-4"
+    assert result[0]["e_above_hull"] is not None
     assert "Corrected 4 entries (4 kept)" in plain(term.getvalue())
+
+
+@pytest.mark.parametrize(
+    "without, e_above_hull",
+    [  # MP's Li, O2 and Li2O ground states all have r2SCAN twins, so r2SCAN anchors:
+        (None, [None, None, 0.05, None, None, None]),
+        # without Li2O's r2SCAN twin, GGA(+U) anchors:
+        ("r2SCAN-3", [0.05, 0.05, None, None, -0.05, None]),
+    ],
+    ids=["r2SCAN", "GGA(+U)"],
+)
+def test_get_stability_dropped_entries(
+    mpr, thermo, monkeypatch, pipe, without, e_above_hull
+):
+    """Dropped entries only get an `e_above_hull` if on the hull's energy scale."""
+    from pymatgen.analysis.phase_diagram import PhaseDiagram
+    from pymatgen.entries.computed_entries import ComputedEntry
+    from pymatgen.io.vasp.sets import MPRelaxSet
+
+    mp = [e for e in li_o_entries() if e.entry_id != without]
+    thermo("get_phase_diagram_from_chemsys", lambda self, *a, **k: PhaseDiagram(mp))
+    monkeypatch.setattr(type(mpr), "_get_unmixed_entries", lambda self, *a, **k: mp)
+    li = (["Li"], [[0, 0, 0]], 3.4)  # MP's Li structure
+    li2o = (["Li", "Li", "O"], [[0, 0, 0], [0.5, 0.5, 0.5], [0.25, 0.25, 0.25]], 4.6)
+    bad_u = _entry("gga-bad-u", "GGA+U", *li2o, -4.75)  # MP2020 rejects U on Li
+    bad_u.parameters |= {"hubbards": {"Li": 3.0}, "is_hubbard": True}
+    mine = [  # twins of MP's materials, 0.05 eV/atom higher in energy:
+        _entry("gga", "GGA", *li, -1.85),
+        ComputedEntry("Li2O", 3 * -4.75, parameters={"run_type": "GGA"}),  # an oxide
+        _entry("r2scan", "r2SCAN", *li, -2.85),
+        bad_u,
+        ComputedEntry(
+            "Li", -1.95, parameters={"run_type": "GGA"}, entry_id="gga-below"
+        ),
+    ]
+    # get_stability checks POTCARs; all but the last entry have them
+    for entry in [*mp, *mine]:
+        entry.parameters["potcar_symbols"] = [
+            f"PAW_PBE {MPRelaxSet.CONFIG['POTCAR'][el.symbol]}" for el in entry.elements
+        ]
+    mine.append(ComputedEntry("Li", -1.85, parameters={"run_type": "GGA"}))
+    labels = ["gga", "user-entry-1", "r2scan", "gga-bad-u", "gga-below", "user-entry-5"]
+    unplaced = ", ".join(labels[i] for i, e in enumerate(e_above_hull) if e is None)
+    with pytest.warns(MPRestWarning, match=f"None: {unplaced}$"):
+        result = mpr.get_stability(mine, thermo_type="GGA_GGA+U_R2SCAN")
+
+    assert [r["entry_id"] for r in result] == labels
+    assert [r["e_above_hull"] for r in result] == pytest.approx(e_above_hull)

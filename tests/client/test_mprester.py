@@ -27,17 +27,12 @@ from pymatgen.electronic_structure.bandstructure import (
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos, Dos
-from pymatgen.entries.compatibility import (
-    MaterialsProject2020Compatibility,
-    MaterialsProjectAqueousCompatibility,
-)
+from pymatgen.entries.compatibility import MaterialsProjectAqueousCompatibility
 from pymatgen.entries.computed_entries import (
     ComputedEntry,
+    ComputedStructureEntry,
     ConstantEnergyAdjustment,
     GibbsComputedStructureEntry,
-)
-from pymatgen.analysis.compatibility.mixing_scheme import (
-    MaterialsProjectDFTMixingScheme,
 )
 from pymatgen.io.cif import CifParser
 from pymatgen.io.vasp import Chgcar
@@ -728,14 +723,18 @@ loop_
         to include more diverse chemical environments and thermo types which
         reflect the scope of the current MP database.
         """
+        # nb: comparing to a ThermoType member instead raises for "r2SCAN"
+        mixed = thermo_type == "GGA_GGA+U_R2SCAN"
+        n_compared = 0
 
         with warnings.catch_warnings():
             # ignore some common pmg warnings: failed to guess oxi states, discarding entries, etc.
             warnings.filterwarnings("ignore", category=UserWarning)
 
             with MPRester() as mpr:
-                # No golden test data. Always test on fetched thermo data
-                chemsys_to_test: set[str] = {
+                # No golden test data. Always test on fetched thermo data, plus Ni-S (a
+                # GGA(+U)-anchored mixed hull)
+                chemsys_to_test: set[str] = {"Ni-S"} | {
                     doc.chemsys
                     for doc in mpr.materials.thermo.search(
                         thermo_types=[thermo_type],
@@ -747,66 +746,48 @@ loop_
                 }
 
                 for chemsys in chemsys_to_test:
-                    # RETURN ORDER NOT DETERMINISTIC
                     entries = mpr.get_entries_in_chemsys(
                         chemsys, additional_criteria={"thermo_types": [thermo_type]}
                     )
-
-                    modified_entries = [
-                        ComputedEntry(
-                            entry.composition,
-                            entry.uncorrected_energy + 0.01,
-                            parameters=entry.parameters,
-                            entry_id=f"mod_{entry.entry_id}",
-                        )
-                        for entry in entries
-                        # MIXING SCHEME - ONLY PASSES IF A "GOOD" ENTRY IS RETURNED FIRST??
-                        if entry.entry_id == entries[0].entry_id
+                    mp_pd = PhaseDiagram(entries)
+                    compounds = [
+                        e
+                        for e in entries
+                        if len(e.composition.elements) > 1
+                        # the mixing scheme can give an r2SCAN entry the GGA(+U) energy
+                        # of the structure it matches, so only GGA(+U) polymorphs here
+                        and not (mixed and e.parameters["run_type"] == "r2SCAN")
                     ]
-
-                    if (
-                        all(len(entry.composition.elements) == 1 for entry in entries)
-                        and chemsys.count("-") > 0
-                    ):
-                        # For a multi-element chemsys with no multinaries, only elementals,
-                        # there should be no phase diagram data available.
-                        # a data event, so a log record rather than a warning
-                        with caplog.at_level(logging.WARNING, logger="mp_api.client"):
-                            assert (
-                                mpr.get_stability(
-                                    modified_entries, thermo_type=thermo_type
-                                )
-                                is None
-                            )
-                        assert "No phase diagram data available" in caplog.text
-                        return
-
-                    else:
-                        rester_ehulls = mpr.get_stability(
-                            modified_entries, thermo_type=thermo_type
+                    new_entries = [
+                        ComputedStructureEntry(
+                            # perturbed, as the mixing scheme drops duplicate structures
+                            e.structure.copy().perturb(0.5, seed=0),
+                            e.uncorrected_energy + 0.01 * e.composition.num_atoms,
+                            parameters=e.parameters,
+                            data=dict(e.data),  # e.g. MP2020 reads oxide_type here
+                            entry_id=f"new_{e.entry_id}",
                         )
+                        for e in compounds
+                    ]
+                    results = mpr.get_stability(new_entries, thermo_type=thermo_type)
+                    for entry, result in zip(compounds, results, strict=True):
+                        if result["e_above_hull"] is None:
+                            # it still matched MP's structure, so was dropped
+                            assert mixed, (chemsys, entry.entry_id)
+                            continue
+                        assert result["e_above_hull"] == pytest.approx(
+                            mp_pd.get_e_above_hull(entry) + 0.01, abs=1e-6
+                        ), (chemsys, entry.entry_id)
+                        n_compared += 1
 
-                all_entries = entries + modified_entries
+                # A multi-element chemsys with only elementals has no phase diagram;
+                # a data event, so a log record rather than a warning
+                with caplog.at_level(logging.WARNING, logger="mp_api.client"):
+                    he_ne = [ComputedEntry("HeNe", 0.0)]
+                    assert mpr.get_stability(he_ne, thermo_type=thermo_type) is None
+                assert "No phase diagram data available" in caplog.text
 
-                compat = None
-                if thermo_type == "GGA_GGA+U":
-                    compat = MaterialsProject2020Compatibility()
-                elif thermo_type == "GGA_GGA+U_R2SCAN":
-                    compat = MaterialsProjectDFTMixingScheme(run_type_2="r2SCAN")
-
-                if compat:
-                    all_entries = compat.process_entries(all_entries)
-
-                pd = PhaseDiagram(all_entries)
-                for entry in all_entries:
-                    if str(entry.entry_id).startswith("mod"):
-                        for dct in rester_ehulls:
-                            if dct["entry_id"] == entry.entry_id:
-                                data = dct
-                                break
-                        assert pd.get_e_above_hull(entry) == pytest.approx(
-                            data["e_above_hull"]
-                        )
+        assert n_compared > 0
 
     @pytest.mark.parametrize(
         "mpid, working_ion, thermo_type",
