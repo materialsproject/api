@@ -43,6 +43,7 @@ from mp_api.client.mprester import _all_subchemsyses
 from mp_api.client.core import MPRestError, MPRestWarning
 from mp_api.client.core.settings import _DEFAULT_ENDPOINT
 from mp_api.client.routes.materials.thermo import ThermoRester
+from mp_api.client.core._entries import mixing_scheme_class
 
 try:
     from mp_api.client.contribs import ContribsClient as contribs_client
@@ -491,6 +492,7 @@ loop_
         )
         pd = mpr.materials.thermo.get_phase_diagram_from_chemsys(chemsys)
         unmixed = mpr._get_unmixed_entries(_all_subchemsyses(chemsys.split("-")))
+        MaterialsProjectDFTMixingScheme = mixing_scheme_class()
         remixed = PhaseDiagram(
             MaterialsProjectDFTMixingScheme().process_entries(
                 [e for e in unmixed if e.data.get("license") != "BY-NC"]
