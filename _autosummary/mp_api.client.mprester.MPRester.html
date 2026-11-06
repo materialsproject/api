@@ -973,21 +973,24 @@ indexed first by the functionals in funcs, and second by the atom.</p>
 <dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_stability">
 <span class="sig-name descname"><span class="pre">get_stability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ComputedEntry</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ComputedStructureEntry</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PDEntry</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thermo_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ThermoType</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ThermoType.GGA_GGA_U_R2SCAN</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_stability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_stability" title="Link to this definition">¶</a></dt>
 <dd><p>Get the energy above hull of a list of entries.</p>
-<p>Args:
-entries (list of ComputedEntry or ComputedStructureEntry or PDEntry) :</p>
-<blockquote>
-<div><p>List of entries with energy and composition information to compute
-hull energies.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>thermo_type (str or ThermoType)<span class="classifier">The hull type to use.</span></dt><dd><p>Defaults to ThermoType.GGA_GGA_U_R2SCAN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entries</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em> of </em><em>ComputedEntry</em><em> or </em><em>ComputedStructureEntry</em><em> or </em><em>PDEntry</em>) – List of entries with energy and composition information to compute
+hull energies. Entries the corrections drop (for the GGA(+U)/r2SCAN
+mixing scheme, those without a structure or <cite>entry_id</cite>, and duplicates
+of a structure) are only assigned an energy above hull if computed
+with the functional the hull is anchored on, else None.</p></li>
+<li><p><strong>thermo_type</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><em>ThermoType</em>) – The hull type to use.
+Defaults to ThermoType.GGA_GGA_U_R2SCAN.</p></li>
+</ul>
 </dd>
 </dl>
 <p>Returns:
 list of dict:</p>
 <blockquote>
 <div><dl class="simple">
-<dt>{</dt><dd><p>“e_above_hull”: float, # energy above the hull
+<dt>{</dt><dd><p>“e_above_hull”: float | None, # energy above the hull, or None
 “composition”: dict[str,float], # composition as dict
 “energy”: float, # energy with mixing / corrections
 “entry_id”: str, # optional identifier</p>
@@ -1097,7 +1100,7 @@ ValueError : If no insertion electrode data for the combination of material_id</
       &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

@@ -1464,8 +1464,19 @@
                         <span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">]):</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">property_data</span><span class="p">}</span>
                         <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span>
                     <span class="p">}</span>
+                    <span class="n">no_doc</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">property_data</span><span class="p">)</span>
+                    <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
                     <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>  <span class="c1"># served entries carry `material_id`</span>
-                        <span class="n">entry</span><span class="o">.</span><span class="n">data</span> <span class="o">|=</span> <span class="n">props</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">])]</span>
+                        <span class="n">material_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">"material_id"</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="n">material_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                            <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">material_id</span><span class="p">)</span>
+                        <span class="n">entry</span><span class="o">.</span><span class="n">data</span> <span class="o">|=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">material_id</span><span class="p">,</span> <span class="n">no_doc</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>  <span class="c1"># e.g. materials removed since an older `db_version`</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">"No thermo document was found for </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> in "</span>
+                            <span class="sa">f</span><span class="s2">"database version </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_db_version</span><span class="si">}</span><span class="s2"> (used for REST "</span>
+                            <span class="s2">"queries), so their `property_data` fields are None."</span>
+                        <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">entries</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># MP has no pre-built diagram for this system, so redo the mixing here as MP does when</span>
@@ -1487,7 +1498,8 @@
                 <span class="p">)</span>
                 <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unmixed</span><span class="p">)</span>
                 <span class="n">entries</span> <span class="o">=</span> <span class="n">apply_corrections</span><span class="p">(</span>
-                    <span class="n">MaterialsProjectDFTMixingScheme</span><span class="p">(),</span>
+                    <span class="c1"># strict structure matching, as for MP's pre-built phase diagrams</span>
+                    <span class="n">MaterialsProjectDFTMixingScheme</span><span class="p">(</span><span class="n">fuzzy_matching</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
                     <span class="n">unmixed</span><span class="p">,</span>
                     <span class="n">description</span><span class="o">=</span><span class="s2">"Re-mixing GGA(+U)/r2SCAN entries"</span><span class="p">,</span>
                     <span class="n">log</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Re-mixing </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> GGA(+U)/r2SCAN entries onto a common energy scale"</span><span class="p">,</span>
@@ -2047,16 +2059,19 @@
 <span class="w">        </span><span class="sd">"""Get the energy above hull of a list of entries.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        entries (list of ComputedEntry or ComputedStructureEntry or PDEntry) :</span>
-<span class="sd">            List of entries with energy and composition information to compute</span>
-<span class="sd">            hull energies.</span>
-<span class="sd">        thermo_type (str or ThermoType) : The hull type to use.</span>
-<span class="sd">            Defaults to ThermoType.GGA_GGA_U_R2SCAN.</span>
+<span class="sd">            entries (list of ComputedEntry or ComputedStructureEntry or PDEntry):</span>
+<span class="sd">                List of entries with energy and composition information to compute</span>
+<span class="sd">                hull energies. Entries the corrections drop (for the GGA(+U)/r2SCAN</span>
+<span class="sd">                mixing scheme, those without a structure or `entry_id`, and duplicates</span>
+<span class="sd">                of a structure) are only assigned an energy above hull if computed</span>
+<span class="sd">                with the functional the hull is anchored on, else None.</span>
+<span class="sd">            thermo_type (str or ThermoType) : The hull type to use.</span>
+<span class="sd">                Defaults to ThermoType.GGA_GGA_U_R2SCAN.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">        list of dict:</span>
 <span class="sd">            {</span>
-<span class="sd">                "e_above_hull": float, # energy above the hull</span>
+<span class="sd">                "e_above_hull": float | None, # energy above the hull, or None</span>
 <span class="sd">                "composition": dict[str,float], # composition as dict</span>
 <span class="sd">                "energy": float, # energy with mixing / corrections</span>
 <span class="sd">                "entry_id": str, # optional identifier</span>
@@ -2135,15 +2150,66 @@
             <span class="p">)</span>
         <span class="n">new_pd</span> <span class="o">=</span> <span class="n">PhaseDiagram</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
 
-        <span class="k">return</span> <span class="p">[</span>
-            <span class="p">{</span>
-                <span class="s2">"e_above_hull"</span><span class="p">:</span> <span class="n">new_pd</span><span class="o">.</span><span class="n">get_e_above_hull</span><span class="p">(</span><span class="n">entry</span><span class="p">),</span>  <span class="c1"># type: ignore[arg-type]</span>
-                <span class="s2">"composition"</span><span class="p">:</span> <span class="n">entry</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
-                <span class="s2">"energy"</span><span class="p">:</span> <span class="n">entry</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
-                <span class="s2">"entry_id"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="s2">"entry_id"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"user-entry-</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
-            <span class="p">}</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
-        <span class="p">]</span></div>
+        <span class="c1"># The corrector works in place, so the entries it kept are the input objects. The</span>
+        <span class="c1"># mixing scheme leaves the energies of the functional the hull is anchored on as</span>
+        <span class="c1"># compat_1/compat_2 corrected them, so entries of that functional it dropped (e.g.</span>
+        <span class="c1"># duplicates of MP structures) are on the hull's scale once corrected the same way</span>
+        <span class="n">kept</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">processed</span><span class="p">}</span>
+        <span class="n">anchor_run_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">anchor_compat</span><span class="p">:</span> <span class="n">Compatibility</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrector</span><span class="p">,</span> <span class="n">mixing_scheme_class</span><span class="p">()):</span>
+            <span class="c1"># it only keeps r2SCAN entries unadjusted if the hull is anchored on r2SCAN</span>
+            <span class="n">r2scan_anchored</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">"run_type"</span><span class="p">]</span> <span class="ow">in</span> <span class="n">corrector</span><span class="o">.</span><span class="n">valid_rtypes_2</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">energy_adjustments</span>
+                <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">processed</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">ComputedStructureEntry</span><span class="p">)</span>  <span class="c1"># all the scheme keeps</span>
+            <span class="p">)</span>
+            <span class="n">anchor_run_types</span><span class="p">,</span> <span class="n">anchor_compat</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">corrector</span><span class="o">.</span><span class="n">valid_rtypes_2</span><span class="p">,</span> <span class="n">corrector</span><span class="o">.</span><span class="n">compat_2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">r2scan_anchored</span>
+                <span class="k">else</span> <span class="p">(</span><span class="n">corrector</span><span class="o">.</span><span class="n">valid_rtypes_1</span><span class="p">,</span> <span class="n">corrector</span><span class="o">.</span><span class="n">compat_1</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">placed</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">"""`entry` with its energy on the hull's scale, or None if it isn't."""</span>
+            <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">entry</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"run_type"</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">anchor_run_types</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">anchor_compat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># not corrected (r2SCAN's compat_2 here)</span>
+                <span class="k">return</span> <span class="n">entry</span>
+            <span class="k">try</span><span class="p">:</span>  <span class="c1"># MP2020's POTCAR check raises for entries without POTCAR info</span>
+                <span class="k">return</span> <span class="n">anchor_compat</span><span class="o">.</span><span class="n">process_entry</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">results</span><span class="p">,</span> <span class="n">unplaced</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries</span><span class="p">):</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="s2">"entry_id"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">"user-entry-</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">placement</span> <span class="o">:=</span> <span class="n">placed</span><span class="p">(</span><span class="n">entry</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">unplaced</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"e_above_hull"</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="kc">None</span>
+                        <span class="k">if</span> <span class="n">placement</span> <span class="ow">is</span> <span class="kc">None</span>
+                        <span class="c1"># a dropped entry is not on the hull, so can lie below it</span>
+                        <span class="k">else</span> <span class="n">new_pd</span><span class="o">.</span><span class="n">get_e_above_hull</span><span class="p">(</span><span class="n">placement</span><span class="p">,</span> <span class="n">allow_negative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="p">),</span>
+                    <span class="s2">"composition"</span><span class="p">:</span> <span class="n">entry</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
+                    <span class="s2">"energy"</span><span class="p">:</span> <span class="p">(</span><span class="n">entry</span> <span class="k">if</span> <span class="n">placement</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">placement</span><span class="p">)</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
+                    <span class="s2">"entry_id"</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">unplaced</span><span class="p">:</span>
+            <span class="n">mp_warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">corrector</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> dropped </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">unplaced</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> of your entries, "</span>
+                <span class="sa">f</span><span class="s2">"which are off the </span><span class="si">{</span><span class="n">thermo_type_valid_str</span><span class="si">}</span><span class="s2"> hull's energy scale, so their "</span>
+                <span class="sa">f</span><span class="s2">"`e_above_hull` is None: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unplaced</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
 
 
 <div class="viewcode-block" id="MPRester.get_oxygen_evolution">
@@ -2296,7 +2362,7 @@
       &#169;2022, The Materials Project.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
