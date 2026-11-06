@@ -218,9 +218,10 @@ def test_mixing_results_identical_with_progress(term):
             log="Re-mixing",
             summary="Re-mixed 8 entries ({kept:,} kept)",
         )
-    assert [(e.entry_id, e.energy) for e in processed] == pytest.approx(
-        [(e.entry_id, e.energy) for e in expected]
-    )
+    for processed_entry, expected_entry in zip(processed, expected):
+        assert processed_entry.entry_id == expected_entry.entry_id
+        assert processed_entry.energy == pytest.approx(expected_entry.energy)
+
     # the caller's scheme and its parts were never modified
     for obj in (scheme, scheme.compat_1, scheme.structure_matcher):
         assert not {"get_adjustments", "group_structures"} & set(vars(obj))
