@@ -89,6 +89,10 @@ Which channel to use
   unreachable, data missing, a local dataset reused): `logger.warning/info`.
 - Diagnostics: `logger.debug`.
 - Transient progress: `progress_bar` / `status`, interactive output only.
+  Bars and summary lines report work the caller asked for: lookups the client
+  makes on its own behalf (resolving IDs, then fetching the data) run inside a
+  `status()`, which describes the whole operation and keeps the bars inside it
+  from drawing or printing anything.
 - Output the user explicitly asked for (`notify_db_version`): `print_notice`.
 
 So WARNING-level log records always mean something went wrong, and
@@ -119,6 +123,7 @@ Python shows a given warning once per code location; use
 
 from __future__ import annotations
 
+import contextvars
 import io
 import logging
 import threading
@@ -446,6 +451,13 @@ class ProgressHandle:
         self._progress.advance(self._task_id, advance)
 
 
+# Whether a `status()` block is running in this context. Contextvars are copied
+# into worker threads by `_external.in_current_context`, so those inherit it.
+_IN_OPERATION: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "mp_api_client_in_operation", default=False
+)
+
+
 def _as_int(value: float | None) -> float | None:
     """Show (near) whole-number counts as ints, without a trailing `.0`."""
     if isinstance(value, float) and abs(value - round(value)) < 1e-6:
@@ -469,7 +481,9 @@ def progress_bar(
     Args:
         description (str) : label shown next to the bar
         total (float or None) : expected number of units, None if unknown
-        enabled (bool) : if False, nothing is shown (a no-op handle is yielded)
+        enabled (bool) : if False, nothing is shown (a no-op handle is yielded).
+            Nothing is shown either inside a `status()` block, which describes
+            the whole operation itself.
         delay (float) : seconds before the bar is shown, so quick
             operations stay silent. Checked on each update.
         unit (str) : unit name for the rate column
@@ -487,7 +501,7 @@ def progress_bar(
         ProgressHandle
     """
     console = get_console()
-    if not enabled or is_quiet():
+    if not enabled or is_quiet() or _IN_OPERATION.get():
         yield ProgressHandle(total, summary=summary)
         return
     if not _is_interactive(console):
@@ -705,25 +719,41 @@ def status(message: str, *, enabled: bool = True) -> Iterator[None]:
     of WARNING-level logs). If disabled (muted progress bars) or in quiet mode,
     nothing is shown or logged.
 
+    The status describes the whole operation the caller asked for, so
+    everything inside it stays quiet:
+
+    - `progress_bar`s inside the block draw nothing, print no summary line and
+      log nothing (e.g. the lookup of a material's IDs the client makes on
+      its own behalf);
+    - a `status` nested in another one shows and logs nothing.
+
+    Work with countable progress that the caller should watch (a multi-page
+    download) needs a `progress_bar` instead of a `status`.
+
     Args:
         message (str) : what is happening, e.g. "Counting documents..."
         enabled (bool) : if False, show nothing
     """
     console = get_console()
-    if not enabled or is_quiet():
-        yield
-        return
-    if not (_is_interactive(console) and _can_draw_live(console)):
-        logging.getLogger(LOGGER_NAME).info(message)
+    if not enabled or is_quiet() or _IN_OPERATION.get():
         yield
         return
 
-    progress = _STATE.acquire(console)
-    task_id = progress.add_task(message, total=None, status=True)
+    token = _IN_OPERATION.set(True)
     try:
-        yield
+        if not (_is_interactive(console) and _can_draw_live(console)):
+            logging.getLogger(LOGGER_NAME).info(message)
+            yield
+            return
+
+        progress = _STATE.acquire(console)
+        task_id = progress.add_task(message, total=None, status=True)
+        try:
+            yield
+        finally:
+            _STATE.release(task_id)
     finally:
-        _STATE.release(task_id)
+        _IN_OPERATION.reset(token)
 
 
 def _app_handlers(logger: logging.Logger) -> list[logging.Handler]:
