@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
@@ -8,13 +9,20 @@ from emmet.core.mpid import AlphaID
 from emmet.core.phonon import PhononBS, PhononBSDOSDoc, PhononBSDOSTask, PhononDOS
 
 from mp_api.client.core import BaseRester, MPRestError
+from mp_api.client.core._display import status
 from mp_api.client.core.utils import validate_ids
 from mp_api.client.routes.materials.summary import SummaryRester
 
 if TYPE_CHECKING:
-    from typing import Any
+    from collections.abc import Callable
+    from typing import Any, Literal
 
     from emmet.core.math import Matrix3D
+
+logger = logging.getLogger(__name__)
+
+# Order in which phonon methods are tried when the caller doesn't pick one
+_METHOD_PREFERENCE = ("pheasy", "dfpt")
 
 
 class PhononRester(BaseRester):
@@ -144,6 +152,170 @@ class PhononRester(BaseRester):
             **query_params,
         )
 
+    def _unsupported(
+        self,
+        phonon_method: str,
+        what: str,
+        path_type: BSPathType | None = None,
+    ) -> str | None:
+        """Why `phonon_method` can't have this kind of data, or None if it can.
+
+        Known from how the data is produced, so no query is needed:
+        dfpt band structures only exist for the Setyawan-Curtarolo path, and
+        only pheasy produces force constants.
+
+        Args:
+            phonon_method (str) : phonon method
+            what (str) : kind of data: "band structure", "DOS" or "force constants"
+            path_type (BSPathType or None) : k-path of a band structure
+        """
+        if (
+            what == "band structure"
+            and phonon_method == "dfpt"
+            and path_type not in (None, BSPathType.setyawan_curtarolo)
+        ):
+            return (
+                "dfpt phonon band structures are only available with "
+                f'path_type="{BSPathType.setyawan_curtarolo.value}".'
+            )
+        if what == "force constants" and phonon_method != "pheasy":
+            return (
+                f"{phonon_method} phonon calculations have no force constants; "
+                'use phonon_method="pheasy".'
+            )
+        return None
+
+    def _phonon_candidates(
+        self,
+        material_id: str,
+        what: str,
+        phonon_method: str | None = None,
+        path_type: BSPathType | None = None,
+    ) -> list[tuple[str, str]]:
+        """The phonon calculations of a material to take `what` from, in order.
+
+        With `phonon_method` unset, every method the material has data for that
+        can provide `what`, pheasy first, then dfpt. With it set, only that one:
+        an explicitly requested method is never replaced by another.
+
+        Args:
+            material_id (str) : Materials Project ID
+            what (str) : kind of data: "band structure", "DOS" or "force constants"
+            phonon_method (str or None) : phonon method, None to choose
+            path_type (BSPathType or None) : k-path of a band structure
+
+        Returns:
+            list of (phonon method, phonon ID)
+
+        Raises:
+            MPRestError: if the material has no suitable phonon data.
+        """
+        if phonon_method and (
+            reason := self._unsupported(phonon_method, what, path_type)
+        ):
+            raise MPRestError(reason)
+
+        summary_doc = self.summary_rester.search(
+            material_ids=material_id, fields=["phonon_IDs"]
+        )
+        phonon_ids = (summary_doc[0].get("phonon_IDs") if summary_doc else None) or {}  # type: ignore[union-attr]
+        available = {method: ids for method, ids in phonon_ids.items() if ids}
+        if not available:
+            raise MPRestError(f"No phonon data found for material ID {material_id}.")
+
+        if phonon_method:
+            if phonon_method not in available:
+                raise MPRestError(
+                    f"No {phonon_method} phonon data for {material_id} "
+                    f"(available: {', '.join(sorted(available))}). Pass "
+                    f'phonon_method="{sorted(available)[0]}", or leave it unset '
+                    "to choose automatically."
+                )
+            methods = [phonon_method]
+        else:
+            methods = [m for m in _METHOD_PREFERENCE if m in available] + sorted(
+                m for m in available if m not in _METHOD_PREFERENCE
+            )
+            reasons = {m: self._unsupported(m, what, path_type) for m in methods}
+            if not (usable := [m for m in methods if not reasons[m]]):
+                raise MPRestError(
+                    f"No phonon {what} available for {material_id}: "
+                    + " ".join(r for r in reasons.values() if r)
+                )
+            methods = usable
+
+        logger.debug(
+            f"Using {methods[0]} phonon data for {material_id} "
+            f"(available: {', '.join(sorted(available))})"
+        )
+        return [(method, available[method][0]) for method in methods]
+
+    @staticmethod
+    def _first_available(
+        candidates: list[tuple[str, str]],
+        fetch: Callable[[str, str], Any],
+        what: str,
+        material_id: str,
+    ) -> tuple[str, str, Any]:
+        """Fetch `what` from the first candidate that has it.
+
+        Falls through to the next candidate when a calculation has no such
+        data, and says so, since the data then comes from another method
+        than usual.
+
+        Args:
+            candidates (list of tuple) : (phonon method, phonon ID), see `_phonon_candidates`
+            fetch (callable) : `fetch(phonon_id, phonon_method)`, None if there's no data
+            what (str) : kind of data, for messages
+            material_id (str) : Materials Project ID, for messages
+
+        Returns:
+            tuple of the phonon method, the phonon ID and the data
+
+        Raises:
+            MPRestError: if no candidate has the data.
+        """
+        for method, phonon_id in candidates:
+            if (data := fetch(phonon_id, method)) is not None:
+                if (first := candidates[0])[0] != method:
+                    logger.warning(
+                        f"No {first[0]} phonon {what} for {material_id} ({first[1]}), "
+                        f"using {method} ({phonon_id}) instead."
+                    )
+                return method, phonon_id, data
+        tried = ", ".join(f"{m} {i}" for m, i in candidates)
+        raise MPRestError(f"No phonon {what} found for {material_id} (tried {tried}).")
+
+    def _fetch_bandstructure(
+        self,
+        identifier: str,
+        phonon_method: str,
+        path_type: str | BSPathType | None,
+    ) -> PhononBS | dict[str, Any] | None:
+        """The band structure, or None if there is none for this calculation."""
+        ph_bs_lbl, _ = self._get_delta_table(
+            "materialsproject-parsed",
+            "phonon/electronic-structure/bandstructures/",
+            label="ph_bandstructure",
+        )
+
+        query = f"""
+            SELECT *
+            FROM   {ph_bs_lbl}
+            WHERE  identifier='{str(AlphaID(identifier.split("-")[-1], padlen=8))}'
+            AND    phonon_method='{phonon_method}'
+        """
+
+        if path_type:
+            query += f"\nAND path_convention='{path_type}'"
+
+        table = self._query_delta_single(query, label=ph_bs_lbl)
+        deser = table.to_pylist(maps_as_pydicts="strict")
+        if deser and deser[0].get("bandstructure") is not None:
+            bs = deser[0]["bandstructure"]
+            return PhononBS(**bs) if self.use_document_model else bs
+        return None
+
     def get_bandstructure_from_phonon_id(
         self,
         identifier: str,
@@ -156,74 +328,87 @@ class PhononRester(BaseRester):
             identifier (str): Phonon ID for the phonon band structure calculation
             phonon_method (str): phonon method, i.e. pheasy or dfpt
             path_type (BSPathType or str): k-path selection convention for the band structure.
+                dfpt band structures only exist for setyawan_curtarolo.
 
         Returns:
             bandstructure (PhononBS): PhononBS object
         """
-        ph_bs_lbl, _ = self._get_delta_table(
-            "materialsproject-parsed",
-            "phonon/electronic-structure/bandstructures/",
-            label="ph_bandstructure",
-        )
-
-        query = f"""
-            SELECT *
-            FROM   {ph_bs_lbl}
-            WHERE  identifier='{str(AlphaID(identifier.split("-")[-1],padlen=8))}'
-            AND    phonon_method='{phonon_method}'
-        """
-
-        if path_type:
-            query += f"\nAND path_convention='{path_type}'"
-
-        table = self._query_delta_single(query, label=ph_bs_lbl)
-        deser = table.to_pylist(maps_as_pydicts="strict")
-        if deser and deser[0].get("bandstructure") is not None:
-            bs = deser[0]["bandstructure"]
-            return PhononBS(**bs) if self.use_document_model else bs
-
-        raise MPRestError(
-            f"No phonon bandstructure data found for {identifier=} and {phonon_method=}"
-            + (f" and run_type={path_type}" if path_type else "")
-        )
+        with status(
+            f"Fetching the {phonon_method} phonon band structure for {identifier}...",
+            enabled=not self.mute_progress_bars,
+        ):
+            bs = self._fetch_bandstructure(identifier, phonon_method, path_type)
+        if bs is None:
+            raise MPRestError(
+                f"No phonon bandstructure data found for {identifier=} and {phonon_method=}"
+                + (f" and path_type={path_type}" if path_type else "")
+            )
+        return bs
 
     def get_bandstructure_from_material_id(
         self,
         material_id: str,
-        phonon_method: str,
+        phonon_method: Literal["pheasy", "dfpt"] | None = None,
         path_type: str | BSPathType = BSPathType.setyawan_curtarolo,
     ) -> PhononBS | dict[str, Any]:
-        """Get the phonon band structure pymatgen object associated with a given material ID and phonon method.
+        """Get the phonon band structure pymatgen object associated with a given material ID.
 
         Arguments:
             material_id (str): Materials Project ID for a material
-            phonon_method (str): phonon method, i.e. pheasy or dfpt
+            phonon_method (str or None): phonon method, i.e. pheasy or dfpt. By default,
+                the method is chosen from the material's data: pheasy if it has it,
+                otherwise dfpt. If the pheasy calculation has no band structure,
+                the dfpt one is used (with a warning). A method passed explicitly
+                is never replaced.
             path_type (BSPathType or str): k-path selection convention for the band structure.
+                pheasy has all conventions; dfpt only has setyawan_curtarolo.
 
         Returns:
             bandstructure (PhononBS): PhononBS object
+
+        Raises:
+            MPRestError: if there's no suitable data. The message names the
+                methods the material does have data for.
         """
-        pt: BSPathType = (
-            BSPathType(path_type) if isinstance(path_type, str) else path_type
-        )
-
-        if not (
-            summary_doc := self.summary_rester.search(
-                material_ids=material_id, fields=["phonon_IDs"]
-            )
+        pt = BSPathType(path_type) if isinstance(path_type, str) else path_type
+        with status(
+            f"Fetching the phonon band structure for {material_id}...",
+            enabled=not self.mute_progress_bars,
         ):
-            raise MPRestError(
-                f"No phonon bandstructure data found for material ID {material_id}."
+            candidates = self._phonon_candidates(
+                material_id, "band structure", phonon_method, pt
             )
-
-        if phonon_method not in summary_doc[0]["phonon_IDs"]:  # type: ignore[arg-type, index]
-            raise MPRestError(
-                f"No phonon bandstructure data found for material ID: {material_id} and phonon method: {phonon_method}."
+            _, _, bs = self._first_available(
+                candidates,
+                lambda pid, method: self._fetch_bandstructure(pid, method, pt),
+                "band structure",
+                material_id,
             )
+        return bs
 
-        return self.get_bandstructure_from_phonon_id(
-            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method, pt  # type: ignore[arg-type, index]
+    def _fetch_dos(
+        self, identifier: str, phonon_method: str
+    ) -> PhononDOS | dict[str, Any] | None:
+        """The DOS, or None if there is none for this calculation."""
+        ph_dos_lbl, _ = self._get_delta_table(
+            "materialsproject-parsed",
+            "phonon/electronic-structure/dos/",
+            label="ph_dos",
         )
+
+        query = f"""
+            SELECT *
+            FROM   {ph_dos_lbl}
+            WHERE  identifier='{str(AlphaID(identifier.split("-")[-1], padlen=8))}'
+            AND    phonon_method='{phonon_method}'
+        """
+
+        table = self._query_delta_single(query, label=ph_dos_lbl)
+        deser = table.to_pylist(maps_as_pydicts="strict")
+        if deser and deser[0].get("dos") is not None:
+            dos = deser[0]["dos"]
+            return PhononDOS(**dos) if self.use_document_model else dos
+        return None
 
     def get_dos_from_phonon_id(
         self, identifier: str, phonon_method: str
@@ -237,71 +422,52 @@ class PhononRester(BaseRester):
         Returns:
             dos (PhononDOS): PhononDOS object
         """
-        ph_dos_lbl, _ = self._get_delta_table(
-            "materialsproject-parsed",
-            "phonon/electronic-structure/dos/",
-            label="ph_dos",
-        )
-
-        query = f"""
-            SELECT *
-            FROM   {ph_dos_lbl}
-            WHERE  identifier='{str(AlphaID(identifier.split("-")[-1],padlen=8))}'
-            AND    phonon_method='{phonon_method}'
-        """
-
-        table = self._query_delta_single(query, label=ph_dos_lbl)
-        deser = table.to_pylist(maps_as_pydicts="strict")
-        if deser and deser[0].get("dos") is not None:
-            dos = deser[0]["dos"]
-            return PhononDOS(**dos) if self.use_document_model else dos
-
-        raise MPRestError(
-            f"No phonon dos data found for {identifier=} and {phonon_method=}"
-        )
+        with status(
+            f"Fetching the {phonon_method} phonon DOS for {identifier}...",
+            enabled=not self.mute_progress_bars,
+        ):
+            dos = self._fetch_dos(identifier, phonon_method)
+        if dos is None:
+            raise MPRestError(
+                f"No phonon dos data found for {identifier=} and {phonon_method=}"
+            )
+        return dos
 
     def get_dos_from_material_id(
-        self, material_id: str, phonon_method: str
+        self,
+        material_id: str,
+        phonon_method: Literal["pheasy", "dfpt"] | None = None,
     ) -> PhononDOS | dict[str, Any]:
-        """Get the phonon dos pymatgen object associated with a given material ID and phonon method.
+        """Get the phonon dos pymatgen object associated with a given material ID.
 
         Arguments:
             material_id (str): Materials Project ID for a material
-            phonon_method (str): phonon method, i.e. pheasy or dfpt
+            phonon_method (str or None): phonon method, i.e. pheasy or dfpt. By default,
+                the method is chosen from the material's data: pheasy if it has it,
+                otherwise dfpt. If the pheasy calculation has no DOS, the dfpt one
+                is used (with a warning). A method passed explicitly is never replaced.
 
         Returns:
             dos (PhononDOS): PhononDOS object
+
+        Raises:
+            MPRestError: if there's no suitable data. The message names the
+                methods the material does have data for.
         """
-        if not (
-            summary_doc := self.summary_rester.search(
-                material_ids=material_id, fields=["phonon_IDs"]
-            )
+        with status(
+            f"Fetching the phonon DOS for {material_id}...",
+            enabled=not self.mute_progress_bars,
         ):
-            raise MPRestError(
-                f"No phonon dos data found for material ID {material_id}."
+            candidates = self._phonon_candidates(material_id, "DOS", phonon_method)
+            _, _, dos = self._first_available(
+                candidates, self._fetch_dos, "DOS", material_id
             )
+        return dos
 
-        if phonon_method not in summary_doc[0]["phonon_IDs"]:  # type: ignore[arg-type, index]
-            raise MPRestError(
-                f"No phonon dos data found for material ID: {material_id} and phonon method: {phonon_method}."
-            )
-
-        return self.get_dos_from_phonon_id(
-            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method  # type: ignore[arg-type, index]
-        )
-
-    def get_forceconstants_from_phonon_id(
+    def _fetch_forceconstants(
         self, identifier: str, phonon_method: str
-    ) -> list[list[Matrix3D]]:
-        """Get the force constants associated with a given phonon ID and phonon method.
-
-        Arguments:
-            identifier (str): Phonon ID for the force constants calculation
-            phonon_method (str): phonon method, i.e. pheasy or dfpt
-
-        Returns:
-            force constants (list[list[Matrix3D]]): force constants
-        """
+    ) -> list[list[Matrix3D]] | None:
+        """The force constants, or None if there are none for this calculation."""
         ph_fc_lbl, _ = self._get_delta_table(
             "materialsproject-parsed",
             "phonon/force-constants/",
@@ -311,7 +477,7 @@ class PhononRester(BaseRester):
         query = f"""
             SELECT *
             FROM   {ph_fc_lbl}
-            WHERE  identifier='{str(AlphaID(identifier.split("-")[-1],padlen=8))}'
+            WHERE  identifier='{str(AlphaID(identifier.split("-")[-1], padlen=8))}'
             AND    phonon_method='{phonon_method}'
         """
 
@@ -319,10 +485,30 @@ class PhononRester(BaseRester):
         deser = table.to_pylist(maps_as_pydicts="strict")
         if deser and deser[0].get("force_constants") is not None:
             return deser[0]["force_constants"]
+        return None
 
-        raise MPRestError(
-            f"No phonon force constants data found for {identifier=} and {phonon_method=}"
-        )
+    def get_forceconstants_from_phonon_id(
+        self, identifier: str, phonon_method: str
+    ) -> list[list[Matrix3D]]:
+        """Get the force constants associated with a given phonon ID and phonon method.
+
+        Arguments:
+            identifier (str): Phonon ID for the force constants calculation
+            phonon_method (str): phonon method. Only pheasy calculations have force constants.
+
+        Returns:
+            force constants (list[list[Matrix3D]]): force constants
+        """
+        with status(
+            f"Fetching the {phonon_method} force constants for {identifier}...",
+            enabled=not self.mute_progress_bars,
+        ):
+            fcs = self._fetch_forceconstants(identifier, phonon_method)
+        if fcs is None:
+            raise MPRestError(
+                f"No phonon force constants data found for {identifier=} and {phonon_method=}"
+            )
+        return fcs
 
     def get_forceconstants_from_material_id(
         self, material_id: str, phonon_method: str
@@ -331,33 +517,32 @@ class PhononRester(BaseRester):
 
         Arguments:
             material_id (str): Materials Project ID for a material
-            phonon_method (str): phonon method, i.e. pheasy or dfpt
+            phonon_method (str): phonon method. Only pheasy calculations have
+                force constants; passing dfpt raises an error.
 
         Returns:
             force constants (list[list[Matrix3D]]): force constants
+
+        Raises:
+            MPRestError: if the method can't have force constants, or the
+                material has none.
         """
-        if not (
-            summary_doc := self.summary_rester.search(
-                material_ids=material_id, fields=["phonon_IDs"]
-            )
+        with status(
+            f"Fetching the {phonon_method} force constants for {material_id}...",
+            enabled=not self.mute_progress_bars,
         ):
-            raise MPRestError(
-                f"No phonon force constants data found for material ID {material_id}."
+            candidates = self._phonon_candidates(
+                material_id, "force constants", phonon_method
             )
-
-        if phonon_method not in summary_doc[0]["phonon_IDs"]:  # type: ignore[arg-type, index]
-            raise MPRestError(
-                f"No phonon force constants data found for material ID: {material_id} and phonon method: {phonon_method}."
+            _, _, fcs = self._first_available(
+                candidates, self._fetch_forceconstants, "force constants", material_id
             )
-
-        return self.get_forceconstants_from_phonon_id(
-            summary_doc[0]["phonon_IDs"][phonon_method][0], phonon_method  # type: ignore[arg-type, index]
-        )
+        return fcs
 
     def compute_thermo_quantities(
         self,
         material_id: str | None = None,
-        phonon_method: str | None = None,
+        phonon_method: Literal["pheasy", "dfpt"] | None = None,
         identifier: str | None = None,
     ):
         """Compute thermodynamical quantities for a given phonon ID or material ID and phonon_method.
@@ -365,11 +550,11 @@ class PhononRester(BaseRester):
         Exactly one of `identifier` or `material_id` must be supplied.
 
         Arguments:
-            identifier (str): Phonon ID to calculate quantities for
-            material_id (str): Materials Project ID to calculate quantities for; the first
-                phonon ID associated with the requested `phonon_method` for the material
-                will be used.
-            phonon_method (str): phonon method, i.e. pheasy or dfpt
+            identifier (str): Phonon ID to calculate quantities for. Requires `phonon_method`.
+            material_id (str): Materials Project ID to calculate quantities for.
+            phonon_method (str): phonon method, i.e. pheasy or dfpt. With `material_id`,
+                the method is chosen from the material's data (pheasy, then dfpt)
+                unless given; the first phonon ID of the method is used.
 
         Returns:
             quantities (dict): thermodynamical quantities
@@ -384,39 +569,33 @@ class PhononRester(BaseRester):
         use_document_model = self.use_document_model
         self.use_document_model = False
         try:
-            if material_id:
-                if not (
-                    summary_doc := self.summary_rester.search(
-                        material_ids=material_id, fields=["phonon_IDs"]
+            with status(
+                f"Computing thermodynamic quantities for {material_id or identifier}...",
+                enabled=not self.mute_progress_bars,
+            ):
+                if material_id:
+                    candidates = self._phonon_candidates(
+                        material_id, "DOS", phonon_method
                     )
-                ):
-                    raise MPRestError(
-                        f"No phonon data found for material ID {material_id}."
+                    phonon_method_used, identifier, ph_dos = self._first_available(
+                        candidates, self._fetch_dos, "DOS", material_id
                     )
-                if phonon_method not in summary_doc[0]["phonon_IDs"]:  # type: ignore[arg-type, index]
-                    raise MPRestError(
-                        f"No phonon data found for material ID: {material_id} and "
-                        f"phonon method: {phonon_method}."
-                    )
-                identifier = summary_doc[0]["phonon_IDs"][phonon_method][0]  # type: ignore[arg-type, index]
+                    phonon_method = phonon_method_used  # type: ignore[assignment]
+                else:
+                    if identifier is None or phonon_method is None:
+                        raise MPRestError(
+                            f"Could not resolve a phonon identifier or method "
+                            f"for {identifier=} ({phonon_method=})."
+                        )
+                    ph_dos = self.get_dos_from_phonon_id(identifier, phonon_method)
 
-            if identifier is None or phonon_method is None:
-                suffix = (
-                    f" for {material_id=}" if material_id else f" for {identifier=}"
-                )
-                raise MPRestError(
-                    f"Could not resolve a phonon identifier or method{suffix} "
-                    f"({phonon_method=})."
-                )
+                docs = self.search(identifiers=identifier, phonon_method=phonon_method)
+                if not docs or not docs[0]:
+                    raise MPRestError("No phonon document found")
 
-            ph_dos = self.get_dos_from_phonon_id(identifier, phonon_method)
-            docs = self.search(identifiers=identifier, phonon_method=phonon_method)
-            if not docs or not docs[0]:
-                raise MPRestError("No phonon document found")
-
-            self.use_document_model = True
-            docs[0]["phonon_dos"] = ph_dos  # type: ignore[index]
-            doc = PhononBSDOSDoc(**docs[0])  # type: ignore[arg-type, index]
+                self.use_document_model = True
+                docs[0]["phonon_dos"] = ph_dos  # type: ignore[index]
+                doc = PhononBSDOSDoc(**docs[0])  # type: ignore[arg-type, index]
         finally:
             self.use_document_model = use_document_model
         # below: same as numpy.linspace(0,800,100) but written out for mypy

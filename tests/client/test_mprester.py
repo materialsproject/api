@@ -613,11 +613,24 @@ loop_
         assert np.allclose(so4_two_minus.energy, solid_energy + 5.542, atol=1e-3)
 
     def test_get_phonon_data_by_material_id(self, mpr):
-        bs = mpr.get_phonon_bandstructure_by_material_id("mp-2172")
+        # dfpt only, pheasy only (most materials), and both
+        for material_id in ("mp-2172", "mp-aaahikjt", "mp-149"):
+            bs = mpr.get_phonon_bandstructure_by_material_id(material_id)
+            assert isinstance(bs, PhononBS)
+
+            dos = mpr.get_phonon_dos_by_material_id(material_id)
+            assert isinstance(dos, PhononDOS)
+
+        bs = mpr.get_phonon_bandstructure_by_material_id(
+            "mp-aaahikjt", path_type="hinuma"
+        )
         assert isinstance(bs, PhononBS)
 
-        dos = mpr.get_phonon_dos_by_material_id("mp-2172")
-        assert isinstance(dos, PhononDOS)
+        bs = mpr.get_phonon_bandstructure_by_material_id("mp-149", phonon_method="dfpt")
+        assert isinstance(bs, PhononBS)
+
+        with pytest.raises(MPRestError, match="No dfpt phonon data for mp-aaahikjt"):
+            mpr.get_phonon_dos_by_material_id("mp-aaahikjt", phonon_method="dfpt")
 
     def test_get_charge_density_from_material_id(self, mpr):
         chgcar = mpr.get_charge_density_from_material_id("mp-149")
