@@ -74,6 +74,7 @@ if TYPE_CHECKING:
     from typing import Any, Literal
 
     import numpy as np
+    from emmet.core.phonon import PhononBS, PhononDOS
     from emmet.core.tasks import CoreTaskDoc
     from packaging.version import Version
     from pymatgen.analysis.phase_diagram import PDEntry
@@ -1514,31 +1515,52 @@ class MPRester(_Rester):
             load_projections=load_projections,
         )
 
-    def get_phonon_dos_by_material_id(self, material_id: str):
+    def get_phonon_dos_by_material_id(
+        self,
+        material_id: str,
+        phonon_method: Literal["pheasy", "dfpt"] | None = None,
+    ) -> PhononDOS | dict[str, Any]:
         """Get phonon density of states data corresponding to a material_id.
 
         Args:
             material_id (str): Materials Project material_id.
+            phonon_method (str or None): phonon method, i.e. pheasy or dfpt. By default,
+                the method is chosen from the material's data: pheasy if it has it,
+                otherwise dfpt. If the pheasy calculation has no DOS, the dfpt one
+                is used (with a warning). A method passed explicitly is never replaced.
 
         Returns:
-             CompletePhononDos: A phonon DOS object.
-
+            dos (PhononDOS): PhononDOS object
         """
         return self.materials.phonon.get_dos_from_material_id(
-            material_id=material_id, phonon_method="dfpt"
+            material_id=material_id, phonon_method=phonon_method
         )
 
-    def get_phonon_bandstructure_by_material_id(self, material_id: str):
+    def get_phonon_bandstructure_by_material_id(
+        self,
+        material_id: str,
+        phonon_method: Literal["pheasy", "dfpt"] | None = None,
+        path_type: str | BSPathType = BSPathType.setyawan_curtarolo,
+    ) -> PhononBS | dict[str, Any]:
         """Get phonon dispersion data corresponding to a material_id.
 
         Args:
             material_id (str): Materials Project material_id.
+            phonon_method (str or None): phonon method, i.e. pheasy or dfpt. By default,
+                the method is chosen from the material's data: pheasy if it has it,
+                otherwise dfpt. If the pheasy calculation has no band structure,
+                the dfpt one is used (with a warning). A method passed explicitly
+                is never replaced.
+            path_type (BSPathType or str): k-path selection convention for the band structure.
+                pheasy has all conventions; dfpt only has setyawan_curtarolo.
 
         Returns:
-            PhononBandStructureSymmLine:  phonon band structure.
+            bandstructure (PhononBS): PhononBS object
         """
         return self.materials.phonon.get_bandstructure_from_material_id(
-            material_id=material_id, phonon_method="dfpt"
+            material_id=material_id,
+            phonon_method=phonon_method,
+            path_type=path_type,
         )
 
     def get_wulff_shape(self, material_id: str):
@@ -1796,8 +1818,7 @@ class MPRester(_Rester):
         # Prevent user error
         if isinstance(material_ids, str | MPID):
             raise MPRestError(
-                "Input material IDs (even a single ID) as a list: "
-                f"`[{material_ids}]`"
+                f"Input material IDs (even a single ID) as a list: `[{material_ids}]`"
             )
 
         entry_preference = {
