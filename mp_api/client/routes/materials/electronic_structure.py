@@ -16,7 +16,7 @@ from pymatgen.electronic_structure.bandstructure import (
 from pymatgen.electronic_structure.core import OrbitalType, Spin
 
 from mp_api.client.core import BaseRester, MPRestError
-from mp_api.client.core._display import mp_deprecation
+from mp_api.client.core._display import mp_deprecation, status
 from mp_api.client.core.utils import validate_ids
 
 if TYPE_CHECKING:
@@ -284,48 +284,57 @@ class BandStructureRester(BaseESPropertyRester):
         Returns:
             bandstructure (BandStructure): BandStructure or BandStructureSymmLine object
         """
-        bs_lbl, _ = self._get_delta_table(
-            "materialsproject-parsed",
-            "core/electronic-structure/bandstructures/",
-            label="bandstructure",
-        )
-
-        query = f"""
-            SELECT *
-            FROM   {bs_lbl}
-            WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'
-        """
-
-        if run_type:
-            rt = RunType(run_type) if isinstance(run_type, str) else run_type
-            query += f"\nAND run_type='{rt.value}'"
-        if path_type:
-            query += f"\nAND path_convention='{path_type}'"
-
-        table = self._query_delta_single(query, label=bs_lbl)
-        if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
-            if load_projections:
-                proj_bs_label, _ = self._get_delta_table(
-                    "materialsproject-parsed",
-                    "core/electronic-structure/projected-bandstructures/",
-                    label="bandstructure_projections",
-                )
-                proj_table = self._query_delta_single(
-                    query.replace(bs_lbl, proj_bs_label), label=proj_bs_label
-                )
-                if (
-                    len(deser_proj := proj_table.to_pylist(maps_as_pydicts="strict"))
-                    > 0
-                ):
-                    deser[0]["projections"] = deser_proj[0]
-            emmet_bs = ElectronicBS(**deser[0])
-            return emmet_bs.to_pmg(
-                pmg_cls=BandStructureSymmLine if emmet_bs.labels_dict else BandStructure
+        with status(
+            f"Fetching the band structure for {task_id}...",
+            enabled=not self.mute_progress_bars,
+        ):
+            bs_lbl, _ = self._get_delta_table(
+                "materialsproject-parsed",
+                "core/electronic-structure/bandstructures/",
+                label="bandstructure",
             )
-        raise MPRestError(
-            f"No bandstructure data found for {task_id=}"
-            + (f"run_type={rt}" if run_type else "")
-        )
+
+            query = f"""
+                SELECT *
+                FROM   {bs_lbl}
+                WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'
+            """
+
+            if run_type:
+                rt = RunType(run_type) if isinstance(run_type, str) else run_type
+                query += f"\nAND run_type='{rt.value}'"
+            if path_type:
+                query += f"\nAND path_convention='{path_type}'"
+
+            table = self._query_delta_single(query, label=bs_lbl)
+            if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
+                if load_projections:
+                    proj_bs_label, _ = self._get_delta_table(
+                        "materialsproject-parsed",
+                        "core/electronic-structure/projected-bandstructures/",
+                        label="bandstructure_projections",
+                    )
+                    proj_table = self._query_delta_single(
+                        query.replace(bs_lbl, proj_bs_label), label=proj_bs_label
+                    )
+                    if (
+                        len(
+                            deser_proj := proj_table.to_pylist(maps_as_pydicts="strict")
+                        )
+                        > 0
+                    ):
+                        deser[0]["projections"] = deser_proj[0]
+                emmet_bs = ElectronicBS(**deser[0])
+                return emmet_bs.to_pmg(
+                    pmg_cls=(
+                        BandStructureSymmLine if emmet_bs.labels_dict else BandStructure
+                    )
+                )
+            raise MPRestError(
+                f"No bandstructure data found for {task_id=}"
+                + (f" and run_type={rt.value}" if run_type else "")
+                + (f" and path_type={path_type}" if path_type else "")
+            )
 
     def get_bandstructure_from_material_id(
         self,
@@ -349,62 +358,73 @@ class BandStructureRester(BaseESPropertyRester):
         pt: BSPathType = (
             BSPathType(path_type) if isinstance(path_type, str) else path_type
         )
-        if line_mode:
-            bs_doc = self.es_rester.search(
-                material_ids=material_id, fields=["bandstructure"]
+        kind = f"{pt.value} band structure" if line_mode else "uniform band structure"
+        with status(
+            f"Fetching the {kind} for {material_id}...",
+            enabled=not self.mute_progress_bars,
+        ):
+            if line_mode:
+                bs_doc = self.es_rester.search(
+                    material_ids=material_id, fields=["bandstructure"]
+                )
+                if not bs_doc:
+                    raise MPRestError(
+                        f"No electronic structure data found for material ID {material_id}."
+                    )
+
+                if (_bs_data := bs_doc[0]["bandstructure"]) is None:
+                    raise MPRestError(
+                        f"No {pt.value} band structure data found for {material_id}"
+                    )
+
+                bs_data = (
+                    _bs_data.model_dump() if self.use_document_model else _bs_data  # type: ignore
+                )
+
+                if bs_data.get(pt.value, None) is None:
+                    available = sorted(k for k, v in bs_data.items() if v is not None)
+                    raise MPRestError(
+                        f"No {pt.value} band structure data found for {material_id}"
+                        + (
+                            f" (available: {', '.join(available)})."
+                            if available
+                            else "."
+                        )
+                    )
+                bs_task_id = bs_data[pt.value]["task_id"]
+
+            else:
+                if not (
+                    bs_doc := self.es_rester.search(
+                        material_ids=material_id, fields=["dos"]
+                    )
+                ):
+                    raise MPRestError(
+                        f"No electronic structure data found for material ID {material_id}."
+                    )
+
+                if (_bs_data := bs_doc[0]["dos"]) is None:
+                    raise MPRestError(
+                        f"No uniform band structure data found for {material_id}"
+                    )
+
+                bs_data = _bs_data.model_dump() if self.use_document_model else _bs_data
+
+                if bs_data.get("total", None) is None:
+                    raise MPRestError(
+                        f"No uniform band structure data found for {material_id}"
+                    )
+                bs_task_id = bs_data["task_id"]
+
+            bs_obj = self.get_bandstructure_from_task_id(
+                bs_task_id,
+                path_type=pt if line_mode else BSPathType.unknown,
+                load_projections=load_projections,
             )
-            if not bs_doc:
-                raise MPRestError(
-                    f"No electronic structure data found for material ID {material_id}."
-                )
 
-            if (_bs_data := bs_doc[0]["bandstructure"]) is None:
-                raise MPRestError(
-                    f"No {pt.value} band structure data found for {material_id}"
-                )
-
-            bs_data = (
-                _bs_data.model_dump() if self.use_document_model else _bs_data  # type: ignore
-            )
-
-            if bs_data.get(pt.value, None) is None:
-                raise MPRestError(
-                    f"No {pt.value} band structure data found for {material_id}"
-                )
-            bs_task_id = bs_data[pt.value]["task_id"]
-
-        else:
-            if not (
-                bs_doc := self.es_rester.search(
-                    material_ids=material_id, fields=["dos"]
-                )
-            ):
-                raise MPRestError(
-                    f"No electronic structure data found for material ID {material_id}."
-                )
-
-            if (_bs_data := bs_doc[0]["dos"]) is None:
-                raise MPRestError(
-                    f"No uniform band structure data found for {material_id}"
-                )
-
-            bs_data = _bs_data.model_dump() if self.use_document_model else _bs_data
-
-            if bs_data.get("total", None) is None:
-                raise MPRestError(
-                    f"No uniform band structure data found for {material_id}"
-                )
-            bs_task_id = bs_data["task_id"]
-
-        bs_obj = self.get_bandstructure_from_task_id(
-            bs_task_id,
-            path_type=pt if line_mode else BSPathType.unknown,
-            load_projections=load_projections,
-        )
-
-        if bs_obj:
-            return bs_obj
-        raise MPRestError("No band structure object found.")
+            if bs_obj:
+                return bs_obj
+            raise MPRestError("No band structure object found.")
 
 
 class DosRester(BaseESPropertyRester):
@@ -540,42 +560,49 @@ class DosRester(BaseESPropertyRester):
         Returns:
             pymatgen Dos
         """
-        dos_lbl, _ = self._get_delta_table(
-            "materialsproject-parsed",
-            "core/electronic-structure/total-dos/",
-            label="total_dos",
-        )
+        with status(
+            f"Fetching the density of states for {task_id}...",
+            enabled=not self.mute_progress_bars,
+        ):
+            dos_lbl, _ = self._get_delta_table(
+                "materialsproject-parsed",
+                "core/electronic-structure/total-dos/",
+                label="total_dos",
+            )
 
-        query = f"""
-            SELECT *
-            FROM   {dos_lbl}
-            WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'
-        """
+            query = f"""
+                SELECT *
+                FROM   {dos_lbl}
+                WHERE  identifier='{str(AlphaID(task_id.split("-")[-1],padlen=8))}'
+            """
 
-        if run_type:
-            rt = RunType(run_type) if isinstance(run_type, str) else run_type
-            query += f"\nAND run_type='{rt.value}'"
+            if run_type:
+                rt = RunType(run_type) if isinstance(run_type, str) else run_type
+                query += f"\nAND run_type='{rt.value}'"
 
-        table = self._query_delta_single(query, label=dos_lbl)
-        if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
-            if load_projections:
-                proj_dos_label, _ = self._get_delta_table(
-                    "materialsproject-parsed",
-                    "core/electronic-structure/projected-dos/",
-                    label="dos_projections",
-                )
-                proj_table = self._query_delta_single(
-                    query.replace(dos_lbl, proj_dos_label), label=proj_dos_label
-                )
-                if (
-                    len(deser_proj := proj_table.to_pylist(maps_as_pydicts="strict"))
-                    > 0
-                ):
-                    deser[0]["projected_densities"] = deser_proj[0]
-            return ElectronicDos(**deser[0]).to_pmg()
-        raise MPRestError(
-            f"No DOS data found for {task_id=}" + (f"run_type={rt}" if run_type else "")
-        )
+            table = self._query_delta_single(query, label=dos_lbl)
+            if len(deser := table.to_pylist(maps_as_pydicts="strict")) > 0:
+                if load_projections:
+                    proj_dos_label, _ = self._get_delta_table(
+                        "materialsproject-parsed",
+                        "core/electronic-structure/projected-dos/",
+                        label="dos_projections",
+                    )
+                    proj_table = self._query_delta_single(
+                        query.replace(dos_lbl, proj_dos_label), label=proj_dos_label
+                    )
+                    if (
+                        len(
+                            deser_proj := proj_table.to_pylist(maps_as_pydicts="strict")
+                        )
+                        > 0
+                    ):
+                        deser[0]["projected_densities"] = deser_proj[0]
+                return ElectronicDos(**deser[0]).to_pmg()
+            raise MPRestError(
+                f"No DOS data found for {task_id=}"
+                + (f" and run_type={rt.value}" if run_type else "")
+            )
 
     def get_dos_from_material_id(
         self, material_id: str, load_projections: bool = False
@@ -590,17 +617,25 @@ class DosRester(BaseESPropertyRester):
         Returns:
             pymatgen Dos
         """
-        if not (
-            dos_doc := self.es_rester.search(material_ids=material_id, fields=["dos"])
+        with status(
+            f"Fetching the density of states for {material_id}...",
+            enabled=not self.mute_progress_bars,
         ):
-            raise MPRestError(
-                f"No electronic structure data found for material ID {material_id}."
+            if not (
+                dos_doc := self.es_rester.search(
+                    material_ids=material_id, fields=["dos"]
+                )
+            ):
+                raise MPRestError(
+                    f"No electronic structure data found for material ID {material_id}."
+                )
+
+            if not (dos_data := dos_doc[0].get("dos")):
+                raise MPRestError(f"No density of states data found for {material_id}")
+
+            dos_task_id = (
+                dos_data.model_dump() if self.use_document_model else dos_data
+            )["task_id"]
+            return self.get_dos_from_task_id(
+                dos_task_id, load_projections=load_projections
             )
-
-        if not (dos_data := dos_doc[0].get("dos")):
-            raise MPRestError(f"No density of states data found for {material_id}")
-
-        dos_task_id = (dos_data.model_dump() if self.use_document_model else dos_data)[
-            "task_id"
-        ]
-        return self.get_dos_from_task_id(dos_task_id, load_projections=load_projections)

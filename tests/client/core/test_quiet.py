@@ -9,8 +9,10 @@ import warnings
 import pytest
 from rich.console import Console
 
+import mp_api.client.contribs._logger  # noqa: F401 - import (and its warnings) up front
 import mp_api.client.core._display as display
 from mp_api.client import enable_logging, is_quiet, quiet
+from mp_api.client.contribs._logger import MPCC_LOGGER
 from mp_api.client.core._display import mp_warning, print_notice, progress_bar, status
 from mp_api.client.core.exceptions import MPRestWarning
 
@@ -50,8 +52,6 @@ def emit_everything():
     """One of each kind of client output."""
     logging.getLogger("mp_api.client.core.client").warning("core warning")
     logging.getLogger("mp_api.client.core.client").error("core error")
-    from mp_api.client.contribs._logger import MPCC_LOGGER
-
     MPCC_LOGGER.warning("contribs warning")
     print_notice("a notice")
     with progress_bar("a bar", total=2, summary="Did {completed}") as bar:
@@ -351,3 +351,127 @@ def test_database_versions_notebook_and_ipython():
     assert data["text/html"].startswith("<pre>")
     assert "summary" in data["text/html"]
     assert "color: #48c78e" in data["text/html"]  # current version, green
+
+
+# --------------------------------------------------------------------------
+# status() describes the whole operation
+# --------------------------------------------------------------------------
+
+
+def _summary_shown(buf: io.StringIO) -> bool:
+    return "Did 2" in buf.getvalue()
+
+
+def test_bar_summary_is_printed_outside_a_status(term):
+    with progress_bar("a bar", total=2, summary="Did {completed}") as bar:
+        bar.update(2)
+    assert _summary_shown(term)
+
+
+def test_bar_is_not_drawn_inside_a_status(term):
+    """A lookup the client makes for its own purposes shows no bar and no summary."""
+    with status("Fetching the thing..."):
+        with progress_bar("an inner bar", total=2, summary="Did {completed}") as bar:
+            bar.update(2)
+    output = term.getvalue()
+    assert "an inner bar" not in output
+    assert not _summary_shown(term)
+    assert "Fetching the thing" in output  # the status itself is still shown
+
+
+def test_bar_inside_a_status_still_counts_for_the_caller(term):
+    with status("Fetching the thing..."):
+        with progress_bar("an inner bar", total=3) as bar:
+            bar.update(2)
+            bar.update(1)
+        assert bar.completed == 3
+
+
+def test_bar_inside_a_status_logs_nothing_in_a_pipe(app_handler):
+    display.set_console(Console(file=io.StringIO(), force_terminal=False))
+    try:
+        with status("outer"):
+            with progress_bar("inner", total=1, log="inner message"):
+                pass
+    finally:
+        display.set_console(None)
+    assert [r.getMessage() for r in app_handler] == ["outer"]
+
+
+def test_bar_outside_a_status_logs_in_a_pipe(app_handler):
+    display.set_console(Console(file=io.StringIO(), force_terminal=False))
+    try:
+        with progress_bar("a bar", total=1, log="bar message"):
+            pass
+    finally:
+        display.set_console(None)
+    assert [r.getMessage() for r in app_handler] == ["bar message"]
+
+
+def test_summary_is_back_after_the_status_ends(term):
+    with status("Fetching the thing..."):
+        pass
+    with progress_bar("a bar", total=2, summary="Did {completed}") as bar:
+        bar.update(2)
+    assert _summary_shown(term)
+
+
+def test_status_resets_even_if_the_block_raises(term):
+    with pytest.raises(RuntimeError):
+        with status("Fetching the thing..."):
+            raise RuntimeError("boom")
+    with progress_bar("a bar", total=2, summary="Did {completed}") as bar:
+        bar.update(2)
+    assert _summary_shown(term)
+
+
+def test_nested_status_logs_nothing_in_a_pipe(app_handler):
+    display.set_console(Console(file=io.StringIO(), force_terminal=False))
+    try:
+        with status("outer"):
+            with status("inner"):
+                pass
+    finally:
+        display.set_console(None)
+    assert [r.getMessage() for r in app_handler] == ["outer"]
+
+
+def test_nested_status_draws_no_second_line(term):
+    with status("outer line"):
+        with status("inner line"):
+            pass
+    assert "inner line" not in term.getvalue()
+
+
+def test_status_in_worker_thread_inherits_the_operation(term):
+    """Threads started through `in_current_context` run inside the operation."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from mp_api.client.core._external import in_current_context
+
+    def work():
+        with progress_bar("a worker bar", total=2, summary="Did {completed}") as bar:
+            bar.update(2)
+
+    with status("outer"):
+        with ThreadPoolExecutor(1) as pool:
+            pool.submit(in_current_context(work)).result()
+    assert "a worker bar" not in term.getvalue()
+    assert not _summary_shown(term)
+
+
+def test_disabled_status_does_not_define_an_operation(term):
+    with status("muted", enabled=False):
+        with progress_bar("a bar", total=2, summary="Did {completed}") as bar:
+            bar.update(2)
+    assert _summary_shown(term)
+
+
+def test_quiet_status_does_not_define_an_operation(term):
+    """In quiet mode nothing is shown anyway, and nothing is left set after it."""
+    with quiet():
+        with status("muted"):
+            pass
+    with progress_bar("a bar", total=2, summary="Did {completed}") as bar:
+        bar.update(2)
+    assert _summary_shown(term)

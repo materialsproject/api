@@ -154,6 +154,8 @@ def _tracked(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     @functools.wraps(fn)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
+        # keep this frame out of tracebacks in IPython, Jupyter and pytest
+        __tracebackhide__ = True
         with capturing():
             return fn(*args, **kwargs)
 

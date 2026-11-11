@@ -673,3 +673,29 @@ def test_quiet_silences_dataset_warnings(tmp_path):
         warnings.simplefilter("always")
         dataset[0], dataset[0:2], list(dataset)
     assert caught == []
+
+
+# --------------------------------------------------------------------------
+# Tracebacks
+# --------------------------------------------------------------------------
+
+
+def test_call_wrappers_are_hidden_from_tracebacks():
+    """IPython, Jupyter and pytest skip frames that set `__tracebackhide__`."""
+
+    @track_calls
+    class Thing:
+        def fail(self):
+            raise ValueError("boom")
+
+    with pytest.raises(ValueError) as excinfo:
+        Thing().fail()
+
+    frames = []
+    tb = excinfo.value.__traceback__
+    while tb is not None:
+        frames.append(tb.tb_frame)
+        tb = tb.tb_next
+    wrappers = [f for f in frames if f.f_code.co_name == "wrapper"]
+    assert wrappers
+    assert all(f.f_locals.get("__tracebackhide__") is True for f in wrappers)
