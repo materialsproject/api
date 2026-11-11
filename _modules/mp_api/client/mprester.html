@@ -107,6 +107,7 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
 
     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.phonon</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhononBS</span><span class="p">,</span> <span class="n">PhononDOS</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">emmet.core.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreTaskDoc</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">packaging.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">Version</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.analysis.phase_diagram</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDEntry</span>
@@ -1611,34 +1612,55 @@
 
 <div class="viewcode-block" id="MPRester.get_phonon_dos_by_material_id">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_phonon_dos_by_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_phonon_dos_by_material_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">phonon_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"pheasy"</span><span class="p">,</span> <span class="s2">"dfpt"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhononDOS</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Get phonon density of states data corresponding to a material_id.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            material_id (str): Materials Project material_id.</span>
+<span class="sd">            phonon_method (str or None): phonon method, i.e. pheasy or dfpt. By default,</span>
+<span class="sd">                the method is chosen from the material's data: pheasy if it has it,</span>
+<span class="sd">                otherwise dfpt. If the pheasy calculation has no DOS, the dfpt one</span>
+<span class="sd">                is used (with a warning). A method passed explicitly is never replaced.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">             CompletePhononDos: A phonon DOS object.</span>
-
+<span class="sd">            dos (PhononDOS): PhononDOS object</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">phonon</span><span class="o">.</span><span class="n">get_dos_from_material_id</span><span class="p">(</span>
-            <span class="n">material_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">phonon_method</span><span class="o">=</span><span class="s2">"dfpt"</span>
+            <span class="n">material_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">phonon_method</span><span class="o">=</span><span class="n">phonon_method</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="MPRester.get_phonon_bandstructure_by_material_id">
 <a class="viewcode-back" href="../../../_autosummary/mp_api.client.mprester.MPRester.html#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_phonon_bandstructure_by_material_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_phonon_bandstructure_by_material_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">material_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">phonon_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"pheasy"</span><span class="p">,</span> <span class="s2">"dfpt"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">path_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">setyawan_curtarolo</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhononBS</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Get phonon dispersion data corresponding to a material_id.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            material_id (str): Materials Project material_id.</span>
+<span class="sd">            phonon_method (str or None): phonon method, i.e. pheasy or dfpt. By default,</span>
+<span class="sd">                the method is chosen from the material's data: pheasy if it has it,</span>
+<span class="sd">                otherwise dfpt. If the pheasy calculation has no band structure,</span>
+<span class="sd">                the dfpt one is used (with a warning). A method passed explicitly</span>
+<span class="sd">                is never replaced.</span>
+<span class="sd">            path_type (BSPathType or str): k-path selection convention for the band structure.</span>
+<span class="sd">                pheasy has all conventions; dfpt only has setyawan_curtarolo.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            PhononBandStructureSymmLine:  phonon band structure.</span>
+<span class="sd">            bandstructure (PhononBS): PhononBS object</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">phonon</span><span class="o">.</span><span class="n">get_bandstructure_from_material_id</span><span class="p">(</span>
-            <span class="n">material_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">phonon_method</span><span class="o">=</span><span class="s2">"dfpt"</span>
+            <span class="n">material_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span>
+            <span class="n">phonon_method</span><span class="o">=</span><span class="n">phonon_method</span><span class="p">,</span>
+            <span class="n">path_type</span><span class="o">=</span><span class="n">path_type</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
@@ -1914,8 +1936,7 @@
         <span class="c1"># Prevent user error</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material_ids</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">MPID</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                <span class="s2">"Input material IDs (even a single ID) as a list: "</span>
-                <span class="sa">f</span><span class="s2">"`[</span><span class="si">{</span><span class="n">material_ids</span><span class="si">}</span><span class="s2">]`"</span>
+                <span class="sa">f</span><span class="s2">"Input material IDs (even a single ID) as a list: `[</span><span class="si">{</span><span class="n">material_ids</span><span class="si">}</span><span class="s2">]`"</span>
             <span class="p">)</span>
 
         <span class="n">entry_preference</span> <span class="o">=</span> <span class="p">{</span>

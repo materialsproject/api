@@ -49,7 +49,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.electronic_structure.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrbitalType</span><span class="p">,</span> <span class="n">Spin</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRester</span><span class="p">,</span> <span class="n">MPRestError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="n">mp_deprecation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core._display</span><span class="w"> </span><span class="kn">import</span> <span class="n">mp_deprecation</span><span class="p">,</span> <span class="n">status</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mp_api.client.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_ids</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -339,48 +339,57 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bandstructure (BandStructure): BandStructure or BandStructureSymmLine object</span>
 <span class="sd">        """</span>
-        <span class="n">bs_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
-            <span class="s2">"materialsproject-parsed"</span><span class="p">,</span>
-            <span class="s2">"core/electronic-structure/bandstructures/"</span><span class="p">,</span>
-            <span class="n">label</span><span class="o">=</span><span class="s2">"bandstructure"</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span>
-<span class="s2">            SELECT *</span>
-<span class="s2">            FROM   </span><span class="si">{</span><span class="n">bs_lbl</span><span class="si">}</span>
-<span class="s2">            WHERE  identifier='</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">'</span>
-<span class="s2">        """</span>
-
-        <span class="k">if</span> <span class="n">run_type</span><span class="p">:</span>
-            <span class="n">rt</span> <span class="o">=</span> <span class="n">RunType</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">run_type</span>
-            <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">AND run_type='</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">'"</span>
-        <span class="k">if</span> <span class="n">path_type</span><span class="p">:</span>
-            <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">AND path_convention='</span><span class="si">{</span><span class="n">path_type</span><span class="si">}</span><span class="s2">'"</span>
-
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">bs_lbl</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deser</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">load_projections</span><span class="p">:</span>
-                <span class="n">proj_bs_label</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
-                    <span class="s2">"materialsproject-parsed"</span><span class="p">,</span>
-                    <span class="s2">"core/electronic-structure/projected-bandstructures/"</span><span class="p">,</span>
-                    <span class="n">label</span><span class="o">=</span><span class="s2">"bandstructure_projections"</span><span class="p">,</span>
-                <span class="p">)</span>
-                <span class="n">proj_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span>
-                    <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">bs_lbl</span><span class="p">,</span> <span class="n">proj_bs_label</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">proj_bs_label</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span>
-                    <span class="nb">len</span><span class="p">(</span><span class="n">deser_proj</span> <span class="o">:=</span> <span class="n">proj_table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span>
-                    <span class="o">&gt;</span> <span class="mi">0</span>
-                <span class="p">):</span>
-                    <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"projections"</span><span class="p">]</span> <span class="o">=</span> <span class="n">deser_proj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">emmet_bs</span> <span class="o">=</span> <span class="n">ElectronicBS</span><span class="p">(</span><span class="o">**</span><span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="k">return</span> <span class="n">emmet_bs</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">(</span>
-                <span class="n">pmg_cls</span><span class="o">=</span><span class="n">BandStructureSymmLine</span> <span class="k">if</span> <span class="n">emmet_bs</span><span class="o">.</span><span class="n">labels_dict</span> <span class="k">else</span> <span class="n">BandStructure</span>
+        <span class="k">with</span> <span class="n">status</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Fetching the band structure for </span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">..."</span><span class="p">,</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">bs_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+                <span class="s2">"materialsproject-parsed"</span><span class="p">,</span>
+                <span class="s2">"core/electronic-structure/bandstructures/"</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">"bandstructure"</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"No bandstructure data found for </span><span class="si">{</span><span class="n">task_id</span><span class="si">=}</span><span class="s2">"</span>
-            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"run_type=</span><span class="si">{</span><span class="n">rt</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">run_type</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
-        <span class="p">)</span></div>
+
+            <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span>
+<span class="s2">                SELECT *</span>
+<span class="s2">                FROM   </span><span class="si">{</span><span class="n">bs_lbl</span><span class="si">}</span>
+<span class="s2">                WHERE  identifier='</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">'</span>
+<span class="s2">            """</span>
+
+            <span class="k">if</span> <span class="n">run_type</span><span class="p">:</span>
+                <span class="n">rt</span> <span class="o">=</span> <span class="n">RunType</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">run_type</span>
+                <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">AND run_type='</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">'"</span>
+            <span class="k">if</span> <span class="n">path_type</span><span class="p">:</span>
+                <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">AND path_convention='</span><span class="si">{</span><span class="n">path_type</span><span class="si">}</span><span class="s2">'"</span>
+
+            <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">bs_lbl</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deser</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">load_projections</span><span class="p">:</span>
+                    <span class="n">proj_bs_label</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+                        <span class="s2">"materialsproject-parsed"</span><span class="p">,</span>
+                        <span class="s2">"core/electronic-structure/projected-bandstructures/"</span><span class="p">,</span>
+                        <span class="n">label</span><span class="o">=</span><span class="s2">"bandstructure_projections"</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">proj_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span>
+                        <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">bs_lbl</span><span class="p">,</span> <span class="n">proj_bs_label</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">proj_bs_label</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="nb">len</span><span class="p">(</span>
+                            <span class="n">deser_proj</span> <span class="o">:=</span> <span class="n">proj_table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="p">):</span>
+                        <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"projections"</span><span class="p">]</span> <span class="o">=</span> <span class="n">deser_proj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">emmet_bs</span> <span class="o">=</span> <span class="n">ElectronicBS</span><span class="p">(</span><span class="o">**</span><span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">emmet_bs</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">(</span>
+                    <span class="n">pmg_cls</span><span class="o">=</span><span class="p">(</span>
+                        <span class="n">BandStructureSymmLine</span> <span class="k">if</span> <span class="n">emmet_bs</span><span class="o">.</span><span class="n">labels_dict</span> <span class="k">else</span> <span class="n">BandStructure</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"No bandstructure data found for </span><span class="si">{</span><span class="n">task_id</span><span class="si">=}</span><span class="s2">"</span>
+                <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" and run_type=</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">run_type</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" and path_type=</span><span class="si">{</span><span class="n">path_type</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">path_type</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BandStructureRester.get_bandstructure_from_material_id">
@@ -407,62 +416,73 @@
         <span class="n">pt</span><span class="p">:</span> <span class="n">BSPathType</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">BSPathType</span><span class="p">(</span><span class="n">path_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">path_type</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="n">line_mode</span><span class="p">:</span>
-            <span class="n">bs_doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
-                <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"bandstructure"</span><span class="p">]</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure"</span> <span class="k">if</span> <span class="n">line_mode</span> <span class="k">else</span> <span class="s2">"uniform band structure"</span>
+        <span class="k">with</span> <span class="n">status</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Fetching the </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">..."</span><span class="p">,</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">line_mode</span><span class="p">:</span>
+                <span class="n">bs_doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                    <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"bandstructure"</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">bs_doc</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">."</span>
+                    <span class="p">)</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">_bs_data</span> <span class="o">:=</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"bandstructure"</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+
+                <span class="n">bs_data</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">_bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">_bs_data</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">available</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span>
+                        <span class="o">+</span> <span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">" (available: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">available</span><span class="p">)</span><span class="si">}</span><span class="s2">)."</span>
+                            <span class="k">if</span> <span class="n">available</span>
+                            <span class="k">else</span> <span class="s2">"."</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="p">][</span><span class="s2">"task_id"</span><span class="p">]</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+                    <span class="n">bs_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                        <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"dos"</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">."</span>
+                    <span class="p">)</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">_bs_data</span> <span class="o">:=</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"dos"</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+
+                <span class="n">bs_data</span> <span class="o">=</span> <span class="n">_bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">_bs_data</span>
+
+                <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"total"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+                <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="s2">"task_id"</span><span class="p">]</span>
+
+            <span class="n">bs_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bandstructure_from_task_id</span><span class="p">(</span>
+                <span class="n">bs_task_id</span><span class="p">,</span>
+                <span class="n">path_type</span><span class="o">=</span><span class="n">pt</span> <span class="k">if</span> <span class="n">line_mode</span> <span class="k">else</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">unknown</span><span class="p">,</span>
+                <span class="n">load_projections</span><span class="o">=</span><span class="n">load_projections</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">bs_doc</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">."</span>
-                <span class="p">)</span>
 
-            <span class="k">if</span> <span class="p">(</span><span class="n">_bs_data</span> <span class="o">:=</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"bandstructure"</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span>
-                <span class="p">)</span>
-
-            <span class="n">bs_data</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">_bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">_bs_data</span>  <span class="c1"># type: ignore</span>
-            <span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span>
-                <span class="p">)</span>
-            <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">value</span><span class="p">][</span><span class="s2">"task_id"</span><span class="p">]</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
-                <span class="n">bs_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
-                    <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"dos"</span><span class="p">]</span>
-                <span class="p">)</span>
-            <span class="p">):</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">."</span>
-                <span class="p">)</span>
-
-            <span class="k">if</span> <span class="p">(</span><span class="n">_bs_data</span> <span class="o">:=</span> <span class="n">bs_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"dos"</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span>
-                <span class="p">)</span>
-
-            <span class="n">bs_data</span> <span class="o">=</span> <span class="n">_bs_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">_bs_data</span>
-
-            <span class="k">if</span> <span class="n">bs_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"total"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"No uniform band structure data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span>
-                <span class="p">)</span>
-            <span class="n">bs_task_id</span> <span class="o">=</span> <span class="n">bs_data</span><span class="p">[</span><span class="s2">"task_id"</span><span class="p">]</span>
-
-        <span class="n">bs_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bandstructure_from_task_id</span><span class="p">(</span>
-            <span class="n">bs_task_id</span><span class="p">,</span>
-            <span class="n">path_type</span><span class="o">=</span><span class="n">pt</span> <span class="k">if</span> <span class="n">line_mode</span> <span class="k">else</span> <span class="n">BSPathType</span><span class="o">.</span><span class="n">unknown</span><span class="p">,</span>
-            <span class="n">load_projections</span><span class="o">=</span><span class="n">load_projections</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">bs_obj</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">bs_obj</span>
-        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">"No band structure object found."</span><span class="p">)</span></div>
+            <span class="k">if</span> <span class="n">bs_obj</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">bs_obj</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="s2">"No band structure object found."</span><span class="p">)</span></div>
 </div>
 
 
@@ -610,42 +630,49 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            pymatgen Dos</span>
 <span class="sd">        """</span>
-        <span class="n">dos_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
-            <span class="s2">"materialsproject-parsed"</span><span class="p">,</span>
-            <span class="s2">"core/electronic-structure/total-dos/"</span><span class="p">,</span>
-            <span class="n">label</span><span class="o">=</span><span class="s2">"total_dos"</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">status</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Fetching the density of states for </span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">..."</span><span class="p">,</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">dos_lbl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+                <span class="s2">"materialsproject-parsed"</span><span class="p">,</span>
+                <span class="s2">"core/electronic-structure/total-dos/"</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">"total_dos"</span><span class="p">,</span>
+            <span class="p">)</span>
 
-        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span>
-<span class="s2">            SELECT *</span>
-<span class="s2">            FROM   </span><span class="si">{</span><span class="n">dos_lbl</span><span class="si">}</span>
-<span class="s2">            WHERE  identifier='</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">'</span>
-<span class="s2">        """</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span>
+<span class="s2">                SELECT *</span>
+<span class="s2">                FROM   </span><span class="si">{</span><span class="n">dos_lbl</span><span class="si">}</span>
+<span class="s2">                WHERE  identifier='</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">AlphaID</span><span class="p">(</span><span class="n">task_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">padlen</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span><span class="si">}</span><span class="s2">'</span>
+<span class="s2">            """</span>
 
-        <span class="k">if</span> <span class="n">run_type</span><span class="p">:</span>
-            <span class="n">rt</span> <span class="o">=</span> <span class="n">RunType</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">run_type</span>
-            <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">AND run_type='</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">'"</span>
+            <span class="k">if</span> <span class="n">run_type</span><span class="p">:</span>
+                <span class="n">rt</span> <span class="o">=</span> <span class="n">RunType</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">run_type</span>
+                <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">AND run_type='</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">'"</span>
 
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">dos_lbl</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deser</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">load_projections</span><span class="p">:</span>
-                <span class="n">proj_dos_label</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
-                    <span class="s2">"materialsproject-parsed"</span><span class="p">,</span>
-                    <span class="s2">"core/electronic-structure/projected-dos/"</span><span class="p">,</span>
-                    <span class="n">label</span><span class="o">=</span><span class="s2">"dos_projections"</span><span class="p">,</span>
-                <span class="p">)</span>
-                <span class="n">proj_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span>
-                    <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dos_lbl</span><span class="p">,</span> <span class="n">proj_dos_label</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">proj_dos_label</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span>
-                    <span class="nb">len</span><span class="p">(</span><span class="n">deser_proj</span> <span class="o">:=</span> <span class="n">proj_table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span>
-                    <span class="o">&gt;</span> <span class="mi">0</span>
-                <span class="p">):</span>
-                    <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"projected_densities"</span><span class="p">]</span> <span class="o">=</span> <span class="n">deser_proj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">ElectronicDos</span><span class="p">(</span><span class="o">**</span><span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">()</span>
-        <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"No DOS data found for </span><span class="si">{</span><span class="n">task_id</span><span class="si">=}</span><span class="s2">"</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"run_type=</span><span class="si">{</span><span class="n">rt</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">run_type</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
-        <span class="p">)</span></div>
+            <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">dos_lbl</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deser</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">load_projections</span><span class="p">:</span>
+                    <span class="n">proj_dos_label</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_delta_table</span><span class="p">(</span>
+                        <span class="s2">"materialsproject-parsed"</span><span class="p">,</span>
+                        <span class="s2">"core/electronic-structure/projected-dos/"</span><span class="p">,</span>
+                        <span class="n">label</span><span class="o">=</span><span class="s2">"dos_projections"</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">proj_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_delta_single</span><span class="p">(</span>
+                        <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dos_lbl</span><span class="p">,</span> <span class="n">proj_dos_label</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">proj_dos_label</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="nb">len</span><span class="p">(</span>
+                            <span class="n">deser_proj</span> <span class="o">:=</span> <span class="n">proj_table</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">(</span><span class="n">maps_as_pydicts</span><span class="o">=</span><span class="s2">"strict"</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="p">):</span>
+                        <span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"projected_densities"</span><span class="p">]</span> <span class="o">=</span> <span class="n">deser_proj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">ElectronicDos</span><span class="p">(</span><span class="o">**</span><span class="n">deser</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"No DOS data found for </span><span class="si">{</span><span class="n">task_id</span><span class="si">=}</span><span class="s2">"</span>
+                <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" and run_type=</span><span class="si">{</span><span class="n">rt</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">run_type</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DosRester.get_dos_from_material_id">
@@ -663,20 +690,28 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            pymatgen Dos</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
-            <span class="n">dos_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"dos"</span><span class="p">])</span>
+        <span class="k">with</span> <span class="n">status</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Fetching the density of states for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">..."</span><span class="p">,</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mute_progress_bars</span><span class="p">,</span>
         <span class="p">):</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">."</span>
-            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+                <span class="n">dos_doc</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">es_rester</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                    <span class="n">material_ids</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">"dos"</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"No electronic structure data found for material ID </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">dos_data</span> <span class="o">:=</span> <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dos"</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No density of states data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">dos_data</span> <span class="o">:=</span> <span class="n">dos_doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dos"</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">MPRestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No density of states data found for </span><span class="si">{</span><span class="n">material_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">dos_task_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">dos_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">dos_data</span><span class="p">)[</span>
-            <span class="s2">"task_id"</span>
-        <span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_task_id</span><span class="p">(</span><span class="n">dos_task_id</span><span class="p">,</span> <span class="n">load_projections</span><span class="o">=</span><span class="n">load_projections</span><span class="p">)</span></div>
+            <span class="n">dos_task_id</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">dos_data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_document_model</span> <span class="k">else</span> <span class="n">dos_data</span>
+            <span class="p">)[</span><span class="s2">"task_id"</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_from_task_id</span><span class="p">(</span>
+                <span class="n">dos_task_id</span><span class="p">,</span> <span class="n">load_projections</span><span class="o">=</span><span class="n">load_projections</span>
+            <span class="p">)</span></div>
 </div>
 
 </pre></div>

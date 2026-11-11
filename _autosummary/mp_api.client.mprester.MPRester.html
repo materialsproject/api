@@ -226,7 +226,7 @@ process: log messages, progress bars, notices and MPRestWarnings, see
 <tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_bandstructure_by_material_id</span></code></a>(...)</p></td>
 <td><p>Get phonon dispersion data corresponding to a material_id.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_dos_by_material_id</span></code></a>(material_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_phonon_dos_by_material_id</span></code></a>(material_id[, ...])</p></td>
 <td><p>Get phonon density of states data corresponding to a material_id.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mp_api.client.mprester.MPRester.get_pourbaix_entries" title="mp_api.client.mprester.MPRester.get_pourbaix_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pourbaix_entries</span></code></a>(chemsys[, ...])</p></td>
@@ -809,34 +809,49 @@ DOS, if available.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id">
-<span class="sig-name descname"><span class="pre">get_phonon_dos_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_phonon_dos_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_phonon_dos_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phonon_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'pheasy'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'dfpt'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PhononDOS</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_phonon_dos_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_phonon_dos_by_material_id" title="Link to this definition">¶</a></dt>
 <dd><p>Get phonon density of states data corresponding to a material_id.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Materials Project material_id.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Materials Project material_id.</p></li>
+<li><p><strong>phonon_method</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><em>None</em>) – phonon method, i.e. pheasy or dfpt. By default,
+the method is chosen from the material’s data: pheasy if it has it,
+otherwise dfpt. If the pheasy calculation has no DOS, the dfpt one
+is used (with a warning). A method passed explicitly is never replaced.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A phonon DOS object.</p>
+<dd class="field-even"><p>PhononDOS object</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>CompletePhononDos</p>
+<dd class="field-odd"><p>dos (PhononDOS)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id">
-<span class="sig-name descname"><span class="pre">get_phonon_bandstructure_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_phonon_bandstructure_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_phonon_bandstructure_by_material_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phonon_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'pheasy'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'dfpt'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BSPathType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">BSPathType.setyawan_curtarolo</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PhononBS</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/mp_api/client/mprester.html#MPRester.get_phonon_bandstructure_by_material_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mp_api.client.mprester.MPRester.get_phonon_bandstructure_by_material_id" title="Link to this definition">¶</a></dt>
 <dd><p>Get phonon dispersion data corresponding to a material_id.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Materials Project material_id.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Materials Project material_id.</p></li>
+<li><p><strong>phonon_method</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><em>None</em>) – phonon method, i.e. pheasy or dfpt. By default,
+the method is chosen from the material’s data: pheasy if it has it,
+otherwise dfpt. If the pheasy calculation has no band structure,
+the dfpt one is used (with a warning). A method passed explicitly
+is never replaced.</p></li>
+<li><p><strong>path_type</strong> (<em>BSPathType</em><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – k-path selection convention for the band structure.
+pheasy has all conventions; dfpt only has setyawan_curtarolo.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>phonon band structure.</p>
+<dd class="field-even"><p>PhononBS object</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>PhononBandStructureSymmLine</p>
+<dd class="field-odd"><p>bandstructure (PhononBS)</p>
 </dd>
 </dl>
 </dd></dl>
