@@ -451,12 +451,13 @@ loop_
         With an older ``db_version``, the phase diagram is read from that version but
         ``property_data`` from the REST API (current version), which lacks some of its
         materials, e.g. ``mp-1275385`` in the v2026.04.13 Co-O phase diagram. These get
-        None rather than raising a ``KeyError``.
+        ``None`` rather than raising a ``KeyError``, except for fields the served
+        entries already have (e.g. ``material_id``).
         """
         with MPRester(db_version="2026.04.13") as mpr:
             with caplog.at_level(logging.WARNING, logger="mp_api.client"):
                 entries = mpr.get_entries_in_chemsys(
-                    "Co-O", property_data=["energy_above_hull"]
+                    "Co-O", property_data=["material_id", "energy_above_hull"]
                 )
         missing = {
             str(e.data["material_id"])
