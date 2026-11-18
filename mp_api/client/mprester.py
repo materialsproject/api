@@ -1383,7 +1383,7 @@ class MPRester(_Rester):
                         material_id = str(entry.data["material_id"])
                         if material_id not in props:
                             missing.append(material_id)
-                        entry.data |= props.get(material_id, no_doc)
+                        entry.data |= props.get(material_id, no_doc | entry.data)
                     if missing:  # e.g. materials removed since an older `db_version`
                         logger.warning(
                             f"No thermo document was found for {', '.join(missing)} in "
