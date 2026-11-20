@@ -85,3 +85,10 @@ def test_attachment():
 
     # Finally test roundtrip
     assert json.loads(new_attach.unpack()) == data_struct
+
+
+def test_table_clean_missing_values():
+    table = Table({"x": [1.0, float("nan"), float("inf")], "y": [1, 2, 3]})
+    table._clean()
+    assert table["x"].tolist() == ["1.0", "", ""]
+    assert table["y"].tolist() == ["1", "2", "3"]
