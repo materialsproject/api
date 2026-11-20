@@ -57,3 +57,19 @@ def test_mock():
     with pytest.raises(ValueError):
         with ContribsClient(host="not.valid.org") as client:
             spec = client.swagger_spec
+
+
+def test_init_columns_prefix_is_not_duplicate():
+    from mp_api.client.core.exceptions import MPContribsClientError
+
+    client = MagicMock(project="demo")
+    client.projects.getProjectByName.return_value.result.return_value = {"columns": []}
+
+    # sibling columns where one name is a prefix of the other
+    ContribsClient.init_columns(client, {"a.bc": "", "a.b": None})
+    payload = client.projects.updateProjectByName.call_args.kwargs["project"]
+    assert {c["path"] for c in payload["columns"]} == {"data.a.b", "data.a.bc"}
+
+    # a true duplicate (ancestor listed after its child) is still rejected
+    with pytest.raises(MPContribsClientError, match="Duplicate definition"):
+        ContribsClient.init_columns(client, {"a.b.c": "", "a.b": None})
