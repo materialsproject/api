@@ -126,10 +126,12 @@ class Table(pd.DataFrame, _Component):
     def _clean(self):
         """Clean the dataframe."""
         self.replace([np.inf, -np.inf], np.nan, inplace=True)
-        self.fillna("", inplace=True)
         self.index = self.index.astype(str)
         for col in self.columns:
-            self[col] = self[col].astype(str)
+            # cast to object before filling: pandas >= 3 refuses to put ""
+            # into a float column
+            values = self[col].astype(object)
+            self[col] = values.where(values.notna(), "").astype(str)
 
     def _attrs_as_dict(self):
         name = self.attrs.get("name", "table")
