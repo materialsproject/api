@@ -1183,7 +1183,9 @@ class ContribsClient(SwaggerClient):
                     )
 
                 for col in scanned_columns:
-                    if nesting and col.startswith(k):
+                    # match on the "." separator so that e.g. "a.b" is not
+                    # flagged as a duplicate of a sibling "a.bc"
+                    if nesting and col.startswith(f"{k}."):
                         raise MPContribsClientError(
                             f"Duplicate definition of {k} in {col}!"
                         )
